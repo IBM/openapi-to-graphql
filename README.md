@@ -12,11 +12,11 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 ## Work in progress
 
-[] Handle arrays
-[] Enable mutating operations (POST, PUT, DELETE...)
-[] Compose multiple OAS
-[] Handle authentication
-[] Translate Swagger/OAS 2.0 automatically 
+- [] Handle arrays
+- [] Enable mutating operations (POST, PUT, DELETE...)
+- [] Compose multiple OAS
+- [] Handle authentication
+- [] Translate Swagger/OAS 2.0 automatically 
 
 
 ## Usage
