@@ -1,0 +1,166 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Example API",
+    "description": "An API to test converting Open API Specs 3.0 to GraphQL",
+    "version": "1.0.0",
+    "termsOfService": "http://example.com/terms/",
+    "contact": {
+      "name": "Erik Wittern",
+      "url": "http://www.example.com/support",
+      "email": "witternj@us.ibm.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "externalDocs": {
+    "url": "http://example.com/docs",
+    "description": "Some more natural language description."
+  },
+  "tags": [
+    {
+      "name": "test",
+      "description": "Indicates this API is for testing"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:3000/api",
+      "description": "The location of the local test server."
+    }
+  ],
+  "paths": {
+    "/users/{username}": {
+      "get": {
+        "operationId": "getUserById",
+        "description": "Returns a user from the System.",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": "true",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            },
+            "links": {
+              "employerCompany": {
+                "$ref": "#/components/links/EmployerCompany"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}": {
+      "get": {
+        "operationId": "getCompanyById",
+        "description": "Returns the profile of a company with the given ID.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": "true",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A company profile.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/company"
+                }
+              }
+            },
+            "links": {
+              "ceoUser": {
+                "$ref": "#/components/links/CeoUser"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/companies/{id}/employees": {
+
+  },
+  "components": {
+    "schemas": {
+      "user": {
+        "type": "object",
+        "description": "Represents a user in the system.",
+        "properties": {
+          "username": {
+            "type": "string"
+          },
+          "address": {
+            "type": "object",
+            "properties": {
+              "street": {
+                "type": "string"
+              },
+              "city": {
+                "type": "string"
+              }
+            }
+          },
+          "employerId": {
+            "type": "string"
+          }
+        }
+      }
+      ,
+      "company": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "legalForm": {
+            "type": "string"
+          },
+          "ceo": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "links": {
+      "EmployerCompany": {
+        "operationId": "getCompanyById",
+        "parameters": {
+          "id": "$response.body#/employerId"
+        }
+      },
+      "CeoUser": {
+        "operationId": "getUserById",
+        "parameters": {
+          "username": "$response.body#/ceo"
+        }
+      }
+    }
+  },
+  "security": {
+  }
+}
