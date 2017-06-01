@@ -5,7 +5,7 @@ const app = express()
 
 const Users = {
   erik: {
-    username: 'Erik Wittern',
+    name: 'Erik Wittern',
     address: {
       street: '270 East 10th Street',
       city: 'New York City'
@@ -13,7 +13,7 @@ const Users = {
     employerId: 'ibm'
   },
   jim: {
-    username: 'Jim Laredo',
+    name: 'Jim Laredo',
     address: {
       street: '6 Dogwood',
       city: 'Katonah'
@@ -21,7 +21,7 @@ const Users = {
     employerId: 'ibm'
   },
   ginni: {
-    username: 'Ginni Rometti',
+    name: 'Ginni Rometti',
     address: {
       street: '345 Business Street',
       city: 'Armonk'
@@ -29,7 +29,7 @@ const Users = {
     employerId: 'ibm'
   },
   bill: {
-    username: 'Bill Gates',
+    name: 'Bill Gates',
     address: {
       street: '123 Some Street',
       city: 'Redmond'
@@ -43,13 +43,13 @@ const Companies = {
     id: 'ibm',
     name: 'International Business Machines Corporation',
     legalForm: 'public',
-    ceoId: 'ginni'
+    ceoUsername: 'ginni'
   },
   microsoft: {
     id: 'microsoft',
     name: 'Microsoft',
     legalForm: 'public',
-    ceoId: 'bill'
+    ceoUsername: 'bill'
   }
 }
 
