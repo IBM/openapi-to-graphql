@@ -48,7 +48,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A user.",
+            "description": "A user represents a natural person.",
             "content": {
               "application/json": {
                 "schema": {
@@ -90,8 +90,8 @@
               }
             },
             "links": {
-              "ceoUser": {
-                "$ref": "#/components/links/CeoUser"
+              "ceo": {
+                "$ref": "#/components/links/Ceo"
               }
             }
           }
@@ -99,49 +99,56 @@
       }
     }
   },
-  "/companies/{id}/employees": {
-
-  },
   "components": {
     "schemas": {
       "user": {
         "type": "object",
-        "description": "Represents a user in the system.",
+        "description": "A user represents a natural person",
         "properties": {
           "username": {
-            "type": "string"
+            "type": "string",
+            "description": "The legal name of a user"
           },
           "address": {
             "type": "object",
+            "description": "The legal address of a user",
             "properties": {
               "street": {
-                "type": "string"
+                "type": "string",
+                "description": "The street a user lives in"
               },
               "city": {
-                "type": "string"
+                "type": "string",
+                "description": "The city a user lives in"
               }
             }
           },
           "employerId": {
-            "type": "string"
+            "type": "string",
+            "description": "The identifier of the company a user works for"
           }
         }
       }
       ,
       "company": {
         "type": "object",
+        "description": "A company is the employer of many users",
         "properties": {
           "id": {
-            "type": "string"
+            "type": "string",
+            "description": "The identifier of a company"
           },
           "name": {
-            "type": "string"
+            "type": "string",
+            "description": "The legal name of a company"
           },
           "legalForm": {
-            "type": "string"
+            "type": "string",
+            "description": "The legal form of a company"
           },
-          "ceo": {
-            "type": "string"
+          "ceoId": {
+            "type": "string",
+            "description": "The identifier of the user who is CEO of the company"
           }
         }
       }
@@ -153,10 +160,10 @@
           "id": "$response.body#/employerId"
         }
       },
-      "CeoUser": {
+      "Ceo": {
         "operationId": "getUserById",
         "parameters": {
-          "username": "$response.body#/ceo"
+          "username": "$response.body#/ceoId"
         }
       }
     }

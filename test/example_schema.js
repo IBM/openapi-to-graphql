@@ -15,13 +15,22 @@ dict.User = new GraphQLObjectType({
 
     let userFields = {
       name: { type: GraphQLString },
+      address: {
+        type: GraphQLString
+      },
       item: {
         type: dict.Item
       }
     }
 
     return userFields
-  }
+  },
+  // resolve: () => {
+  //   return {
+  //     name: 'Erik',
+  //     address: '270 East 10th street'
+  //   }
+  // }
 })
 
 dict.Item = new GraphQLObjectType({

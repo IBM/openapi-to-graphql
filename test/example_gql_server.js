@@ -3,10 +3,10 @@
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
 const app = express()
-const OpenGraph = require('../index.js')
+const OasGraph = require('../index.js')
 
 let oas = require('./example_oas.json')
-let schema = OpenGraph.createGraphQlSchema(oas)
+let schema = OasGraph.createGraphQlSchema(oas)
 
 app.use('/graphql', graphqlHTTP({
   schema: schema,

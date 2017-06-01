@@ -20,6 +20,14 @@ const Users = {
     },
     employerId: 'ibm'
   },
+  ginni: {
+    username: 'Ginni Rometti',
+    address: {
+      street: '345 Business Street',
+      city: 'Armonk'
+    },
+    employerId: 'ibm'
+  },
   bill: {
     username: 'Bill Gates',
     address: {
@@ -35,13 +43,13 @@ const Companies = {
     id: 'ibm',
     name: 'International Business Machines Corporation',
     legalForm: 'public',
-    ceo: 'erik'
+    ceoId: 'ginni'
   },
   microsoft: {
     id: 'microsoft',
     name: 'Microsoft',
     legalForm: 'public',
-    ceo: 'bill'
+    ceoId: 'bill'
   }
 }
 
