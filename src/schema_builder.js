@@ -61,7 +61,8 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
   // case: scalar:
   } else {
     return {
-      type: getScalarType(schema.type)
+      type: getScalarType(schema.type),
+      description: schema.description // might be undefined
     }
   }
 }
