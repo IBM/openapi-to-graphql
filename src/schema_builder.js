@@ -29,9 +29,17 @@ const ResolverBuilder = require('./resolver_builder.js')
  *     'resolve'   // optional function defining how to obtain this type
  * })
  *
- * @param  {[type]} name   [description]
- * @param  {[type]} schema [description]
- * @return {[type]}        [description]
+ * @param  {string} name      Name of the Type Definition to create
+ * @param  {object} schema    JSON-schema from an OAS schema
+ * @param  {object} links     Object containing the (possible) links between
+ * this object to other endpoints (= operations)
+ * @param  {object} oas       The original OAS
+ * @param  {object} allOTs    Object containing operationId as key and derived
+ * GraphQLObjectType as value (if existent)
+ * @param  {number} iteration Integer count of how many recursions have already
+ * been performed in creating this type definition.
+ * @return {object}           GraphQLObjectType | GraphQLList |
+ * Object with scalar type
  */
 const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
   if (typeof iteration === 'undefined') {
@@ -70,12 +78,15 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
 /**
  * Creates the fields object to be used by an ObjectType.
  *
- * @param  {[type]} schema    [description]
- * @param  {[type]} links     [description]
- * @param  {[type]} oas       [description]
- * @param  {[type]} allOTs    [description]
- * @param  {[type]} iteration [description]
- * @return {[type]}           [description]
+ * @param  {object} schema    JSON-schema from an OAS schema
+ * @param  {object} links     Object containing the (possible) links between
+ * this object to other endpoints (= operations)
+ * @param  {object} oas       The original OAS
+ * @param  {object} allOTs    Object containing operationId as key and derived
+ * GraphQLObjectType as value (if existent)
+ * @param  {number} iteration Integer count of how many recursions have already
+ * been performed in creating this type definition.
+ * @return {object}           Object of fields for given schema
  */
 const createFields = (schema, links, oas, allOTs, iteration) => {
   let fields = {}
@@ -117,7 +128,7 @@ const createFields = (schema, links, oas, allOTs, iteration) => {
       let linkArgs = getArgs(dynamicParams)
 
       // create resolve function:
-      let linkResolve = ResolverBuilder.getResolver(
+      let linkResolver = ResolverBuilder.getResolver(
         op.path,
         op.method,
         op.endpoint,
@@ -127,7 +138,7 @@ const createFields = (schema, links, oas, allOTs, iteration) => {
 
       fields[linkKey] = {
         type: allOTs[operationId],
-        resolve: linkResolve,
+        resolve: linkResolver,
         args: linkArgs
       }
     }
@@ -135,6 +146,14 @@ const createFields = (schema, links, oas, allOTs, iteration) => {
   return fields
 }
 
+/**
+ * Helper function that turns given OAS parameters into an object containing
+ * GraphQL types.
+ *
+ * @param  {list} params  List of OAS parameters
+ * @return {object}       Object containing as keys parameter names and as
+ * values a simple object stating the parameter type.
+ */
 const getArgs = (params) => {
   let args = {}
   for (let i in params) {
@@ -155,8 +174,8 @@ const getArgs = (params) => {
 /**
  * Returns the scalar GraphQL type matching the given JSON schema type.
  *
- * @param  {string} type Atomic JSON schema type
- * @return {string}      Atomic GraphQL type
+ * @param  {string} type Scalar JSON schema type
+ * @return {string}      Scalar GraphQL type
  */
 const getScalarType = (type) => {
   switch (type) {
@@ -174,6 +193,6 @@ const getScalarType = (type) => {
 }
 
 module.exports = {
-  getTypeDef: getTypeDef,
-  getArgs: getArgs
+  getTypeDef,
+  getArgs
 }

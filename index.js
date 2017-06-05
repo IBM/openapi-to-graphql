@@ -84,5 +84,5 @@ const createGraphQlSchema = oas => {
 }
 
 module.exports = {
-  createGraphQlSchema: createGraphQlSchema
+  createGraphQlSchema
 }
