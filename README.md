@@ -20,14 +20,20 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 
 ## Usage
-Install this package. Then, simply pass it an OpenAPI Specification 3.0:
+Install this package. Then, simply pass it an OpenAPI Specification 3.0. The library returns a promise:
 
 ```javascript
 const OASGraph = require('oasgraph') // use real name here
 
 let oas = require('./example_oas.json') // or other means of obtaining the OAS
 
-let schema = OASGraph.createGraphQlSchema(oas)
+OASGraph.createGraphQlSchema(oas)
+  .then(schema => {
+    // do something with the schema
+  })
+  .catch(err => {
+    // handle errors when creating the schema
+  })
 ```
 
 You can then use the generated schema, for example to be served using express:
@@ -35,14 +41,19 @@ You can then use the generated schema, for example to be served using express:
 ```javascript
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
+const OASGraph = require('oasgraph') // use real name here
 
-// see above ...
-
-app.use('/graphql', graphqlHTTP({
-  schema: schema,
-  graphiql: true
-}))
-app.listen(3001)
+OASGraph.createGraphQlSchema(oas)
+  .then(schema => {
+    app.use('/graphql', graphqlHTTP({
+      schema: schema,
+      graphiql: true
+    }))
+    app.listen(3001)
+  })
+  .catch(err => {
+    // handle errors when creating the schema
+  })
 ``` 
 
 
