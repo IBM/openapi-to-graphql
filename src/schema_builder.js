@@ -6,7 +6,8 @@ const {
   GraphQLInt,
   GraphQLFloat,
   GraphQLBoolean,
-  GraphQLNonNull
+  GraphQLNonNull,
+  GraphQLList
 } = require('graphql')
 const Oas3Tools = require('./oas_3_tools.js')
 const ResolverBuilder = require('./resolver_builder.js')
@@ -46,6 +47,10 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
     iteration = 0
   }
 
+  if (iteration === 20) {
+    throw new Error(`Too many iterations`)
+  }
+
   // some error checking:
   if (typeof schema !== 'object') {
     throw new Error(`invalid schema provided of type ${typeof schema}`)
@@ -56,16 +61,60 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
 
   // case: object - create ObjectType:
   if (schema.type === 'object') {
-    return new GraphQLObjectType({
-      name: name,
-      description: schema.description, // might be undefined
-      fields: () => {
-        return createFields(schema, links, oas, allOTs, iteration)
-      }
-    })
+    if (name in allOTs) {
+      return allOTs[name]
+    } else {
+      allOTs[name] = new GraphQLObjectType({
+        name: name,
+        description: schema.description, // might be undefined
+        fields: () => {
+          return createFields(schema, links, oas, allOTs, iteration)
+        }
+      })
+      return allOTs[name]
+    }
   // case: array - create ArrayType:
   } else if (schema.type === 'array') {
-    // TODO: implement!!!
+    // let name = path.split('/').pop()
+    let name = 'some_name'
+
+    if (!('items' in schema)) {
+      throw new Error(`Items property missing in array schema definition`)
+    }
+
+    if ('title' in schema.items) {
+      name = schema.items.title
+    }
+
+    if ('$ref' in schema.items) {
+      name = schema.items['$ref'].split('/').pop()
+      schema.items = Oas3Tools.resolveRef(schema.items['$ref'], oas)
+    }
+
+    if (!('type' in schema.items)) {
+      throw new Error(`Type property missing in items definition`)
+    }
+
+    if (schema.items.type === 'object' || schema.items.type === 'array') {
+      let nextIteration = iteration + 1
+      let type
+      if (name in allOTs) {
+        type = allOTs[name]
+      } else {
+        type = getTypeDef(name, schema.items, links, oas, allOTs, nextIteration)
+      }
+      return {
+        type: new GraphQLList(type),
+        description: schema.description // might be undefined
+      }
+    } else {
+      let type = getScalarType(schema.items.type)
+      return {
+        type: new GraphQLList(type),
+        description: schema.description // might be undefined
+      }
+    }
+
   // case: scalar:
   } else {
     return {

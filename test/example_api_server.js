@@ -10,7 +10,8 @@ const Users = {
       street: '270 East 10th Street',
       city: 'New York City'
     },
-    employerId: 'ibm'
+    employerId: 'ibm',
+    hobbies: ['lion dancing', 'doing CEO stuff']
   },
   jim: {
     name: 'Jim Laredo',
@@ -18,7 +19,8 @@ const Users = {
       street: '6 Dogwood',
       city: 'Katonah'
     },
-    employerId: 'ibm'
+    employerId: 'ibm',
+    hobbies: ['lion dancing', 'baseball']
   },
   ginni: {
     name: 'Ginni Rometti',
@@ -26,7 +28,8 @@ const Users = {
       street: '345 Business Street',
       city: 'Armonk'
     },
-    employerId: 'ibm'
+    employerId: 'ibm',
+    hobbies: ['chess', 'tennis']
   },
   bill: {
     name: 'Bill Gates',
@@ -34,7 +37,8 @@ const Users = {
       street: '123 Some Street',
       city: 'Redmond'
     },
-    employerId: 'microsoft'
+    employerId: 'microsoft',
+    hobbies: ['making money', 'making more money']
   }
 }
 
@@ -43,13 +47,29 @@ const Companies = {
     id: 'ibm',
     name: 'International Business Machines Corporation',
     legalForm: 'public',
-    ceoUsername: 'ginni'
+    ceoUsername: 'ginni',
+    offices: [{
+      street: '122 Some Street',
+      city: 'Redmond'
+    },
+    {
+      street: '124 Some Street',
+      city: 'Redmond'
+    }]
   },
   microsoft: {
     id: 'microsoft',
     name: 'Microsoft',
     legalForm: 'public',
-    ceoUsername: 'bill'
+    ceoUsername: 'bill',
+    offices: [{
+      street: '300 Some Street',
+      city: 'Redmond'
+    },
+    {
+      street: '301 Some Street',
+      city: 'Redmond'
+    }]
   }
 }
 
