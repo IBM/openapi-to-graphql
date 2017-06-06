@@ -12,11 +12,11 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 ## Work in progress
 
-- [ ] Handle arrays
+- [x] Handle arrays
 - [ ] Enable mutating operations (POST, PUT, DELETE...)
 - [ ] Compose multiple OAS
 - [ ] Handle authentication
-- [ ] Translate Swagger/OAS 2.0 automatically 
+- [ ] Translate Swagger/OAS 2.0 automatically
 
 
 ## Usage
@@ -54,7 +54,7 @@ OASGraph.createGraphQlSchema(oas)
   .catch(err => {
     // handle errors when creating the schema
   })
-``` 
+```
 
 
 ## Testing
@@ -77,4 +77,4 @@ npm test
 
 * [json-to-graphql](https://github.com/aweary/json-to-graphql) turns given JSON objects / arrays into a GraphQL schema. `resolve` functions need to be provided by the user.
 
-* [StackOverflow discussion](https://stackoverflow.com/questions/38339442/json-schema-to-graphql-schema-converters) points to the above projects. 
+* [StackOverflow discussion](https://stackoverflow.com/questions/38339442/json-schema-to-graphql-schema-converters) points to the above projects.
