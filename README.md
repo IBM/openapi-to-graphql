@@ -57,6 +57,20 @@ OASGraph.createGraphQlSchema(oas)
 ``` 
 
 
+## Testing
+To test OASGraph, first make sure the example API server is running:
+
+```bash
+node test/example_api_server.js
+```
+
+Then, run tests:
+
+```bash
+npm test
+```
+
+
 ## Similar projects
 
 * [swagger-to-graphql](https://github.com/yarax/swagger-to-graphql) turns a given Swagger (OpenAPI Specification 2.0) into a GraphQL interface, which resolves against the original API. GraphQL schema is based on endpoints, not on data definitions. No links are considered.

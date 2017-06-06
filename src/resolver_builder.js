@@ -28,7 +28,6 @@ const getResolver = (path, method, endpoint, oas, argsFromLink) => {
 
     let urlPath = Oas3Tools.instantiatePath(path, endpoint, args)
     let url = baseUrl + urlPath
-    console.log(url)
     return new Promise((resolve, reject) => {
       request({
         method: method,

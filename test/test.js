@@ -1,6 +1,5 @@
 'use strict'
 
-const request = require('request')
 const test = require('tape')
 const OasGraph = require('../index.js')
 const graphql = require('graphql').graphql
@@ -12,7 +11,6 @@ const graphql = require('graphql').graphql
 let oas = require('./example_oas.json')
 OasGraph.createGraphQlSchema(oas)
   .then(schema => {
-
     /**
      * Basic fetching of resources
      */
@@ -40,6 +38,24 @@ OasGraph.createGraphQlSchema(oas)
       })
     })
 
+    /**
+     * Nested queries
+     */
+    test('Get user and employer', t => {
+      let query = `{
+        user (username: "erik") {
+          name
+          employerCompany {
+            legalForm
+          }
+        }
+      }`
+      graphql(schema, query).then(result => {
+        t.ok(result.data.user.name === 'Erik Wittern', 'name correct')
+        t.ok(result.data.user.employerCompany.legalForm === 'public', 'legalForm correct')
+        t.end()
+      })
+    })
   })
   .catch(err => {
     console.log(err)

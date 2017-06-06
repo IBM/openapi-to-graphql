@@ -52,7 +52,6 @@ const instantiatePath = (path, endpoint, args) => {
 
     // TODO: body...
   }
-  console.log(path)
   return path
 }
 
