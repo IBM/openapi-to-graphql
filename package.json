@@ -4,7 +4,7 @@
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/test.js | tap-spec"
   },
   "author": "Erik Wittern",
   "license": "MIT",
@@ -16,6 +16,8 @@
     "debug": "^2.6.6",
     "graphql": "^0.9.6",
     "openapi-sampler": "^0.4.1",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "tap-spec": "^4.1.1",
+    "tape": "^4.6.0"
   }
 }
