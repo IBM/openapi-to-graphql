@@ -92,10 +92,31 @@ const getSchemaForOpId = (opId, oas) => {
   return null
 }
 
+const getSchemaType = (schema) => {
+  if (typeof schema.type === 'string') {
+    return schema.type
+  }
+  if ('properties' in schema) {
+    return 'object'
+  }
+  if ('items' in schema) {
+    return 'array'
+  }
+  return null
+}
+
+const inferResourceNameFromPath = (path) => {
+  // TODO: try to be smarter about this!
+  // For now: strip out any non-alphanumeric
+  return path.replace(/[^a-zA-Z0-9 -]/g, '_')
+}
+
 module.exports = {
-  resolveRef: resolveRef,
-  getBaseUrl: getBaseUrl,
-  instantiatePath: instantiatePath,
-  getSchemaForOpId: getSchemaForOpId,
-  getOperationById: getOperationById
+  resolveRef,
+  getBaseUrl,
+  instantiatePath,
+  getSchemaForOpId,
+  getOperationById,
+  getSchemaType,
+  inferResourceNameFromPath
 }

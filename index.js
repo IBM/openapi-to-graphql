@@ -35,13 +35,14 @@ const createGraphQlSchema = oas => {
           'schema' in endpoint.responses['200'].content['application/json']) {
           // determine schema and name:
           let schema = endpoint.responses['200'].content['application/json'].schema
-          let name = path.split('/').pop()
-          if ('title' in schema) {
-            name = schema.title
-          }
+          let name = Oas3Tools.inferResourceNameFromPath(path)
+
           if ('$ref' in schema) {
             name = schema['$ref'].split('/').pop()
             schema = Oas3Tools.resolveRef(schema['$ref'], oas)
+          }
+          if ('title' in schema) {
+            name = schema.title
           }
 
           // get links:

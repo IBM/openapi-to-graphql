@@ -129,3 +129,11 @@ test('Get single resource', () => {
     })
   })
 })
+
+test('Create schema for Government Social Work API', () => {
+  let oas = require('./government_social_work_api.json')
+  return OasGraph.createGraphQlSchema(oas)
+    .then(createdSchema => {
+      expect(createdSchema).toBeDefined()
+    })
+})
