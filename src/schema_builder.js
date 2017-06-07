@@ -162,8 +162,19 @@ const createFields = (schema, links, oas, allOTs, iteration) => {
 
   // create fields for (potential) links:
   for (let linkKey in links) {
+    // move iteration check outside?
     if (iteration === 0) {
-      let operationId = links[linkKey].operationId
+      let operationId
+      // TODO: href is yet another alternative to operationRef and operationId
+      // if ('operationRef' in links[linkKey]) {
+      //   operationId = Oas3Tools.resolveRef(links[linkKey].operationRef, oas).operationId
+      // } else if ('operationId' in links[linkKey]) {
+      if ('operationId' in links[linkKey]) {
+        operationId = links[linkKey].operationId
+      } else {
+        throw new Error(`operationRef and operationId and hRef properties missing in link definition`)
+      }
+
       let parameters = links[linkKey].parameters
 
       // create args function:

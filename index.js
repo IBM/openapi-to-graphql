@@ -23,7 +23,7 @@ const createGraphQlSchema = oas => {
 
     // Create a GraphQL Object Type definitions for every resource defined in OAI.
     let rootFields = {}
-    let allOTs = {} // key: operationId or method:path, value: GraphQLObjectType
+    let allOTs = {} // key: operationId or operationRef or method:path, value: GraphQLObjectType
 
     for (let path in oas.paths) {
       for (let method in oas.paths[path]) {
