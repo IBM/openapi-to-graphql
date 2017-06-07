@@ -24,7 +24,7 @@ dict.User = new GraphQLObjectType({
     }
 
     return userFields
-  },
+  }
   // resolve: () => {
   //   return {
   //     name: 'Erik',

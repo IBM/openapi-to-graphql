@@ -4,20 +4,19 @@
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "main": "index.js",
   "scripts": {
-    "test": "node test/test.js | tap-spec"
+    "test": "jest"
   },
   "author": "Erik Wittern",
   "license": "MIT",
-  "devDependencies": {
-    "express": "^4.15.2",
-    "express-graphql": "^0.6.4",
-    "tap-spec": "^4.1.1",
-    "tape": "^4.6.0"
-  },
   "dependencies": {
     "debug": "^2.6.6",
     "graphql": "^0.9.6",
     "openapi-sampler": "^0.4.1",
     "request": "^2.81.0"
+  },
+  "devDependencies": {
+    "express": "^4.15.2",
+    "express-graphql": "^0.6.4",
+    "jest": "^20.0.4"
   }
 }
