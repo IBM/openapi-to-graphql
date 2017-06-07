@@ -55,12 +55,15 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
   if (typeof schema !== 'object') {
     throw new Error(`invalid schema provided of type ${typeof schema}`)
   }
-  if (typeof schema.type !== 'string') {
-    throw new Error(`schema has no/wrong type ${schema.type}`)
+
+  let type = Oas3Tools.getSchemaType(schema)
+
+  if (!type) {
+    throw new Error(`schema has no/wrong type: ${JSON.stringify(schema)}`)
   }
 
   // case: object - create ObjectType:
-  if (schema.type === 'object') {
+  if (type === 'object') {
     if (name in allOTs) {
       return allOTs[name]
     } else {
@@ -74,7 +77,7 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
       return allOTs[name]
     }
   // case: array - create ArrayType:
-  } else if (schema.type === 'array') {
+  } else if (type === 'array') {
     // let name = path.split('/').pop()
     let name = 'some_name'
 
@@ -91,11 +94,12 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
       schema.items = Oas3Tools.resolveRef(schema.items['$ref'], oas)
     }
 
-    if (!('type' in schema.items)) {
+    let propertyType = Oas3Tools.getSchemaType(schema.items)
+    if (!propertyType) {
       throw new Error(`Type property missing in items definition`)
     }
 
-    if (schema.items.type === 'object' || schema.items.type === 'array') {
+    if (propertyType === 'object' || propertyType === 'array') {
       let nextIteration = iteration + 1
       let type
       if (name in allOTs) {
@@ -108,7 +112,7 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
         description: schema.description // might be undefined
       }
     } else {
-      let type = getScalarType(schema.items.type)
+      let type = getScalarType(propertyType)
       return {
         type: new GraphQLList(type),
         description: schema.description // might be undefined
@@ -118,7 +122,7 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
   // case: scalar:
   } else {
     return {
-      type: getScalarType(schema.type),
+      type: getScalarType(type),
       description: schema.description // might be undefined
     }
   }
