@@ -110,18 +110,7 @@
             "description": "The legal name of a user"
           },
           "address": {
-            "type": "object",
-            "description": "The legal address of a user",
-            "properties": {
-              "street": {
-                "type": "string",
-                "description": "The street a user lives in"
-              },
-              "city": {
-                "type": "string",
-                "description": "The city a user lives in"
-              }
-            }
+            "$ref": "#/components/schemas/address"
           },
           "employerId": {
             "type": "string",

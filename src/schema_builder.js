@@ -142,7 +142,12 @@ const createFields = (schema, links, oas, allOTs, iteration) => {
 
   // create fields for all properties:
   for (let propKey in schema.properties) {
-    let prop = schema.properties[propKey]
+    let prop
+    if ('$ref' in schema.properties[propKey]) {
+      prop = Oas3Tools.resolveRef(schema.properties[propKey]['$ref'], oas)
+    } else {
+      prop = schema.properties[propKey]
+    }
 
     let nextIteration = iteration + 1
     let otToAdd = getTypeDef(propKey, prop, links, oas, allOTs, nextIteration)

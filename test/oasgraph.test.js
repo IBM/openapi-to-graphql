@@ -106,3 +106,26 @@ test('Get array of objects', () => {
     })
   })
 })
+
+test('Get single resource', () => {
+  let query = `{
+    user(username: "erik"){
+      name
+      address{
+        street
+      }
+    }
+  }`
+  return graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Erik Wittern',
+          address: {
+            street: '270 East 10th Street'
+          }
+        }
+      }
+    })
+  })
+})
