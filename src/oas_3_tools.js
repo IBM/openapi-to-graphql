@@ -1,6 +1,7 @@
 'use strict'
 
 const querystring = require('querystring')
+const mutationMethods = ['post', 'put', 'patch', 'delete']
 
 const resolveRef = (ref, obj, parts) => {
   if (typeof parts === 'undefined') {
@@ -106,9 +107,20 @@ const getSchemaType = (schema) => {
 }
 
 const inferResourceNameFromPath = (path) => {
-  // TODO: try to be smarter about this!
-  // For now: strip out any non-alphanumeric
-  return path.replace(/[^a-zA-Z0-9 -]/g, '_')
+  let name = ''
+  let parts = path.split('/')
+  for (let i in parts) {
+    let part = parts[i]
+    if (!/{|}/g.test(part)) {
+      let partClean = sanitize(parts[i])
+      if (i === 0) {
+        name += partClean
+      } else {
+        name += partClean.charAt(0).toUpperCase() + partClean.slice(1)
+      }
+    }
+  }
+  return name
 }
 
 const getEndpointLinks = (endpoint, oas) => {
@@ -125,18 +137,117 @@ const getEndpointLinks = (endpoint, oas) => {
   return links
 }
 
-const getEndpointReqBodySchema = (endpoint, oas) => {
-  if ('requestBody' in endpoint &&
+const endpointReturnsJson = (endpoint) => {
+  return 'responses' in endpoint &&
+    '200' in endpoint.responses &&
+    'content' in endpoint.responses['200'] &&
+    'application/json' in endpoint.responses['200'].content &&
+    'schema' in endpoint.responses['200'].content['application/json']
+}
+
+const endpointHasReqSchema = (endpoint) => {
+  return 'requestBody' in endpoint &&
     'content' in endpoint.requestBody &&
     'application/json' in endpoint.requestBody.content &&
-    'schema' in endpoint.requestBody.content['application/json']) {
-    let schema = endpoint.requestBody.content['application/json'].schema
+    'schema' in endpoint.requestBody.content['application/json']
+}
+
+/**
+ * Returns the (resolved) response schema and schemaName for the endpoint at the
+ * given path and method.
+ *
+ * @param  {string} path
+ * @param  {string} method
+ * @param  {object} oas
+ * @return {object}        Contains schema and name of schema
+ */
+const getResSchemaAndName = (path, method, oas) => {
+  let endpoint = oas.paths[path][method]
+
+  if (endpointReturnsJson(endpoint)) {
+    let schema = endpoint.responses['200'].content['application/json'].schema
+    let schemaName = inferResourceNameFromPath(path)
+
     if ('$ref' in schema) {
+      schemaName = schema['$ref'].split('/').pop()
       schema = resolveRef(schema['$ref'], oas)
     }
-    return schema
+    if ('title' in schema) {
+      schemaName = schema.title
+    }
+
+    // mutating operations have a special name, starting with the method.
+    // For example: postSchemaName, putSchemaName etc.
+    if (mutationMethods.includes(method.toLowerCase())) {
+      schemaName = method.toLowerCase() +
+      schemaName.charAt(0).toUpperCase() +
+      schemaName.slice(1)
+    }
+
+    // strip possibly remaining unnoted characters:
+    schemaName = sanitize(schemaName)
+
+    return {
+      schema,
+      schemaName
+    }
   }
-  return null
+  return {}
+}
+
+const getReqSchemaAndName = (path, method, oas) => {
+  let endpoint = oas.paths[path][method]
+
+  if (endpointHasReqSchema(endpoint)) {
+    let reqSchema = endpoint.requestBody.content['application/json'].schema
+    let reqSchemaName = inferResourceNameFromPath(path)
+
+    if ('$ref' in reqSchema) {
+      reqSchemaName = reqSchema['$ref'].split('/').pop()
+      reqSchema = resolveRef(reqSchema['$ref'], oas)
+    }
+    if ('title' in reqSchema) {
+      reqSchemaName = reqSchema.title
+    }
+
+    // mutating operations have a special name, starting with the method.
+    // For example: postSchemaName, putSchemaName etc.
+    if (mutationMethods.includes(method.toLowerCase())) {
+      reqSchemaName = method.toLowerCase() +
+      reqSchemaName.charAt(0).toUpperCase() +
+      reqSchemaName.slice(1)
+    }
+
+    // strip possibly remaining unnoted characters:
+    reqSchemaName = sanitize(reqSchemaName)
+
+    return {
+      reqSchema,
+      reqSchemaName
+    }
+  }
+  return {}
+}
+
+const getParameters = (path, method, oas) => {
+  let parameters = []
+  let endpoint = oas.paths[path][method]
+
+  if ('parameters' in endpoint) {
+    parameters = endpoint.parameters.map(p => {
+      if ('$ref' in p) {
+        return resolveRef(p['$ref'], oas)
+      } else {
+        return p
+      }
+    })
+  }
+
+  return parameters
+}
+
+const sanitize = (str) => {
+  return str.replace(/[^a-zA-Z0-9]/g, '_')
 }
 
 module.exports = {
@@ -148,5 +259,10 @@ module.exports = {
   getSchemaType,
   inferResourceNameFromPath,
   getEndpointLinks,
-  getEndpointReqBodySchema
+  endpointReturnsJson,
+  getResSchemaAndName,
+  mutationMethods,
+  getReqSchemaAndName,
+  getParameters,
+  sanitize
 }

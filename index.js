@@ -7,10 +7,10 @@ const {
 const SchemaBuilder = require('./src/schema_builder.js')
 const ResolverBuilder = require('./src/resolver_builder.js')
 const Oas3Tools = require('./src/oas_3_tools.js')
+const GraphQLTools = require('./src/graphql_tools.js')
 
+// increase stack trace logging for better debugging:
 Error.stackTraceLimit = Infinity
-
-const mutationMethods = ['post', 'put', 'patch', 'delete']
 
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification.
@@ -57,36 +57,18 @@ const createGraphQlSchema = oas => {
     for (let path in oas.paths) {
       for (let method in oas.paths[path]) {
         let endpoint = oas.paths[path][method]
-        if ('responses' in endpoint &&
-          '200' in endpoint.responses &&
-          'content' in endpoint.responses['200'] &&
-          'application/json' in endpoint.responses['200'].content &&
-          'schema' in endpoint.responses['200'].content['application/json']) {
-          // determine schema and name:
-          let schema = endpoint.responses['200'].content['application/json'].schema
-          let name = Oas3Tools.inferResourceNameFromPath(path)
-
-          if ('$ref' in schema) {
-            name = schema['$ref'].split('/').pop()
-            schema = Oas3Tools.resolveRef(schema['$ref'], oas)
-          }
-          if ('title' in schema) {
-            name = schema.title
-          }
-
-          // mutating operations have a special name:
-          if (mutationMethods.includes(method.toLowerCase())) {
-            name = method.toLowerCase() + name.charAt(0).toUpperCase() + name.slice(1)
-          }
+        if (Oas3Tools.endpointReturnsJson(endpoint)) {
+          // get response schema and name:
+          let {schemaName, schema} = Oas3Tools.getResSchemaAndName(path, method, oas)
 
           // get links:
           let links = Oas3Tools.getEndpointLinks(endpoint, oas)
 
-          // TODO: get parameters:
-          // let parameters = Oas3Tools.getEndpointParameters(endpoint, oas)
+          // get parameters:
+          let parameters = Oas3Tools.getParameters(path, method, oas)
 
           // get requestBody schema:
-          let reqBodySchema = Oas3Tools.getEndpointReqBodySchema(endpoint, oas)
+          let {reqSchemaName, reqSchema} = Oas3Tools.getReqSchemaAndName(path, method, oas)
 
           // determine operationId:
           let operationId = endpoint.operationId
@@ -95,24 +77,32 @@ const createGraphQlSchema = oas => {
           }
 
           // get ObjectType for operation:
-          let type = SchemaBuilder.getObjectTypeDef(name, schema, links, oas, allOTs, allIOTs)
+          let type = SchemaBuilder.getObjectType({
+            name: schemaName,
+            schema,
+            links,
+            oas,
+            allOTs,
+            allIOTs
+          })
           allOTs[operationId] = type
 
           // get resolver for operation:
-          let resolver = ResolverBuilder.getResolver(path, method, endpoint, oas, {}, name)
+          let resolver = ResolverBuilder.getResolver(path, method, endpoint, oas, {}, schemaName)
 
           // get arguments for operation:
-          let args = SchemaBuilder.getArgs(endpoint.parameters, reqBodySchema, name, oas, allOTs, allIOTs)
+          let args = SchemaBuilder.getArgs(parameters, reqSchema, reqSchemaName, oas, allOTs, allIOTs)
 
           let field = {
             type: type,
             resolve: resolver,
             args: args
           }
+
           if (method.toLowerCase() === 'get') {
-            rootQueryFields[name] = field
-          } else if (mutationMethods.includes(method.toLowerCase())) {
-            rootMutationFields[name] = field
+            rootQueryFields[schemaName] = field
+          } else if (Oas3Tools.mutationMethods.includes(method.toLowerCase())) {
+            rootMutationFields[schemaName] = field
           }
         }
       }
@@ -125,6 +115,8 @@ const createGraphQlSchema = oas => {
         name: 'RootQueryType',
         fields: rootQueryFields
       })
+    } else {
+      schemaDef.query = GraphQLTools.getEmptyObjectType()
     }
     if (Object.keys(rootMutationFields).length > 0) {
       schemaDef.mutation = new GraphQLObjectType({

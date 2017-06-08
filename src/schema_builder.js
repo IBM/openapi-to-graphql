@@ -43,11 +43,17 @@ const ResolverBuilder = require('./resolver_builder.js')
  * @return {object}           GraphQLObjectType | GraphQLList |
  * Object with scalar type
  */
-const getObjectTypeDef = (name, schema, links, oas, allOTs, allIOTs, iteration, isMutation) => {
-  if (typeof iteration === 'undefined') {
-    iteration = 0
-  }
-
+const getObjectType = ({
+  name,
+  schema,
+  links = {},
+  oas,
+  allOTs,
+  allIOTs,
+  iteration = 0,
+  isMutation = false
+}) => {
+  // avoid excessive iterations:
   if (iteration === 20) {
     throw new Error(`Too many iterations`)
   }
@@ -57,13 +63,17 @@ const getObjectTypeDef = (name, schema, links, oas, allOTs, allIOTs, iteration, 
     throw new Error(`invalid schema provided of type ${typeof schema}`)
   }
 
+  // determine the type of the schema:
   let type = Oas3Tools.getSchemaType(schema)
-
   if (!type) {
     throw new Error(`schema has no/wrong type: ${JSON.stringify(schema)}`)
   }
 
-  // case: object - create ObjectType:
+  if (isMutation && name === 'patchClient') {
+    console.log(` getObjectType name=${name}, iteration=${iteration}, type=${type}`)
+  }
+
+  // CASE: object - create ObjectType:
   if (type === 'object') {
     if (isMutation) {
       name = name + 'Input'
@@ -93,50 +103,63 @@ const getObjectTypeDef = (name, schema, links, oas, allOTs, allIOTs, iteration, 
         return allOTs[name]
       }
     }
-  // case: array - create ArrayType:
+
+  // case: ARRAY - create ArrayType:
   } else if (type === 'array') {
-    // let name = path.split('/').pop()
-    let name = 'some_name'
+    // determine name of items:
+    let itemsName = 'some_name'
 
     if (!('items' in schema)) {
       throw new Error(`Items property missing in array schema definition`)
     }
 
     if ('title' in schema.items) {
-      name = schema.items.title
+      itemsName = schema.items.title
     }
 
     if ('$ref' in schema.items) {
-      name = schema.items['$ref'].split('/').pop()
+      itemsName = schema.items['$ref'].split('/').pop()
       schema.items = Oas3Tools.resolveRef(schema.items['$ref'], oas)
     }
 
-    let propertyType = Oas3Tools.getSchemaType(schema.items)
-    if (!propertyType) {
+    // determine the type of the items in the array:
+    let itemsType = Oas3Tools.getSchemaType(schema.items)
+    if (!itemsType) {
       throw new Error(`Type property missing in items definition`)
     }
 
-    if (propertyType === 'object' || propertyType === 'array') {
+    if (itemsType === 'object' || itemsType === 'array') {
       let nextIt = iteration + 1
       let type
-      if (name in allOTs) {
-        type = allOTs[name]
+      if (!isMutation && itemsName in allOTs) {
+        type = allOTs[itemsName]
+      } else if (isMutation && itemsName in allIOTs) {
+        type = allIOTs[itemsName]
       } else {
-        type = getObjectTypeDef(name, schema.items, links, oas, allOTs, allIOTs, nextIt, isMutation)
+        type = getObjectType({
+          name: itemsName,
+          schema: schema.items,
+          links,
+          oas,
+          allOTs,
+          allIOTs,
+          iteration: nextIt,
+          isMutation
+        })
       }
       return {
         type: new GraphQLList(type),
         description: schema.description // might be undefined
       }
     } else {
-      let type = getScalarType(propertyType)
+      let type = getScalarType(itemsType)
       return {
         type: new GraphQLList(type),
         description: schema.description // might be undefined
       }
     }
 
-  // case: scalar:
+  // CASE: scalar
   } else {
     return {
       type: getScalarType(type),
@@ -171,7 +194,16 @@ const createFields = (schema, links, oas, allOTs, allIOTs, iteration, isMutation
     }
 
     let nextIt = iteration + 1
-    let otToAdd = getObjectTypeDef(propKey, prop, links, oas, allOTs, allIOTs, nextIt, isMutation)
+    let otToAdd = getObjectType({
+      name: propKey,
+      schema: prop,
+      links,
+      oas,
+      allOTs,
+      allIOTs,
+      iteration: nextIt,
+      isMutation
+    })
     if (typeof otToAdd.getFields === 'function') {
       fields[propKey] = {
         type: otToAdd
@@ -243,27 +275,49 @@ const createFields = (schema, links, oas, allOTs, allIOTs, iteration, isMutation
  * @return {object}               Object containing as keys parameter names and
  * as values a simple object stating the parameter type.
  */
-const getArgs = (params, reqBodySchema, reqBodyName, oas, allOTs, allIOTs) => {
+const getArgs = (params, reqSchema, reqSchemaName, oas, allOTs, allIOTs) => {
   let args = {}
 
   // handle params:
   for (let i in params) {
     let param = params[i]
+
+    if (typeof param.name !== 'string') {
+      console.log(`Warning: ignore parameter with missing "name" property: ${param}`)
+      continue
+    }
+    let name = Oas3Tools.sanitize(param.name)
+
     let type = GraphQLString
+
     if ('schema' in param &&
       'type' in param.schema &&
       !(param.schema.type === 'object' || param.schema.type === 'array')) {
       type = getScalarType(param.schema.type)
     }
-    args[param.name] = {
+
+    args[name] = {
       type: param.required ? new GraphQLNonNull(type) : type
     }
   }
 
   // handle reqBodySchema:
-  if (reqBodySchema) {
-    args[reqBodyName] = {
-      type: getObjectTypeDef(reqBodyName, reqBodySchema, {}, oas, allOTs, allIOTs, 0, true)
+  if (typeof reqSchema === 'object') {
+    let inputType = getObjectType({
+      name: reqSchemaName,
+      schema: reqSchema,
+      oas,
+      allOTs,
+      allIOTs,
+      isMutation: true
+    })
+    let topLevelType = Oas3Tools.getSchemaType(reqSchema)
+    if (topLevelType === 'array') {
+      args[reqSchemaName] = inputType
+    } else if (topLevelType === 'object') {
+      args[reqSchemaName] = {
+        type: inputType
+      }
     }
   }
 
@@ -292,6 +346,6 @@ const getScalarType = (type) => {
 }
 
 module.exports = {
-  getObjectTypeDef,
+  getObjectType,
   getArgs
 }
