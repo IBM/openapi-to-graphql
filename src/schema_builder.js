@@ -14,33 +14,32 @@ const Oas3Tools = require('./oas_3_tools.js')
 const ResolverBuilder = require('./resolver_builder.js')
 
 /**
- * Creates a GraphQL object type definition for the given JSON schema.
- * "GraphQL Objects represent a list of named fields, each of which also yields
- * a value of their own type."
+ * Creates a GraphQL (input) Object Type definition for the given JSON schema.
  *
  * Nested example: https://gist.github.com/xpepermint/7376b8c67caa926e19d2
  *
  * A returned GraphQLObjectType has the following internal structure:
  *
- * new GraphQLObjectType({
- *   'name'        // optional name of the type
- *   'description' // optional description of type
- *   'fields'      // REQUIRED thunk returning fields
- *     'type'      // REQUIRED definition of the field type
- *     'args'      // optional definition of types
- *     'resolve'   // optional function defining how to obtain this type
- * })
+ *   new GraphQLObjectType({
+ *     'name'        // optional name of the type
+ *     'description' // optional description of type
+ *     'fields'      // REQUIRED thunk returning fields
+ *       'type'      // REQUIRED definition of the field type
+ *       'args'      // optional definition of types
+ *       'resolve'   // optional function defining how to obtain this type
+ *   })
  *
- * @param  {string} name      Name of the Type Definition to create
- * @param  {object} schema    JSON-schema from an OAS schema
- * @param  {object} links     Object containing the (possible) links between
- * this object to other endpoints (= operations)
- * @param  {object} oas       The original OAS
- * @param  {object} allOTs    Object containing operationId as key and derived
- * GraphQLObjectType as value (if existent)
- * @param  {number} iteration Integer count of how many recursions have already
- * been performed in creating this type definition.
- * @return {object}           GraphQLObjectType | GraphQLList |
+ * @param  {string}  options.name   Name of the Type Definition to create
+ * @param  {object}  options.schema JSON-schema to get GraphQL Object Def. for
+ * @param  {object}  options.links  Object containing the (possible) links
+ * between this object to other endpoints (= operations)
+ * @param  {object}  oas
+ * @param  {object}  allOTs         Contains existing Object Types
+ * @param  {object}  allIOTs        Contains existing Input Object Types
+ * @param  {Number}  iteration      Integer count of recursions used to create
+ * this schema
+ * @param  {Boolean} isMutation     Whether to create an Input Object Type
+ * @return {Object}                 GraphQLObjectType | GraphQLList |
  * Object with scalar type
  */
 const getObjectType = ({
@@ -69,10 +68,6 @@ const getObjectType = ({
     throw new Error(`schema has no/wrong type: ${JSON.stringify(schema)}`)
   }
 
-  if (isMutation && name === 'patchClient') {
-    console.log(` getObjectType name=${name}, iteration=${iteration}, type=${type}`)
-  }
-
   // CASE: object - create ObjectType:
   if (type === 'object') {
     if (isMutation) {
@@ -84,7 +79,15 @@ const getObjectType = ({
           name: name,
           description: schema.description, // might be undefined
           fields: () => {
-            return createFields(schema, links, oas, allOTs, allIOTs, iteration, isMutation)
+            return createFields({
+              schema,
+              links,
+              oas,
+              allOTs,
+              allIOTs,
+              iteration,
+              isMutation
+            })
           }
         })
         return allIOTs[name]
@@ -97,7 +100,15 @@ const getObjectType = ({
           name: name,
           description: schema.description, // might be undefined
           fields: () => {
-            return createFields(schema, links, oas, allOTs, allIOTs, iteration, isMutation)
+            return createFields({
+              schema,
+              links,
+              oas,
+              allOTs,
+              allIOTs,
+              iteration,
+              isMutation
+            })
           }
         })
         return allOTs[name]
@@ -181,7 +192,15 @@ const getObjectType = ({
  * been performed in creating this type definition.
  * @return {object}           Object of fields for given schema
  */
-const createFields = (schema, links, oas, allOTs, allIOTs, iteration, isMutation) => {
+const createFields = ({
+  schema,
+  links,
+  oas,
+  allOTs,
+  allIOTs,
+  iteration,
+  isMutation
+}) => {
   let fields = {}
 
   // create fields for all properties:
@@ -225,7 +244,8 @@ const createFields = (schema, links, oas, allOTs, allIOTs, iteration, isMutation
       if ('operationId' in links[linkKey]) {
         operationId = links[linkKey].operationId
       } else {
-        throw new Error(`operationRef and operationId and hRef properties missing in link definition`)
+        throw new Error(`Link definition has neither "operationRef",
+          "operationId", or "hRef" property`)
       }
 
       let parameters = links[linkKey].parameters
@@ -243,7 +263,7 @@ const createFields = (schema, links, oas, allOTs, allIOTs, iteration, isMutation
         return !(p.name in argsFromLink)
       })
 
-      let linkArgs = getArgs(dynamicParams)
+      let linkArgs = getArgs({parameters: dynamicParams})
 
       // create resolve function:
       let linkResolver = ResolverBuilder.getResolver(
@@ -265,22 +285,31 @@ const createFields = (schema, links, oas, allOTs, allIOTs, iteration, isMutation
 }
 
 /**
- * Helper function that turns given OAS parameters into an object containing
- * GraphQL types.
+ * Creates an object with the arguments for resolving a GraphQL (Input) Object
+ * Type.
  *
- * @param  {list} params          List of OAS parameters
- * @param  {object} reqBodySchema JSON schema of the request body
- * @param {string} reqBodyName    Name of the request body schema
- * @param  {object} oas           The original OAS
- * @return {object}               Object containing as keys parameter names and
- * as values a simple object stating the parameter type.
+ * @param  {array}  options.parameters    List of OAS parameters
+ * @param  {object} options.reqSchema     JSON-schema describing request payload
+ * @param  {string} options.reqSchemaName Name of request payload schema
+ * @param  {object} options.oas
+ * @param  {object} options.allOTs
+ * @param  {object} options.allIOTs
+ * @return {Object}                       Key: name of argument, value: object
+ * stating the parameter type
  */
-const getArgs = (params, reqSchema, reqSchemaName, oas, allOTs, allIOTs) => {
+const getArgs = ({
+  parameters,
+  reqSchema,
+  reqSchemaName,
+  oas,
+  allOTs,
+  allIOTs
+}) => {
   let args = {}
 
   // handle params:
-  for (let i in params) {
-    let param = params[i]
+  for (let i in parameters) {
+    let param = parameters[i]
 
     if (typeof param.name !== 'string') {
       console.log(`Warning: ignore parameter with missing "name" property: ${param}`)

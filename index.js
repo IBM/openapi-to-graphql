@@ -54,57 +54,18 @@ const createGraphQlSchema = oas => {
      */
     let allIOTs = {}
 
+    // translate every endpoint to GraphQL schemes:
     for (let path in oas.paths) {
       for (let method in oas.paths[path]) {
-        let endpoint = oas.paths[path][method]
-        if (Oas3Tools.endpointReturnsJson(endpoint)) {
-          // get response schema and name:
-          let {schemaName, schema} = Oas3Tools.getResSchemaAndName(path, method, oas)
-
-          // get links:
-          let links = Oas3Tools.getEndpointLinks(endpoint, oas)
-
-          // get parameters:
-          let parameters = Oas3Tools.getParameters(path, method, oas)
-
-          // get requestBody schema:
-          let {reqSchemaName, reqSchema} = Oas3Tools.getReqSchemaAndName(path, method, oas)
-
-          // determine operationId:
-          let operationId = endpoint.operationId
-          if (typeof operationId === 'undefined') {
-            operationId = `${method}:${path}`
-          }
-
-          // get ObjectType for operation:
-          let type = SchemaBuilder.getObjectType({
-            name: schemaName,
-            schema,
-            links,
-            oas,
-            allOTs,
-            allIOTs
-          })
-          allOTs[operationId] = type
-
-          // get resolver for operation:
-          let resolver = ResolverBuilder.getResolver(path, method, endpoint, oas, {}, schemaName)
-
-          // get arguments for operation:
-          let args = SchemaBuilder.getArgs(parameters, reqSchema, reqSchemaName, oas, allOTs, allIOTs)
-
-          let field = {
-            type: type,
-            resolve: resolver,
-            args: args
-          }
-
-          if (method.toLowerCase() === 'get') {
-            rootQueryFields[schemaName] = field
-          } else if (Oas3Tools.mutationMethods.includes(method.toLowerCase())) {
-            rootMutationFields[schemaName] = field
-          }
-        }
+        translateEndpoint({
+          method,
+          path,
+          oas,
+          allOTs,
+          allIOTs,
+          rootQueryFields,
+          rootMutationFields
+        })
       }
     }
 
@@ -127,6 +88,92 @@ const createGraphQlSchema = oas => {
 
     resolve(new GraphQLSchema(schemaDef))
   })
+}
+
+/**
+ * Translates the endpoint identified with method and path in the given OAS to
+ * GraphQL schemes.
+ *
+ * @param  {string} options.method
+ * @param  {string} options.path
+ * @param  {object} options.oas
+ * @param  {object} options.allOTs
+ * @param  {object} options.allIOTs
+ * @param  {object} options.rootQueryFields
+ * @param  {object} options.rootMutationFields
+ */
+const translateEndpoint = ({
+  method,
+  path,
+  oas,
+  allOTs,
+  allIOTs,
+  rootQueryFields,
+  rootMutationFields
+}) => {
+  let endpoint = oas.paths[path][method]
+  if (Oas3Tools.endpointReturnsJson(endpoint)) {
+    // get response schema and name:
+    let {schemaName, schema} = Oas3Tools.getResSchemaAndName(path, method, oas)
+
+    // get links:
+    let links = Oas3Tools.getEndpointLinks(endpoint, oas)
+
+    // get parameters:
+    let parameters = Oas3Tools.getParameters(path, method, oas)
+
+    // get requestBody schema:
+    let {reqSchemaName, reqSchema} = Oas3Tools.getReqSchemaAndName(path, method, oas)
+
+    // determine operationId:
+    let operationId = endpoint.operationId
+    if (typeof operationId === 'undefined') {
+      operationId = `${method}:${path}`
+    }
+
+    // get ObjectType for operation:
+    let type = SchemaBuilder.getObjectType({
+      name: schemaName,
+      schema,
+      links,
+      oas,
+      allOTs,
+      allIOTs
+    })
+    allOTs[operationId] = type
+
+    // get resolver for operation:
+    let resolver = ResolverBuilder.getResolver(path, method, endpoint, oas, {}, schemaName)
+
+    // get arguments for operation:
+    let args = SchemaBuilder.getArgs({
+      parameters,
+      reqSchema,
+      reqSchemaName,
+      oas,
+      allOTs,
+      allIOTs
+    })
+
+    let field = {
+      type: type,
+      resolve: resolver,
+      args: args
+    }
+
+    if (method.toLowerCase() === 'get') {
+      rootQueryFields[schemaName] = field
+    } else if (Oas3Tools.mutationMethods.includes(method.toLowerCase())) {
+      rootMutationFields[schemaName] = field
+    }
+  }
+
+  return {
+    allOTs,
+    allIOTs,
+    rootQueryFields,
+    rootMutationFields
+  }
 }
 
 module.exports = {
