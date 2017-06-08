@@ -266,13 +266,13 @@ const createFields = ({
       let linkArgs = getArgs({parameters: dynamicParams})
 
       // create resolve function:
-      let linkResolver = ResolverBuilder.getResolver(
-        op.path,
-        op.method,
-        op.endpoint,
+      let linkResolver = ResolverBuilder.getResolver({
+        path: op.path,
+        method: op.method,
+        endpoint: op.endpoint,
         oas,
         argsFromLink
-      )
+      })
 
       fields[linkKey] = {
         type: allOTs[operationId],

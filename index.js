@@ -143,7 +143,13 @@ const translateEndpoint = ({
     allOTs[operationId] = type
 
     // get resolver for operation:
-    let resolver = ResolverBuilder.getResolver(path, method, endpoint, oas, {}, schemaName)
+    let resolver = ResolverBuilder.getResolver({
+      path,
+      method,
+      endpoint,
+      oas,
+      payloadName: schemaName
+    })
 
     // get arguments for operation:
     let args = SchemaBuilder.getArgs({

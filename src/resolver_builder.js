@@ -4,18 +4,27 @@ const request = require('request')
 const Oas3Tools = require('./oas_3_tools.js')
 
 /**
- * Generates and returns a resolver that performs API requests to obtain data
- * with the schema of the given key.
+ * Creates and returns a resolver function that performs API requests for the
+ * given GraphQL query.
  *
- * @param  {string} path         Path of the endpoint to create resolver for
- * @param  {string} method       Method of the endpoint to create resolver for
- * @param  {object} endpoint     Endpoint to create resolver for
- * @param  {object} oas          The original OAS
- * @param  {object} argsFromLink Object containing the args for this resolver
- * provided through links
- * @return {function}            Resolver function
+ * @param  {string} options.path         Path to invoke
+ * @param  {string} options.method       Method to invoke
+ * @param  {object} options.endpoint     Endpoint for request to make
+ * @param  {object} options.oas
+ * @param  {object} options.argsFromLink Object containing the args for this
+ * resolver provided through links
+ * @param  {string} options.payloadName  Name of the argument to send as request
+ * payload
+ * @return {function}                    Resolver function
  */
-const getResolver = (path, method, endpoint, oas, argsFromLink, payloadName) => {
+const getResolver = ({
+  path,
+  method,
+  endpoint,
+  oas,
+  argsFromLink = {},
+  payloadName
+}) => {
   let baseUrl = Oas3Tools.getBaseUrl(oas)
 
   return (root, args, ctx) => {
