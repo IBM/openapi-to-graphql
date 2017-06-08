@@ -245,9 +245,13 @@ const getResSchemaAndName = (path, method, oas) => {
  */
 const getReqSchemaAndName = (path, method, oas) => {
   let endpoint = oas.paths[path][method]
+  let required = false
 
   if (endpointHasReqSchema(endpoint)) {
     let reqSchema = endpoint.requestBody.content['application/json'].schema
+    if (typeof endpoint.requestBody.required === 'boolean') {
+      required = endpoint.requestBody.required
+    }
     let reqSchemaName = inferResourceNameFromPath(path)
 
     if ('$ref' in reqSchema) {
@@ -271,7 +275,8 @@ const getReqSchemaAndName = (path, method, oas) => {
 
     return {
       reqSchema,
-      reqSchemaName
+      reqSchemaName,
+      required
     }
   }
   return {}

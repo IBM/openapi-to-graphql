@@ -39,8 +39,8 @@ const ResolverBuilder = require('./resolver_builder.js')
  * @param  {Number}  iteration      Integer count of recursions used to create
  * this schema
  * @param  {Boolean} isMutation     Whether to create an Input Object Type
- * @return {Object}                 GraphQLObjectType | GraphQLList |
- * Object with scalar type
+ * @return {Object}                 GraphQLObjectType | GraphQLInputObjectType |
+ * GraphQLList | Scalar GraphQL type
  */
 const getObjectType = ({
   name,
@@ -158,24 +158,15 @@ const getObjectType = ({
           isMutation
         })
       }
-      return {
-        type: new GraphQLList(type),
-        description: schema.description // might be undefined
-      }
+      return new GraphQLList(type)
     } else {
       let type = getScalarType(itemsType)
-      return {
-        type: new GraphQLList(type),
-        description: schema.description // might be undefined
-      }
+      return new GraphQLList(type)
     }
 
   // CASE: scalar
   } else {
-    return {
-      type: getScalarType(type),
-      description: schema.description // might be undefined
-    }
+    return getScalarType(type)
   }
 }
 
@@ -212,6 +203,11 @@ const createFields = ({
       prop = schema.properties[propKey]
     }
 
+    // determine if this property is required in mutations:
+    let requiredMutationProp = isMutation &&
+      ('required' in schema) &&
+      schema.required.includes(propKey)
+
     let nextIt = iteration + 1
     let otToAdd = getObjectType({
       name: propKey,
@@ -223,12 +219,9 @@ const createFields = ({
       iteration: nextIt,
       isMutation
     })
-    if (typeof otToAdd.getFields === 'function') {
-      fields[propKey] = {
-        type: otToAdd
-      }
-    } else {
-      fields[propKey] = otToAdd
+    fields[propKey] = {
+      type: requiredMutationProp ? new GraphQLNonNull(otToAdd) : otToAdd,
+      description: schema.description // might be undefined
     }
   }
 
@@ -291,6 +284,8 @@ const createFields = ({
  * @param  {array}  options.parameters    List of OAS parameters
  * @param  {object} options.reqSchema     JSON-schema describing request payload
  * @param  {string} options.reqSchemaName Name of request payload schema
+ * @param  {boolean}options.reqSchemaRequired Whether the request schema is
+ * required
  * @param  {object} options.oas
  * @param  {object} options.allOTs
  * @param  {object} options.allIOTs
@@ -301,6 +296,7 @@ const getArgs = ({
   parameters,
   reqSchema,
   reqSchemaName,
+  reqSchemaRequired = false,
   oas,
   allOTs,
   allIOTs
@@ -326,7 +322,8 @@ const getArgs = ({
     }
 
     args[name] = {
-      type: param.required ? new GraphQLNonNull(type) : type
+      type: param.required ? new GraphQLNonNull(type) : type,
+      description: param.description // might be undefined
     }
   }
 
@@ -340,13 +337,10 @@ const getArgs = ({
       allIOTs,
       isMutation: true
     })
-    let topLevelType = Oas3Tools.getSchemaType(reqSchema)
-    if (topLevelType === 'array') {
-      args[reqSchemaName] = inputType
-    } else if (topLevelType === 'object') {
-      args[reqSchemaName] = {
-        type: inputType
-      }
+
+    args[reqSchemaName] = {
+      type: reqSchemaRequired ? new GraphQLNonNull(inputType) : inputType,
+      description: reqSchema.description // might be undefined
     }
   }
 

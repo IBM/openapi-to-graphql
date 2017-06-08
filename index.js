@@ -123,7 +123,7 @@ const translateEndpoint = ({
     let parameters = Oas3Tools.getParameters(path, method, oas)
 
     // get requestBody schema:
-    let {reqSchemaName, reqSchema} = Oas3Tools.getReqSchemaAndName(path, method, oas)
+    let {reqSchemaName, reqSchema, required} = Oas3Tools.getReqSchemaAndName(path, method, oas)
 
     // determine operationId:
     let operationId = endpoint.operationId
@@ -158,7 +158,8 @@ const translateEndpoint = ({
       reqSchemaName,
       oas,
       allOTs,
-      allIOTs
+      allIOTs,
+      reqSchemaRequired: required
     })
 
     let field = {

@@ -43,7 +43,8 @@
                 "$ref": "#/components/schemas/user"
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -150,7 +151,8 @@
               "type": "string"
             }
           }
-        }
+        },
+        "required": ["name", "address", "employerId", "hobbies"]
       }
       ,
       "company": {
