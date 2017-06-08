@@ -15,6 +15,7 @@
     "request": "^2.81.0"
   },
   "devDependencies": {
+    "body-parser": "^1.17.2",
     "express": "^4.15.2",
     "express-graphql": "^0.6.4",
     "jest": "^20.0.4"

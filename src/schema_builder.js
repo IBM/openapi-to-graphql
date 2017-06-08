@@ -7,13 +7,14 @@ const {
   GraphQLFloat,
   GraphQLBoolean,
   GraphQLNonNull,
-  GraphQLList
+  GraphQLList,
+  GraphQLInputObjectType
 } = require('graphql')
 const Oas3Tools = require('./oas_3_tools.js')
 const ResolverBuilder = require('./resolver_builder.js')
 
 /**
- * Creates and returns a GraphQL type definition for the given JSON schema.
+ * Creates a GraphQL object type definition for the given JSON schema.
  * "GraphQL Objects represent a list of named fields, each of which also yields
  * a value of their own type."
  *
@@ -42,7 +43,7 @@ const ResolverBuilder = require('./resolver_builder.js')
  * @return {object}           GraphQLObjectType | GraphQLList |
  * Object with scalar type
  */
-const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
+const getObjectTypeDef = (name, schema, links, oas, allOTs, allIOTs, iteration, isMutation) => {
   if (typeof iteration === 'undefined') {
     iteration = 0
   }
@@ -64,17 +65,33 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
 
   // case: object - create ObjectType:
   if (type === 'object') {
-    if (name in allOTs) {
-      return allOTs[name]
+    if (isMutation) {
+      name = name + 'Input'
+      if (name in allIOTs) {
+        return allIOTs[name]
+      } else {
+        allIOTs[name] = new GraphQLInputObjectType({
+          name: name,
+          description: schema.description, // might be undefined
+          fields: () => {
+            return createFields(schema, links, oas, allOTs, allIOTs, iteration, isMutation)
+          }
+        })
+        return allIOTs[name]
+      }
     } else {
-      allOTs[name] = new GraphQLObjectType({
-        name: name,
-        description: schema.description, // might be undefined
-        fields: () => {
-          return createFields(schema, links, oas, allOTs, iteration)
-        }
-      })
-      return allOTs[name]
+      if (name in allOTs) {
+        return allOTs[name]
+      } else {
+        allOTs[name] = new GraphQLObjectType({
+          name: name,
+          description: schema.description, // might be undefined
+          fields: () => {
+            return createFields(schema, links, oas, allOTs, allIOTs, iteration, isMutation)
+          }
+        })
+        return allOTs[name]
+      }
     }
   // case: array - create ArrayType:
   } else if (type === 'array') {
@@ -100,12 +117,12 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
     }
 
     if (propertyType === 'object' || propertyType === 'array') {
-      let nextIteration = iteration + 1
+      let nextIt = iteration + 1
       let type
       if (name in allOTs) {
         type = allOTs[name]
       } else {
-        type = getTypeDef(name, schema.items, links, oas, allOTs, nextIteration)
+        type = getObjectTypeDef(name, schema.items, links, oas, allOTs, allIOTs, nextIt, isMutation)
       }
       return {
         type: new GraphQLList(type),
@@ -141,7 +158,7 @@ const getTypeDef = (name, schema, links, oas, allOTs, iteration) => {
  * been performed in creating this type definition.
  * @return {object}           Object of fields for given schema
  */
-const createFields = (schema, links, oas, allOTs, iteration) => {
+const createFields = (schema, links, oas, allOTs, allIOTs, iteration, isMutation) => {
   let fields = {}
 
   // create fields for all properties:
@@ -153,8 +170,8 @@ const createFields = (schema, links, oas, allOTs, iteration) => {
       prop = schema.properties[propKey]
     }
 
-    let nextIteration = iteration + 1
-    let otToAdd = getTypeDef(propKey, prop, links, oas, allOTs, nextIteration)
+    let nextIt = iteration + 1
+    let otToAdd = getObjectTypeDef(propKey, prop, links, oas, allOTs, allIOTs, nextIt, isMutation)
     if (typeof otToAdd.getFields === 'function') {
       fields[propKey] = {
         type: otToAdd
@@ -219,12 +236,17 @@ const createFields = (schema, links, oas, allOTs, iteration) => {
  * Helper function that turns given OAS parameters into an object containing
  * GraphQL types.
  *
- * @param  {list} params  List of OAS parameters
- * @return {object}       Object containing as keys parameter names and as
- * values a simple object stating the parameter type.
+ * @param  {list} params          List of OAS parameters
+ * @param  {object} reqBodySchema JSON schema of the request body
+ * @param {string} reqBodyName    Name of the request body schema
+ * @param  {object} oas           The original OAS
+ * @return {object}               Object containing as keys parameter names and
+ * as values a simple object stating the parameter type.
  */
-const getArgs = (params) => {
+const getArgs = (params, reqBodySchema, reqBodyName, oas, allOTs, allIOTs) => {
   let args = {}
+
+  // handle params:
   for (let i in params) {
     let param = params[i]
     let type = GraphQLString
@@ -237,6 +259,14 @@ const getArgs = (params) => {
       type: param.required ? new GraphQLNonNull(type) : type
     }
   }
+
+  // handle reqBodySchema:
+  if (reqBodySchema) {
+    args[reqBodyName] = {
+      type: getObjectTypeDef(reqBodyName, reqBodySchema, {}, oas, allOTs, allIOTs, 0, true)
+    }
+  }
+
   return args
 }
 
@@ -262,6 +292,6 @@ const getScalarType = (type) => {
 }
 
 module.exports = {
-  getTypeDef,
+  getObjectTypeDef,
   getArgs
 }

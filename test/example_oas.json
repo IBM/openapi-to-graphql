@@ -32,10 +32,37 @@
     }
   ],
   "paths": {
+    "/users": {
+      "post": {
+        "operationId": "postUser",
+        "description": "Create a new user in the system.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/user"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The posted user.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/user"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/users/{username}": {
       "get": {
         "operationId": "getUserByUsername",
-        "description": "Returns a user from the System.",
+        "description": "Returns a user from the system.",
         "parameters": [
           {
             "name": "username",

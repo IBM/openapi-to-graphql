@@ -111,6 +111,34 @@ const inferResourceNameFromPath = (path) => {
   return path.replace(/[^a-zA-Z0-9 -]/g, '_')
 }
 
+const getEndpointLinks = (endpoint, oas) => {
+  let links = {}
+  if ('links' in endpoint.responses['200']) {
+    for (let linkKey in endpoint.responses['200'].links) {
+      let link = endpoint.responses['200'].links[linkKey]
+      if ('$ref' in link) {
+        link = resolveRef(link['$ref'], oas)
+      }
+      links[linkKey] = link
+    }
+  }
+  return links
+}
+
+const getEndpointReqBodySchema = (endpoint, oas) => {
+  if ('requestBody' in endpoint &&
+    'content' in endpoint.requestBody &&
+    'application/json' in endpoint.requestBody.content &&
+    'schema' in endpoint.requestBody.content['application/json']) {
+    let schema = endpoint.requestBody.content['application/json'].schema
+    if ('$ref' in schema) {
+      schema = resolveRef(schema['$ref'], oas)
+    }
+    return schema
+  }
+  return null
+}
+
 module.exports = {
   resolveRef,
   getBaseUrl,
@@ -118,5 +146,7 @@ module.exports = {
   getSchemaForOpId,
   getOperationById,
   getSchemaType,
-  inferResourceNameFromPath
+  inferResourceNameFromPath,
+  getEndpointLinks,
+  getEndpointReqBodySchema
 }

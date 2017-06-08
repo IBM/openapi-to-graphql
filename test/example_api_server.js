@@ -3,6 +3,9 @@
 const express = require('express')
 const app = express()
 
+const bodyParser = require('body-parser')
+app.use(bodyParser.json())
+
 const Users = {
   erik: {
     name: 'Erik Wittern',
@@ -72,6 +75,23 @@ const Companies = {
     }]
   }
 }
+
+app.post('/api/users', (req, res) => {
+  console.log(req.method, req.path)
+  let user = req.body
+  console.log(req.body)
+  if (!('name' in user) ||
+    !('address' in user) ||
+    !('employerId' in user) ||
+    !('hobbies' in user)) {
+    res.status(400).send({
+      message: 'wrong data'
+    })
+  } else {
+    Users[user.name] = user
+    res.send(user)
+  }
+})
 
 app.get('/api/users/:username', (req, res) => {
   console.log(req.method, req.path)
