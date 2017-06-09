@@ -91,9 +91,9 @@ const getOperationById = (operationId, oas) => {
       let endpoint = oas.paths[path][method]
       if (endpoint.operationId === operationId) {
         return {
-          method: method,
-          path: path,
-          endpoint: endpoint
+          method,
+          path,
+          endpoint
         }
       }
     }
@@ -146,12 +146,14 @@ const inferResourceNameFromPath = (path) => {
 /**
  * Returns an object containing the links defined in the given endpoint.
  *
- * @param  {object} endpoint
+ * @param  {string} path
+ * @param  {string} method
  * @param  {object} oas
  * @return {object}          Object containing links of given endpoint
  */
-const getEndpointLinks = (endpoint, oas) => {
+const getEndpointLinks = (path, method, oas) => {
   let links = {}
+  let endpoint = oas.paths[path][method]
   if ('links' in endpoint.responses['200']) {
     for (let linkKey in endpoint.responses['200'].links) {
       let link = endpoint.responses['200'].links[linkKey]
@@ -162,6 +164,19 @@ const getEndpointLinks = (endpoint, oas) => {
     }
   }
   return links
+}
+
+/**
+ * Determines if endpoint at given path and method has any links defined.
+ *
+ * @param  {string} path
+ * @param  {string} method
+ * @param  {object} oas
+ * @return {boolean}          True, if endpoint has links
+ */
+const hasLinks = (path, method, oas) => {
+  let endpoint = oas.paths[path][method]
+  return ('links' in endpoint.responses['200'])
 }
 
 /**
@@ -215,14 +230,6 @@ const getResSchemaAndName = (path, method, oas) => {
       schemaName = schema.title
     }
 
-    // mutating operations have a special name, starting with the method.
-    // For example: postSchemaName, putSchemaName etc.
-    if (mutationMethods.includes(method.toLowerCase())) {
-      schemaName = method.toLowerCase() +
-      schemaName.charAt(0).toUpperCase() +
-      schemaName.slice(1)
-    }
-
     // strip possibly remaining unnoted characters:
     schemaName = sanitize(schemaName)
 
@@ -260,14 +267,6 @@ const getReqSchemaAndName = (path, method, oas) => {
     }
     if ('title' in reqSchema) {
       reqSchemaName = reqSchema.title
-    }
-
-    // mutating operations have a special name, starting with the method.
-    // For example: postSchemaName, putSchemaName etc.
-    if (mutationMethods.includes(method.toLowerCase())) {
-      reqSchemaName = method.toLowerCase() +
-      reqSchemaName.charAt(0).toUpperCase() +
-      reqSchemaName.slice(1)
     }
 
     // strip possibly remaining unnoted characters:
@@ -332,5 +331,6 @@ module.exports = {
   mutationMethods,
   getReqSchemaAndName,
   getParameters,
-  sanitize
+  sanitize,
+  hasLinks
 }

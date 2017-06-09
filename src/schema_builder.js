@@ -194,7 +194,9 @@ const createFields = ({
 }) => {
   let fields = {}
 
-  // create fields for all properties:
+  /**
+   * Create fields for properties
+   */
   for (let propKey in schema.properties) {
     let prop
     if ('$ref' in schema.properties[propKey]) {
@@ -225,10 +227,12 @@ const createFields = ({
     }
   }
 
-  // create fields for (potential) links:
-  for (let linkKey in links) {
-    // move iteration check outside?
-    if (iteration === 0) {
+  /**
+   * Create fields for links
+   */
+  if (iteration === 0) {
+    for (let linkKey in links) {
+      // get linked operation:
       let operationId
       // TODO: href is yet another alternative to operationRef and operationId
       // if ('operationRef' in links[linkKey]) {
@@ -240,40 +244,44 @@ const createFields = ({
         throw new Error(`Link definition has neither "operationRef",
           "operationId", or "hRef" property`)
       }
+      let {path, method, endpoint} = Oas3Tools.getOperationById(operationId, oas)
 
-      let parameters = links[linkKey].parameters
-
-      // create args function:
-      // 1. determine parameters provided via link:
-      let op = Oas3Tools.getOperationById(operationId, oas)
+      // determine parameters provided via link:
+      let linkParameters = links[linkKey].parameters
       let argsFromLink = {}
-      for (let linkArg in parameters) {
-        argsFromLink[linkArg] = parameters[linkArg].split('body#/')[1]
+      for (let linkParamKey in linkParameters) {
+        argsFromLink[linkParamKey] = linkParameters[linkParamKey].split('body#/')[1]
       }
 
       // 2. remove argsFromLinks from operation parameters:
-      let dynamicParams = op.endpoint.parameters.filter(p => {
+      let endpointParameters = Oas3Tools.getParameters(path, method, oas)
+      let dynamicParams = endpointParameters.filter(p => {
         return !(p.name in argsFromLink)
       })
 
-      let linkArgs = getArgs({parameters: dynamicParams})
-
-      // create resolve function:
+      // get resolve function for link:
       let linkResolver = ResolverBuilder.getResolver({
-        path: op.path,
-        method: op.method,
-        endpoint: op.endpoint,
+        path: path,
+        method: method,
+        endpoint: endpoint,
         oas,
         argsFromLink
       })
 
+      // get args for link:
+      let args = getArgs({parameters: dynamicParams})
+
+      // get response schema and name:
+      let {schemaName} = Oas3Tools.getResSchemaAndName(path, method, oas)
+
       fields[linkKey] = {
-        type: allOTs[operationId],
+        type: allOTs[schemaName],
         resolve: linkResolver,
-        args: linkArgs
+        args: args
       }
     }
   }
+
   return fields
 }
 

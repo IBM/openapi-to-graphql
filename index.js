@@ -54,18 +54,43 @@ const createGraphQlSchema = oas => {
      */
     let allIOTs = {}
 
-    // translate every endpoint to GraphQL schemes:
+    /**
+     * Translate every endpoint to GraphQL schemes.
+     *
+     * Do this first for endpoints that DO contain links, so that built up
+     * GraphQL object types that are reused contain these links.
+     *
+     * This necessitates a second iteration, though, for the endpoints that
+     * DO NOT have links.
+     */
     for (let path in oas.paths) {
       for (let method in oas.paths[path]) {
-        translateEndpoint({
-          method,
-          path,
-          oas,
-          allOTs,
-          allIOTs,
-          rootQueryFields,
-          rootMutationFields
-        })
+        if (Oas3Tools.hasLinks(path, method, oas)) {
+          translateEndpoint({
+            method,
+            path,
+            oas,
+            allOTs,
+            allIOTs,
+            rootQueryFields,
+            rootMutationFields
+          })
+        }
+      }
+    }
+    for (let path in oas.paths) {
+      for (let method in oas.paths[path]) {
+        if (!Oas3Tools.hasLinks(path, method, oas)) {
+          translateEndpoint({
+            method,
+            path,
+            oas,
+            allOTs,
+            allIOTs,
+            rootQueryFields,
+            rootMutationFields
+          })
+        }
       }
     }
 
@@ -111,25 +136,18 @@ const translateEndpoint = ({
   rootQueryFields,
   rootMutationFields
 }) => {
-  let endpoint = oas.paths[path][method]
-  if (Oas3Tools.endpointReturnsJson(endpoint)) {
+  if (Oas3Tools.endpointReturnsJson(oas.paths[path][method])) {
     // get response schema and name:
     let {schemaName, schema} = Oas3Tools.getResSchemaAndName(path, method, oas)
 
     // get links:
-    let links = Oas3Tools.getEndpointLinks(endpoint, oas)
+    let links = Oas3Tools.getEndpointLinks(path, method, oas)
 
     // get parameters:
     let parameters = Oas3Tools.getParameters(path, method, oas)
 
     // get requestBody schema:
     let {reqSchemaName, reqSchema, required} = Oas3Tools.getReqSchemaAndName(path, method, oas)
-
-    // determine operationId:
-    let operationId = endpoint.operationId
-    if (typeof operationId === 'undefined') {
-      operationId = `${method}:${path}`
-    }
 
     // get ObjectType for operation:
     let type = SchemaBuilder.getObjectType({
@@ -140,13 +158,11 @@ const translateEndpoint = ({
       allOTs,
       allIOTs
     })
-    allOTs[operationId] = type
 
-    // get resolver for operation:
+    // get resolve function for operation:
     let resolver = ResolverBuilder.getResolver({
       path,
       method,
-      endpoint,
       oas,
       payloadName: schemaName
     })
@@ -171,7 +187,10 @@ const translateEndpoint = ({
     if (method.toLowerCase() === 'get') {
       rootQueryFields[schemaName] = field
     } else if (Oas3Tools.mutationMethods.includes(method.toLowerCase())) {
-      rootMutationFields[schemaName] = field
+      let mutName = method.toLowerCase() +
+        schemaName.charAt(0).toUpperCase() +
+        schemaName.slice(1)
+      rootMutationFields[mutName] = field
     }
   }
 

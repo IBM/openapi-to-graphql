@@ -9,7 +9,6 @@ const Oas3Tools = require('./oas_3_tools.js')
  *
  * @param  {string} options.path         Path to invoke
  * @param  {string} options.method       Method to invoke
- * @param  {object} options.endpoint     Endpoint for request to make
  * @param  {object} options.oas
  * @param  {object} options.argsFromLink Object containing the args for this
  * resolver provided through links
@@ -20,12 +19,12 @@ const Oas3Tools = require('./oas_3_tools.js')
 const getResolver = ({
   path,
   method,
-  endpoint,
   oas,
   argsFromLink = {},
   payloadName
 }) => {
   let baseUrl = Oas3Tools.getBaseUrl(oas)
+  let endpoint = oas.paths[path][method]
 
   return (root, args, ctx) => {
     // handle arguments provided by links:
