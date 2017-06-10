@@ -45,123 +45,147 @@ const ResolverBuilder = require('./resolver_builder.js')
 const getObjectType = ({
   name,
   schema,
+  data,
   links = {},
   oas,
-  allOTs,
-  allIOTs,
   iteration = 0,
   isMutation = false
 }) => {
   // avoid excessive iterations:
   if (iteration === 20) {
-    throw new Error(`Too many iterations`)
+    throw new Error(`Too many iterations when creating schema ${name}`)
   }
 
   // some error checking:
   if (typeof schema !== 'object') {
-    throw new Error(`invalid schema provided of type ${typeof schema}`)
+    throw new Error(`Invalid schema provided of type ${typeof schema}`)
   }
 
   // determine the type of the schema:
   let type = Oas3Tools.getSchemaType(schema)
   if (!type) {
-    throw new Error(`schema has no/wrong type: ${JSON.stringify(schema)}`)
+    throw new Error(`Schema has no/wrong type: ${JSON.stringify(schema)}`)
   }
 
   // CASE: object - create ObjectType:
   if (type === 'object') {
-    if (isMutation) {
-      name = name + 'Input'
-      if (name in allIOTs) {
-        return allIOTs[name]
+    if (!isMutation) {
+      if (name in data.objectTypes) {
+        return data.objectTypes[name]
       } else {
-        allIOTs[name] = new GraphQLInputObjectType({
+        data.objectTypes[name] = new GraphQLObjectType({
           name: name,
           description: schema.description, // might be undefined
           fields: () => {
             return createFields({
+              schemaName: name,
               schema,
+              data,
               links,
               oas,
-              allOTs,
-              allIOTs,
               iteration,
               isMutation
             })
           }
         })
-        return allIOTs[name]
+        return data.objectTypes[name]
       }
     } else {
-      if (name in allOTs) {
-        return allOTs[name]
+      if (name in data.inputObjectTypes) {
+        return data.inputObjectTypes
       } else {
-        allOTs[name] = new GraphQLObjectType({
+        data.inputObjectTypes[name] = new GraphQLInputObjectType({
           name: name,
           description: schema.description, // might be undefined
           fields: () => {
             return createFields({
+              schemaName: name,
               schema,
+              data,
               links,
               oas,
-              allOTs,
-              allIOTs,
               iteration,
               isMutation
             })
           }
         })
-        return allOTs[name]
+        return data.inputObjectTypes[name]
       }
     }
 
   // case: ARRAY - create ArrayType:
   } else if (type === 'array') {
-    // determine name of items:
-    let itemsName = 'some_name'
-
+    // minimal error-checking:
     if (!('items' in schema)) {
       throw new Error(`Items property missing in array schema definition`)
     }
 
-    if ('title' in schema.items) {
-      itemsName = schema.items.title
-    }
-
+    // if items are referenced, try to reuse or store schema:
     if ('$ref' in schema.items) {
-      itemsName = schema.items['$ref'].split('/').pop()
-      schema.items = Oas3Tools.resolveRef(schema.items['$ref'], oas)
-    }
-
-    // determine the type of the items in the array:
-    let itemsType = Oas3Tools.getSchemaType(schema.items)
-    if (!itemsType) {
-      throw new Error(`Type property missing in items definition`)
-    }
-
-    if (itemsType === 'object' || itemsType === 'array') {
-      let nextIt = iteration + 1
-      let type
-      if (!isMutation && itemsName in allOTs) {
-        type = allOTs[itemsName]
-      } else if (isMutation && itemsName in allIOTs) {
-        type = allIOTs[itemsName]
+      let itemsName = schema.items['$ref'].split('/').pop()
+      if (!isMutation) {
+        if (itemsName in data.objectTypes) {
+          return new GraphQLList(data.objectTypes[itemsName])
+        } else {
+          let itemsType = getObjectType({
+            name: itemsName,
+            schema: data.objectTypeDefs[itemsName],
+            data,
+            links,
+            oas,
+            iteration: iteration + 1,
+            isMutation
+          })
+          data.objectTypes[itemsName] = itemsType
+          return new GraphQLList(itemsType)
+        }
       } else {
-        type = getObjectType({
+        let inputItemsName = itemsName + 'Input'
+        if (inputItemsName in data.inputObjectTypes) {
+          return new GraphQLList(data.inputObjectTypes[inputItemsName])
+        } else {
+          let itemsType = getObjectType({
+            name: inputItemsName,
+            schema: data.inputObjectTypeDefs[inputItemsName],
+            data,
+            links,
+            oas,
+            iteration: iteration + 1,
+            isMutation
+          })
+          data.inputObjectTypes[inputItemsName] = itemsType
+          return new GraphQLList(itemsType)
+        }
+      }
+    } else {
+      // determine name of items:
+      let itemsName = 'ArrayItems'
+
+      if ('title' in schema.items) {
+        itemsName = schema.items.title
+      }
+
+      // determine the type of the items in the array:
+      let itemsType = Oas3Tools.getSchemaType(schema.items)
+      if (!itemsType) {
+        throw new Error(`Type property missing in items schema`)
+      }
+
+      if (itemsType === 'object' || itemsType === 'array') {
+        let type = getObjectType({
           name: itemsName,
-          schema: schema.items,
+          schema: schema.items, // schema not referenced, can't do better here
+          data,
           links,
           oas,
-          allOTs,
-          allIOTs,
-          iteration: nextIt,
+          iteration: iteration + 1,
           isMutation
         })
+        return new GraphQLList(type)
+      } else {
+        let type = getScalarType(itemsType)
+        return new GraphQLList(type)
       }
-      return new GraphQLList(type)
-    } else {
-      let type = getScalarType(itemsType)
-      return new GraphQLList(type)
     }
 
   // CASE: scalar
@@ -184,11 +208,11 @@ const getObjectType = ({
  * @return {object}           Object of fields for given schema
  */
 const createFields = ({
+  schemaName,
   schema,
   links,
+  data,
   oas,
-  allOTs,
-  allIOTs,
   iteration,
   isMutation
 }) => {
@@ -197,32 +221,77 @@ const createFields = ({
   /**
    * Create fields for properties
    */
-  for (let propKey in schema.properties) {
-    let prop
-    if ('$ref' in schema.properties[propKey]) {
-      prop = Oas3Tools.resolveRef(schema.properties[propKey]['$ref'], oas)
-    } else {
-      prop = schema.properties[propKey]
-    }
+  for (let propName in schema.properties) {
+    let objectType // holds the object type to for this prop
 
     // determine if this property is required in mutations:
-    let requiredMutationProp = isMutation &&
+    let requiredMutationProp = (isMutation &&
       ('required' in schema) &&
-      schema.required.includes(propKey)
+      schema.required.includes(propName))
 
-    let nextIt = iteration + 1
-    let otToAdd = getObjectType({
-      name: propKey,
-      schema: prop,
-      links,
-      oas,
-      allOTs,
-      allIOTs,
-      iteration: nextIt,
-      isMutation
-    })
-    fields[propKey] = {
-      type: requiredMutationProp ? new GraphQLNonNull(otToAdd) : otToAdd,
+    // if properties are referenced, try to reuse schemas:
+    if ('$ref' in schema.properties[propName]) {
+      propName = schema.properties[propName]['$ref'].split('/').pop()
+      if (!isMutation) {
+        if (propName in data.objectTypes) {
+          objectType = data.objectTypes[propName]
+        } else {
+          data.objectTypes[propName] = getObjectType({
+            name: propName,
+            schema: data.objectTypeDefs[propName],
+            data,
+            links,
+            oas,
+            iteration: iteration + 1,
+            isMutation
+          })
+          objectType = data.objectTypes[propName]
+        }
+      } else {
+        let inputPropName = propName + 'Input'
+        if (inputPropName in data.inputObjectTypes) {
+          objectType = data.inputObjectTypes[inputPropName]
+        } else {
+          data.inputObjectTypes[inputPropName] = getObjectType({
+            name: inputPropName,
+            schema: data.inputObjectTypeDefs[inputPropName],
+            data,
+            links,
+            oas,
+            iteration: iteration + 1,
+            isMutation
+          })
+          objectType = data.inputObjectTypes[inputPropName]
+        }
+      }
+    // if no reference was found, we create the schema:
+    // NOTE: we do not try to reuse a schema based on the propName here, because
+    // the propName could collide with a schema name.
+    } else {
+      let propSchema = schema.properties[propName]
+
+      // TODO: we have to be careful not to assign an already existing name to the
+      // property's Object Type...
+      if (propName in data.objectTypeDefs ||
+        propName in data.inputObjectTypeDefs) {
+        console.error(`Warning: creating Object Type for property with colluding
+          name ${propName}`)
+      }
+
+      objectType = getObjectType({
+        name: propName,
+        schema: propSchema,
+        data,
+        links,
+        oas,
+        iteration: iteration + 1,
+        isMutation
+      })
+    }
+
+    // finally, add the object type to the fields:
+    fields[propName] = {
+      type: requiredMutationProp ? new GraphQLNonNull(objectType) : objectType,
       description: schema.description // might be undefined
     }
   }
@@ -233,18 +302,18 @@ const createFields = ({
   if (iteration === 0) {
     for (let linkKey in links) {
       // get linked operation:
-      let operationId
+      let linkedOpId
       // TODO: href is yet another alternative to operationRef and operationId
       // if ('operationRef' in links[linkKey]) {
       //   operationId = Oas3Tools.resolveRef(links[linkKey].operationRef, oas).operationId
       // } else if ('operationId' in links[linkKey]) {
       if ('operationId' in links[linkKey]) {
-        operationId = links[linkKey].operationId
+        linkedOpId = links[linkKey].operationId
       } else {
         throw new Error(`Link definition has neither "operationRef",
           "operationId", or "hRef" property`)
       }
-      let {path, method, endpoint} = Oas3Tools.getOperationById(operationId, oas)
+      let linkedOp = data.operations[linkedOpId]
 
       // determine parameters provided via link:
       let linkParameters = links[linkKey].parameters
@@ -253,17 +322,17 @@ const createFields = ({
         argsFromLink[linkParamKey] = linkParameters[linkParamKey].split('body#/')[1]
       }
 
-      // 2. remove argsFromLinks from operation parameters:
-      let endpointParameters = Oas3Tools.getParameters(path, method, oas)
+      // remove argsFromLinks from operation parameters:
+      let endpointParameters = linkedOp.parameters
       let dynamicParams = endpointParameters.filter(p => {
         return !(p.name in argsFromLink)
       })
 
       // get resolve function for link:
       let linkResolver = ResolverBuilder.getResolver({
-        path: path,
-        method: method,
-        endpoint: endpoint,
+        path: linkedOp.path,
+        method: linkedOp.method,
+        endpoint: linkedOp.endpoint,
         oas,
         argsFromLink
       })
@@ -271,11 +340,11 @@ const createFields = ({
       // get args for link:
       let args = getArgs({parameters: dynamicParams})
 
-      // get response schema and name:
-      let {schemaName} = Oas3Tools.getResSchemaAndName(path, method, oas)
+      // get response object type:
+      let resObjectType = data.objectTypes[linkedOp.resSchemaName]
 
       fields[linkKey] = {
-        type: allOTs[schemaName],
+        type: resObjectType,
         resolve: linkResolver,
         args: args
       }
@@ -302,12 +371,10 @@ const createFields = ({
  */
 const getArgs = ({
   parameters,
-  reqSchema,
   reqSchemaName,
   reqSchemaRequired = false,
   oas,
-  allOTs,
-  allIOTs
+  data
 }) => {
   let args = {}
 
@@ -316,7 +383,7 @@ const getArgs = ({
     let param = parameters[i]
 
     if (typeof param.name !== 'string') {
-      console.log(`Warning: ignore parameter with missing "name" property: ${param}`)
+      console.error(`Warning: ignore parameter with missing "name" property: ${param}`)
       continue
     }
     let name = Oas3Tools.sanitize(param.name)
@@ -336,19 +403,23 @@ const getArgs = ({
   }
 
   // handle reqBodySchema:
-  if (typeof reqSchema === 'object') {
-    let inputType = getObjectType({
-      name: reqSchemaName,
-      schema: reqSchema,
-      oas,
-      allOTs,
-      allIOTs,
-      isMutation: true
-    })
+  if (typeof reqSchemaName === 'string') {
+    let reqObjectType
+    if (reqSchemaName in data.inputObjectTypes) {
+      reqObjectType = data.inputObjectTypes[reqSchemaName]
+    } else {
+      reqObjectType = getObjectType({
+        name: reqSchemaName,
+        schema: data.inputObjectTypeDefs[reqSchemaName],
+        data,
+        oas,
+        isMutation: true
+      })
+    }
 
     args[reqSchemaName] = {
-      type: reqSchemaRequired ? new GraphQLNonNull(inputType) : inputType,
-      description: reqSchema.description // might be undefined
+      type: reqSchemaRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
+      description: data.inputObjectTypeDefs[reqSchemaName].description // might be undefined
     }
   }
 

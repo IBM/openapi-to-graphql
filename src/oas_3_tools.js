@@ -79,28 +79,6 @@ const instantiatePath = (path, endpoint, args) => {
 }
 
 /**
- * Return the operation with the given operationId from the given OAS.
- *
- * @param  {string} operationId
- * @param  {object} oas
- * @return {object}
- */
-const getOperationById = (operationId, oas) => {
-  for (let path in oas.paths) {
-    for (let method in oas.paths[path]) {
-      let endpoint = oas.paths[path][method]
-      if (endpoint.operationId === operationId) {
-        return {
-          method,
-          path,
-          endpoint
-        }
-      }
-    }
-  }
-}
-
-/**
  * Returns the "type" of the given JSON schema. Makes best guesses if the type
  * is not explicitly defined.
  *
@@ -167,19 +145,6 @@ const getEndpointLinks = (path, method, oas) => {
 }
 
 /**
- * Determines if endpoint at given path and method has any links defined.
- *
- * @param  {string} path
- * @param  {string} method
- * @param  {object} oas
- * @return {boolean}          True, if endpoint has links
- */
-const hasLinks = (path, method, oas) => {
-  let endpoint = oas.paths[path][method]
-  return ('links' in endpoint.responses['200'])
-}
-
-/**
  * Checks whether the given endpoint has a response JSON schema.
  *
  * @param  {object} endpoint OAS endpoint
@@ -191,6 +156,14 @@ const endpointReturnsJson = (endpoint) => {
     'content' in endpoint.responses['200'] &&
     'application/json' in endpoint.responses['200'].content &&
     'schema' in endpoint.responses['200'].content['application/json']
+}
+
+const endpointReturnsJsonForStatus = (endpoint, statusCode) => {
+  return 'responses' in endpoint &&
+    statusCode in endpoint.responses &&
+    'content' in endpoint.responses[statusCode] &&
+    'application/json' in endpoint.responses[statusCode].content &&
+    'schema' in endpoint.responses[statusCode].content['application/json']
 }
 
 /**
@@ -207,78 +180,77 @@ const endpointHasReqSchema = (endpoint) => {
 }
 
 /**
- * Returns the (resolved) response schema and schemaName for the endpoint at the
- * given path and method.
+ * Returns the request schema (if any) for endpoint at given path and method, a
+ * dictionary of names from different sources (if available), and whether the
+ * request schema is required for the endpoint.
  *
  * @param  {string} path
  * @param  {string} method
  * @param  {object} oas
- * @return {object}        Contains schema and name of schema
+ * @return {object}
  */
-const getResSchemaAndName = (path, method, oas) => {
+const getReqSchemaAndNames = (path, method, oas) => {
   let endpoint = oas.paths[path][method]
+  let reqSchemaRequired = false
+  let reqSchemaNames = {}
 
-  if (endpointReturnsJson(endpoint)) {
-    let schema = endpoint.responses['200'].content['application/json'].schema
-    let schemaName = inferResourceNameFromPath(path)
-
-    if ('$ref' in schema) {
-      schemaName = schema['$ref'].split('/').pop()
-      schema = resolveRef(schema['$ref'], oas)
+  if (endpointHasReqSchema(endpoint)) {
+    let reqSchema = endpoint.requestBody.content['application/json'].schema
+    if (typeof endpoint.requestBody.required === 'boolean') {
+      reqSchemaRequired = endpoint.requestBody.required
     }
-    if ('title' in schema) {
-      schemaName = schema.title
-    }
+    reqSchemaNames.fromPath = beautify(sanitize(inferResourceNameFromPath(path)), '_')
 
-    // strip possibly remaining unnoted characters:
-    schemaName = sanitize(schemaName)
+    if ('$ref' in reqSchema) {
+      reqSchemaNames.fromRef = beautify(sanitize(reqSchema['$ref'].split('/').pop()), '_')
+      reqSchema = resolveRef(reqSchema['$ref'], oas)
+    }
+    if ('title' in reqSchema) {
+      reqSchemaNames.fromSchema = beautify(sanitize(reqSchema.title), '_')
+    }
 
     return {
-      schema,
-      schemaName
+      reqSchema,
+      reqSchemaNames,
+      reqSchemaRequired
     }
   }
   return {}
 }
 
 /**
- * Returns the (resolved) request payload schema and request schemaName for the
- * endpoint at the given path and method.
+ * Returns the response schema for endpoint at given path and method and with
+ * the given status code, and a dictionary of names from different sources (if
+ * available).
  *
  * @param  {string} path
  * @param  {string} method
+ * @param  {string} statusCode
  * @param  {object} oas
- * @return {object}        Contains schema and name of schema
+ * @return {object}
  */
-const getReqSchemaAndName = (path, method, oas) => {
+const getResSchemaAndNames = (path, method, statusCode, oas) => {
   let endpoint = oas.paths[path][method]
-  let required = false
+  let resSchemaNames = {}
 
-  if (endpointHasReqSchema(endpoint)) {
-    let reqSchema = endpoint.requestBody.content['application/json'].schema
-    if (typeof endpoint.requestBody.required === 'boolean') {
-      required = endpoint.requestBody.required
-    }
-    let reqSchemaName = inferResourceNameFromPath(path)
+  if (endpointReturnsJsonForStatus(endpoint, statusCode)) {
+    let resSchema = endpoint.responses[statusCode].content['application/json'].schema
 
-    if ('$ref' in reqSchema) {
-      reqSchemaName = reqSchema['$ref'].split('/').pop()
-      reqSchema = resolveRef(reqSchema['$ref'], oas)
-    }
-    if ('title' in reqSchema) {
-      reqSchemaName = reqSchema.title
-    }
+    resSchemaNames.fromPath = beautify(sanitize(inferResourceNameFromPath(path)), '_')
 
-    // strip possibly remaining unnoted characters:
-    reqSchemaName = sanitize(reqSchemaName)
+    if ('$ref' in resSchema) {
+      resSchemaNames.fromRef = beautify(sanitize(resSchema['$ref'].split('/').pop()), '_')
+      resSchema = resolveRef(resSchema['$ref'], oas)
+    }
+    if ('title' in resSchema) {
+      resSchemaNames.fromSchema = beautify(sanitize(resSchema.title), '_')
+    }
 
     return {
-      reqSchema,
-      reqSchemaName,
-      required
+      resSchema,
+      resSchemaNames
     }
   }
-  return {}
 }
 
 /**
@@ -308,6 +280,27 @@ const getParameters = (path, method, oas) => {
 }
 
 /**
+ * Removes charToRemove from given string, and capitalizes following characters.
+ *
+ * @param  {string} str
+ * @param  {string} charToRemove
+ * @return {string}
+ */
+const beautify = (str, charToRemove) => {
+  while (str.indexOf(charToRemove) !== -1) {
+    let pos = str.indexOf(charToRemove)
+    if (str.length >= pos + 2) {
+      str = str.slice(0, pos) + str.charAt(pos + 1).toUpperCase() + str.slice(pos + 2, str.length)
+    } else if (str.length === pos + 1) {
+      str = str.slice(0, pos) + str.charAt(pos + 1).toUpperCase()
+    } else {
+      str = str.slice(0, pos)
+    }
+  }
+  return str
+}
+
+/**
  * Sanitizes the given string so that it can be used as the name for a GraphQL
  * Object Type.
  *
@@ -322,15 +315,13 @@ module.exports = {
   resolveRef,
   getBaseUrl,
   instantiatePath,
-  getOperationById,
   getSchemaType,
   inferResourceNameFromPath,
   getEndpointLinks,
   endpointReturnsJson,
-  getResSchemaAndName,
+  getReqSchemaAndNames,
+  getResSchemaAndNames,
   mutationMethods,
-  getReqSchemaAndName,
   getParameters,
-  sanitize,
-  hasLinks
+  sanitize
 }

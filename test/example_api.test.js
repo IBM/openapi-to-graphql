@@ -21,7 +21,7 @@ beforeAll(() => {
     })
 })
 
-test('Get single resource', () => {
+test('Get resource', () => {
   let query = `{
     user (username: "erik") {
       name
@@ -32,7 +32,7 @@ test('Get single resource', () => {
   })
 })
 
-test('Get single resource 2', () => {
+test('Get resource 2', () => {
   let query = `{
     company (id: "ibm") {
       legalForm
@@ -123,6 +123,66 @@ test('Get single resource', () => {
           name: 'Erik Wittern',
           address: {
             street: '270 East 10th Street'
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Post resource', () => {
+  let query = `mutation {
+    postUser (userInput: {
+      name: "Mr. New Guy"
+      address: {
+        street: "Home streeet 1"
+        city: "Hamburg"
+      }
+      employerId: "ibm"
+      hobbies: "soccer"
+    }) {
+      name
+    }
+  }`
+  return graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        postUser: {
+          name: 'Mr. New Guy'
+        }
+      }
+    })
+  })
+})
+
+test('Post resource and get nested resource back', () => {
+  let query = `mutation {
+    postUser (userInput: {
+      name: "Mr. New Guy"
+      address: {
+        street: "Home streeet 1"
+        city: "Hamburg"
+      }
+      employerId: "ibm"
+      hobbies: "soccer"
+    }) {
+      name
+      employerCompany {
+        ceoUser {
+          name
+        }
+      }
+    }
+  }`
+  return graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        postUser: {
+          name: 'Mr. New Guy',
+          employerCompany: {
+            ceoUser: {
+              name: 'Ginni Rometti'
+            }
           }
         }
       }

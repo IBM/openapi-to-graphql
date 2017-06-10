@@ -6,8 +6,8 @@ const {
 } = require('graphql')
 const SchemaBuilder = require('./src/schema_builder.js')
 const ResolverBuilder = require('./src/resolver_builder.js')
-const Oas3Tools = require('./src/oas_3_tools.js')
 const GraphQLTools = require('./src/graphql_tools.js')
+const Preprocessor = require('./src/preprocessor.js')
 
 // increase stack trace logging for better debugging:
 Error.stackTraceLimit = Infinity
@@ -23,6 +23,29 @@ const createGraphQlSchema = oas => {
   return new Promise((resolve, reject) => {
     // TODO: validate OAS
 
+    /**
+     * Result of preprocessing OAS.
+     *
+     * {
+     *  objectTypeDefs      // key: schemaName, val: JSON schema
+     *  objectTypes         // key: schemaName, val: GraphQLObjectType
+     *  inputObjectTypeDefs // key: schemaName, val: JSON schema
+     *  inputObjectTypes    // key: schemaName, val: GraphQLInputObjectType
+     *  operations {
+     *    path
+     *    method
+     *    resSchemaName
+     *    reqSchemaName
+     *    reqSchemaRequired
+     *    links
+     *    parameters
+     *  }
+     * }
+     *
+     * @type {Object}
+     */
+    let data = Preprocessor.preprocessOas(oas)
+    // console.log(JSON.stringify(data, null, 2))
     /**
      * Holds on to the highest-level (entry-level) object types for queries
      * that are accessible in the schema to build.
@@ -40,60 +63,35 @@ const createGraphQlSchema = oas => {
     let rootMutationFields = {}
 
     /**
-     * Holds on to defined GraphQL object types so they can be reused.
-     *
-     * @type {Object} key: operationId, operationRef, method:path, or schemaname
-     *                value: GraphQLObjectType
-     */
-    let allOTs = {}
-
-    /**
-     * Holds on to the defined GraphQL input object types so they can be reused.
-     *
-     *  @type {Object}
-     */
-    let allIOTs = {}
-
-    /**
      * Translate every endpoint to GraphQL schemes.
-     *
-     * Do this first for endpoints that DO contain links, so that built up
-     * GraphQL object types that are reused contain these links.
-     *
-     * This necessitates a second iteration, though, for the endpoints that
-     * DO NOT have links.
      */
-    for (let path in oas.paths) {
-      for (let method in oas.paths[path]) {
-        if (Oas3Tools.hasLinks(path, method, oas)) {
-          translateEndpoint({
-            method,
-            path,
-            oas,
-            allOTs,
-            allIOTs,
-            rootQueryFields,
-            rootMutationFields
-          })
-        }
-      }
-    }
-    for (let path in oas.paths) {
-      for (let method in oas.paths[path]) {
-        if (!Oas3Tools.hasLinks(path, method, oas)) {
-          translateEndpoint({
-            method,
-            path,
-            oas,
-            allOTs,
-            allIOTs,
-            rootQueryFields,
-            rootMutationFields
-          })
+    for (let operationId in data.operations) {
+      let operation = data.operations[operationId]
+      if (Object.keys(operation.links).length > 0) {
+        let field = getFieldForOperation(operation, data, oas)
+
+        if (operation.method.toLowerCase() === 'get') {
+          rootQueryFields[operation.resSchemaName] = field
+        } else {
+          rootMutationFields[operationId] = field
         }
       }
     }
 
+    for (let operationId in data.operations) {
+      let operation = data.operations[operationId]
+      if (Object.keys(operation.links).length === 0) {
+        let field = getFieldForOperation(operation, data, oas)
+
+        if (operation.method.toLowerCase() === 'get') {
+          rootQueryFields[operation.resSchemaName] = field
+        } else {
+          rootMutationFields[operationId] = field
+        }
+      }
+    }
+
+    // console.log(rootQueryFields)
     // build up the schema:
     let schemaDef = {}
     if (Object.keys(rootQueryFields).length > 0) {
@@ -111,94 +109,46 @@ const createGraphQlSchema = oas => {
       })
     }
 
-    resolve(new GraphQLSchema(schemaDef))
+    let schema = new GraphQLSchema(schemaDef)
+
+    resolve(schema)
   })
 }
 
-/**
- * Translates the endpoint identified with method and path in the given OAS to
- * GraphQL schemes.
- *
- * @param  {string} options.method
- * @param  {string} options.path
- * @param  {object} options.oas
- * @param  {object} options.allOTs
- * @param  {object} options.allIOTs
- * @param  {object} options.rootQueryFields
- * @param  {object} options.rootMutationFields
- */
-const translateEndpoint = ({
-  method,
-  path,
-  oas,
-  allOTs,
-  allIOTs,
-  rootQueryFields,
-  rootMutationFields
-}) => {
-  if (Oas3Tools.endpointReturnsJson(oas.paths[path][method])) {
-    // get response schema and name:
-    let {schemaName, schema} = Oas3Tools.getResSchemaAndName(path, method, oas)
-
-    // get links:
-    let links = Oas3Tools.getEndpointLinks(path, method, oas)
-
-    // get parameters:
-    let parameters = Oas3Tools.getParameters(path, method, oas)
-
-    // get requestBody schema:
-    let {reqSchemaName, reqSchema, required} = Oas3Tools.getReqSchemaAndName(path, method, oas)
-
-    // get ObjectType for operation:
-    let type = SchemaBuilder.getObjectType({
-      name: schemaName,
-      schema,
-      links,
-      oas,
-      allOTs,
-      allIOTs
+const getFieldForOperation = (operation, data, oas) => {
+  // determine type:
+  let type = data.objectTypes[operation.resSchemaName]
+  if (typeof type === 'undefined') {
+    type = SchemaBuilder.getObjectType({
+      name: operation.resSchemaName,
+      schema: data.objectTypeDefs[operation.resSchemaName],
+      data: data,
+      links: operation.links,
+      oas
     })
-
-    // get resolve function for operation:
-    let resolver = ResolverBuilder.getResolver({
-      path,
-      method,
-      oas,
-      payloadName: schemaName
-    })
-
-    // get arguments for operation:
-    let args = SchemaBuilder.getArgs({
-      parameters,
-      reqSchema,
-      reqSchemaName,
-      oas,
-      allOTs,
-      allIOTs,
-      reqSchemaRequired: required
-    })
-
-    let field = {
-      type: type,
-      resolve: resolver,
-      args: args
-    }
-
-    if (method.toLowerCase() === 'get') {
-      rootQueryFields[schemaName] = field
-    } else if (Oas3Tools.mutationMethods.includes(method.toLowerCase())) {
-      let mutName = method.toLowerCase() +
-        schemaName.charAt(0).toUpperCase() +
-        schemaName.slice(1)
-      rootMutationFields[mutName] = field
-    }
   }
 
+  // determine resolve function:
+  let resolve = ResolverBuilder.getResolver({
+    path: operation.path,
+    method: operation.method,
+    oas,
+    payloadName: operation.reqSchemaName
+  })
+
+  // determine args:
+  let args = SchemaBuilder.getArgs({
+    parameters: operation.parameters,
+    reqSchemaName: operation.reqSchemaName,
+    oas,
+    data,
+    reqSchemaRequired: operation.reqSchemaRequired
+  })
+
   return {
-    allOTs,
-    allIOTs,
-    rootQueryFields,
-    rootMutationFields
+    type: type,
+    resolve: resolve,
+    args: args
   }
 }
 
