@@ -46,6 +46,7 @@ const createGraphQlSchema = oas => {
      */
     let data = Preprocessor.preprocessOas(oas)
     // console.log(JSON.stringify(data, null, 2))
+
     /**
      * Holds on to the highest-level (entry-level) object types for queries
      * that are accessible in the schema to build.
@@ -130,8 +131,7 @@ const getFieldForOperation = (operation, data, oas) => {
 
   // determine resolve function:
   let resolve = ResolverBuilder.getResolver({
-    path: operation.path,
-    method: operation.method,
+    operation,
     oas,
     payloadName: operation.reqSchemaName
   })

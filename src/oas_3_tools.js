@@ -44,37 +44,41 @@ const getBaseUrl = (oas) => {
 
 /**
  * Replaces the path parameter in the given path with values in the given args.
+ * Furthermore adds the query parameters for a request.
  *
  * @param  {string} path
  * @param  {object} endpoint
- * @param  {object} args     Arguments
+ * @param  {object} args     Arguments. NOTE: argument keys are sanitized!!!
  * @return {string}          Path with parameters replaced by argument values
  */
-const instantiatePath = (path, endpoint, args) => {
+const instantiatePathAndQuery = (path, parameters, args) => {
   // case: nothing to do
-  if (!Array.isArray(endpoint.parameters)) {
+  if (!Array.isArray(parameters)) {
     return path
   }
 
   let query = {}
   // iterate parameters:
-  for (let i in endpoint.parameters) {
-    let param = endpoint.parameters[i]
+  for (let i in parameters) {
+    let param = parameters[i]
+    let sanitizedParamName = beautify(param.name)
 
     // path parameters:
     if (param.in === 'path') {
-      path = path.replace(`{${param.name}}`, args[param.name])
+      path = path.replace(`{${param.name}}`, args[sanitizedParamName])
     }
 
     // query parameters:
     if (param.in === 'query' &&
-      param.name in args) {
-      query[param.name] = args[param.name]
+      sanitizedParamName in args) {
+      query[param.name] = args[sanitizedParamName]
     }
-    path += querystring.stringify(query)
-
-    // TODO: body...
   }
+  let queryStr = querystring.stringify(query)
+  if (queryStr.length > 0) {
+    path += `?${queryStr}`
+  }
+
   return path
 }
 
@@ -199,14 +203,14 @@ const getReqSchemaAndNames = (path, method, oas) => {
     if (typeof endpoint.requestBody.required === 'boolean') {
       reqSchemaRequired = endpoint.requestBody.required
     }
-    reqSchemaNames.fromPath = beautify(sanitize(inferResourceNameFromPath(path)), '_')
+    reqSchemaNames.fromPath = beautify(inferResourceNameFromPath(path))
 
     if ('$ref' in reqSchema) {
-      reqSchemaNames.fromRef = beautify(sanitize(reqSchema['$ref'].split('/').pop()), '_')
+      reqSchemaNames.fromRef = beautify(reqSchema['$ref'].split('/').pop())
       reqSchema = resolveRef(reqSchema['$ref'], oas)
     }
     if ('title' in reqSchema) {
-      reqSchemaNames.fromSchema = beautify(sanitize(reqSchema.title), '_')
+      reqSchemaNames.fromSchema = beautify(reqSchema.title)
     }
 
     return {
@@ -236,14 +240,14 @@ const getResSchemaAndNames = (path, method, statusCode, oas) => {
   if (endpointReturnsJsonForStatus(endpoint, statusCode)) {
     let resSchema = endpoint.responses[statusCode].content['application/json'].schema
 
-    resSchemaNames.fromPath = beautify(sanitize(inferResourceNameFromPath(path)), '_')
+    resSchemaNames.fromPath = beautify(inferResourceNameFromPath(path))
 
     if ('$ref' in resSchema) {
-      resSchemaNames.fromRef = beautify(sanitize(resSchema['$ref'].split('/').pop()), '_')
+      resSchemaNames.fromRef = beautify(resSchema['$ref'].split('/').pop())
       resSchema = resolveRef(resSchema['$ref'], oas)
     }
     if ('title' in resSchema) {
-      resSchemaNames.fromSchema = beautify(sanitize(resSchema.title), '_')
+      resSchemaNames.fromSchema = beautify(resSchema.title)
     }
 
     return {
@@ -280,24 +284,28 @@ const getParameters = (path, method, oas) => {
 }
 
 /**
- * Removes charToRemove from given string, and capitalizes following characters.
+ * First sanitizes given string and then also camel-cases it.
  *
  * @param  {string} str
  * @param  {string} charToRemove
  * @return {string}
  */
-const beautify = (str, charToRemove) => {
-  while (str.indexOf(charToRemove) !== -1) {
-    let pos = str.indexOf(charToRemove)
-    if (str.length >= pos + 2) {
-      str = str.slice(0, pos) + str.charAt(pos + 1).toUpperCase() + str.slice(pos + 2, str.length)
-    } else if (str.length === pos + 1) {
-      str = str.slice(0, pos) + str.charAt(pos + 1).toUpperCase()
+const beautify = (str) => {
+  let charToRemove = '_'
+  let sanitized = sanitize(str)
+  while (sanitized.indexOf(charToRemove) !== -1) {
+    let pos = sanitized.indexOf(charToRemove)
+    if (sanitized.length >= pos + 2) {
+      sanitized = sanitized.slice(0, pos) +
+        sanitized.charAt(pos + 1).toUpperCase() +
+        sanitized.slice(pos + 2, sanitized.length)
+    } else if (sanitized.length === pos + 1) {
+      sanitized = sanitized.slice(0, pos) + sanitized.charAt(pos + 1).toUpperCase()
     } else {
-      str = str.slice(0, pos)
+      sanitized = sanitized.slice(0, pos)
     }
   }
-  return str
+  return sanitized
 }
 
 /**
@@ -314,7 +322,7 @@ const sanitize = (str) => {
 module.exports = {
   resolveRef,
   getBaseUrl,
-  instantiatePath,
+  instantiatePathAndQuery,
   getSchemaType,
   inferResourceNameFromPath,
   getEndpointLinks,
@@ -323,5 +331,6 @@ module.exports = {
   getResSchemaAndNames,
   mutationMethods,
   getParameters,
-  sanitize
+  sanitize,
+  beautify
 }

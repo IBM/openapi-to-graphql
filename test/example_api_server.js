@@ -76,6 +76,10 @@ const Companies = {
   }
 }
 
+const Product = {
+  productName: 'Super Product'
+}
+
 app.post('/api/users', (req, res) => {
   console.log(req.method, req.path)
   let user = req.body
@@ -101,6 +105,13 @@ app.get('/api/users/:username', (req, res) => {
 app.get('/api/companies/:id', (req, res) => {
   console.log(req.method, req.path)
   res.send(Companies[req.params.id])
+})
+
+app.post('/api/products/:id', (req, res) => {
+  console.log(req.method, req.path, req.params, req.query)
+  Product.productId = req.params['id']
+  Product.productTag = req.query['product-tag']
+  res.send(Product)
 })
 
 app.listen(3000, () => {

@@ -330,9 +330,7 @@ const createFields = ({
 
       // get resolve function for link:
       let linkResolver = ResolverBuilder.getResolver({
-        path: linkedOp.path,
-        method: linkedOp.method,
-        endpoint: linkedOp.endpoint,
+        operation: linkedOp,
         oas,
         argsFromLink
       })
@@ -383,10 +381,14 @@ const getArgs = ({
     let param = parameters[i]
 
     if (typeof param.name !== 'string') {
-      console.error(`Warning: ignore parameter with missing "name" property: ${param}`)
+      console.error(`Warning: ignore parameter with no "name" property: ${param}`)
       continue
     }
-    let name = Oas3Tools.sanitize(param.name)
+
+    // GraphQL requires sanitized parameters
+    // NOTE: when matching these parameters back to requests, we need to again
+    // use the real parameter name.
+    let name = Oas3Tools.beautify(param.name)
 
     let type = GraphQLString
 

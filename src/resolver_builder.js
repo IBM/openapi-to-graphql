@@ -17,15 +17,15 @@ const Oas3Tools = require('./oas_3_tools.js')
  * @return {function}                    Resolver function
  */
 const getResolver = ({
-  path,
-  method,
+  operation,
   oas,
   argsFromLink = {},
   payloadName
 }) => {
+  // determine the base URL:
   let baseUrl = Oas3Tools.getBaseUrl(oas)
-  let endpoint = oas.paths[path][method]
 
+  // return resolve function:
   return (root, args, ctx) => {
     // handle arguments provided by links:
     if (typeof argsFromLink === 'object') {
@@ -35,12 +35,15 @@ const getResolver = ({
     }
 
     // build URL (i.e., fill in path parameters):
-    let urlPath = Oas3Tools.instantiatePath(path, endpoint, args)
+    let urlPath = Oas3Tools.instantiatePathAndQuery(
+      operation.path,
+      operation.parameters,
+      args)
     let url = baseUrl + urlPath
 
     // build request options:
     let options = {
-      method: method,
+      method: operation.method,
       url: url,
       json: true
     }
@@ -49,10 +52,11 @@ const getResolver = ({
     if (payloadName in args) {
       options.body = args[payloadName]
     }
-
+    console.log(`${options.method.toUpperCase()} ${options.url}`)
     return new Promise((resolve, reject) => {
       request(options, (err, response, data) => {
         if (err) {
+          console.error(err)
           reject(err)
         } else {
           resolve(data)

@@ -190,10 +190,21 @@ test('Post resource and get nested resource back', () => {
   })
 })
 
-test('Create schema for Government Social Work API', () => {
-  let oas = require('./government_social_work_api.json')
-  return OasGraph.createGraphQlSchema(oas)
-    .then(createdSchema => {
-      expect(createdSchema).toBeDefined()
+test('Sanitized path and query parameters are correctly sent', () => {
+  let query = `mutation {
+    postProductWithId(productId: "this-path", productTag:"And a tag") {
+      productId
+      productTag
+    }
+  }`
+  return graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        postProductWithId: {
+          productId: 'this-path',
+          productTag: 'And a tag'
+        }
+      }
     })
+  })
 })

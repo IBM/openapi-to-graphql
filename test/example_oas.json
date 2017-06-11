@@ -125,6 +125,42 @@
           }
         }
       }
+    },
+    "/products/{product-id}": {
+      "post": {
+        "operationId": "post-product-with-id",
+        "description": "Endpoint to test unsanitized parameters and data.",
+        "parameters": [
+          {
+            "name": "product-id",
+            "in": "path",
+            "required": "true",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "product-tag",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A product.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/product-with-id"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -195,6 +231,24 @@
           "city": {
             "type": "string",
             "description": "The city a user lives in"
+          }
+        }
+      },
+      "product-with-id": {
+        "type": "object",
+        "description": "A product",
+        "properties": {
+          "productName": {
+            "type": "string",
+            "description": "The name of the product"
+          },
+          "productId": {
+            "type": "string",
+            "description": "The id of the product"
+          },
+          "productTag": {
+            "type": "string",
+            "description": "A tag associated with the product"
           }
         }
       }
