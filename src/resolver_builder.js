@@ -59,7 +59,10 @@ const getResolver = ({
           console.error(err)
           reject(err)
         } else {
-          resolve(data)
+          // deal with the fact that the server might send unsanitized data:
+          let saneData = Oas3Tools.sanitizeObjKeys(data)
+
+          resolve(saneData)
         }
       })
     })

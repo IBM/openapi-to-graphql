@@ -77,7 +77,7 @@ const Companies = {
 }
 
 const Product = {
-  productName: 'Super Product'
+  'product-name': 'Super Product'
 }
 
 app.post('/api/users', (req, res) => {
@@ -109,8 +109,8 @@ app.get('/api/companies/:id', (req, res) => {
 
 app.post('/api/products/:id', (req, res) => {
   console.log(req.method, req.path, req.params, req.query)
-  Product.productId = req.params['id']
-  Product.productTag = req.query['product-tag']
+  Product['product_id'] = req.params['id']
+  Product['product-tag'] = req.query['product-tag']
   res.send(Product)
 })
 

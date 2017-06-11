@@ -43,6 +43,43 @@ const getBaseUrl = (oas) => {
 }
 
 /**
+ * Returns object | array where all object keys are sanitized. Keys passed in
+ * exceptions are not sanitized.
+ *
+ * @param  {any}    obj        Object | array etc. to sanitize
+ * @param  {Array}  exceptions List of keys to leave as is
+ * @return {any}
+ */
+const sanitizeObjKeys = (obj, exceptions = []) => {
+  const cleanKeys = (obj) => {
+    if (Array.isArray(obj)) {
+      return obj.map(cleanKeys)
+    } else if (typeof obj === 'object') {
+      let res = {}
+      for (let key in obj) {
+        if (!exceptions.includes(key)) {
+          let saneKey = beautify(key)
+          if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            res[saneKey] = cleanKeys(obj[key])
+          }
+        } else {
+          res[key] = cleanKeys(obj[key])
+        }
+      }
+      return res
+    } else {
+      return obj
+    }
+  }
+
+  return cleanKeys(obj)
+}
+
+// const desanitizeObjKeys = () => {
+
+// }
+
+/**
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  *
@@ -332,5 +369,6 @@ module.exports = {
   mutationMethods,
   getParameters,
   sanitize,
-  beautify
+  beautify,
+  sanitizeObjKeys
 }
