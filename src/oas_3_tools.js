@@ -349,11 +349,14 @@ const beautify = (str) => {
  * Sanitizes the given string so that it can be used as the name for a GraphQL
  * Object Type.
  *
+ * GraphQL's validation Regex is: /^[_a-zA-Z][_a-zA-Z0-9]*$/
+ *
  * @param  {string} str
  * @return {string}     Sanitized string
  */
 const sanitize = (str) => {
-  return str.replace(/[^a-zA-Z0-9]/g, '_')
+  let clean = str.replace(/[^_a-zA-Z0-9]/g, '_').replace(/^[0-9]+/g, '_')
+  return clean
 }
 
 module.exports = {
