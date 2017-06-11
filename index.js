@@ -45,7 +45,6 @@ const createGraphQlSchema = oas => {
      * @type {Object}
      */
     let data = Preprocessor.preprocessOas(oas)
-    // console.log(JSON.stringify(data, null, 2))
 
     /**
      * Holds on to the highest-level (entry-level) object types for queries
@@ -92,7 +91,6 @@ const createGraphQlSchema = oas => {
       }
     }
 
-    // console.log(rootQueryFields)
     // build up the schema:
     let schemaDef = {}
     if (Object.keys(rootQueryFields).length > 0) {

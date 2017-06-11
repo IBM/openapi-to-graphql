@@ -14,32 +14,31 @@ const Oas3Tools = require('./oas_3_tools.js')
 const ResolverBuilder = require('./resolver_builder.js')
 
 /**
- * Creates a GraphQL (input) Object Type definition for the given JSON schema.
+ * Creates a GraphQL (Input) Object Type for the given JSON schema.
  *
  * Nested example: https://gist.github.com/xpepermint/7376b8c67caa926e19d2
  *
  * A returned GraphQLObjectType has the following internal structure:
  *
  *   new GraphQLObjectType({
- *     'name'        // optional name of the type
- *     'description' // optional description of type
- *     'fields'      // REQUIRED thunk returning fields
- *       'type'      // REQUIRED definition of the field type
- *       'args'      // optional definition of types
- *       'resolve'   // optional function defining how to obtain this type
+ *     name        // optional name of the type
+ *     description // optional description of type
+ *     fields      // REQUIRED thunk returning fields
+ *       type      // REQUIRED definition of the field type
+ *       args      // optional definition of types
+ *       resolve   // optional function defining how to obtain this type
  *   })
  *
- * @param  {string}  options.name   Name of the Type Definition to create
- * @param  {object}  options.schema JSON-schema to get GraphQL Object Def. for
- * @param  {object}  options.links  Object containing the (possible) links
- * between this object to other endpoints (= operations)
- * @param  {object}  oas
- * @param  {object}  allOTs         Contains existing Object Types
- * @param  {object}  allIOTs        Contains existing Input Object Types
+ * @param  {string}  options.name   Name of the (Input) Object Type to create
+ * @param  {object}  options.schema JSON schema of the (Input) Object Type to
+ * create
+ * @param  {obejct}  options.data   Data produced by preprocessing
+ * @param  {object}  options.links  Links belonging to (Input) Object Type
+ * @param  {object}  oas            OpenAPI Specification 3.0
  * @param  {Number}  iteration      Integer count of recursions used to create
  * this schema
  * @param  {Boolean} isMutation     Whether to create an Input Object Type
- * @return {Object}                 GraphQLObjectType | GraphQLInputObjectType |
+ * @return {object}                 GraphQLObjectType | GraphQLInputObjectType |
  * GraphQLList | Scalar GraphQL type
  */
 const getObjectType = ({
@@ -170,6 +169,20 @@ const getObjectType = ({
   }
 }
 
+/**
+ * Returns an existing (Input) Object Type or creates a new one, and stores it
+ * in data.
+ *
+ * @param  {string} options.name        Name of the schema
+ * @param  {object} options.data        Data produced by preprocessing
+ * @param  {object} options.links       Links belonging to (Input) Object Type
+ * @param  {object} options.oas         OpenAPI Specification 3.0
+ * @param  {number} options.iteration   Integer count of recursions used to
+ * create this schema
+ * @param  {boolean} options.isMutation Whether to create an Input Object Type
+ * @return {object}                     GraphQLObjectType | GraphQLInputObjectType |
+ * GraphQLList | Scalar GraphQL type
+ */
 const reuseOrCreateOt = ({
   name,
   data,
@@ -217,18 +230,15 @@ const reuseOrCreateOt = ({
 /**
  * Creates the fields object to be used by an ObjectType.
  *
- * @param  {object} schema    JSON-schema from an OAS schema
- * @param  {object} links     Object containing the (possible) links between
- * this object to other endpoints (= operations)
- * @param  {object} oas       The original OAS
- * @param  {object} allOTs    Object containing operationId as key and derived
- * GraphQLObjectType as value (if existent)
- * @param  {number} iteration Integer count of how many recursions have already
- * been performed in creating this type definition.
- * @return {object}           Object of fields for given schema
+ * @param  {object} options.schema      JSON schema to create fields for
+ * @param  {object} options.links       Links belonging to (Input) Object Type
+ * @param  {object} options.data        Data produced by preprocessing
+ * @param  {object} options.oas         OpenAPI Specification 3.0
+ * @param  {number} options.iteration
+ * @param  {boolean} options.isMutation
+ * @return {object}                     Object containing fields
  */
 const createFields = ({
-  schemaName,
   schema,
   links,
   data,
@@ -353,13 +363,11 @@ const createFields = ({
  * Type.
  *
  * @param  {array}  options.parameters    List of OAS parameters
- * @param  {object} options.reqSchema     JSON-schema describing request payload
  * @param  {string} options.reqSchemaName Name of request payload schema
  * @param  {boolean}options.reqSchemaRequired Whether the request schema is
  * required
  * @param  {object} options.oas
- * @param  {object} options.allOTs
- * @param  {object} options.allIOTs
+ * @param  {object} options.data
  * @return {Object}                       Key: name of argument, value: object
  * stating the parameter type
  */
