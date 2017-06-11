@@ -92,7 +92,7 @@ const getObjectType = ({
       }
     } else {
       if (name in data.inputObjectTypes) {
-        return data.inputObjectTypes
+        return data.inputObjectTypes[name]
       } else {
         data.inputObjectTypes[name] = new GraphQLInputObjectType({
           name: name,
@@ -123,40 +123,16 @@ const getObjectType = ({
     // if items are referenced, try to reuse or store schema:
     if ('$ref' in schema.items) {
       let itemsName = schema.items['$ref'].split('/').pop()
-      if (!isMutation) {
-        if (itemsName in data.objectTypes) {
-          return new GraphQLList(data.objectTypes[itemsName])
-        } else {
-          let itemsType = getObjectType({
-            name: itemsName,
-            schema: data.objectTypeDefs[itemsName],
-            data,
-            links,
-            oas,
-            iteration: iteration + 1,
-            isMutation
-          })
-          data.objectTypes[itemsName] = itemsType
-          return new GraphQLList(itemsType)
-        }
-      } else {
-        let inputItemsName = itemsName + 'Input'
-        if (inputItemsName in data.inputObjectTypes) {
-          return new GraphQLList(data.inputObjectTypes[inputItemsName])
-        } else {
-          let itemsType = getObjectType({
-            name: inputItemsName,
-            schema: data.inputObjectTypeDefs[inputItemsName],
-            data,
-            links,
-            oas,
-            iteration: iteration + 1,
-            isMutation
-          })
-          data.inputObjectTypes[inputItemsName] = itemsType
-          return new GraphQLList(itemsType)
-        }
-      }
+
+      let itemsOt = reuseOrCreateOt({
+        name: itemsName,
+        data,
+        links,
+        oas,
+        iteration,
+        isMutation
+      })
+      return new GraphQLList(itemsOt)
     } else {
       // determine name of items:
       let itemsName = 'ArrayItems'
@@ -191,6 +167,50 @@ const getObjectType = ({
   // CASE: scalar
   } else {
     return getScalarType(type)
+  }
+}
+
+const reuseOrCreateOt = ({
+  name,
+  data,
+  links,
+  oas,
+  iteration,
+  isMutation
+}) => {
+  if (!isMutation) {
+    if (name in data.objectTypes) {
+      return data.objectTypes[name]
+    } else {
+      let itemsType = getObjectType({
+        name: name,
+        schema: data.objectTypeDefs[name],
+        data,
+        links,
+        oas,
+        iteration: iteration + 1,
+        isMutation
+      })
+      data.objectTypes[name] = itemsType
+      return itemsType
+    }
+  } else {
+    let inputName = name + 'Input'
+    if (inputName in data.inputObjectTypes) {
+      return data.inputObjectTypes[inputName]
+    } else {
+      let itemsType = getObjectType({
+        name: inputName,
+        schema: data.inputObjectTypeDefs[inputName],
+        data,
+        links,
+        oas,
+        iteration: iteration + 1,
+        isMutation
+      })
+      data.inputObjectTypes[inputName] = itemsType
+      return itemsType
+    }
   }
 }
 
@@ -232,38 +252,14 @@ const createFields = ({
     // if properties are referenced, try to reuse schemas:
     if ('$ref' in schema.properties[propName]) {
       propName = schema.properties[propName]['$ref'].split('/').pop()
-      if (!isMutation) {
-        if (propName in data.objectTypes) {
-          objectType = data.objectTypes[propName]
-        } else {
-          data.objectTypes[propName] = getObjectType({
-            name: propName,
-            schema: data.objectTypeDefs[propName],
-            data,
-            links,
-            oas,
-            iteration: iteration + 1,
-            isMutation
-          })
-          objectType = data.objectTypes[propName]
-        }
-      } else {
-        let inputPropName = propName + 'Input'
-        if (inputPropName in data.inputObjectTypes) {
-          objectType = data.inputObjectTypes[inputPropName]
-        } else {
-          data.inputObjectTypes[inputPropName] = getObjectType({
-            name: inputPropName,
-            schema: data.inputObjectTypeDefs[inputPropName],
-            data,
-            links,
-            oas,
-            iteration: iteration + 1,
-            isMutation
-          })
-          objectType = data.inputObjectTypes[inputPropName]
-        }
-      }
+      objectType = reuseOrCreateOt({
+        name: propName,
+        data,
+        links,
+        oas,
+        iteration,
+        isMutation
+      })
     // if no reference was found, we create the schema:
     // NOTE: we do not try to reuse a schema based on the propName here, because
     // the propName could collide with a schema name.
