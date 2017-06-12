@@ -72,8 +72,10 @@ const getObjectType = ({
       if (name in data.objectTypes) {
         return data.objectTypes[name]
       } else {
+        // ensure name in OT is sanitized:
+        let saneName = Oas3Tools.beautify(name)
         data.objectTypes[name] = new GraphQLObjectType({
-          name: name,
+          name: saneName,
           description: schema.description, // might be undefined
           fields: () => {
             return createFields({
@@ -93,8 +95,10 @@ const getObjectType = ({
       if (name in data.inputObjectTypes) {
         return data.inputObjectTypes[name]
       } else {
+        // ensure name in OT is sanitized:
+        let saneName = Oas3Tools.beautify(name)
         data.inputObjectTypes[name] = new GraphQLInputObjectType({
-          name: name,
+          name: saneName,
           description: schema.description, // might be undefined
           fields: () => {
             return createFields({
@@ -295,8 +299,9 @@ const createFields = ({
       })
     }
 
-    // finally, add the object type to the fields:
-    fields[propName] = {
+    // finally, add the object type to the fields (using sanitized field name):
+    let sanePropName = Oas3Tools.beautify(propName)
+    fields[sanePropName] = {
       type: requiredMutationProp ? new GraphQLNonNull(objectType) : objectType,
       description: schema.description // might be undefined
     }
@@ -347,7 +352,9 @@ const createFields = ({
       // get response object type:
       let resObjectType = data.objectTypes[linkedOp.resSchemaName]
 
-      fields[linkKey] = {
+      // finally, add the object type to the fields (using sanitized field name):
+      let saneLinkKey = Oas3Tools.beautify(linkKey)
+      fields[saneLinkKey] = {
         type: resObjectType,
         resolve: linkResolver,
         args: args
@@ -389,20 +396,20 @@ const getArgs = ({
       continue
     }
 
-    // GraphQL requires sanitized parameters
-    // NOTE: when matching these parameters back to requests, we need to again
-    // use the real parameter name.
-    let name = Oas3Tools.beautify(param.name)
-
+    // determine type of parameter (often, there is none - assume string):
     let type = GraphQLString
-
     if ('schema' in param &&
       'type' in param.schema &&
       !(param.schema.type === 'object' || param.schema.type === 'array')) {
       type = getScalarType(param.schema.type)
     }
 
-    args[name] = {
+    // sanitize the argument name
+    // NOTE: when matching these parameters back to requests, we need to again
+    // use the real parameter name.
+    let saneName = Oas3Tools.beautify(param.name)
+
+    args[saneName] = {
       type: param.required ? new GraphQLNonNull(type) : type,
       description: param.description // might be undefined
     }
@@ -423,7 +430,10 @@ const getArgs = ({
       })
     }
 
-    args[reqSchemaName] = {
+    // sanitize the argument name
+    let saneName = Oas3Tools.beautify(reqSchemaName)
+
+    args[saneName] = {
       type: reqSchemaRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
       description: data.inputObjectTypeDefs[reqSchemaName].description // might be undefined
     }

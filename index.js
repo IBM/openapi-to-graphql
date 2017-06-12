@@ -8,12 +8,23 @@ const SchemaBuilder = require('./src/schema_builder.js')
 const ResolverBuilder = require('./src/resolver_builder.js')
 const GraphQLTools = require('./src/graphql_tools.js')
 const Preprocessor = require('./src/preprocessor.js')
+const Oas3Tools = require('./src/oas_3_tools.js')
 
 // increase stack trace logging for better debugging:
 Error.stackTraceLimit = Infinity
 
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification.
+ *
+ * Some general notes:
+ * - GraphQL interfaces rely on sanitized strings for (Input) Object Type names
+ *   and fields. We perform sanitization only when assigning (field-) names, but
+ *   keep key in the OAS otherwise as-is, to ensure that inner-OAS references
+ *   work as expected.
+ * - GraphQL (Input) Object Types must have a unique name. Thus, sometimes Input
+ *   Object Types and Object Types need separate names, despite them having the
+ *   same structure. We thus append 'Input' to every Input Object Type's name
+ *   as a convention.
  *
  * @param  {object} oas OpenAPI Specification 3.0
  * @return {promise}    Resolves on GraphQLSchema, rejects on error during
@@ -71,9 +82,11 @@ const createGraphQlSchema = oas => {
         let field = getFieldForOperation(operation, data, oas)
 
         if (operation.method.toLowerCase() === 'get') {
-          rootQueryFields[operation.resSchemaName] = field
+          let saneName = Oas3Tools.beautify(operation.resSchemaName)
+          rootQueryFields[saneName] = field
         } else {
-          rootMutationFields[operationId] = field
+          let saneName = Oas3Tools.beautify(operationId)
+          rootMutationFields[saneName] = field
         }
       }
     }
@@ -84,9 +97,11 @@ const createGraphQlSchema = oas => {
         let field = getFieldForOperation(operation, data, oas)
 
         if (operation.method.toLowerCase() === 'get') {
-          rootQueryFields[operation.resSchemaName] = field
+          let saneName = Oas3Tools.beautify(operation.resSchemaName)
+          rootQueryFields[saneName] = field
         } else {
-          rootMutationFields[operationId] = field
+          let saneName = Oas3Tools.beautify(operationId)
+          rootMutationFields[saneName] = field
         }
       }
     }

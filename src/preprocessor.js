@@ -17,9 +17,6 @@ const preprocessOas = (oas) => {
    * can be reused later on.
    */
   for (let schemaName in oas.components.schemas) {
-    // sanitize the name:
-    schemaName = Oas3Tools.beautify(schemaName)
-
     let schemaDef = oas.components.schemas[schemaName]
     result.objectTypeDefs[schemaName] = schemaDef
 
@@ -37,13 +34,10 @@ const preprocessOas = (oas) => {
       let endpoint = oas.paths[path][method]
 
       /**
-       * Fill in and sanitize operationId so it doesn't cause trouble in the
-       * future.
+       * Fill in possibly missing operationId.
        */
       if (typeof endpoint.operationId === 'undefined') {
         endpoint.operationId = Oas3Tools.beautify(`${method}:${path}}`)
-      } else {
-        endpoint.operationId = Oas3Tools.beautify(endpoint.operationId)
       }
 
       // hold on to operationId:
@@ -74,9 +68,6 @@ const preprocessOas = (oas) => {
           while (reqSchemaName in result.inputObjectTypeDefs) {
             reqSchemaName += Math.floor(Math.random() * 10)
           }
-
-          // sanitize the request schema name:
-          reqSchemaName = Oas3Tools.beautify(reqSchemaName)
 
           result.inputObjectTypeDefs[reqSchemaName] = reqSchema
         }
