@@ -42,6 +42,7 @@ const createGraphQlSchema = oas => {
      *  objectTypes         // key: schemaName, val: GraphQLObjectType
      *  inputObjectTypeDefs // key: schemaName, val: JSON schema
      *  inputObjectTypes    // key: schemaName, val: GraphQLInputObjectType
+     *  saneMap             // key: sanitized value, val: raw value
      *  operations {
      *    path
      *    method
@@ -82,10 +83,12 @@ const createGraphQlSchema = oas => {
         let field = getFieldForOperation(operation, data, oas)
 
         if (operation.method.toLowerCase() === 'get') {
-          let saneName = Oas3Tools.beautify(operation.resSchemaName)
+          let saneName = Oas3Tools.beautifyAndStore(
+            operation.resSchemaName,
+            data.saneMap)
           rootQueryFields[saneName] = field
         } else {
-          let saneName = Oas3Tools.beautify(operationId)
+          let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
           rootMutationFields[saneName] = field
         }
       }
@@ -97,10 +100,12 @@ const createGraphQlSchema = oas => {
         let field = getFieldForOperation(operation, data, oas)
 
         if (operation.method.toLowerCase() === 'get') {
-          let saneName = Oas3Tools.beautify(operation.resSchemaName)
+          let saneName = Oas3Tools.beautifyAndStore(
+            operation.resSchemaName,
+            data.saneMap)
           rootQueryFields[saneName] = field
         } else {
-          let saneName = Oas3Tools.beautify(operationId)
+          let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
           rootMutationFields[saneName] = field
         }
       }
@@ -146,7 +151,8 @@ const getFieldForOperation = (operation, data, oas) => {
   let resolve = ResolverBuilder.getResolver({
     operation,
     oas,
-    payloadName: operation.reqSchemaName
+    payloadName: operation.reqSchemaName,
+    data
   })
 
   // determine args:

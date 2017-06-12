@@ -126,10 +126,38 @@
         }
       }
     },
-    "/products/{product-id}": {
+    "/products": {
       "post": {
         "operationId": "post-product-with-id",
         "description": "Endpoint to test unsanitized parameters and data.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/product-with-id"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "A product.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/product-with-id"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/products/{product-id}": {
+      "get": {
+        "operationId": "get-product-with-id",
+        "description": "Another endpoint to test unsanitized parameters and data.",
         "parameters": [
           {
             "name": "product-id",
@@ -250,7 +278,8 @@
             "type": "string",
             "description": "A tag associated with the product"
           }
-        }
+        },
+        "required": ["product-name", "product-id", "product-tag"]
       }
     },
     "links": {

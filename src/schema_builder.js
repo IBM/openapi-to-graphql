@@ -73,7 +73,7 @@ const getObjectType = ({
         return data.objectTypes[name]
       } else {
         // ensure name in OT is sanitized:
-        let saneName = Oas3Tools.beautify(name)
+        let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
         data.objectTypes[name] = new GraphQLObjectType({
           name: saneName,
           description: schema.description, // might be undefined
@@ -96,7 +96,7 @@ const getObjectType = ({
         return data.inputObjectTypes[name]
       } else {
         // ensure name in OT is sanitized:
-        let saneName = Oas3Tools.beautify(name)
+        let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
         data.inputObjectTypes[name] = new GraphQLInputObjectType({
           name: saneName,
           description: schema.description, // might be undefined
@@ -300,7 +300,7 @@ const createFields = ({
     }
 
     // finally, add the object type to the fields (using sanitized field name):
-    let sanePropName = Oas3Tools.beautify(propName)
+    let sanePropName = Oas3Tools.beautifyAndStore(propName, data.saneMap)
     fields[sanePropName] = {
       type: requiredMutationProp ? new GraphQLNonNull(objectType) : objectType,
       description: schema.description // might be undefined
@@ -343,7 +343,8 @@ const createFields = ({
       let linkResolver = ResolverBuilder.getResolver({
         operation: linkedOp,
         oas,
-        argsFromLink
+        argsFromLink,
+        data
       })
 
       // get args for link:
@@ -353,7 +354,7 @@ const createFields = ({
       let resObjectType = data.objectTypes[linkedOp.resSchemaName]
 
       // finally, add the object type to the fields (using sanitized field name):
-      let saneLinkKey = Oas3Tools.beautify(linkKey)
+      let saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap)
       fields[saneLinkKey] = {
         type: resObjectType,
         resolve: linkResolver,

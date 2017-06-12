@@ -190,9 +190,11 @@ test('Post resource and get nested resource back', () => {
   })
 })
 
-test('Sanitized path and query parameters are correctly sent', () => {
-  let query = `mutation {
-    postProductWithId(productId: "this-path", productTag:"And a tag") {
+test('Operation id is correctly sanitized, schema names and fields are ' +
+  'correctly sanitized, path and query parameters are correctly sanitized, ' +
+  'received data is correctly sanitized', () => {
+  let query = `{
+    productWithId (productId: "this-path", productTag:"And a tag") {
       productId
       productTag
     }
@@ -200,11 +202,15 @@ test('Sanitized path and query parameters are correctly sent', () => {
   return graphql(schema, query).then(result => {
     expect(result).toEqual({
       data: {
-        postProductWithId: {
+        productWithId: {
           productId: 'this-path',
           productTag: 'And a tag'
         }
       }
     })
   })
+})
+
+test('Request data is correctly de-sanitized to be sent', () => {
+
 })

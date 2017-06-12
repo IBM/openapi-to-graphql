@@ -9,7 +9,8 @@ const preprocessOas = (oas) => {
     objectTypes: {},
     inputObjectTypeDefs: {},
     inputObjectTypes: {},
-    operations: {}
+    operations: {},
+    saneMap: {}
   }
 
   /**
@@ -106,9 +107,6 @@ const preprocessOas = (oas) => {
           while (resSchemaName in result.objectTypeDefs) {
             resSchemaName += Math.floor(Math.random() * 10)
           }
-
-          // sanitize the response schema name:
-          resSchemaName = Oas3Tools.beautify(resSchemaName)
 
           result.objectTypeDefs[resSchemaName] = resSchema
         }

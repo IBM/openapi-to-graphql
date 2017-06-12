@@ -72,3 +72,59 @@ test('Sanitize object keys, but not $ref', () => {
     }
   })
 })
+
+let mapping = {
+  'productId': 'product-id',
+  'productName': 'product-name',
+  'productTag': 'product-tag'
+}
+
+test('Desanitize object keys', () => {
+  let obj = {
+    productId: '123',
+    info: {
+      productName: 'Soccer'
+    }
+  }
+  let raw = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  expect(raw).toEqual({
+    'product-id': '123',
+    info: {
+      'product-name': 'Soccer'
+    }
+  })
+})
+
+test('Desanitize object keys including array', () => {
+  let obj = {
+    'productId': {
+      info: [
+        {'productName': 'test1'},
+        {'productTag': 'test2'}
+      ]
+    }
+  }
+  let clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  expect(clean).toEqual({
+    'product-id': {
+      info: [
+        {'product-name': 'test1'},
+        {'product-tag': 'test2'}
+      ]
+    }
+  })
+})
+
+test('Desanitize object keys when given an array', () => {
+  let obj = [
+    {'productName': {
+      'productTag': 'test'
+    }}
+  ]
+  let clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  expect(clean).toEqual([{
+    'product-name': {
+      'product-tag': 'test'
+    }
+  }])
+})

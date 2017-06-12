@@ -71,13 +71,40 @@ const sanitizeObjKeys = (obj, exceptions = []) => {
       return obj
     }
   }
-
   return cleanKeys(obj)
 }
 
-// const desanitizeObjKeys = () => {
-
-// }
+/**
+ * Desanitizes keys in given object by replacing them with the keys stored in
+ * the given mapping.
+ *
+ * @param  {any}    obj     Object | array etc. to desanitize
+ * @param  {Object} mapping Key: sanitized key, Value: desanitized value
+ * @return {any}
+ */
+const desanitizeObjKeys = (obj, mapping = {}) => {
+  const replaceKeys = (obj) => {
+    if (Array.isArray(obj)) {
+      return obj.map(replaceKeys)
+    } else if (typeof obj === 'object') {
+      let res = {}
+      for (let key in obj) {
+        if (key in mapping) {
+          let rawKey = mapping[key]
+          if (Object.prototype.hasOwnProperty.call(obj, key)) {
+            res[rawKey] = replaceKeys(obj[key])
+          }
+        } else {
+          res[key] = replaceKeys(obj[key])
+        }
+      }
+      return res
+    } else {
+      return obj
+    }
+  }
+  return replaceKeys(obj)
+}
 
 /**
  * Replaces the path parameter in the given path with values in the given args.
@@ -321,6 +348,29 @@ const getParameters = (path, method, oas) => {
 }
 
 /**
+ * Beautifies the given string and stores the sanitized-to-original mapping in
+ * the given mapping.
+ *
+ * @param  {string} str
+ * @param  {object} mapping
+ * @return {string}          Beautified string
+ */
+const beautifyAndStore = (str, mapping) => {
+  if (!(typeof mapping === 'object')) {
+    throw new Error(`No / invalid mapping passed to beautifyAndStore.`)
+  }
+  let clean = beautify(str)
+  if (clean !== str) {
+    if (clean in mapping && str !== mapping[clean]) {
+      console.error(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
+        `to ${clean} - collusion possible. Desanitize to ${str}.`)
+    }
+    mapping[clean] = str
+  }
+  return clean
+}
+
+/**
  * First sanitizes given string and then also camel-cases it.
  *
  * @param  {string} str
@@ -328,6 +378,9 @@ const getParameters = (path, method, oas) => {
  * @return {string}
  */
 const beautify = (str) => {
+  // only apply to strings:
+  if (typeof str !== 'string') return null
+
   let charToRemove = '_'
   let sanitized = sanitize(str)
   while (sanitized.indexOf(charToRemove) !== -1) {
@@ -371,7 +424,8 @@ module.exports = {
   getResSchemaAndNames,
   mutationMethods,
   getParameters,
-  sanitize,
+  sanitizeObjKeys,
+  desanitizeObjKeys,
   beautify,
-  sanitizeObjKeys
+  beautifyAndStore
 }

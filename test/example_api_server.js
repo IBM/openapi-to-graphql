@@ -83,7 +83,6 @@ const Product = {
 app.post('/api/users', (req, res) => {
   console.log(req.method, req.path)
   let user = req.body
-  console.log(req.body)
   if (!('name' in user) ||
     !('address' in user) ||
     !('employerId' in user) ||
@@ -107,11 +106,26 @@ app.get('/api/companies/:id', (req, res) => {
   res.send(Companies[req.params.id])
 })
 
-app.post('/api/products/:id', (req, res) => {
+app.get('/api/products/:id', (req, res) => {
   console.log(req.method, req.path, req.params, req.query)
   Product['product_id'] = req.params['id']
   Product['product-tag'] = req.query['product-tag']
   res.send(Product)
+})
+
+app.post('/api/products', (req, res) => {
+  console.log(req.method, req.path)
+  let product = req.body
+  console.log(product)
+  if (!('product-name' in product) ||
+    !('product-id' in product) ||
+    !('product-tag' in product)) {
+    res.status(400).send({
+      message: 'wrong data'
+    })
+  } else {
+    res.send(product)
+  }
 })
 
 app.listen(3000, () => {

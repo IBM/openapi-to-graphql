@@ -14,13 +14,15 @@ const Oas3Tools = require('./oas_3_tools.js')
  * resolver provided through links
  * @param  {string} options.payloadName  Name of the argument to send as request
  * payload
+ * @param  {object} options.data         Data produced by preprocessor.js
  * @return {function}                    Resolver function
  */
 const getResolver = ({
   operation,
   oas,
   argsFromLink = {},
-  payloadName
+  payloadName,
+  data
 }) => {
   // determine the base URL:
   let baseUrl = Oas3Tools.getBaseUrl(oas)
@@ -49,18 +51,26 @@ const getResolver = ({
     }
 
     // determine possible payload:
-    if (payloadName in args) {
-      options.body = args[payloadName]
+    // GraphQL produces sanitized payload names, so we have to sanitize before
+    // lookup here:
+    let sanePayloadName = Oas3Tools.beautify(payloadName)
+    if (sanePayloadName in args) {
+      // we need to desanitize the payload so the API understands it:
+      let rawPayload = Oas3Tools.desanitizeObjKeys(
+        args[sanePayloadName], data.saneMap)
+      options.body = rawPayload
     }
+
+    // make the call:
     console.log(`${options.method.toUpperCase()} ${options.url}`)
     return new Promise((resolve, reject) => {
-      request(options, (err, response, data) => {
+      request(options, (err, response, body) => {
         if (err) {
           console.error(err)
           reject(err)
         } else {
           // deal with the fact that the server might send unsanitized data:
-          let saneData = Oas3Tools.sanitizeObjKeys(data)
+          let saneData = Oas3Tools.sanitizeObjKeys(body)
 
           resolve(saneData)
         }
@@ -70,5 +80,5 @@ const getResolver = ({
 }
 
 module.exports = {
-  getResolver: getResolver
+  getResolver
 }
