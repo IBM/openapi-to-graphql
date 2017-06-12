@@ -212,5 +212,26 @@ test('Operation id is correctly sanitized, schema names and fields are ' +
 })
 
 test('Request data is correctly de-sanitized to be sent', () => {
-
+  let query = `mutation {
+    postProductWithId (productWithIdInput: {
+      productName: "Soccer ball"
+      productId: "ball123"
+      productTag:"sports"
+    }) {
+      productName
+      productId
+      productTag
+    }
+  }`
+  return graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      'data': {
+        'postProductWithId': {
+          'productName': 'Soccer ball',
+          'productId': 'ball123',
+          'productTag': 'sports'
+        }
+      }
+    })
+  })
 })
