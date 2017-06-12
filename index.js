@@ -19,7 +19,7 @@ Error.stackTraceLimit = Infinity
  * Some general notes:
  * - GraphQL interfaces rely on sanitized strings for (Input) Object Type names
  *   and fields. We perform sanitization only when assigning (field-) names, but
- *   keep key in the OAS otherwise as-is, to ensure that inner-OAS references
+ *   keep keys in the OAS otherwise as-is, to ensure that inner-OAS references
  *   work as expected.
  * - GraphQL (Input) Object Types must have a unique name. Thus, sometimes Input
  *   Object Types and Object Types need separate names, despite them having the
@@ -76,6 +76,12 @@ const createGraphQlSchema = oas => {
 
     /**
      * Translate every endpoint to GraphQL schemes.
+     *
+     * Do this first for endpoints that DO contain links, so that built up
+     * GraphQL object types that are reused contain these links.
+     *
+     * This necessitates a second iteration, though, for the endpoints that
+     * DO NOT have links.
      */
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
@@ -93,7 +99,7 @@ const createGraphQlSchema = oas => {
         }
       }
     }
-
+    // ...and again for endpoints without links:
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length === 0) {
@@ -134,6 +140,14 @@ const createGraphQlSchema = oas => {
   })
 }
 
+/**
+ * Creates the field object for a given operation.
+ *
+ * @param  {object} operation Operation as produced by preprocessing
+ * @param  {object} data      Data produced by preprocessing
+ * @param  {object} oas       OpenAPI Specification 3.0
+ * @return {object}           Field object
+ */
 const getFieldForOperation = (operation, data, oas) => {
   // determine type:
   let type = data.objectTypes[operation.resSchemaName]
