@@ -7,10 +7,10 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 ## Characteristics
 
 * **Data-centric** The GraphQL interface is created around the data definitions in the given OAS, not around the endpoints. This leads to a more natural use of GraphQL.
-<img src="docs/data-centric.png" alt="Example of data-centric design" width="600">
+  <img src="docs/data-centric.png" alt="Example of data-centric design" width="600">
 * **Automatic query resolution** Resolvers are auto-generated to translate (nested) GraphQL queries against the existing web API.
 * **Nested data** [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.md#linksObject) defined in the OAS are used to compose data definitions.
-<img src="docs/links.png" alt="Example of links resolution" width="600">
+  <img src="docs/links.png" alt="Example of links resolution" width="600">
 
 
 ## Work in progress
