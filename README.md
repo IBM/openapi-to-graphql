@@ -59,12 +59,13 @@ OASGraph.createGraphQlSchema(oas)
   })
 ```
 
-You can then use the generated schema, for example to be served using express:
+You can then use the generated schema, for example to be served using [Express.js](http://expressjs.com/):
 
 ```javascript
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
 const OASGraph = require('oasgraph') // use real name here
+const app = express()
 
 OASGraph.createGraphQlSchema(oas)
   .then(schema => {
