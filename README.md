@@ -7,7 +7,7 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 ## Characteristics
 
 * **Data-centric**
-  The GraphQL interface is created around the data definitions in the given OAS, not around the endpoints. This leads to a more natural use of GraphQL.
+  The GraphQL interface is created around the data definitions in the given OAS, not around the endpoints, leading to a natural use of GraphQL.
   
   <img src="docs/data-centric.png" alt="Example of data-centric design" width="600">
 
@@ -25,6 +25,13 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
   Non-safe, non-idempotent API operations (e.g., `POST`, `PUT`, `DELETE`) are translated to GraphQL [mutations](http://graphql.org/learn/queries/#mutations). Input payload is type-checked.
   
   <img src="docs/mutations.png" alt="Example of mutation" width="600">
+
+* **Authentication**
+  Work in progress.
+
+* **API Sanitation**
+  Parts of an API that not compatible with GraphQL are automatically sanitized. For example, API parameters and data definition names with unsupported characters (e.g., `-`, `.`, `,`, `:`, `;`...) are sanitized.
+
 
 ## Work in progress
 
