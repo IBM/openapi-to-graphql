@@ -12,7 +12,8 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
   <img src="docs/links.png" alt="Example of links resolution" width="600">
 * **Automatic query resolution** Automatically generated resolvers translate (nested) GraphQL queries to API requests. Request results are translated back to GraphQL responses.
   <img src="docs/resolution.png" alt="Example of query resolution" width="600">
-
+* **Mutations** Non-safe, non-idempotent API operations (e.g., `POST`, `PUT`, `DELETE`) are translated to GraphQL [mutations](http://graphql.org/learn/queries/#mutations). Input payload is type-checked.
+  <img src="docs/mutations.png" alt="Example of mutation" width="600">
 
 ## Work in progress
 
