@@ -32,6 +32,7 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 * **API Sanitation**
   Parts of an API that not compatible with GraphQL are automatically sanitized. For example, API parameters and data definition names with unsupported characters (e.g., `-`, `.`, `,`, `:`, `;`...) are sanitized.
 
+* **Custom request options** Provide headers and query parameters to send with every API request. This allows, for example, to handle authentication or tag requests from GraphQL.
 
 ## Work in progress
 
@@ -79,6 +80,20 @@ OASGraph.createGraphQlSchema(oas)
     // handle errors when creating the schema
   })
 ```
+
+
+## Options
+OASGraph allows to define an optional `options` object:
+
+```javascript
+OASGraph.createGraphQLSchema(oas, options)
+```
+
+The following options can be set:
+
+* `headers` (type: `object`, default: `{}`): Define headers to be sent in every request. Parameters defined in the OpenAPI Specification to set these headers will be ignored by OASGraph.
+
+* `qs` (type: `object`, default: `{}`): Define query strings to be sent in every request. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OASGraph.
 
 
 ## Testing
