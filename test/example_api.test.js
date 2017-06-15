@@ -7,14 +7,19 @@
  */
 
 const OasGraph = require('../index.js')
-const graphql = require('graphql').graphql
+const {
+  graphql,
+  parse,
+  validate
+} = require('graphql')
 
 /**
  * Set up the schema first
  */
 let schema
+let oas = require('./example_oas.json')
+
 beforeAll(() => {
-  let oas = require('./example_oas.json')
   return OasGraph.createGraphQlSchema(oas)
     .then(createdSchema => {
       schema = createdSchema
@@ -234,4 +239,32 @@ test('Request data is correctly de-sanitized to be sent', () => {
       }
     })
   })
+})
+
+test('Define header and query options', () => {
+  let options = {
+    headers: {
+      exampleHeader: 'some-value'
+    },
+    qs: {
+      limit: 30
+    }
+  }
+  let query = `{
+    Status
+  }`
+  return OasGraph.createGraphQlSchema(oas, options)
+    .then(createdSchema => {
+      // validate that 'limit' parameter is covered by options:
+      let ast = parse(query)
+      let errors = validate(createdSchema, ast)
+      expect(errors).toEqual([])
+      return graphql(createdSchema, query).then(result => {
+        expect(result).toEqual({
+          data: {
+            Status: 'Ok.'
+          }
+        })
+      })
+    })
 })

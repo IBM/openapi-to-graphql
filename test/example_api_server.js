@@ -128,6 +128,18 @@ app.post('/api/products', (req, res) => {
   }
 })
 
+app.get('/api/status', (req, res) => {
+  console.log(req.method, req.path, req.query, req.headers)
+  if (typeof req.query.limit === 'undefined' ||
+    typeof req.get('exampleHeader') === 'undefined') {
+    res.status(400).send({
+      message: 'wrong request'
+    })
+  } else {
+    res.send('Ok.')
+  }
+})
+
 app.listen(3000, () => {
   console.log('Example API accessible on port 3000')
 })

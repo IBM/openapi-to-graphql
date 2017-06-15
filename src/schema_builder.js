@@ -348,7 +348,11 @@ const createFields = ({
       })
 
       // get args for link:
-      let args = getArgs({parameters: dynamicParams})
+      let args = getArgs({
+        parameters: dynamicParams,
+        oas,
+        data
+      })
 
       // get response object type:
       let resObjectType = data.objectTypes[linkedOp.resSchemaName]
@@ -392,9 +396,22 @@ const getArgs = ({
   for (let i in parameters) {
     let param = parameters[i]
 
+    // we need at least a name:
     if (typeof param.name !== 'string') {
       console.error(`Warning: ignore parameter with no "name" property: ${param}`)
       continue
+    }
+
+    // if this parameter is provided via options, ignore:
+    if (typeof data.options === 'object') {
+      if (typeof data.options.headers === 'object' &&
+        param.name in data.options.headers) {
+        continue
+      }
+      if (typeof data.options.qs === 'object' &&
+        param.name in data.options.qs) {
+        continue
+      }
     }
 
     // determine type of parameter (often, there is none - assume string):

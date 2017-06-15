@@ -37,17 +37,19 @@ const getResolver = ({
     }
 
     // build URL (i.e., fill in path parameters):
-    let urlPath = Oas3Tools.instantiatePathAndQuery(
+    let {path, query} = Oas3Tools.instantiatePathAndGetQuery(
       operation.path,
       operation.parameters,
       args)
-    let url = baseUrl + urlPath
-
+    let url = baseUrl + path
+    console.log(query)
     // build request options:
     let options = {
       method: operation.method,
       url: url,
-      json: true
+      json: true,
+      headers: {},
+      qs: query
     }
 
     // determine possible payload:
@@ -61,6 +63,24 @@ const getResolver = ({
       options.body = rawPayload
     }
 
+    // use OASGraph options:
+    if (typeof data.options === 'object') {
+      // headers:
+      if (typeof data.options.headers === 'object') {
+        for (let header in data.options.headers) {
+          let val = data.options.headers[header]
+          options.headers[header] = val
+        }
+      }
+      // query string:
+      if (typeof data.options.qs === 'object') {
+        for (let query in data.options.qs) {
+          let val = data.options.qs[query]
+          options.qs[query] = val
+        }
+      }
+    }
+
     // make the call:
     console.log(`${options.method.toUpperCase()} ${options.url}`)
     return new Promise((resolve, reject) => {
@@ -68,7 +88,11 @@ const getResolver = ({
         if (err) {
           console.error(err)
           reject(err)
+        } else if (response.statusCode > 299) {
+          console.error(`${response.statusCode} - ${JSON.stringify(body)}`)
+          reject(new Error(`${response.statusCode} - ${JSON.stringify(body)}`))
         } else {
+          console.log(response.statusCode)
           // deal with the fact that the server might send unsanitized data:
           let saneData = Oas3Tools.sanitizeObjKeys(body)
 

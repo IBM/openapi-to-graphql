@@ -30,7 +30,7 @@ Error.stackTraceLimit = Infinity
  * @return {promise}    Resolves on GraphQLSchema, rejects on error during
  * schema creation
  */
-const createGraphQlSchema = oas => {
+const createGraphQlSchema = (oas, {headers, qs} = {}) => {
   return new Promise((resolve, reject) => {
     // TODO: validate OAS
 
@@ -57,6 +57,11 @@ const createGraphQlSchema = oas => {
      * @type {Object}
      */
     let data = Preprocessor.preprocessOas(oas)
+
+    /**
+     * Store options to data
+     */
+    data.options = {headers, qs}
 
     /**
      * Holds on to the highest-level (entry-level) object types for queries

@@ -1,6 +1,5 @@
 'use strict'
 
-const querystring = require('querystring')
 const mutationMethods = ['post', 'put', 'patch', 'delete']
 
 /**
@@ -115,7 +114,7 @@ const desanitizeObjKeys = (obj, mapping = {}) => {
  * @param  {object} args     Arguments. NOTE: argument keys are sanitized!!!
  * @return {string}          Path with parameters replaced by argument values
  */
-const instantiatePathAndQuery = (path, parameters, args) => {
+const instantiatePathAndGetQuery = (path, parameters, args) => {
   // case: nothing to do
   if (!Array.isArray(parameters)) {
     return path
@@ -138,12 +137,8 @@ const instantiatePathAndQuery = (path, parameters, args) => {
       query[param.name] = args[sanitizedParamName]
     }
   }
-  let queryStr = querystring.stringify(query)
-  if (queryStr.length > 0) {
-    path += `?${queryStr}`
-  }
 
-  return path
+  return {path, query}
 }
 
 /**
@@ -415,7 +410,7 @@ const sanitize = (str) => {
 module.exports = {
   resolveRef,
   getBaseUrl,
-  instantiatePathAndQuery,
+  instantiatePathAndGetQuery,
   getSchemaType,
   inferResourceNameFromPath,
   getEndpointLinks,
