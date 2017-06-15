@@ -91,9 +91,9 @@ OASGraph.createGraphQLSchema(oas, options)
 
 The following options can be set:
 
-* `headers` (type: `object`, default: `{}`): Define headers to be sent in every request. Parameters defined in the OpenAPI Specification to set these headers will be ignored by OASGraph.
+* `headers` (type: `object`, default: `{}`): Headers to be sent in every request. Parameters defined in the OpenAPI Specification to set these headers will be ignored by OASGraph.
 
-* `qs` (type: `object`, default: `{}`): Define query strings to be sent in every request. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OASGraph.
+* `qs` (type: `object`, default: `{}`): Query parameters to be sent in every request. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OASGraph.
 
 
 ## Testing
