@@ -187,6 +187,40 @@
               }
             }
           }
+        },
+        "security": {
+          "api_key2" : []
+        }
+      }
+    },
+    "/patents/{patent-id}": {
+      "get": {
+        "operationId": "get-patent-with-id",
+        "description": "Another endpoint to test authentication.",
+        "parameters": [
+          {
+            "name": "patent-id",
+            "in": "path",
+            "required": "true",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A product.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/patent-with-id"
+                }
+              }
+            }
+          }
+        },
+        "security": {
+          "api_key": []
         }
       }
     }
@@ -280,6 +314,21 @@
           }
         },
         "required": ["product-name", "product-id", "product-tag"]
+      },
+      "patent-with-id": {
+        "type": "object",
+        "description": "A patent",
+        "properties": {
+          "patent-name": {
+            "type": "string",
+            "description": "The name of the patent"
+          },
+          "patent-id": {
+            "type": "string",
+            "description": "The id of the patent"
+          }
+        },
+        "required": ["patent-name", "patent-id"]
       }
     },
     "links": {
@@ -295,8 +344,25 @@
           "username": "$response.body#/ceoUsername"
         }
       }
+    },
+    "securitySchemes": {
+      "api_key": {
+        "in": "header",
+        "name": "access_token",
+        "type": "apiKey"
+      },
+      "api_key2": {
+        "in": "query",
+        "name": "access_token",
+        "type": "apiKey"
+      },
+      "basic": {
+        "type": "http"
+      }
     }
   },
   "security": {
+    "api_key": [],
+    "basic": []
   }
 }

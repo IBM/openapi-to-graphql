@@ -54,8 +54,7 @@ const Companies = {
     offices: [{
       street: '122 Some Street',
       city: 'Redmond'
-    },
-    {
+    }, {
       street: '124 Some Street',
       city: 'Redmond'
     }]
@@ -68,8 +67,7 @@ const Companies = {
     offices: [{
       street: '300 Some Street',
       city: 'Redmond'
-    },
-    {
+    }, {
       street: '301 Some Street',
       city: 'Redmond'
     }]
@@ -78,6 +76,29 @@ const Companies = {
 
 const Product = {
   'product-name': 'Super Product'
+}
+
+const Auth = {
+  erik: {
+    username: 'erik123',
+    password: 'password123',
+    accessToken: 'abcdef'
+  },
+  jim: {
+    username: 'catloverxoxo',
+    password: 'IActuallyPreferDogs',
+    accessToken: '123456'
+  },
+  ginni: {
+    username: 'ginni',
+    password: 'password',
+    accessToken: 'xyz'
+  },
+  bill: {
+    username: 'windowsrulez',
+    password: 'stevejobsisabully',
+    accessToken: 'ijk'
+  }
 }
 
 app.post('/api/users', (req, res) => {
@@ -125,6 +146,52 @@ app.post('/api/products', (req, res) => {
     })
   } else {
     res.send(product)
+  }
+})
+
+app.get('/api/patents/:id', (req, res) => {
+  console.log(req.method, req.path)
+  if (req.headers.authorization) {
+    let encoded = req.headers.authorization.split(' ')[1]
+    let decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
+
+    if (decoded.length === 2) {
+      let credentials = {
+        username: decoded[0],
+        password: decoded[1]
+      }
+      for (let user in Auth) {
+        if (Auth[user].username === credentials.username && Auth[user].password === credentials.password) {
+          return res.send({
+            'patent-name': 'oasgraph',
+            'patent-id': req.params.id
+          })
+        }
+      }
+      return res.status(401).send({
+        message: 'Incorrect credentials'
+      })
+    } else {
+      return res.status(401).send({
+        message: 'Credentials sent incorrectly'
+      })
+    }
+  } else if ('access_token' in req.headers) {
+    for (let user in Auth) {
+      if (Auth[user].accessToken === req.headers.access_token) {
+        return res.send({
+          'patent-name': 'oasgraph',
+          'patent-id': req.params.id
+        })
+      }
+    }
+    return res.status(401).send({
+      message: 'Incorrect credentials'
+    })
+  } else {
+    return res.status(401).send({
+      message: 'Missing credentials'
+    })
   }
 })
 

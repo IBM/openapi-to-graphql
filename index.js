@@ -9,6 +9,7 @@ const ResolverBuilder = require('./src/resolver_builder.js')
 const GraphQLTools = require('./src/graphql_tools.js')
 const Preprocessor = require('./src/preprocessor.js')
 const Oas3Tools = require('./src/oas_3_tools.js')
+const AuthBuilder = require('./src/auth_builder.js')
 
 // increase stack trace logging for better debugging:
 Error.stackTraceLimit = Infinity
@@ -25,6 +26,19 @@ Error.stackTraceLimit = Infinity
  *   Object Types and Object Types need separate names, despite them having the
  *   same structure. We thus append 'Input' to every Input Object Type's name
  *   as a convention.
+ *
+ *  TODO: edit below
+ * - OasGraph can handle authentication through GraphQL. To do this, we can
+ *  create two new intermediate Object Types called QueryViewer and
+ *  MutationViewer that we can use to pass security credentials through the
+ *  resolver context. We identify all the different security protocols and
+ *  create parameters for the Viewer Object Types based on the data that each
+ *  protocol requires. For example, a protocol that uses an API key will require
+ *  a parameter to pass an API key and a protocol that uses Basic Auth will
+ *  require two parameters to pass a username and password. Because GraphQL rely
+ *  on sanitized strings for fields, we have to sanitize our parameter names,
+ *  which take the form ${protocol name}_${protocol field} (e.g. MyApiKey_apiKey
+ *  and MyBasicAuth_username and MyBasicAuth_password).
  *
  * @param  {object} oas OpenAPI Specification 3.0
  * @return {promise}    Resolves on GraphQLSchema, rejects on error during
@@ -43,6 +57,7 @@ const createGraphQlSchema = oas => {
      *  inputObjectTypeDefs // key: schemaName, val: JSON schema
      *  inputObjectTypes    // key: schemaName, val: GraphQLInputObjectType
      *  saneMap             // key: sanitized value, val: raw value
+     *  security            // key: schemaName, val: JSON schema
      *  operations {
      *    path
      *    method
@@ -51,12 +66,16 @@ const createGraphQlSchema = oas => {
      *    reqSchemaRequired
      *    links
      *    parameters
+     *    securityProtocols
      *  }
      * }
      *
      * @type {Object}
      */
     let data = Preprocessor.preprocessOas(oas)
+    console.log('SECURITY')
+    console.log(data.security)
+    console.log('SECURITY')
 
     /**
      * Holds on to the highest-level (entry-level) object types for queries
@@ -73,6 +92,10 @@ const createGraphQlSchema = oas => {
      * @type {Object}
      */
     let rootMutationFields = {}
+
+    let viewerQueryFields = {}
+
+    let viewerMutationFields = {}
 
     /**
      * Translate every endpoint to GraphQL schemes.
@@ -92,13 +115,23 @@ const createGraphQlSchema = oas => {
           let saneName = Oas3Tools.beautifyAndStore(
             operation.resSchemaName,
             data.saneMap)
-          rootQueryFields[saneName] = field
+          if (Object.keys(operation.securityProtocols).length > 0) {
+            console.log(`add ${saneName}`)
+            viewerQueryFields[saneName] = field
+          } else {
+            rootQueryFields[saneName] = field
+          }
         } else {
           let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          rootMutationFields[saneName] = field
+          if (Object.keys(operation.securityProtocols).length > 0) {
+            viewerMutationFields[saneName] = field
+          } else {
+            rootMutationFields[saneName] = field
+          }
         }
       }
     }
+
     // ...and again for endpoints without links:
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
@@ -109,13 +142,40 @@ const createGraphQlSchema = oas => {
           let saneName = Oas3Tools.beautifyAndStore(
             operation.resSchemaName,
             data.saneMap)
-          rootQueryFields[saneName] = field
+          if (Object.keys(operation.securityProtocols).length > 0) {
+            console.log(`add ${saneName} without links`)
+            viewerQueryFields[saneName] = field
+          } else {
+            rootQueryFields[saneName] = field
+          }
         } else {
           let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          rootMutationFields[saneName] = field
+          if (Object.keys(operation.securityProtocols).length > 0) {
+            viewerMutationFields[saneName] = field
+          } else {
+            rootMutationFields[saneName] = field
+          }
         }
       }
     }
+
+    if (Object.keys(viewerQueryFields).length > 0) {
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT({data, viewerQueryFields})
+      console.log(viewerOT)
+      rootQueryFields.queryViewer = {
+        type: viewerOT,
+        resolve,
+        args
+      }
+    }
+
+    // if (Object.keys(viewerMutationFields).length > 0) {
+    //   schemaDef.mutation = new GraphQLObjectType({
+    //     name: 'MutationViewer',
+    //     fields: viewerMutationFields
+    //   })
+    //   // TODO
+    // }
 
     // build up the schema:
     let schemaDef = {}

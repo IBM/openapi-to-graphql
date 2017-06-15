@@ -353,7 +353,9 @@ const getParameters = (path, method, oas) => {
  * @param  {string} path
  * @param  {string} method
  * @param  {object} oas
- * @return {object}         Object containing security protocols of given endpoint, method, and path
+ * @param  {object} mapping
+ * @return {object}         Object containing security protocols of given
+ *                          endpoint, method, and path
  */
 const getSecurityProtocols = (path, method, oas) => {
   let security = {}
@@ -496,5 +498,5 @@ module.exports = {
   desanitizeObjKeys,
   beautify,
   beautifyAndStore,
-  beautifyAndStoreArray,
+  beautifyAndStoreArray
 }

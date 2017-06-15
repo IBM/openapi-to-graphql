@@ -146,24 +146,21 @@ const preprocessOas = (oas) => {
   /**
    * Security schema
    */
-  let securityRequired = function () {
-    if ('security' in oas.security) {
-      return true
-    }
+  let securityRequired = false
+  if (typeof oas.security === 'object' && Object.keys(oas.security).length > 0) {
+    securityRequired = true
+  }
 
-    for (let path in oas.paths) {
-      for (let method in oas.paths[path]) {
-        if ('security' in oas.paths[path][method]) {
-          return true
-        }
+  for (let path in oas.paths) {
+    for (let method in oas.paths[path]) {
+      if (typeof oas.paths[path][method].security === 'object' && Object.keys(oas.paths[path][method].security).length > 0) {
+        securityRequired = true
       }
     }
-
-    return false
   }
 
   if (securityRequired) {
-    if ('securitySchemes' in oas.components) {
+    if (typeof oas.components.securitySchemes === 'object') {
       let protocols = []
 
       // get the global security protocols
@@ -230,6 +227,11 @@ const preprocessOas = (oas) => {
 
             case ('openIdConnect'):
               break
+
+            default:
+              let error = new Error(`${protocol} does not have valid Security Scheme type field`)
+              console.error(error)
+              throw error
           }
         } else {
           let error = new Error(`${protocol} does not have a Security Scheme Object Type definition`)
@@ -243,7 +245,6 @@ const preprocessOas = (oas) => {
       throw error
     }
   }
-
   return result
 }
 
