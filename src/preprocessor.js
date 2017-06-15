@@ -10,7 +10,9 @@ const preprocessOas = (oas) => {
     inputObjectTypeDefs: {},
     inputObjectTypes: {},
     operations: {},
-    saneMap: {}
+    saneMap: {},
+    saneAuthMap: {},
+    security: {}
   }
 
   /**
@@ -38,7 +40,7 @@ const preprocessOas = (oas) => {
        * Fill in possibly missing operationId.
        */
       if (typeof endpoint.operationId === 'undefined') {
-        endpoint.operationId = Oas3Tools.beautify(`${method}:${path}}`)
+        endpoint.operationId = Oas3Tools.beautify(`${method}:${path}`)
       }
 
       // hold on to operationId:
@@ -122,6 +124,11 @@ const preprocessOas = (oas) => {
        */
       let parameters = Oas3Tools.getParameters(path, method, oas)
 
+      /**
+       * Security protocols
+       */
+      let securityProtocols = Oas3Tools.getSecurityProtocols(path, method, oas)
+
       // store determined information for operation:
       result.operations[operationId] = {
         path,
@@ -130,8 +137,110 @@ const preprocessOas = (oas) => {
         reqSchemaRequired,
         resSchemaName,
         links,
-        parameters
+        parameters,
+        securityProtocols
       }
+    }
+  }
+
+  /**
+   * Security schema
+   */
+  let securityRequired = function () {
+    if ('security' in oas.security) {
+      return true
+    }
+
+    for (let path in oas.paths) {
+      for (let method in oas.paths[path]) {
+        if ('security' in oas.paths[path][method]) {
+          return true
+        }
+      }
+    }
+
+    return false
+  }
+
+  if (securityRequired) {
+    if ('securitySchemes' in oas.components) {
+      let protocols = []
+
+      // get the global security protocols
+      if ('security' in oas) {
+        protocols = JSON.parse(JSON.stringify(oas.security))
+      }
+
+      // get the local security protocols
+      for (let path in oas.paths) {
+        for (let method in oas.paths[path]) {
+          if ('security' in oas.paths[path][method]) {
+            for (let protocol in oas.paths[path][method].security) {
+              if (!(protocol in protocols)) {
+                protocols[protocol] = oas.paths[path][method].security[protocol]
+              }
+            }
+          }
+        }
+      }
+
+      /**
+       * Assemble the security data structure
+       *
+       * Example:
+       * security: {
+       *    MyApiKey: {
+       *        def: {
+       *          ...
+       *        },
+       *        parameters: {
+       *          apiKey: MyApiKey_apiKey
+       *        }
+       *    },
+            MyBasicAuth: {
+       *        def: {
+       *          ...
+       *        },
+       *        parameters: {
+       *          usename: MyBasicAuth_username,
+       *          password: MyBasicAuth_password,
+       *        }
+       *    },
+       * }
+       */
+
+      for (let protocol in protocols) {
+        if (protocol in oas.components.securitySchemes) {
+          result.security[protocol] = {}
+          result.security[protocol].def = oas.components.securitySchemes[protocol]
+          switch (oas.components.securitySchemes[protocol].type) {
+            case ('apiKey'):
+              result.security[protocol].parameters = {}
+              result.security[protocol].parameters.apiKey = Oas3Tools.beautify(`${protocol}_apiKey`)
+              break
+
+            case ('http'):
+              result.security[protocol].parameters = {}
+              result.security[protocol].parameters.usename = Oas3Tools.beautify(`${protocol}_username`)
+              result.security[protocol].parameters.password = Oas3Tools.beautify(`${protocol}_password`)
+              break
+
+            case ('oauth2'):
+              break
+
+            case ('openIdConnect'):
+              break
+          }
+        } else {
+          let error = new Error(`${protocol} does not have a Security Scheme Object Type definition`)
+          console.error(error)
+          throw error
+        }
+      }
+    } else {
+      let error = new Error('Security required but could not find Security Scheme Object Type definition')
+      console.error(error)
+      throw error
     }
   }
 
