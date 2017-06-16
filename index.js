@@ -163,14 +163,6 @@ const createGraphQlSchema = oas => {
       }
     }
 
-    // if (Object.keys(viewerMutationFields).length > 0) {
-    //   schemaDef.mutation = new GraphQLObjectType({
-    //     name: 'MutationViewer',
-    //     fields: viewerMutationFields
-    //   })
-    //   // TODO
-    // }
-
     // build up the schema:
     let schemaDef = {}
     if (Object.keys(rootQueryFields).length > 0) {

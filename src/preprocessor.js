@@ -247,7 +247,6 @@ const preprocessOas = (oas) => {
       throw error
     }
   }
-  // console.log(result.operations['get-patent-with-id'].securityProtocols)
   return result
 }
 

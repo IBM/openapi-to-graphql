@@ -124,14 +124,16 @@ function getProtocol (operation, ctx, data) {
 
   if (typeof operation.securityProtocols === 'object' && Object.keys(operation.securityProtocols).length > 0) {
     result.securityRequired = true
-    for (let protocol in operation.securityProtocols) {
-      for (let parameter in data.security[protocol].parameters) {
-        if (!(data.security[protocol].parameters[parameter] in ctx.security)) {
-          result.protocol = null
-          return result
+    for (let protocolIndex in operation.securityProtocols) {
+      for (let protocol in operation.securityProtocols[protocolIndex]) {
+        for (let parameter in data.security[protocol].parameters) {
+          if (!(data.security[protocol].parameters[parameter] in ctx.security)) {
+            result.protocol = null
+            return result
+          }
         }
+        result.protocol = protocol
       }
-      result.protocol = protocol
     }
   } else {
     result.securityRequired = false

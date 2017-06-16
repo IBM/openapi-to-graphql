@@ -2,6 +2,7 @@
 
 const querystring = require('querystring')
 const mutationMethods = ['post', 'put', 'patch', 'delete']
+const deepEqual = require('deep-equal')
 
 /**
  * Resolves the given reference in the given object.
@@ -358,25 +359,35 @@ const getParameters = (path, method, oas) => {
  *                          endpoint, method, and path
  */
 const getSecurityProtocols = (path, method, oas) => {
-  let security = {}
+  let protocols = []
 
-  // adding global security protocols
-  // if ('security' in oas) {
-  //   Object.assign(security, oas.security)
-  // }
-  for (let protocolIndex in oas.security) {
-    Object.assign(security, oas.security[protocolIndex])
+  if (typeof oas.security === 'object' && Object.keys(oas.security).length > 0) {
+    for (let protocol in oas.security) {
+      // TODO: enhance checking
+      if (typeof oas.security[protocol] === 'object') {
+        protocols.push(oas.security[protocol])
+      }
+    }
   }
 
   // adding local security protocols
   let endpoint = oas.paths[path][method]
-  if ('security' in endpoint) {
-    // Object.assign(security, endpoint.security)
-    for (let protocolIndex in oas.paths[path][method].security) {
-      Object.assign(security, oas.paths[path][method].security[protocolIndex])
+
+  if (typeof endpoint.security === 'object' && Object.keys(endpoint.security).length > 0) {
+    for (let protocolA in endpoint.security) {
+      if (typeof endpoint.security[protocolA] === 'object') {
+        (function () {
+          for (let protocolB in protocols) {
+            if (deepEqual(endpoint.security[protocolA], protocols[protocolB])) {
+              return
+            }
+          }
+          protocols.push(endpoint.security[protocolA])
+        })()
+      }
     }
   }
-  return security
+  return protocols
 }
 
 /**
