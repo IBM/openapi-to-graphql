@@ -206,12 +206,8 @@ const preprocessOas = (oas) => {
        * }
        */
 
-      console.log(protocols)
       for (let protocolIndex in protocols) {
-        console.log(protocolIndex)
         for (let protocol in protocols[protocolIndex]) {
-          console.log(protocol)
-
           if (protocol in oas.components.securitySchemes) {
             result.security[protocol] = {}
             result.security[protocol].def = oas.components.securitySchemes[protocol]
@@ -251,6 +247,7 @@ const preprocessOas = (oas) => {
       throw error
     }
   }
+  // console.log(result.operations['get-patent-with-id'].securityProtocols)
   return result
 }
 

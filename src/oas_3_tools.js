@@ -361,14 +361,20 @@ const getSecurityProtocols = (path, method, oas) => {
   let security = {}
 
   // adding global security protocols
-  if ('security' in oas) {
-    Object.assign(security, oas.security)
+  // if ('security' in oas) {
+  //   Object.assign(security, oas.security)
+  // }
+  for (let protocolIndex in oas.security) {
+    Object.assign(security, oas.security[protocolIndex])
   }
 
   // adding local security protocols
   let endpoint = oas.paths[path][method]
   if ('security' in endpoint) {
-    Object.assign(security, endpoint.security)
+    // Object.assign(security, endpoint.security)
+    for (let protocolIndex in oas.paths[path][method].security) {
+      Object.assign(security, oas.paths[path][method].security[protocolIndex])
+    }
   }
   return security
 }

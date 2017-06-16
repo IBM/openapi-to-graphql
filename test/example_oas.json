@@ -188,8 +188,7 @@
             }
           }
         },
-        "security": {
-        }
+        "security": []
       }
     },
     "/patents/{patent-id}": {
@@ -361,6 +360,5 @@
       }
     }
   },
-  "security": {
-  }
+  "security": []
 }
