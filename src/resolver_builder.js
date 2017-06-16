@@ -64,6 +64,7 @@ const getResolver = ({
 
     // do security:
     let {securityRequired, protocol} = getProtocol(operation, ctx, data)
+
     if (securityRequired) {
       let security = data.security[protocol]
       switch (security.def.type) {
@@ -73,9 +74,7 @@ const getResolver = ({
             if ('in' in security.def) {
               if (security.def.in === 'header') {
                 options.headers[security.def.name] = ctx.security[security.parameters.apiKey]
-                console.log(options.headers)
               } else if (security.in === 'query') {
-
               } else {
                 let error = new Error(`Cannot send apiKey in ${security.def.in}`)
                 console.error(error)
@@ -102,13 +101,9 @@ const getResolver = ({
           break
 
       }
-      // if (protocol) {
-      //
-      // } else {
-      //   reject(new Error(`Insufficient security: ${method} ${url} require either ...`))
-      // }
     }
 
+    console.log(`${options.method.toUpperCase()} ${options.url}`)
     return new Promise((resolve, reject) => {
       request(options, (err, response, body) => {
         if (err) {
@@ -117,93 +112,31 @@ const getResolver = ({
         } else {
           // deal with the fact that the server might send unsanitized data:
           let saneData = Oas3Tools.sanitizeObjKeys(body)
-
           resolve(saneData)
         }
       })
     })
-
-    // // make the call:
-    // console.log(`${options.method.toUpperCase()} ${options.url}`)
-    // if (Object.keys(operation.securityProtocols).length > 0) {
-    //   return new Promise((resolve, reject) => {
-    //     request(options, (err, response, body) => {
-    //       if (err) {
-    //         console.error(err)
-    //         reject(err)
-    //       } else {
-    //         // deal with the fact that the server might send unsanitized data:
-    //         let saneData = Oas3Tools.sanitizeObjKeys(body)
-    //
-    //         resolve(saneData)
-    //       }
-    //     })
-    //   })
-    // } else {
-    //   return new Promise((resolve, reject) => {
-    //
-    //     // for (let protocol in operation.securityProtocols) {
-    //     //   switch (oas.components.securitySchemes[protocol].type) {
-    //     //     case 'apiKey':
-    //     //       if (ctx.security[protocol].apiKey != null) {
-    //     //         options['headers'] = {}
-    //     //         options['headers'][protocol] = ctx.security[protocol].apiKey
-    //     //
-    //     //         request(options, (err, response, body) => {
-    //     //           if (err) {
-    //     //             console.error('Could not authenticate with ' + protocol)
-    //     //           } else {
-    //     //             // deal with the fact that the server might send unsanitized data:
-    //     //             let saneData = Oas3Tools.sanitizeObjKeys(body)
-    //     //             return resolve(saneData)
-    //     //           }
-    //     //         })
-    //     //       }
-    //     //       break
-    //     //
-    //     //     case 'http':
-    //     //       // var username = 'username',
-    //     //       // password = 'password',
-    //     //       // url = 'http://' + username + ':' + password + '@some.server.com';
-    //     //       break
-    //     //
-    //     //     case 'oauth2':
-    //     //       break
-    //     //
-    //     //     case 'openIdConnect':
-    //     //       break
-    //     //   }
-    //     // }
-    //     var err = 'Error: Could not authenticate'
-    //     console.error(err)
-    //     reject(err)
-    //   })
-    // }
   }
 }
 
-function getProtocol (
-  operation,
-  ctx,
-  data
-) {
+function getProtocol (operation, ctx, data) {
   let result = {}
-  if (Object.keys(operation.securityProtocols).length > 0) {
+
+  if (typeof operation.securityProtocols === 'object' && Object.keys(operation.securityProtocols).length > 0) {
     result.securityRequired = true
+    for (let protocol in operation.securityProtocols) {
+      for (let parameter in data.security[protocol].parameters) {
+        if (!(data.security[protocol].parameters[parameter] in ctx.security)) {
+          result.protocol = null
+          return result
+        }
+      }
+      result.protocol = protocol
+    }
   } else {
     result.securityRequired = false
   }
-
-  for (let operProto in operation.securityProtocols) {
-    for (let parameter in data.security[operProto].parameters) {
-      if (!(data.security[operProto].parameters[parameter] in ctx.security)) {
-        result.protocol = null
-        return result
-      }
-    }
-    result.protocol = operProto
-    return result
-  }
+  return result
 }
 
 module.exports = {

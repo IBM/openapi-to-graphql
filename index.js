@@ -73,9 +73,6 @@ const createGraphQlSchema = oas => {
      * @type {Object}
      */
     let data = Preprocessor.preprocessOas(oas)
-    console.log('SECURITY')
-    console.log(data.security)
-    console.log('SECURITY')
 
     /**
      * Holds on to the highest-level (entry-level) object types for queries
@@ -116,7 +113,6 @@ const createGraphQlSchema = oas => {
             operation.resSchemaName,
             data.saneMap)
           if (Object.keys(operation.securityProtocols).length > 0) {
-            console.log(`add ${saneName}`)
             viewerQueryFields[saneName] = field
           } else {
             rootQueryFields[saneName] = field
@@ -143,7 +139,6 @@ const createGraphQlSchema = oas => {
             operation.resSchemaName,
             data.saneMap)
           if (Object.keys(operation.securityProtocols).length > 0) {
-            console.log(`add ${saneName} without links`)
             viewerQueryFields[saneName] = field
           } else {
             rootQueryFields[saneName] = field
@@ -161,7 +156,6 @@ const createGraphQlSchema = oas => {
 
     if (Object.keys(viewerQueryFields).length > 0) {
       let {viewerOT, args, resolve} = AuthBuilder.getViewerOT({data, viewerQueryFields})
-      console.log(viewerOT)
       rootQueryFields.queryViewer = {
         type: viewerOT,
         resolve,

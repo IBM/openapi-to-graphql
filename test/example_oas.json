@@ -362,7 +362,5 @@
     }
   },
   "security": {
-    "api_key": [],
-    "basic": []
   }
 }
