@@ -189,7 +189,6 @@
           }
         },
         "security": {
-          "api_key2" : []
         }
       }
     },
@@ -219,9 +218,11 @@
             }
           }
         },
-        "security": {
-          "api_key": []
-        }
+        "security": [
+          {
+            "api_key": []
+          }
+        ]
       }
     }
   },
@@ -312,8 +313,7 @@
             "type": "string",
             "description": "A tag associated with the product"
           }
-        },
-        "required": ["product-name", "product-id", "product-tag"]
+        }
       },
       "patent-with-id": {
         "type": "object",

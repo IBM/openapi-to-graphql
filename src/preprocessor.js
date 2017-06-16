@@ -149,12 +149,12 @@ const preprocessOas = (oas) => {
   let securityRequired = false
   if (typeof oas.security === 'object' && Object.keys(oas.security).length > 0) {
     securityRequired = true
-  }
-
-  for (let path in oas.paths) {
-    for (let method in oas.paths[path]) {
-      if (typeof oas.paths[path][method].security === 'object' && Object.keys(oas.paths[path][method].security).length > 0) {
-        securityRequired = true
+  } else {
+    for (let path in oas.paths) {
+      for (let method in oas.paths[path]) {
+        if (typeof oas.paths[path][method].security === 'object' && Object.keys(oas.paths[path][method].security).length > 0) {
+          securityRequired = true
+        }
       }
     }
   }
@@ -206,37 +206,43 @@ const preprocessOas = (oas) => {
        * }
        */
 
-      for (let protocol in protocols) {
-        if (protocol in oas.components.securitySchemes) {
-          result.security[protocol] = {}
-          result.security[protocol].def = oas.components.securitySchemes[protocol]
-          switch (oas.components.securitySchemes[protocol].type) {
-            case ('apiKey'):
-              result.security[protocol].parameters = {}
-              result.security[protocol].parameters.apiKey = Oas3Tools.beautify(`${protocol}_apiKey`)
-              break
+      console.log(protocols)
+      for (let protocolIndex in protocols) {
+        console.log(protocolIndex)
+        for (let protocol in protocols[protocolIndex]) {
+          console.log(protocol)
 
-            case ('http'):
-              result.security[protocol].parameters = {}
-              result.security[protocol].parameters.usename = Oas3Tools.beautify(`${protocol}_username`)
-              result.security[protocol].parameters.password = Oas3Tools.beautify(`${protocol}_password`)
-              break
+          if (protocol in oas.components.securitySchemes) {
+            result.security[protocol] = {}
+            result.security[protocol].def = oas.components.securitySchemes[protocol]
+            switch (oas.components.securitySchemes[protocol].type) {
+              case ('apiKey'):
+                result.security[protocol].parameters = {}
+                result.security[protocol].parameters.apiKey = Oas3Tools.beautify(`${protocol}_apiKey`)
+                break
 
-            case ('oauth2'):
-              break
+              case ('http'):
+                result.security[protocol].parameters = {}
+                result.security[protocol].parameters.usename = Oas3Tools.beautify(`${protocol}_username`)
+                result.security[protocol].parameters.password = Oas3Tools.beautify(`${protocol}_password`)
+                break
 
-            case ('openIdConnect'):
-              break
+              case ('oauth2'):
+                break
 
-            default:
-              let error = new Error(`${protocol} does not have valid Security Scheme type field`)
-              console.error(error)
-              throw error
+              case ('openIdConnect'):
+                break
+
+              default:
+                let error = new Error(`${protocol} does not have valid Security Scheme type field`)
+                console.error(error)
+                throw error
+            }
+          } else {
+            let error = new Error(`${protocol} does not have a Security Scheme Object Type definition`)
+            console.error(error)
+            throw error
           }
-        } else {
-          let error = new Error(`${protocol} does not have a Security Scheme Object Type definition`)
-          console.error(error)
-          throw error
         }
       }
     } else {
