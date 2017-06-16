@@ -219,6 +219,9 @@
         },
         "security": [
           {
+            "basic": []
+          },
+          {
             "api_key": []
           }
         ]
@@ -356,7 +359,8 @@
         "type": "apiKey"
       },
       "basic": {
-        "type": "http"
+        "type": "http",
+        "scheme": "basic"
       }
     }
   },

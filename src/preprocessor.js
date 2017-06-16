@@ -199,7 +199,7 @@ const preprocessOas = (oas) => {
        *          ...
        *        },
        *        parameters: {
-       *          usename: MyBasicAuth_username,
+       *          username: MyBasicAuth_username,
        *          password: MyBasicAuth_password,
        *        }
        *    },
@@ -219,7 +219,7 @@ const preprocessOas = (oas) => {
 
               case ('http'):
                 result.security[protocol].parameters = {}
-                result.security[protocol].parameters.usename = Oas3Tools.beautify(`${protocol}_username`)
+                result.security[protocol].parameters.username = Oas3Tools.beautify(`${protocol}_username`)
                 result.security[protocol].parameters.password = Oas3Tools.beautify(`${protocol}_password`)
                 break
 
