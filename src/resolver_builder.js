@@ -163,10 +163,17 @@ function getProtocol (operation, ctx, data) {
       for (let protocol in operation.securityProtocols[protocolIndex]) {
         if ((function () {
           for (let parameter in data.security[protocol].parameters) {
+            // let beautifiedParameter = data.security[protocol].parameters[parameter]
+            // console.log('parameter')
+            // console.log(parameter)
+            //
+            // console.log('beautifiedParameter')
+            // console.log(beautifiedParameter)
+            //
+            // console.log(ctx.security)
+            // // console.log(data.security[protocol].parameters[parameter])
+            // // console.log(ctx.security)
             if (!(data.security[protocol].parameters[parameter] in ctx.security)) {
-              // console.log(parameter)
-              // console.log(data.security[protocol].parameters[parameter])
-              // console.log(ctx.security)
               return false
             }
           }

@@ -14,7 +14,7 @@ const graphql = require('graphql').graphql
  */
 let schema
 beforeAll(() => {
-  let oas = require('./example_oas.json')
+  let oas = require('../fixtures/example_oas.json')
   return OasGraph.createGraphQlSchema(oas)
     .then(createdSchema => {
       schema = createdSchema
