@@ -89,6 +89,19 @@ The following options can be set:
 
 * `qs` (type: `object`, default: `{}`): Query parameters to be sent in every request. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OASGraph.
 
+For example:
+
+```javascript
+OASGraph.createGraphQLSchema(oas, {
+  headers: {
+    authorization: 'asfl3032lkj2' // send authorization header in every request
+  },
+  qs: {
+    limit: 30 // send limit query string in every request
+  }
+})
+```
+
 
 ## Testing
 To test OASGraph, first make sure the example API server is running:
