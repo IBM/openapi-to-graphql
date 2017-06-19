@@ -36,14 +36,6 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 * **Custom request options** Provide headers and query parameters to send with every API request. This allows, for example, to handle authentication or tag requests from GraphQL.
 
-## Work in progress
-
-- [x] Handle arrays
-- [x] Enable mutating operations (POST, PUT, DELETE...)
-- [ ] Compose multiple OAS
-- [ ] Handle authentication
-- [ ] Translate Swagger/OAS 2.0 automatically
-
 
 ## Usage
 Install this package. Then, simply pass it an OpenAPI Specification 3.0. The library returns a promise:
