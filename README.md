@@ -36,14 +36,6 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 * **Custom request options** Provide headers and query parameters to send with every API request. This allows, for example, to handle authentication or tag requests from GraphQL.
 
-## Work in progress
-
-- [x] Handle arrays
-- [x] Enable mutating operations (POST, PUT, DELETE...)
-- [ ] Compose multiple OAS
-- [ ] Handle authentication
-- [ ] Translate Swagger/OAS 2.0 automatically
-
 
 ## Usage
 Install this package. Then, simply pass it an OpenAPI Specification 3.0. The library returns a promise:
@@ -96,6 +88,19 @@ The following options can be set:
 * `headers` (type: `object`, default: `{}`): Headers to be sent in every request. Parameters defined in the OpenAPI Specification to set these headers will be ignored by OASGraph.
 
 * `qs` (type: `object`, default: `{}`): Query parameters to be sent in every request. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OASGraph.
+
+For example:
+
+```javascript
+OASGraph.createGraphQLSchema(oas, {
+  headers: {
+    authorization: 'asfl3032lkj2' // send authorization header in every request
+  },
+  qs: {
+    limit: 30 // send limit query string in every request
+  }
+})
+```
 
 
 ## Testing
