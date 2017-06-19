@@ -200,6 +200,18 @@ app.get('/api/patents/:id', (req, res) => {
     return res.status(401).send({
       message: 'Incorrect credentials'
     })
+  } else if ('access_token' in req.query) {
+    for (let user in Auth) {
+      if (Auth[user].accessToken === req.query.access_token) {
+        return res.send({
+          'patent-name': 'oasgraph',
+          'patent-id': req.params.id
+        })
+      }
+    }
+    return res.status(401).send({
+      message: 'Incorrect credentials'
+    })
   } else {
     return res.status(401).send({
       message: 'Missing credentials'

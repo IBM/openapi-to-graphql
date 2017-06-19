@@ -101,7 +101,8 @@ const getResolver = ({
             if ('in' in security.def) {
               if (security.def.in === 'header') {
                 options.headers[security.def.name] = ctx.security[security.parameters.apiKey]
-              } else if (security.in === 'query') {
+              } else if (security.def.in === 'query') {
+                options.qs[security.def.name] = ctx.security[security.parameters.apiKey]
               } else {
                 let error = new Error(`Cannot send apiKey in ${security.def.in}`)
                 console.error(error)
