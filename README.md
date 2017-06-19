@@ -43,7 +43,7 @@ Install this package. Then, simply pass it an OpenAPI Specification 3.0. The lib
 ```javascript
 const OASGraph = require('oasgraph') // use real name here
 
-let oas = require('../fixtures/example_oas.json') // or other means of obtaining the OAS
+let oas = require('./fixtures/example_oas.json') // or other means of obtaining the OAS
 
 OASGraph.createGraphQlSchema(oas)
   .then(schema => {

@@ -211,6 +211,15 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
       }
     }
 
+    if (Object.keys(viewerMutationFields).length > 0) {
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT({data, viewerMutationFields})
+      rootMutationFields.mutationViewer = {
+        type: viewerOT,
+        resolve,
+        args
+      }
+    }
+
     // build up the schema:
     let schemaDef = {}
     if (Object.keys(rootQueryFields).length > 0) {
