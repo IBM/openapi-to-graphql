@@ -1,6 +1,7 @@
 'use strict'
 
 const mutationMethods = ['post', 'put', 'patch', 'delete']
+const deepEqual = require('deep-equal')
 
 /**
  * Resolves the given reference in the given object.
@@ -185,29 +186,6 @@ const inferResourceNameFromPath = (path) => {
 }
 
 /**
- * Returns an object containing the links defined in the given endpoint.
- *
- * @param  {string} path
- * @param  {string} method
- * @param  {object} oas
- * @return {object}          Object containing links of given endpoint
- */
-const getEndpointLinks = (path, method, oas) => {
-  let links = {}
-  let endpoint = oas.paths[path][method]
-  if ('links' in endpoint.responses['200']) {
-    for (let linkKey in endpoint.responses['200'].links) {
-      let link = endpoint.responses['200'].links[linkKey]
-      if ('$ref' in link) {
-        link = resolveRef(link['$ref'], oas)
-      }
-      links[linkKey] = link
-    }
-  }
-  return links
-}
-
-/**
  * Checks whether the given endpoint has a response JSON schema.
  *
  * @param  {object} endpoint OAS endpoint
@@ -317,6 +295,29 @@ const getResSchemaAndNames = (path, method, statusCode, oas) => {
 }
 
 /**
+ * Returns an object containing the links defined in the given endpoint.
+ *
+ * @param  {string} path
+ * @param  {string} method
+ * @param  {object} oas
+ * @return {object}          Object containing links of given endpoint
+ */
+const getEndpointLinks = (path, method, oas) => {
+  let links = {}
+  let endpoint = oas.paths[path][method]
+  if ('links' in endpoint.responses['200']) {
+    for (let linkKey in endpoint.responses['200'].links) {
+      let link = endpoint.responses['200'].links[linkKey]
+      if ('$ref' in link) {
+        link = resolveRef(link['$ref'], oas)
+      }
+      links[linkKey] = link
+    }
+  }
+  return links
+}
+
+/**
  * Returns the list of parameters for the endpoint at the given method and path.
  * Resolves referenced parameters if needed.
  *
@@ -338,8 +339,50 @@ const getParameters = (path, method, oas) => {
       }
     })
   }
-
   return parameters
+}
+
+/**
+ * Returns the list of security protocols for the endpoint at the given method and path.
+ * Resolves referenced parameters if needed.
+ *
+ * @param  {string} path
+ * @param  {string} method
+ * @param  {object} oas
+ * @param  {object} mapping
+ * @return {object}         Object containing security protocols of given
+ *                          endpoint, method, and path
+ */
+const getSecurityProtocols = (path, method, oas) => {
+  let protocols = []
+
+  if (typeof oas.security === 'object' && Object.keys(oas.security).length > 0) {
+    for (let protocol in oas.security) {
+      // TODO: enhance checking
+      if (typeof oas.security[protocol] === 'object') {
+        protocols.push(oas.security[protocol])
+      }
+    }
+  }
+
+  // adding local security protocols
+  let endpoint = oas.paths[path][method]
+
+  if (typeof endpoint.security === 'object' && Object.keys(endpoint.security).length > 0) {
+    for (let protocolA in endpoint.security) {
+      if (typeof endpoint.security[protocolA] === 'object') {
+        (function () {
+          for (let protocolB in protocols) {
+            if (deepEqual(endpoint.security[protocolA], protocols[protocolB])) {
+              return
+            }
+          }
+          protocols.push(endpoint.security[protocolA])
+        })()
+      }
+    }
+  }
+  return protocols
 }
 
 /**
@@ -348,21 +391,64 @@ const getParameters = (path, method, oas) => {
  *
  * @param  {string} str
  * @param  {object} mapping
- * @return {string}          Beautified string
+ * @return {string}           Beautified string or an array
  */
-const beautifyAndStore = (str, mapping) => {
+const beautifyAndStore = (str, mapping, options) => {
   if (!(typeof mapping === 'object')) {
-    throw new Error(`No / invalid mapping passed to beautifyAndStore.`)
+    throw new Error(`No/invalid mapping passed to beautifyAndStore.`)
   }
   let clean = beautify(str)
   if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
-      console.error(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
+      console.warn(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
         `to ${clean} - collusion possible. Desanitize to ${str}.`)
     }
     mapping[clean] = str
   }
   return clean
+}
+
+/**
+ * TODO:   beautifyAndStore() maps the beautified to the original while
+ *         beautifyAndStoreArray() maps the original to the beautified array
+ */
+
+/**
+ * Beautifies the array of strings and stores the string-to-sanitized array
+ * mapping in the given mapping.
+ *
+ * @param  {string} str
+ * @param  {object} array
+ * @param  {object} mapping
+ * @return {object}           Beautified array
+ */
+const beautifyAndStoreArray = (str, array, mapping) => {
+  if (!(typeof mapping === 'object')) {
+    throw new Error(`No/invalid mapping passed to beautifyAndStore.`)
+  }
+  if (array.isArray()) {
+    let tempArray = []
+    for (let element in array) {
+      if (typeof element === 'string') {
+        tempArray.push(beautify(element))
+      } else {
+        let warning = `Warning: Cannot beautify "${element}" in array field.` +
+          `Options should be an array of Strings.`
+        console.warn(warning)
+      }
+    }
+    if (str in mapping && tempArray !== mapping[str]) {
+      console.warn(`Warning: "${tempArray}" and "${mapping[str]}" both` +
+        `sanitize to ${str} - collusion possible. Desanitize to
+        ${tempArray}.`)
+    }
+    mapping[str] = tempArray
+    return tempArray
+  } else {
+    let error = new Error('options parameter is not an array')
+    console.error(error)
+    throw error
+  }
 }
 
 /**
@@ -413,14 +499,16 @@ module.exports = {
   instantiatePathAndGetQuery,
   getSchemaType,
   inferResourceNameFromPath,
-  getEndpointLinks,
   endpointReturnsJson,
   getReqSchemaAndNames,
   getResSchemaAndNames,
   mutationMethods,
+  getEndpointLinks,
   getParameters,
+  getSecurityProtocols,
   sanitizeObjKeys,
   desanitizeObjKeys,
   beautify,
-  beautifyAndStore
+  beautifyAndStore,
+  beautifyAndStoreArray
 }
