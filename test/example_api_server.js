@@ -74,8 +74,12 @@ const Companies = {
   }
 }
 
-const Product = {
+const Products = {
   'product-name': 'Super Product'
+}
+
+const Projects = {
+
 }
 
 const Auth = {
@@ -101,6 +105,11 @@ const Auth = {
   }
 }
 
+app.get('/api/users/:username', (req, res) => {
+  console.log(req.method, req.path)
+  res.send(Users[req.params.username])
+})
+
 app.post('/api/users', (req, res) => {
   console.log(req.method, req.path)
   let user = req.body
@@ -117,11 +126,6 @@ app.post('/api/users', (req, res) => {
   }
 })
 
-app.get('/api/users/:username', (req, res) => {
-  console.log(req.method, req.path)
-  res.send(Users[req.params.username])
-})
-
 app.get('/api/companies/:id', (req, res) => {
   console.log(req.method, req.path)
   res.send(Companies[req.params.id])
@@ -129,9 +133,9 @@ app.get('/api/companies/:id', (req, res) => {
 
 app.get('/api/products/:id', (req, res) => {
   console.log(req.method, req.path, req.params, req.query)
-  Product['product_id'] = req.params['id']
-  Product['product-tag'] = req.query['product-tag']
-  res.send(Product)
+  Products['product_id'] = req.params['id']
+  Products['product-tag'] = req.query['product-tag']
+  res.send(Products)
 })
 
 app.post('/api/products', (req, res) => {
@@ -161,8 +165,95 @@ app.get('/api/status', (req, res) => {
   }
 })
 
+// app.get('/api/patents/:id', (req, res) => {
+//   console.log(req.method, req.path)
+//   if (req.headers.authorization) {
+//     let encoded = req.headers.authorization.split(' ')[1]
+//     let decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
+//
+//     if (decoded.length === 2) {
+//       let credentials = {
+//         username: decoded[0],
+//         password: decoded[1]
+//       }
+//       for (let user in Auth) {
+//         if (Auth[user].username === credentials.username && Auth[user].password === credentials.password) {
+//           return res.send({
+//             'patent-name': 'oasgraph',
+//             'patent-id': req.params.id
+//           })
+//         }
+//       }
+//       return res.status(401).send({
+//         message: 'Incorrect credentials'
+//       })
+//     } else {
+//       return res.status(401).send({
+//         message: 'Credentials sent incorrectly'
+//       })
+//     }
+//   } else if ('access_token' in req.headers) {
+//     for (let user in Auth) {
+//       if (Auth[user].accessToken === req.headers.access_token) {
+//         return res.send({
+//           'patent-name': 'oasgraph',
+//           'patent-id': req.params.id
+//         })
+//       }
+//     }
+//     return res.status(401).send({
+//       message: 'Incorrect credentials'
+//     })
+//   } else if ('access_token' in req.query) {
+//     for (let user in Auth) {
+//       if (Auth[user].accessToken === req.query.access_token) {
+//         return res.send({
+//           'patent-name': 'oasgraph',
+//           'patent-id': req.params.id
+//         })
+//       }
+//     }
+//     return res.status(401).send({
+//       message: 'Incorrect credentials'
+//     })
+//   } else {
+//     return res.status(401).send({
+//       message: 'Missing credentials'
+//     })
+//   }
+// })
+
 app.get('/api/patents/:id', (req, res) => {
-  console.log(req.method, req.path)
+  if (isAuthenticated(req, res)) {
+    return res.send({
+      'patent-name': 'oasgraph',
+      'patent-id': req.params.id
+    })
+  }
+})
+
+app.get('/api/projects/:id', (req, res) => {
+  if (isAuthenticated(req, res)) {
+    return res.send(Projects[req.params.id])
+  }
+})
+
+app.post('/api/projects', (req, res) => {
+  if (isAuthenticated(req, res)) {
+    let project = req.body
+    if (!('project-name' in project) ||
+      !('project-id' in project) ||
+      !('project-tag' in project)) {
+      res.status(400).send({
+        message: 'wrong data'
+      })
+    } else {
+      res.send(project)
+    }
+  }
+})
+
+const isAuthenticated = (req, res) => {
   if (req.headers.authorization) {
     let encoded = req.headers.authorization.split(' ')[1]
     let decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
@@ -174,50 +265,46 @@ app.get('/api/patents/:id', (req, res) => {
       }
       for (let user in Auth) {
         if (Auth[user].username === credentials.username && Auth[user].password === credentials.password) {
-          return res.send({
-            'patent-name': 'oasgraph',
-            'patent-id': req.params.id
-          })
+          return true
         }
       }
-      return res.status(401).send({
+      res.status(401).send({
         message: 'Incorrect credentials'
       })
+      return false
     } else {
-      return res.status(401).send({
-        message: 'Credentials sent incorrectly'
+      res.status(401).send({
+        message: 'Basic Auth expects a single username and a single password'
       })
+      return false
     }
   } else if ('access_token' in req.headers) {
     for (let user in Auth) {
       if (Auth[user].accessToken === req.headers.access_token) {
-        return res.send({
-          'patent-name': 'oasgraph',
-          'patent-id': req.params.id
-        })
+        return res.send(Projects[req.params.username])
       }
     }
-    return res.status(401).send({
+    res.status(401).send({
       message: 'Incorrect credentials'
     })
+    return false
   } else if ('access_token' in req.query) {
     for (let user in Auth) {
       if (Auth[user].accessToken === req.query.access_token) {
-        return res.send({
-          'patent-name': 'oasgraph',
-          'patent-id': req.params.id
-        })
+        return true
       }
     }
-    return res.status(401).send({
+    res.status(401).send({
       message: 'Incorrect credentials'
     })
+    return false
   } else {
-    return res.status(401).send({
-      message: 'Missing credentials'
+    res.status(401).send({
+      message: 'Unknown/missing credentials'
     })
+    return false
   }
-})
+}
 
 app.listen(3000, () => {
   console.log('Example API accessible on port 3000')
