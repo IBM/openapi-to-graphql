@@ -27,7 +27,9 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
   <img src="docs/mutations.png" alt="Example of mutation" width="600">
 
 * **Authentication**
-  Work in progress.
+  OASGraph currently supports authentication via API Key and basic auth. OASGraph wraps secured endpoints into a `viewer`, which takes the API key / credentials as input.
+
+  <img src="docs/auth.png" alt="Example of authentication" width="600">
 
 * **API Sanitation**
   Parts of an API that not compatible with GraphQL are automatically sanitized. For example, API parameters and data definition names with unsupported characters (e.g., `-`, `.`, `,`, `:`, `;`...) are sanitized.
