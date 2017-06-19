@@ -10,6 +10,9 @@ const GraphQLTools = require('./src/graphql_tools.js')
 const Preprocessor = require('./src/preprocessor.js')
 const Oas3Tools = require('./src/oas_3_tools.js')
 const AuthBuilder = require('./src/auth_builder.js')
+const Swagger2OpenAPI = require('swagger2openapi')
+const OASValidator = require('swagger2openapi/validate.js')
+const log = require('debug')('translation')
 
 // increase stack trace logging for better debugging:
 Error.stackTraceLimit = Infinity
@@ -40,16 +43,56 @@ Error.stackTraceLimit = Infinity
  *  which take the form ${protocol name}_${protocol field} (e.g. MyApiKey_apiKey
  *  and MyBasicAuth_username and MyBasicAuth_password).
  *
+ * @param  {object} spec Swagger / OpenAPI Specification 2.0 / 3.0.x
+ * @return {promise}     Resolves on GraphQLSchema, rejects on error during
+ * schema creation
+ */
+const createGraphQlSchema = (spec, options = {}) => {
+  return new Promise((resolve, reject) => {
+    // Some basic validation OAS
+    if (typeof spec !== 'object') {
+      throw new Error(`Invalid specification provided`)
+    }
+
+    // CASE: translate
+    if (typeof spec.swagger === 'string' && spec.swagger === '2.0') {
+      log(`Received Swagger - going to translate...`)
+      Swagger2OpenAPI.convertObj(spec, {})
+        .then(result => {
+          resolve(translateOpenApiToGraphQL(result.openapi, options))
+        })
+        .catch(reject)
+    // CASE: validate
+    } else if (typeof spec.openapi === 'string' && /^3/.test(spec.openapi)) {
+      log(`Received OpenAPI 3.0.x - going to validate...`)
+      let valid = true
+      try {
+        valid = OASValidator.validateSync(spec, {})
+      } catch (err) {
+        reject(err)
+      }
+      if (!valid) {
+        reject(new Error(`Validation of OpenAPI Specification failed`))
+      } else {
+        resolve(translateOpenApiToGraphQL(spec, options))
+      }
+    }
+  })
+}
+
+/*
+ * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x.
+ *
  * @param  {object} oas OpenAPI Specification 3.0
  * @return {promise}    Resolves on GraphQLSchema, rejects on error during
  * schema creation
  */
-const createGraphQlSchema = (oas, {headers, qs} = {}) => {
+const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
   return new Promise((resolve, reject) => {
-    // TODO: validate OAS
+    log(`Translate valid OpenAPI specification to GraphQL...`)
 
     /**
-     * Result of preprocessing OAS.
+     * Result of preprocessing OAS:
      *
      * {
      *  objectTypeDefs      // key: schemaName, val: JSON schema

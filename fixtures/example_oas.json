@@ -68,7 +68,7 @@
           {
             "name": "username",
             "in": "path",
-            "required": "true",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -101,7 +101,7 @@
           {
             "name": "id",
             "in": "path",
-            "required": "true",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -162,7 +162,7 @@
           {
             "name": "product-id",
             "in": "path",
-            "required": "true",
+            "required": true,
             "schema": {
               "type": "string"
             }
@@ -199,7 +199,7 @@
           {
             "name": "patent-id",
             "in": "path",
-            "required": "true",
+            "required": true,
             "schema": {
               "type": "string"
             }
