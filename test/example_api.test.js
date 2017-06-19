@@ -17,9 +17,10 @@ const {
  * Set up the schema first
  */
 let schema
-let oas = require('./example_oas.json')
+let oas = require('../fixtures/example_oas.json')
 
 beforeAll(() => {
+  let oas = require('../fixtures/example_oas.json')
   return OasGraph.createGraphQlSchema(oas)
     .then(createdSchema => {
       schema = createdSchema

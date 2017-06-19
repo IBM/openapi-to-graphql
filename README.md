@@ -8,22 +8,22 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 * **Data-centric**
   The GraphQL interface is created around the data definitions in the given OAS, not around the endpoints, leading to a natural use of GraphQL.
-  
+
   <img src="docs/data-centric.png" alt="Example of data-centric design" width="600">
 
 * **Nested data**
   [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.md#linksObject) defined in the OAS are used to compose data definitions.
-  
+
   <img src="docs/links.png" alt="Example of links resolution" width="600">
 
 * **Automatic query resolution**
   Automatically generated resolvers translate (nested) GraphQL queries to API requests. Request results are translated back to GraphQL responses.
-  
+
   <img src="docs/resolution.png" alt="Example of query resolution" width="600">
 
 * **Mutations**
   Non-safe, non-idempotent API operations (e.g., `POST`, `PUT`, `DELETE`) are translated to GraphQL [mutations](http://graphql.org/learn/queries/#mutations). Input payload is type-checked.
-  
+
   <img src="docs/mutations.png" alt="Example of mutation" width="600">
 
 * **Authentication**
@@ -51,7 +51,7 @@ Install this package. Then, simply pass it an OpenAPI Specification 3.0. The lib
 ```javascript
 const OASGraph = require('oasgraph') // use real name here
 
-let oas = require('./example_oas.json') // or other means of obtaining the OAS
+let oas = require('../fixtures/example_oas.json') // or other means of obtaining the OAS
 
 OASGraph.createGraphQlSchema(oas)
   .then(schema => {
