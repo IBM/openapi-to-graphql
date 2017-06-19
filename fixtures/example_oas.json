@@ -223,8 +223,40 @@
           },
           {
             "api_key": []
+          },
+          {
+            "api_key2": []
+           }
+         ]
+       }
+    },
+    "/status": {
+      "get": {
+        "operationId": "get-Status",
+        "description": "Endpoint to test sending of options.",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
           }
-        ]
+        ],
+        "responses": {
+          "200": {
+            "description": "Status message.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string",
+                  "description": "What the status is."
+                }
+              }
+            }
+          }
+        }
       }
     }
   },
