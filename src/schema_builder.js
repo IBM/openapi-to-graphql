@@ -303,7 +303,7 @@ const createFields = ({
     let sanePropName = Oas3Tools.beautifyAndStore(propName, data.saneMap)
     fields[sanePropName] = {
       type: requiredMutationProp ? new GraphQLNonNull(objectType) : objectType,
-      description: schema.description // might be undefined
+      description: schema.properties[propName].description // might be undefined
     }
   }
 
