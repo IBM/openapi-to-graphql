@@ -266,7 +266,6 @@ const createFields = ({
 
     // if properties are referenced, try to reuse schemas:
     if ('$ref' in schema.properties[propName]) {
-      schemaName = schema.properties[propName]['$ref'].split('/').pop()
       objectType = reuseOrCreateOt({
         name: schemaName,
         data,

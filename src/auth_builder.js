@@ -29,10 +29,7 @@ const getSecurityProtocols = (operationId, oas) => {
   return null
 }
 
-const getViewerOT = ({
-  data,
-  viewerQueryFields
-}) => {
+const getViewerOT = (data, viewerQueryFields, name) => {
   let resolve = (root, args, ctx) => {
     ctx['security'] = args
     return {}
@@ -47,7 +44,7 @@ const getViewerOT = ({
 
   return {
     viewerOT: new GraphQLObjectType({
-      name: 'QueryViewer',
+      name: name,
       fields: viewerQueryFields
     }),
     resolve,

@@ -11,7 +11,7 @@ const {
 /**
  * Set up the schema first
  */
-let oas = require('../fixtures/government_social_work_api.json')
+let oas = require('./fixtures/government_social_work_api.json')
 let schema
 beforeAll(() => {
   return OasGraph.createGraphQlSchema(oas)
