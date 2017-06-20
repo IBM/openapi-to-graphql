@@ -452,25 +452,29 @@
 				"operationId": "getCompanyById",
 				"parameters": {
 					"id": "$response.body#/employerId"
-				}
+				},
+        "description": "Allows to fetch the user's employer company."
 			},
 			"CeoUser": {
 				"operationId": "getUserByUsername",
 				"parameters": {
 					"username": "$response.body#/ceoUsername"
-				}
+				},
+        "description": "Allows to fetch the company's CEO user."
 			},
 			"ProjectLead": {
 				"operationId": "getUserByUsername",
 				"parameters": {
 					"username": "$response.body#/leadId"
-				}
+				},
+        "description": "Allows to fetch the user leading a project."
 			},
 			"Inventor": {
 				"operationId": "getUserByUsername",
 				"parameters": {
 					"username": "$response.body#/inventorId"
-				}
+				},
+        "description": "Allows to fetch the user who invented a product."
 			}
 		},
 		"securitySchemes": {

@@ -362,7 +362,8 @@ const createFields = ({
       fields[saneLinkKey] = {
         type: resObjectType,
         resolve: linkResolver,
-        args: args
+        args: args,
+        description: links[linkKey].description // may be undefined
       }
     }
   }
