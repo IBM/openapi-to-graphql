@@ -257,6 +257,7 @@ const createFields = ({
    */
   for (let propName in schema.properties) {
     let objectType // holds the object type to for this prop
+    let schemaName = propName // name of schema for this prop's field
 
     // determine if this property is required in mutations:
     let requiredMutationProp = (isMutation &&
@@ -265,9 +266,9 @@ const createFields = ({
 
     // if properties are referenced, try to reuse schemas:
     if ('$ref' in schema.properties[propName]) {
-      propName = schema.properties[propName]['$ref'].split('/').pop()
+      schemaName = schema.properties[propName]['$ref'].split('/').pop()
       objectType = reuseOrCreateOt({
-        name: propName,
+        name: schemaName,
         data,
         links,
         oas,
@@ -282,14 +283,14 @@ const createFields = ({
 
       // TODO: we have to be careful not to assign an already existing name to the
       // property's Object Type...
-      if (propName in data.objectTypeDefs ||
-        propName in data.inputObjectTypeDefs) {
+      if (schemaName in data.objectTypeDefs ||
+        schemaName in data.inputObjectTypeDefs) {
         console.error(`Warning: creating Object Type for property with colluding
-          name ${propName}`)
+          name ${schemaName}`)
       }
 
       objectType = getObjectType({
-        name: propName,
+        name: schemaName,
         schema: propSchema,
         data,
         links,
