@@ -174,7 +174,6 @@ const preprocessOas = (oas) => {
           if ('security' in oas.paths[path][method]) {
             for (let protocolIndex in oas.paths[path][method].security) {
               let protocol = oas.paths[path][method].security[protocolIndex]
-              console.log(protocol)
               if (!(protocols.filter(p => { return deepEqual(p, protocol) }).length > 0)) {
                 protocols.push(protocol)
               }

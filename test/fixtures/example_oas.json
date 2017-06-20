@@ -1,400 +1,494 @@
 {
-  "openapi": "3.0.0",
-  "info": {
-    "title": "Example API",
-    "description": "An API to test converting Open API Specs 3.0 to GraphQL",
-    "version": "1.0.0",
-    "termsOfService": "http://example.com/terms/",
-    "contact": {
-      "name": "Erik Wittern",
-      "url": "http://www.example.com/support",
-      "email": "witternj@us.ibm.com"
-    },
-    "license": {
-      "name": "Apache 2.0",
-      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
-    }
-  },
-  "externalDocs": {
-    "url": "http://example.com/docs",
-    "description": "Some more natural language description."
-  },
-  "tags": [
-    {
-      "name": "test",
-      "description": "Indicates this API is for testing"
-    }
-  ],
-  "servers": [
-    {
-      "url": "http://localhost:3000/api",
-      "description": "The location of the local test server."
-    }
-  ],
-  "paths": {
-    "/users": {
-      "post": {
-        "operationId": "postUser",
-        "description": "Create a new user in the system.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/user"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "The posted user.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/user"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/users/{username}": {
-      "get": {
-        "operationId": "getUserByUsername",
-        "description": "Returns a user from the system.",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": "true",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A user represents a natural person.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/user"
-                }
-              }
-            },
-            "links": {
-              "employerCompany": {
-                "$ref": "#/components/links/EmployerCompany"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/companies/{id}": {
-      "get": {
-        "operationId": "getCompanyById",
-        "description": "Returns the profile of a company with the given ID.",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": "true",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A company profile.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/company"
-                }
-              }
-            },
-            "links": {
-              "ceoUser": {
-                "$ref": "#/components/links/CeoUser"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/products": {
-      "post": {
-        "operationId": "post-product-with-id",
-        "description": "Endpoint to test unsanitized parameters and data.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/product-with-id"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "A product.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/product-with-id"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/products/{product-id}": {
-      "get": {
-        "operationId": "get-product-with-id",
-        "description": "Another endpoint to test unsanitized parameters and data.",
-        "parameters": [
-          {
-            "name": "product-id",
-            "in": "path",
-            "required": "true",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "product-tag",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A product.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/product-with-id"
-                }
-              }
-            }
-          }
-        },
-        "security": []
-      }
-    },
-    "/patents/{patent-id}": {
-      "get": {
-        "operationId": "get-patent-with-id",
-        "description": "Another endpoint to test authentication.",
-        "parameters": [
-          {
-            "name": "patent-id",
-            "in": "path",
-            "required": "true",
-            "schema": {
-              "type": "string"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A product.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/patent-with-id"
-                }
-              }
-            }
-          }
-        },
+	"openapi": "3.0.0",
+	"info": {
+		"title": "Example API",
+		"description": "An API to test converting Open API Specs 3.0 to GraphQL",
+		"version": "1.0.0",
+		"termsOfService": "http://example.com/terms/",
+		"contact": {
+			"name": "Erik Wittern",
+			"url": "http://www.example.com/support",
+			"email": "witternj@us.ibm.com"
+		},
+		"license": {
+			"name": "Apache 2.0",
+			"url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+		}
+	},
+	"externalDocs": {
+		"url": "http://example.com/docs",
+		"description": "Some more natural language description."
+	},
+	"tags": [{
+		"name": "test",
+		"description": "Indicates this API is for testing"
+	}],
+	"servers": [{
+		"url": "http://localhost:3000/api",
+		"description": "The location of the local test server."
+	}],
+	"paths": {
+		"/users": {
+			"post": {
+				"operationId": "postUser",
+				"description": "Create a new user in the system.",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/user"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "The posted user.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/user"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/users/{username}": {
+			"get": {
+				"operationId": "getUserByUsername",
+				"description": "Returns a user from the system.",
+				"parameters": [{
+					"name": "username",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "A user represents a natural person.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/user"
+								}
+							}
+						},
+						"links": {
+							"employerCompany": {
+								"$ref": "#/components/links/EmployerCompany"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/companies/{id}": {
+			"get": {
+				"operationId": "getCompanyById",
+				"description": "Returns the profile of a company with the given ID.",
+				"parameters": [{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "A company profile.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/company"
+								}
+							}
+						},
+						"links": {
+							"ceoUser": {
+								"$ref": "#/components/links/CeoUser"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/products": {
+			"post": {
+				"operationId": "post-product-with-id",
+				"description": "Endpoint to test unsanitized parameters and data.",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/product-with-id"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "A product.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/product-with-id"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/products/{product-id}": {
+			"get": {
+				"operationId": "get-product-with-id",
+				"description": "Another endpoint to test unsanitized parameters and data.",
+				"parameters": [{
+						"name": "product-id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "product-tag",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "A product.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/product-with-id"
+								}
+							}
+						}
+					}
+				},
+				"security": []
+			}
+		},
+		"/patents/{patent-id}": {
+			"get": {
+				"operationId": "get-patent-with-id",
+				"description": "An endpoint to test authentication.",
+				"parameters": [{
+					"name": "patent-id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "A product.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/patent-with-id"
+								}
+							}
+						},
+						"links": {
+							"inventor": {
+								"$ref": "#/components/links/Inventor"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"basic": []
+					},
+					{
+						"api_key2": []
+					}
+				]
+			}
+		},
+		"/projects/{project-id}": {
+			"get": {
+				"operationId": "get-project-with-id",
+				"description": "Another endpoint to test authentication.",
+				"parameters": [{
+					"name": "project-id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "A project.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/project-with-id"
+								}
+							}
+						},
+						"links": {
+							"projectLead": {
+								"$ref": "#/components/links/ProjectLead"
+							}
+						}
+					}
+				},
+				"security": [
+					{
+						"api_key": []
+					},
+					{
+						"api_key2": []
+					}
+				]
+			}
+		},
+		"/projects": {
+			"post": {
+				"operationId": "post-project-with-id",
+				"description": "An endpoint to test authenticated POST requests.",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/project-with-id"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "A product.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/project-with-id"
+								}
+							}
+						},
+						"links": {
+							"ProjectLead": {
+								"$ref": "#/components/links/ProjectLead"
+							}
+						}
+					}
+				},
         "security": [
-          {
-            "basic": []
-          },
-          {
-            "api_key": []
-          },
-          {
-            "api_key2": []
-           }
-         ]
-       }
-    },
-    "/status": {
-      "get": {
-        "operationId": "get-Status",
-        "description": "Endpoint to test sending of options.",
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "required": true,
-            "schema": {
-              "type": "integer"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Status message.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "string",
-                  "description": "What the status is."
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "components": {
-    "schemas": {
-      "user": {
-        "type": "object",
-        "description": "A user represents a natural person",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The legal name of a user"
-          },
-          "address": {
-            "$ref": "#/components/schemas/address"
-          },
-          "employerId": {
-            "type": "string",
-            "description": "The identifier of the company a user works for"
-          },
-          "hobbies": {
-            "type": "array",
-            "description": "The hobbies of this user",
-            "items": {
-              "type": "string"
-            }
-          }
-        },
-        "required": ["name", "address", "employerId", "hobbies"]
-      }
-      ,
-      "company": {
-        "type": "object",
-        "description": "A company is the employer of many users",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "The identifier of a company"
-          },
-          "name": {
-            "type": "string",
-            "description": "The legal name of a company"
-          },
-          "legalForm": {
-            "type": "string",
-            "description": "The legal form of a company"
-          },
-          "ceoUsername": {
-            "type": "string",
-            "description": "The identifier of the user who is CEO of the company"
-          },
-          "offices": {
-            "type": "array",
-            "description": "The offices of a company",
-            "items": {
-              "$ref": "#/components/schemas/address"
-            }
-          }
-        }
-      },
-      "address": {
-        "type": "object",
-        "description": "The legal address of a user",
-        "properties": {
-          "street": {
-            "type": "string",
-            "description": "The street a user lives in"
-          },
-          "city": {
-            "type": "string",
-            "description": "The city a user lives in"
-          }
-        }
-      },
-      "product-with-id": {
-        "type": "object",
-        "description": "A product",
-        "properties": {
-          "product-name": {
-            "type": "string",
-            "description": "The name of the product"
-          },
-          "product-id": {
-            "type": "string",
-            "description": "The id of the product"
-          },
-          "product-tag": {
-            "type": "string",
-            "description": "A tag associated with the product"
-          }
-        }
-      },
-      "patent-with-id": {
-        "type": "object",
-        "description": "A patent",
-        "properties": {
-          "patent-name": {
-            "type": "string",
-            "description": "The name of the patent"
-          },
-          "patent-id": {
-            "type": "string",
-            "description": "The id of the patent"
-          }
-        },
-        "required": ["patent-name", "patent-id"]
-      }
-    },
-    "links": {
-      "EmployerCompany": {
-        "operationId": "getCompanyById",
-        "parameters": {
-          "id": "$response.body#/employerId"
-        }
-      },
-      "CeoUser": {
-        "operationId": "getUserByUsername",
-        "parameters": {
-          "username": "$response.body#/ceoUsername"
-        }
-      }
-    },
-    "securitySchemes": {
-      "api_key": {
-        "in": "header",
-        "name": "access_token",
-        "type": "apiKey"
-      },
-      "api_key2": {
-        "in": "query",
-        "name": "access_token",
-        "type": "apiKey"
-      },
-      "basic": {
-        "type": "http",
-        "scheme": "basic"
-      }
-    }
-  },
-  "security": []
+					{
+						"api_key": []
+					},
+					{
+						"api_key2": []
+					}
+				]
+			}
+		},
+		"/status": {
+			"get": {
+				"operationId": "get-Status",
+				"description": "Endpoint to test sending of options.",
+				"parameters": [{
+					"name": "limit",
+					"in": "query",
+					"required": true,
+					"schema": {
+						"type": "integer"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "Status message.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string",
+									"description": "What the status is."
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"user": {
+				"type": "object",
+				"description": "A user represents a natural person",
+				"properties": {
+					"name": {
+						"type": "string",
+						"description": "The legal name of a user"
+					},
+					"address": {
+						"$ref": "#/components/schemas/address"
+					},
+					"employerId": {
+						"type": "string",
+						"description": "The identifier of the company a user works for"
+					},
+					"hobbies": {
+						"type": "array",
+						"description": "The hobbies of this user",
+						"items": {
+							"type": "string"
+						}
+					}
+				},
+				"required": ["name", "address", "employerId", "hobbies"]
+			},
+			"company": {
+				"type": "object",
+				"description": "A company is the employer of many users",
+				"properties": {
+					"id": {
+						"type": "string",
+						"description": "The identifier of a company"
+					},
+					"name": {
+						"type": "string",
+						"description": "The legal name of a company"
+					},
+					"legalForm": {
+						"type": "string",
+						"description": "The legal form of a company"
+					},
+					"ceoUsername": {
+						"type": "string",
+						"description": "The identifier of the user who is CEO of the company"
+					},
+					"offices": {
+						"type": "array",
+						"description": "The offices of a company",
+						"items": {
+							"$ref": "#/components/schemas/address"
+						}
+					}
+				}
+			},
+			"address": {
+				"type": "object",
+				"description": "The legal address of a user",
+				"properties": {
+					"street": {
+						"type": "string",
+						"description": "The street a user lives in"
+					},
+					"city": {
+						"type": "string",
+						"description": "The city a user lives in"
+					}
+				}
+			},
+			"product-with-id": {
+				"type": "object",
+				"description": "A product",
+				"properties": {
+					"product-name": {
+						"type": "string",
+						"description": "The name of the product"
+					},
+					"product-id": {
+						"type": "string",
+						"description": "The id of the product"
+					},
+					"product-tag": {
+						"type": "string",
+						"description": "A tag associated with the product"
+					}
+				}
+			},
+			"patent-with-id": {
+				"type": "object",
+				"description": "A patent",
+				"properties": {
+					"patent-id": {
+						"type": "string",
+						"description": "The id of the patent"
+					},
+					"inventor-id": {
+						"type": "string",
+						"description": "The id of the inventor"
+					}
+				},
+				"required": ["patent-name", "patent-id"]
+			},
+			"project-with-id": {
+				"type": "object",
+				"description": "A patent",
+				"properties": {
+					"project-id": {
+						"type": "string",
+						"description": "The id of the project"
+					},
+					"lead-id": {
+						"type": "string",
+						"description": "The id of the lead"
+					}
+				}
+			}
+		},
+		"links": {
+			"EmployerCompany": {
+				"operationId": "getCompanyById",
+				"parameters": {
+					"id": "$response.body#/employerId"
+				}
+			},
+			"CeoUser": {
+				"operationId": "getUserByUsername",
+				"parameters": {
+					"username": "$response.body#/ceoUsername"
+				}
+			},
+			"ProjectLead": {
+				"operationId": "getUserByUsername",
+				"parameters": {
+					"username": "$response.body#/leadId"
+				}
+			},
+			"Inventor": {
+				"operationId": "getUserByUsername",
+				"parameters": {
+					"username": "$response.body#/inventorId"
+				}
+			}
+		},
+		"securitySchemes": {
+			"api_key": {
+				"in": "header",
+				"name": "access_token",
+				"type": "apiKey"
+			},
+			"api_key2": {
+				"in": "query",
+				"name": "access_token",
+				"type": "apiKey"
+			},
+			"basic": {
+				"type": "http",
+				"scheme": "basic"
+			}
+		}
+	},
+	"security": []
 }

@@ -266,7 +266,10 @@ const createFields = ({
 
     // if properties are referenced, try to reuse schemas:
     if ('$ref' in schema.properties[propName]) {
+<<<<<<< HEAD
       schemaName = schema.properties[propName]['$ref'].split('/').pop()
+=======
+>>>>>>> Revamped API, refactored authentication code in the example API server, authenticated POST requests work
       objectType = reuseOrCreateOt({
         name: schemaName,
         data,

@@ -203,7 +203,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
     }
 
     if (Object.keys(viewerQueryFields).length > 0) {
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT({data, viewerQueryFields})
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerQueryFields, 'queryViewer')
       rootQueryFields.queryViewer = {
         type: viewerOT,
         resolve,
@@ -212,7 +212,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
     }
 
     if (Object.keys(viewerMutationFields).length > 0) {
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT({data, viewerMutationFields})
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerMutationFields, 'mutationViewer')
       rootMutationFields.mutationViewer = {
         type: viewerOT,
         resolve,

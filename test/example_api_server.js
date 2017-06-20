@@ -78,8 +78,22 @@ const Products = {
   'product-name': 'Super Product'
 }
 
-const Projects = {
+const Patents = {
+  'Windows': {
+    patentId: '100',
+    inventorId: 'bill'
+  }
+}
 
+const Projects = {
+  'OASGraph': {
+    projectId: '1',
+    leadId: 'erik'
+  },
+  'API Harmony': {
+    projectId: '2',
+    leadId: 'jim'
+  }
 }
 
 const Auth = {
@@ -102,6 +116,55 @@ const Auth = {
     username: 'windowsrulez',
     password: 'stevejobsisabully',
     accessToken: 'ijk'
+  }
+}
+
+const authMiddleware = (req, res, next) => {
+  if (req.headers.authorization) {
+    let encoded = req.headers.authorization.split(' ')[1]
+    let decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
+
+    if (decoded.length === 2) {
+      let credentials = {
+        username: decoded[0],
+        password: decoded[1]
+      }
+      for (let user in Auth) {
+        if (Auth[user].username === credentials.username && Auth[user].password === credentials.password) {
+          return next()
+        }
+      }
+      res.status(401).send({
+        message: 'Incorrect credentials'
+      })
+    } else {
+      res.status(401).send({
+        message: 'Basic Auth expects a single username and a single password'
+      })
+    }
+  } else if ('access_token' in req.headers) {
+    for (let user in Auth) {
+      if (Auth[user].accessToken === req.headers.access_token) {
+        return next()
+      }
+    }
+    res.status(401).send({
+      message: 'Incorrect credentials'
+    })
+    return false
+  } else if ('access_token' in req.query) {
+    for (let user in Auth) {
+      if (Auth[user].accessToken === req.query.access_token) {
+        return next()
+      }
+    }
+    res.status(401).send({
+      message: 'Incorrect credentials'
+    })
+  } else {
+    res.status(401).send({
+      message: 'Unknown/missing credentials'
+    })
   }
 }
 
@@ -141,7 +204,6 @@ app.get('/api/products/:id', (req, res) => {
 app.post('/api/products', (req, res) => {
   console.log(req.method, req.path)
   let product = req.body
-  console.log(product)
   if (!('product-name' in product) ||
     !('product-id' in product) ||
     !('product-tag' in product)) {
@@ -165,146 +227,37 @@ app.get('/api/status', (req, res) => {
   }
 })
 
-// app.get('/api/patents/:id', (req, res) => {
-//   console.log(req.method, req.path)
-//   if (req.headers.authorization) {
-//     let encoded = req.headers.authorization.split(' ')[1]
-//     let decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
-//
-//     if (decoded.length === 2) {
-//       let credentials = {
-//         username: decoded[0],
-//         password: decoded[1]
-//       }
-//       for (let user in Auth) {
-//         if (Auth[user].username === credentials.username && Auth[user].password === credentials.password) {
-//           return res.send({
-//             'patent-name': 'oasgraph',
-//             'patent-id': req.params.id
-//           })
-//         }
-//       }
-//       return res.status(401).send({
-//         message: 'Incorrect credentials'
-//       })
-//     } else {
-//       return res.status(401).send({
-//         message: 'Credentials sent incorrectly'
-//       })
-//     }
-//   } else if ('access_token' in req.headers) {
-//     for (let user in Auth) {
-//       if (Auth[user].accessToken === req.headers.access_token) {
-//         return res.send({
-//           'patent-name': 'oasgraph',
-//           'patent-id': req.params.id
-//         })
-//       }
-//     }
-//     return res.status(401).send({
-//       message: 'Incorrect credentials'
-//     })
-//   } else if ('access_token' in req.query) {
-//     for (let user in Auth) {
-//       if (Auth[user].accessToken === req.query.access_token) {
-//         return res.send({
-//           'patent-name': 'oasgraph',
-//           'patent-id': req.params.id
-//         })
-//       }
-//     }
-//     return res.status(401).send({
-//       message: 'Incorrect credentials'
-//     })
-//   } else {
-//     return res.status(401).send({
-//       message: 'Missing credentials'
-//     })
-//   }
-// })
-
-app.get('/api/patents/:id', (req, res) => {
-  if (isAuthenticated(req, res)) {
-    return res.send({
-      'patent-name': 'oasgraph',
-      'patent-id': req.params.id
-    })
+app.get('/api/patents/:id', authMiddleware, (req, res) => {
+  console.log(req.method, req.path)
+  for (let patent in Patents) {
+    if (Patents[patent].patentId === req.params.id) {
+      return res.send(Patents[patent])
+    }
+    res.status(404).send({message: 'Patent does not exist.'})
   }
 })
 
-app.get('/api/projects/:id', (req, res) => {
-  if (isAuthenticated(req, res)) {
-    return res.send(Projects[req.params.id])
+app.get('/api/projects/:id', authMiddleware, (req, res) => {
+  for (let project in Projects) {
+    if (Projects[project].projectId === req.params.id) {
+      return res.send(Projects[project])
+    }
+    res.status(404).send({message: 'Project does not exist.'})
   }
 })
 
-app.post('/api/projects', (req, res) => {
-  if (isAuthenticated(req, res)) {
-    let project = req.body
-    if (!('project-name' in project) ||
-      !('project-id' in project) ||
-      !('project-tag' in project)) {
-      res.status(400).send({
-        message: 'wrong data'
-      })
-    } else {
-      res.send(project)
-    }
-  }
-})
-
-const isAuthenticated = (req, res) => {
-  if (req.headers.authorization) {
-    let encoded = req.headers.authorization.split(' ')[1]
-    let decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
-
-    if (decoded.length === 2) {
-      let credentials = {
-        username: decoded[0],
-        password: decoded[1]
-      }
-      for (let user in Auth) {
-        if (Auth[user].username === credentials.username && Auth[user].password === credentials.password) {
-          return true
-        }
-      }
-      res.status(401).send({
-        message: 'Incorrect credentials'
-      })
-      return false
-    } else {
-      res.status(401).send({
-        message: 'Basic Auth expects a single username and a single password'
-      })
-      return false
-    }
-  } else if ('access_token' in req.headers) {
-    for (let user in Auth) {
-      if (Auth[user].accessToken === req.headers.access_token) {
-        return res.send(Projects[req.params.username])
-      }
-    }
-    res.status(401).send({
-      message: 'Incorrect credentials'
+app.post('/api/projects', authMiddleware, (req, res) => {
+  console.log(req.method, req.path)
+  let project = req.body
+  if (!('project-id' in project) ||
+    !('lead-id' in project)) {
+    res.status(400).send({
+      message: 'wrong data'
     })
-    return false
-  } else if ('access_token' in req.query) {
-    for (let user in Auth) {
-      if (Auth[user].accessToken === req.query.access_token) {
-        return true
-      }
-    }
-    res.status(401).send({
-      message: 'Incorrect credentials'
-    })
-    return false
   } else {
-    res.status(401).send({
-      message: 'Unknown/missing credentials'
-    })
-    return false
+    res.send(project)
   }
-}
+})
 
 app.listen(3000, () => {
   console.log('Example API accessible on port 3000')
