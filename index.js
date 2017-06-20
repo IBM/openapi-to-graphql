@@ -74,6 +74,7 @@ const createGraphQlSchema = (spec, options = {}) => {
       if (!valid) {
         reject(new Error(`Validation of OpenAPI Specification failed`))
       } else {
+        log(`OpenAPI Specification is validated`)
         resolve(translateOpenApiToGraphQL(spec, options))
       }
     }
@@ -121,6 +122,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
      * Store options to data
      */
     data.options = {headers, qs}
+    log(`Provided options: ${JSON.stringify(data.options)}`)
 
     /**
      * Holds on to the highest-level (entry-level) object types for queries
