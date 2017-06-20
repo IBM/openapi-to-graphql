@@ -66,7 +66,8 @@
 					"required": true,
 					"schema": {
 						"type": "string"
-					}
+					},
+					"description": "Identifier of a user."
 				}],
 				"responses": {
 					"200": {
