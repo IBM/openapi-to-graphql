@@ -186,38 +186,47 @@ const inferResourceNameFromPath = (path) => {
 }
 
 /**
- * Checks whether the given endpoint has a response JSON schema.
+ * Returns JSON-compatible content-type produced by the given endpoint and the
+ * given HTTP status code - or null, if no JSON-compatible content-type exists.
  *
- * @param  {object} endpoint OAS endpoint
- * @return {boolean}         True, if endpoint has response payload schema
+ * @param  {object} endpoint   OAS endpoint
+ * @param  {string} statusCode An HTTP status code
+ * @return {string|null}       JSON-producing content type
  */
-const endpointReturnsJson = (endpoint) => {
-  return 'responses' in endpoint &&
-    '200' in endpoint.responses &&
-    'content' in endpoint.responses['200'] &&
-    'application/json' in endpoint.responses['200'].content &&
-    'schema' in endpoint.responses['200'].content['application/json']
-}
-
-const endpointReturnsJsonForStatus = (endpoint, statusCode) => {
-  return 'responses' in endpoint &&
+const acceptableTypes = ['application/json', '*/*']
+const getResContentType = (endpoint, statusCode) => {
+  if ('responses' in endpoint &&
     statusCode in endpoint.responses &&
-    'content' in endpoint.responses[statusCode] &&
-    'application/json' in endpoint.responses[statusCode].content &&
-    'schema' in endpoint.responses[statusCode].content['application/json']
+    'content' in endpoint.responses[statusCode]) {
+    for (let contentType in endpoint.responses[statusCode].content) {
+      if (acceptableTypes.includes(contentType) &&
+        'schema' in endpoint.responses[statusCode].content[contentType]) {
+        return contentType
+      }
+    }
+  }
+  return null
 }
 
 /**
- * Checks whether the given endpoint has a request payload JSON schema.
+ * Returns JSON-compatible content-type required by the given endpoint and given
+ * HTTP status code - or null, if no JSON-compatible content-type exists.
  *
- * @param  {object} endpoint OAS endpoint
- * @return {boolean}         True, if endpoint has request payload schema
+ * @param  {object} endpoint   OAS endpoint
+ * @param  {string} statusCode An HTTP status code
+ * @return {string|null}       JSON-producing content type
  */
-const endpointHasReqSchema = (endpoint) => {
-  return 'requestBody' in endpoint &&
-    'content' in endpoint.requestBody &&
-    'application/json' in endpoint.requestBody.content &&
-    'schema' in endpoint.requestBody.content['application/json']
+const getReqContentType = (endpoint) => {
+  if ('requestBody' in endpoint &&
+    'content' in endpoint.requestBody) {
+    for (let contentType in endpoint.requestBody.content) {
+      if (acceptableTypes.includes(contentType) &&
+        'schema' in endpoint.requestBody.content[contentType]) {
+        return contentType
+      }
+    }
+  }
+  return null
 }
 
 /**
@@ -234,9 +243,10 @@ const getReqSchemaAndNames = (path, method, oas) => {
   let endpoint = oas.paths[path][method]
   let reqSchemaRequired = false
   let reqSchemaNames = {}
+  let contentType = getReqContentType(endpoint)
 
-  if (endpointHasReqSchema(endpoint)) {
-    let reqSchema = endpoint.requestBody.content['application/json'].schema
+  if (contentType) {
+    let reqSchema = endpoint.requestBody.content[contentType].schema
     if (typeof endpoint.requestBody.required === 'boolean') {
       reqSchemaRequired = endpoint.requestBody.required
     }
@@ -273,9 +283,10 @@ const getReqSchemaAndNames = (path, method, oas) => {
 const getResSchemaAndNames = (path, method, statusCode, oas) => {
   let endpoint = oas.paths[path][method]
   let resSchemaNames = {}
+  let contentType = getResContentType(endpoint, statusCode)
 
-  if (endpointReturnsJsonForStatus(endpoint, statusCode)) {
-    let resSchema = endpoint.responses[statusCode].content['application/json'].schema
+  if (contentType) {
+    let resSchema = endpoint.responses[statusCode].content[contentType].schema
 
     resSchemaNames.fromPath = beautify(inferResourceNameFromPath(path))
 
@@ -291,6 +302,8 @@ const getResSchemaAndNames = (path, method, statusCode, oas) => {
       resSchema,
       resSchemaNames
     }
+  } else {
+    throw new Error(`Operation ${method} ${path} does not produce JSON response.`)
   }
 }
 
@@ -518,7 +531,6 @@ module.exports = {
   instantiatePathAndGetQuery,
   getSchemaType,
   inferResourceNameFromPath,
-  endpointReturnsJson,
   getReqSchemaAndNames,
   getResSchemaAndNames,
   mutationMethods,
