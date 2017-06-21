@@ -9,7 +9,7 @@ let oas = require('./fixtures/example_oas.json')
 // let oas = require('./fixtures/instagram.json')
 // let oas = require('./fixtures/government_social_work_api.json')
 
-OasGraph.createGraphQlSchema(oas)
+OasGraph.createGraphQlSchema(oas, {viewer: false})
   .then(schema => {
     app.use('/graphql', graphqlHTTP({
       schema: schema,

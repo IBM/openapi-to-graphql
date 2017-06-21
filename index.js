@@ -88,7 +88,7 @@ const createGraphQlSchema = (spec, options = {}) => {
  * @return {promise}    Resolves on GraphQLSchema, rejects on error during
  * schema creation
  */
-const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
+const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
   return new Promise((resolve, reject) => {
     log(`Translate valid OpenAPI specification to GraphQL...`)
 
@@ -121,7 +121,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
     /**
      * Store options to data
      */
-    data.options = {headers, qs}
+    data.options = {headers, qs, viewer}
     log(`Provided options: ${JSON.stringify(data.options)}`)
 
     /**
@@ -140,8 +140,18 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
      */
     let rootMutationFields = {}
 
+    /**
+     * Intermediate field used to input authentication credentials for queries
+     *
+     * @type {Object}
+     */
     let viewerQueryFields = {}
 
+    /**
+     * Intermediate field used to input authentication credentials for mutations
+     *
+     * @type {Object}
+     */
     let viewerMutationFields = {}
 
     /**
@@ -162,14 +172,14 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
           let saneName = Oas3Tools.beautifyAndStore(
             operation.resSchemaName,
             data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0) {
+          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
             viewerQueryFields[saneName] = field
           } else {
             rootQueryFields[saneName] = field
           }
         } else {
           let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0) {
+          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
             viewerMutationFields[saneName] = field
           } else {
             rootMutationFields[saneName] = field
@@ -188,14 +198,14 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
           let saneName = Oas3Tools.beautifyAndStore(
             operation.resSchemaName,
             data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0) {
+          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
             viewerQueryFields[saneName] = field
           } else {
             rootQueryFields[saneName] = field
           }
         } else {
           let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0) {
+          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
             viewerMutationFields[saneName] = field
           } else {
             rootMutationFields[saneName] = field
@@ -204,6 +214,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs}) => {
       }
     }
 
+    // create and add viewer object types to the query and mutation object types if applicable
     if (Object.keys(viewerQueryFields).length > 0) {
       let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerQueryFields, 'queryViewer')
       rootQueryFields.queryViewer = {
