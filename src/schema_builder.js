@@ -12,6 +12,7 @@ const {
 } = require('graphql')
 const Oas3Tools = require('./oas_3_tools.js')
 const ResolverBuilder = require('./resolver_builder.js')
+const log = require('debug')('translation')
 
 /**
  * Creates a GraphQL (Input) Object Type for the given JSON schema.
@@ -57,8 +58,7 @@ const getObjectType = ({
 
   // some error checking:
   if (typeof schema !== 'object') {
-    console.log(name, schema)
-    throw new Error(`Invalid schema provided of type ${typeof schema}`)
+    throw new Error(`Invalid schema for ${name} provided of type ${typeof schema}`)
   }
 
   // determine the type of the schema:
@@ -68,7 +68,7 @@ const getObjectType = ({
   }
 
   // CASE: object - create ObjectType:
-  if (type === 'object') {
+  if (type === 'object' && Object.keys(schema.properties).length > 0) {
     if (!isMutation) {
       if (name in data.objectTypes) {
         return data.objectTypes[name]
@@ -117,6 +117,11 @@ const getObjectType = ({
       }
     }
 
+  // CASE: object without properties:
+  } else if (type === 'object' && Object.keys(schema.properties).length === 0) {
+    console.error(`Warning: skipped creation of Object Type "${name}" which ` +
+      `has no properties.`)
+    return null
   // case: ARRAY - create ArrayType:
   } else if (type === 'array') {
     // minimal error-checking:
@@ -302,10 +307,12 @@ const createFields = ({
     }
 
     // finally, add the object type to the fields (using sanitized field name):
-    let sanePropName = Oas3Tools.beautifyAndStore(propName, data.saneMap)
-    fields[sanePropName] = {
-      type: requiredMutationProp ? new GraphQLNonNull(objectType) : objectType,
-      description: schema.properties[propName].description // might be undefined
+    if (objectType) {
+      let sanePropName = Oas3Tools.beautifyAndStore(propName, data.saneMap)
+      fields[sanePropName] = {
+        type: requiredMutationProp ? new GraphQLNonNull(objectType) : objectType,
+        description: schema.properties[propName].description // might be undefined
+      }
     }
   }
 
