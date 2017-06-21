@@ -172,15 +172,29 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
           let saneName = Oas3Tools.beautifyAndStore(
             operation.resSchemaName,
             data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer) {
-            viewerQueryFields[saneName] = field
+          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+            for (let protocolIndex in operation.securityProtocols) {
+              for (let protocol in operation.securityProtocols[protocolIndex]) {
+                if (typeof viewerQueryFields[protocol] !== 'object') {
+                  viewerQueryFields[protocol] = {}
+                }
+                viewerQueryFields[protocol][saneName] = field
+              }
+            }
           } else {
             rootQueryFields[saneName] = field
           }
         } else {
           let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer) {
-            viewerMutationFields[saneName] = field
+          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+            for (let protocolIndex in operation.securityProtocols) {
+              for (let protocol in operation.securityProtocols[protocolIndex]) {
+                if (typeof viewerMutationFields[protocol] !== 'object') {
+                  viewerMutationFields[protocol] = {}
+                }
+                viewerMutationFields[protocol][saneName] = field
+              }
+            }
           } else {
             rootMutationFields[saneName] = field
           }
@@ -199,14 +213,28 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
             operation.resSchemaName,
             data.saneMap)
           if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
-            viewerQueryFields[saneName] = field
+            for (let protocolIndex in operation.securityProtocols) {
+              for (let protocol in operation.securityProtocols[protocolIndex]) {
+                if (typeof viewerQueryFields[protocol] !== 'object') {
+                  viewerQueryFields[protocol] = {}
+                }
+                viewerQueryFields[protocol][saneName] = field
+              }
+            }
           } else {
             rootQueryFields[saneName] = field
           }
         } else {
           let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
           if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
-            viewerMutationFields[saneName] = field
+            for (let protocolIndex in operation.securityProtocols) {
+              for (let protocol in operation.securityProtocols[protocolIndex]) {
+                if (typeof viewerMutationFields[protocol] !== 'object') {
+                  viewerMutationFields[protocol] = {}
+                }
+                viewerMutationFields[protocol][saneName] = field
+              }
+            }
           } else {
             rootMutationFields[saneName] = field
           }
@@ -216,8 +244,21 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
 
     // create and add viewer object types to the query and mutation object types if applicable
     if (Object.keys(viewerQueryFields).length > 0) {
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerQueryFields, 'queryViewer')
-      rootQueryFields.queryViewer = {
+      let allFields = {}
+      for (let protocol in viewerQueryFields) {
+        Object.assign(allFields, viewerQueryFields[protocol])
+
+        let objectName = Oas3Tools.beautify('QueryViewer_' + (protocol))
+        let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data,
+          viewerQueryFields[protocol], objectName, data.security[protocol])
+        rootQueryFields[objectName] = {
+          type: viewerOT,
+          resolve,
+          args
+        }
+      }
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, allFields, 'QueryViewerAnyAuth')
+      rootQueryFields.QueryViewerAnyAuth = {
         type: viewerOT,
         resolve,
         args
@@ -225,8 +266,20 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
     }
 
     if (Object.keys(viewerMutationFields).length > 0) {
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerMutationFields, 'mutationViewer')
-      rootMutationFields.mutationViewer = {
+      let allFields = {}
+      for (let protocol in viewerMutationFields) {
+        Object.assign(allFields, viewerMutationFields[protocol])
+
+        let objectName = Oas3Tools.beautify('MutationViewer_' + (protocol))
+        let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerMutationFields[protocol], objectName, data.security[protocol])
+        rootMutationFields[objectName] = {
+          type: viewerOT,
+          resolve,
+          args
+        }
+      }
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, allFields, 'MutationViewerAnyAuth')
+      rootMutationFields.MutationViewerAnyAuth = {
         type: viewerOT,
         resolve,
         args
