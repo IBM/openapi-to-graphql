@@ -57,6 +57,7 @@ const getObjectType = ({
 
   // some error checking:
   if (typeof schema !== 'object') {
+    console.log(name, schema)
     throw new Error(`Invalid schema provided of type ${typeof schema}`)
   }
 
@@ -266,6 +267,7 @@ const createFields = ({
 
     // if properties are referenced, try to reuse schemas:
     if ('$ref' in schema.properties[propName]) {
+      schemaName = schema.properties[propName]['$ref'].split('/').pop()
       objectType = reuseOrCreateOt({
         name: schemaName,
         data,
