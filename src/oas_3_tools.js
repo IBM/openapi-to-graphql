@@ -493,6 +493,25 @@ const sanitize = (str) => {
   return clean
 }
 
+/**
+ * Stringifies and possibly trims the given string to the provided length.
+ *
+ * @param  {any} str       If not a string, we stringify it
+ * @param  {Number} length Desired length of returned string
+ * @return {String}        Trimmed string
+ */
+const trim = (str, length) => {
+  if (typeof str !== 'string') {
+    str = JSON.stringify(str)
+  }
+
+  if (str.length > length) {
+    str = `${str.substring(0, length)}...`
+  }
+
+  return str
+}
+
 module.exports = {
   resolveRef,
   getBaseUrl,
@@ -510,5 +529,6 @@ module.exports = {
   desanitizeObjKeys,
   beautify,
   beautifyAndStore,
-  beautifyAndStoreArray
+  beautifyAndStoreArray,
+  trim
 }

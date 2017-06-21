@@ -119,6 +119,18 @@ npm test
 ```
 
 
+## Logging
+OASGraph provides multiple levels of logging, which can be controlled by a `DEBUG` environment variable. You can enable these levels using:
+
+```bash
+DEBUG=level_1,level_2 node app-using-oasgraph.js
+```
+
+The following logging levels are supported:
+
+* `translation`: Logs information about translating an OAS to GraphQL.
+* `http`: Logs information about the HTTP requests made to the API.
+
 ## Similar projects
 
 * [swagger-to-graphql](https://github.com/yarax/swagger-to-graphql) turns a given Swagger (OpenAPI Specification 2.0) into a GraphQL interface, which resolves against the original API. GraphQL schema is based on endpoints, not on data definitions. No links are considered.

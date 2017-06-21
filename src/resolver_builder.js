@@ -2,6 +2,7 @@
 
 const request = require('request')
 const Oas3Tools = require('./oas_3_tools.js')
+const log = require('debug')('http')
 
 /**
  * Creates and returns a resolver function that performs API requests for the
@@ -159,17 +160,19 @@ const getResolver = ({
     }
 
     // make the call:
-    console.log(`${options.method.toUpperCase()} ${options.url}`)
+    log(`Call ${options.method.toUpperCase()} ${options.url} ` +
+      `headers:${JSON.stringify(options.headers)} ` +
+      `queryParams: ${JSON.stringify(options.qs)}`)
     return new Promise((resolve, reject) => {
       request(options, (err, response, body) => {
         if (err) {
-          console.error(err)
+          log(err)
           reject(err)
         } else if (response.statusCode > 299) {
-          console.error(`${response.statusCode} - ${JSON.stringify(body)}`)
+          log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
           reject(new Error(`${response.statusCode} - ${JSON.stringify(body)}`))
         } else {
-          console.log(response.statusCode)
+          log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
           // deal with the fact that the server might send unsanitized data:
           let saneData = Oas3Tools.sanitizeObjKeys(body)
           resolve(saneData)
