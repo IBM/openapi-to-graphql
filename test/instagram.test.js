@@ -7,7 +7,7 @@ const OasGraph = require('../index.js')
 /**
  * Set up the schema first
  */
-let oas = require('../fixtures/instagram.json')
+let oas = require('./fixtures/instagram.json')
 let schema
 beforeAll(() => {
   return OasGraph.createGraphQlSchema(oas)
@@ -16,7 +16,7 @@ beforeAll(() => {
     })
 })
 
-test('All query endpoints present', () => {
+test('All Instagram query endpoints present', () => {
   let oasGetCount = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
