@@ -27,9 +27,15 @@ test('All query endpoints present', () => {
       if (method === 'get') oasGetCount++
     }
   }
-  let graphQLQueryCount = Object.keys(
-    schema._typeMap.RootQueryType.getFields()).length
-  expect(graphQLQueryCount).toEqual(oasGetCount)
+  let gqlTypes = Object.keys(schema
+    ._typeMap
+    .RootQueryType
+    .getFields()
+    .QueryViewerAnyAuth
+    .type
+    .getFields()
+  ).length
+  expect(gqlTypes).toEqual(oasGetCount)
 })
 
 test('All mutation endpoints present', () => {
@@ -39,23 +45,31 @@ test('All mutation endpoints present', () => {
       if (method !== 'get') oasMutCount++
     }
   }
-  let graphQLQueryCount = Object.keys(
-    schema._typeMap.RootMutationType.getFields()).length
-  expect(graphQLQueryCount).toEqual(oasMutCount)
+  let gqlTypes = Object.keys(schema
+    ._typeMap
+    .RootMutationType
+    .getFields()
+    .MutationViewerAnyAuth
+    .type
+    .getFields()
+  ).length
+  expect(gqlTypes).toEqual(oasMutCount)
 })
 
 test('Get resource', () => {
   let query = `{
-    AssessmentTypes (
-      ContentType: ""
-      AcceptLanguage: ""
-      UserAgent:""
-      ApiVersion:"1.1.0"
-      offset: "40"
-      limit: "test"
-    ) {
-      data {
-        assessmentTypeId
+    QueryViewerAnyAuth {
+      AssessmentTypes (
+        ContentType: ""
+        AcceptLanguage: ""
+        UserAgent:""
+        ApiVersion:"1.1.0"
+        offset: "40"
+        limit: "test"
+      ) {
+        data {
+          assessmentTypeId
+        }
       }
     }
   }`
