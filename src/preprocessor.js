@@ -144,111 +144,71 @@ const preprocessOas = (oas) => {
   }
 
   /**
-   * Security schema
+   * Security schemas
    */
-  let securityRequired = false
-  if (typeof oas.security === 'object' && Object.keys(oas.security).length > 0) {
-    securityRequired = true
-  } else {
-    for (let path in oas.paths) {
-      for (let method in oas.paths[path]) {
-        if (typeof oas.paths[path][method].security === 'object' && Object.keys(oas.paths[path][method].security).length > 0) {
-          securityRequired = true
-        }
-      }
-    }
-  }
+  result.security = getSecuritySchemes(oas)
 
-  if (securityRequired) {
-    if (typeof oas.components.securitySchemes === 'object') {
-      let protocols = []
-
-      // get the global security protocols
-      if ('security' in oas) {
-        protocols = JSON.parse(JSON.stringify(oas.security))
-      }
-
-      // get the local security protocols
-      for (let path in oas.paths) {
-        for (let method in oas.paths[path]) {
-          if ('security' in oas.paths[path][method]) {
-            for (let protocolIndex in oas.paths[path][method].security) {
-              let protocol = oas.paths[path][method].security[protocolIndex]
-              if (!(protocols.filter(p => { return deepEqual(p, protocol) }).length > 0)) {
-                protocols.push(protocol)
-              }
-            }
-          }
-        }
-      }
-
-      /**
-       * Assemble the security data structure
-       *
-       * Example:
-       * security: {
-       *    MyApiKey: {
-       *        def: {
-       *          ...
-       *        },
-       *        parameters: {
-       *          apiKey: MyApiKey_apiKey
-       *        }
-       *    },
-            MyBasicAuth: {
-       *        def: {
-       *          ...
-       *        },
-       *        parameters: {
-       *          username: MyBasicAuth_username,
-       *          password: MyBasicAuth_password,
-       *        }
-       *    },
-       * }
-       */
-
-      for (let protocolIndex in protocols) {
-        for (let protocol in protocols[protocolIndex]) {
-          if (protocol in oas.components.securitySchemes) {
-            result.security[protocol] = {}
-            result.security[protocol].def = oas.components.securitySchemes[protocol]
-            switch (oas.components.securitySchemes[protocol].type) {
-              case ('apiKey'):
-                result.security[protocol].parameters = {}
-                result.security[protocol].parameters.apiKey = Oas3Tools.beautify(`${protocol}_apiKey`)
-                break
-
-              case ('http'):
-                result.security[protocol].parameters = {}
-                result.security[protocol].parameters.username = Oas3Tools.beautify(`${protocol}_username`)
-                result.security[protocol].parameters.password = Oas3Tools.beautify(`${protocol}_password`)
-                break
-
-              case ('oauth2'):
-                break
-
-              case ('openIdConnect'):
-                break
-
-              default:
-                let error = new Error(`${protocol} does not have valid Security Scheme type field`)
-                console.error(error)
-                throw error
-            }
-          } else {
-            let error = new Error(`${protocol} does not have a Security Scheme Object Type definition`)
-            console.error(error)
-            throw error
-          }
-        }
-      }
-    } else {
-      let error = new Error('Security required but could not find Security Scheme Object Type definition')
-      console.error(error)
-      throw error
-    }
-  }
   return result
+}
+
+/**
+ * Extracts all security schemes from given OAS. The resulting data looks like
+ * this:
+ *
+ * {
+ *    MyApiKey: {
+ *      def: {...},    // definition from oas.components.securitySchemes
+ *      parameters: {  // mapping between beautified and distinctive param names
+ *        apiKey: MyKey_apiKey
+ *      }
+ *    }
+ *    MyBasicAuth: {
+ *      def: {...},
+ *      parameters: {
+ *        username: MyBasicAuth_username,
+ *        password: MyBasicAuth_password,
+ *      }
+ *    }
+ *  }
+ *
+ * @param  {Object} oas OpenAPI Specification 3.0.x
+ * @return {Object}     Extracted security definitions (see above)
+ */
+const getSecuritySchemes = (oas) => {
+  let security = {}
+
+  for (let protocolName in oas.components.securitySchemes) {
+    let protocol = oas.components.securitySchemes[protocolName]
+    // determine parameters for scheme:
+    let parameters = {}
+    switch (protocol.type) {
+      case ('apiKey'):
+        parameters = {
+          apiKey: Oas3Tools.beautify(`${protocolName}_apiKey`)
+        }
+        break
+      case ('http'):
+        parameters = {
+          username: Oas3Tools.beautify(`${protocolName}_username`),
+          password: Oas3Tools.beautify(`${protocolName}_password`)
+        }
+        break
+      case ('oauth2'):
+        break
+      case ('openIdConnect'):
+        break
+      default:
+        throw new Error(`Security definition ${protocolName} does not have a valid type`)
+    }
+
+    // add protocol data:
+    security[protocolName] = {
+      def: protocol,
+      parameters
+    }
+  }
+
+  return security
 }
 
 /**
