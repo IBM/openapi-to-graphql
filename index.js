@@ -172,14 +172,14 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
           let saneName = Oas3Tools.beautifyAndStore(
             operation.resSchemaName,
             data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer) {
             viewerQueryFields[saneName] = field
           } else {
             rootQueryFields[saneName] = field
           }
         } else {
           let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer) {
             viewerMutationFields[saneName] = field
           } else {
             rootMutationFields[saneName] = field
