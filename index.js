@@ -278,7 +278,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
           args
         }
       }
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, allFields, 'ViewerAnyAuth')
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, allFields, 'MutationViewerAnyAuth')
       rootMutationFields.MutationViewerAnyAuth = {
         type: viewerOT,
         resolve,
