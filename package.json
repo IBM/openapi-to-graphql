@@ -4,7 +4,8 @@
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "dev": "DEBUG=translation,http nodemon test/example_gql_server.js"
   },
   "author": "Erik Wittern",
   "license": "MIT",
