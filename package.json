@@ -12,7 +12,6 @@
     "debug": "^2.6.8",
     "deep-equal": "^1.0.1",
     "graphql": "^0.9.6",
-    "openapi-sampler": "^0.4.1",
     "request": "^2.81.0",
     "swagger2openapi": "^2.3.3"
   },
