@@ -27,7 +27,7 @@ test('All Instagram query endpoints present', () => {
     ._typeMap
     .RootQueryType
     .getFields()
-    .QueryViewerAnyAuth
+    .viewerAnyAuth
     .type
     .getFields()
   ).length

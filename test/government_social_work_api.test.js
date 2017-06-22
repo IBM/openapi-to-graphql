@@ -31,7 +31,7 @@ test('All query endpoints present', () => {
     ._typeMap
     .RootQueryType
     .getFields()
-    .QueryViewerAnyAuth
+    .viewerAnyAuth
     .type
     .getFields()
   ).length
@@ -49,7 +49,7 @@ test('All mutation endpoints present', () => {
     ._typeMap
     .RootMutationType
     .getFields()
-    .MutationViewerAnyAuth
+    .mutationViewerAnyAuth
     .type
     .getFields()
   ).length
@@ -58,7 +58,7 @@ test('All mutation endpoints present', () => {
 
 test('Get resource', () => {
   let query = `{
-    QueryViewerAnyAuth {
+    viewerAnyAuth {
       AssessmentTypes (
         ContentType: ""
         AcceptLanguage: ""
