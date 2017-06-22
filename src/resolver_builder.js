@@ -144,8 +144,7 @@ const getAuthOptions = (operation, ctx, data) => {
   let security = data.security[protocolName]
   switch (security.def.type) {
     case 'apiKey':
-      // let apiKey = ctx.security[security.parameters.apiKey]
-      let apiKey = ctx.security.apiKey
+      let apiKey = ctx.security[protocolName].apiKey
       if (typeof apiKey === 'string') {
         if ('in' in security.def) {
           if (security.def.in === 'header') {
@@ -168,8 +167,8 @@ const getAuthOptions = (operation, ctx, data) => {
     case 'http':
       switch (security.def.scheme) {
         case 'basic':
-          let username = ctx.security.username
-          let password = ctx.security.password
+          let username = ctx.security[protocolName].username
+          let password = ctx.security[protocolName].password
           if (typeof username === 'string' && typeof password === 'string') {
             authHeaders['Authorization'] = 'Basic ' + new Buffer(username + ':' + password).toString('base64')
             // console.log(`headers: ${options.headers['Authorization']}`)
@@ -232,6 +231,7 @@ const getAuthReqAndProtcolName = (operation, ctx, data) => {
         allParamsPresent(protocolName, ctx, data)) {
         log(`Use ${protocolName} for authentication - all parameters present`)
         result.protocolName = protocolName
+        break
       }
     }
   } else {
@@ -244,18 +244,25 @@ const getAuthReqAndProtcolName = (operation, ctx, data) => {
  * Determines whether for the given authentication protocol all required
  * parameters are present in the given GraphQL context.
  *
- * @param  {Object} operation Data from preprocessing about an operation
+ * @param  {String} protocolName Name of the security protocol
  * @param  {Object} ctx       GraphQL context
  * @param  {Object} data      Result from preprocessing
  * @return {Boolean}          True, if all needed parameters are present, false
  * if not.
  */
 const allParamsPresent = (protocolName, ctx, data) => {
+  if (typeof ctx.security !== 'object' || Object.keys(ctx.security) === 0) {
+    log(`Cannot find any credentials`)
+    return false
+  }
+
+  if (!(protocolName in ctx.security)) {
+    log(`Cannot find any credentials for the security protocol '${protocolName}'`)
+    return false
+  }
+
   for (let param in data.security[protocolName].parameters) {
-    if (typeof ctx.security !== 'object' ||
-      !(param in ctx.security)
-      // || !(data.security[protocolName].parameters[param] in ctx.security)
-      ) {
+    if (!(param in ctx.security[protocolName])) {
       log(`Cannot use ${protocolName} for authentication - missing ${param}`)
       return false
     }

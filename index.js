@@ -247,10 +247,10 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
     // create and add viewer object types to the query and mutation object types if applicable
     if (Object.keys(viewerQueryFields).length > 0) {
       let allFields = {}
-      for (let protocol in viewerQueryFields) {
-        Object.assign(allFields, viewerQueryFields[protocol])
+      for (let protocolName in viewerQueryFields) {
+        Object.assign(allFields, viewerQueryFields[protocolName])
 
-        let objectName = Oas3Tools.beautify('viewer_' + data.security[protocol].def.type)
+        let objectName = Oas3Tools.beautify('viewer_' + data.security[protocolName].def.type)
         if (!usedViewerNames.includes(objectName)) usedViewerNames.push(objectName)
         else {
           // TODO: what about n > 2???
@@ -259,7 +259,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
         }
 
         let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data,
-          viewerQueryFields[protocol], objectName, data.security[protocol])
+          viewerQueryFields[protocolName], objectName, protocolName)
 
         rootQueryFields[objectName] = {
           type: viewerOT,
@@ -268,7 +268,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
         }
       }
       let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, allFields, 'QueryViewerAnyAuth')
-      rootQueryFields.QueryViewerAnyAuth = {
+      rootQueryFields.viewerAnyAuth = {
         type: viewerOT,
         resolve,
         args
@@ -277,10 +277,10 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
 
     if (Object.keys(viewerMutationFields).length > 0) {
       let allFields = {}
-      for (let protocol in viewerMutationFields) {
-        Object.assign(allFields, viewerMutationFields[protocol])
+      for (let protocolName in viewerMutationFields) {
+        Object.assign(allFields, viewerMutationFields[protocolName])
 
-        let objectName = Oas3Tools.beautify('mutationViewer_' + data.security[protocol].def.type)
+        let objectName = Oas3Tools.beautify('mutationViewer_' + data.security[protocolName].def.type)
         if (!usedViewerNames.includes(objectName)) usedViewerNames.push(objectName)
         else {
           // TODO: what about n > 2???
@@ -288,7 +288,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
           usedViewerNames.push(objectName)
         }
 
-        let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerMutationFields[protocol], objectName, data.security[protocol])
+        let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerMutationFields[protocolName], objectName, protocolName)
         rootMutationFields[objectName] = {
           type: viewerOT,
           resolve,
@@ -296,7 +296,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
         }
       }
       let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, allFields, 'MutationViewerAnyAuth')
-      rootMutationFields.MutationViewerAnyAuth = {
+      rootMutationFields.mutationViewerAnyAuth = {
         type: viewerOT,
         resolve,
         args

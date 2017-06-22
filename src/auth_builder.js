@@ -49,24 +49,31 @@ const getSecurityProtocols = (operationId, oas) => {
  * @param  {object} data
  * @param  {object} charToRemove
  * @param  {string} name
- * @param  {object} protocol      Optional. Used to identify specific arguments rather than return all possible arguments
+ * @param  {string} protocolName      Optional. Used to identify specific arguments rather than return all possible arguments
  * @return {object}               A new GraphQL Object Type
  */
-const getViewerOT = (data, viewerQueryFields, name, protocol) => {
+const getViewerOT = (data, viewerQueryFields, name, protocolName) => {
+  let protocol = data.security[protocolName]
+
   let resolve = (root, args, ctx) => {
-    ctx['security'] = args
+    ctx.security = {}
+    if (typeof protocolName === 'string') {
+      ctx.security[protocolName] = args
+    } else {
+      ctx.security.anyAuth = args
+    }
     return {}
   }
-  let args = {}
 
+  let args = {}
   if (typeof protocol === 'object') {
-    for (let parameter in protocol.parameters) {
-      args[parameter] = {type: new GraphQLNonNull(GraphQLString)}
+    for (let parameterName in protocol.parameters) {
+      args[parameterName] = {type: new GraphQLNonNull(GraphQLString)}
     }
   } else {
-    for (let protocol in data.security) {
-      for (let parameter in data.security[protocol].parameters) {
-        args[data.security[protocol].parameters[parameter]] = {type: GraphQLString}
+    for (let protocolName in data.security) {
+      for (let parameterName in data.security[protocolName].parameters) {
+        args[data.security[protocolName].parameters[parameterName]] = {type: GraphQLString}
       }
     }
   }

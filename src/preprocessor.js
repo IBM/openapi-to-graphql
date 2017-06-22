@@ -207,7 +207,6 @@ const getSecuritySchemes = (oas) => {
       parameters
     }
   }
-
   return security
 }
 
