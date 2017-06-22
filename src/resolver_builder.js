@@ -144,13 +144,14 @@ const getAuthOptions = (operation, ctx, data) => {
   let security = data.security[protocolName]
   switch (security.def.type) {
     case 'apiKey':
-      let apiKey = ctx.security[security.parameters.apiKey]
+      // let apiKey = ctx.security[security.parameters.apiKey]
+      let apiKey = ctx.security.apiKey
       if (typeof apiKey === 'string') {
         if ('in' in security.def) {
           if (security.def.in === 'header') {
-            authHeaders[security.def.name] = ctx.security[security.parameters.apiKey]
+            authHeaders[security.def.name] = apiKey
           } else if (security.def.in === 'query') {
-            authQs[security.def.name] = ctx.security[security.parameters.apiKey]
+            authQs[security.def.name] = apiKey
           } else {
             let error = new Error(`Cannot send apiKey in ${security.def.in}`)
             console.error(error)
@@ -167,12 +168,8 @@ const getAuthOptions = (operation, ctx, data) => {
     case 'http':
       switch (security.def.scheme) {
         case 'basic':
-          let username = ctx.security[security.parameters.username]
-          // console.log('security parameters')
-          // console.log(security.parameters)
-          let password = ctx.security[security.parameters.password]
-          // console.log(`username: ${username}`)
-          // console.log(`password: ${password}`)
+          let username = ctx.security.username
+          let password = ctx.security.password
           if (typeof username === 'string' && typeof password === 'string') {
             authHeaders['Authorization'] = 'Basic ' + new Buffer(username + ':' + password).toString('base64')
             // console.log(`headers: ${options.headers['Authorization']}`)
@@ -256,7 +253,9 @@ const getAuthReqAndProtcolName = (operation, ctx, data) => {
 const allParamsPresent = (protocolName, ctx, data) => {
   for (let param in data.security[protocolName].parameters) {
     if (typeof ctx.security !== 'object' ||
-      !(data.security[protocolName].parameters[param] in ctx.security)) {
+      !(param in ctx.security)
+      // || !(data.security[protocolName].parameters[param] in ctx.security)
+      ) {
       log(`Cannot use ${protocolName} for authentication - missing ${param}`)
       return false
     }
