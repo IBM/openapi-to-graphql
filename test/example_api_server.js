@@ -238,10 +238,16 @@ app.get('/api/patents/:id', authMiddleware, (req, res) => {
 })
 
 app.get('/api/projects/:id', authMiddleware, (req, res) => {
+  console.log(req.method, req.path)
+  let p
   for (let project in Projects) {
     if (Projects[project].projectId === req.params.id) {
-      return res.send(Projects[project])
+      p = Projects[project]
     }
+  }
+  if (p) {
+    res.send(p)
+  } else {
     res.status(404).send({message: 'Project does not exist.'})
   }
 })

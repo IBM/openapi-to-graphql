@@ -56,6 +56,11 @@ const getViewerOT = (data, viewerQueryFields, name, protocolName) => {
   let protocol = data.security[protocolName]
 
   let resolve = (root, args, ctx) => {
+    if (typeof ctx !== 'object') {
+      throw new Error(`Cannot resolve request because GraphQL context is ` +
+        `not an object - please pass explicit contextValue.`)
+    }
+
     ctx.security = {}
     if (typeof protocolName === 'string') {
       ctx.security[protocolName] = args
