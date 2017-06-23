@@ -1,10 +1,14 @@
 'use strict'
 
+// enable logging:
+process.env.DEBUG = 'translation,http'
+
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
 const app = express()
 const OasGraph = require('../index.js')
 const path = require('path')
+const log = require('debug')('translation')
 
 const startServer = (oas) => {
   OasGraph.createGraphQlSchema(oas)
@@ -15,16 +19,13 @@ const startServer = (oas) => {
       }))
 
       app.listen(3001, () => {
-        console.log('GraphQL accessible at: http://localhost:3001/graphql')
+        log('GraphQL accessible at: http://localhost:3001/graphql')
       })
     })
     .catch(err => {
       console.log(err)
     })
 }
-
-// enable logging:
-process.env.DEBUG = 'translation,http'
 
 // ensure path to OAS is provided:
 if (process.argv.length <= 2) {

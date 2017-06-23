@@ -119,7 +119,7 @@ const getObjectType = ({
 
   // CASE: object without properties:
   } else if (type === 'object' && Object.keys(schema.properties).length === 0) {
-    console.error(`Warning: skipped creation of Object Type "${name}" which ` +
+    log(`Warning: skipped creation of Object Type "${name}" which ` +
       `has no properties.`)
     return null
   // case: ARRAY - create ArrayType:
@@ -291,7 +291,7 @@ const createFields = ({
       // property's Object Type...
       if (schemaName in data.objectTypeDefs ||
         schemaName in data.inputObjectTypeDefs) {
-        console.error(`Warning: creating Object Type for property with colluding
+        log(`Warning: creating Object Type for property with colluding
           name ${schemaName}`)
       }
 
@@ -408,7 +408,7 @@ const getArgs = ({
 
     // we need at least a name:
     if (typeof param.name !== 'string') {
-      console.error(`Warning: ignore parameter with no "name" property: ${param}`)
+      log(`Warning: ignore parameter with no "name" property: ${param}`)
       continue
     }
 
