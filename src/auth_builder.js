@@ -3,6 +3,8 @@ const {
   GraphQLObjectType,
   GraphQLNonNull
 } = require('graphql')
+const SchemaBuilder = require('./schema_builder.js')
+const Oas3Tools = require('./oas_3_tools.js')
 
 /**
  * Checks if security is required in any operation
@@ -63,7 +65,7 @@ const getViewerOT = (data, viewerQueryFields, name, protocolName) => {
 
     ctx.security = {}
     if (typeof protocolName === 'string') {
-      ctx.security[protocolName] = args
+      ctx.security[Oas3Tools.beautify(protocolName)] = args
     } else {
       ctx.security.anyAuth = args
     }
@@ -93,8 +95,43 @@ const getViewerOT = (data, viewerQueryFields, name, protocolName) => {
   }
 }
 
+const getViewerAnyAuthOT = (data, viewerQueryFields, oas, name) => {
+  let args = {}
+
+  for (let protocolName in data.security) {
+    args[Oas3Tools.beautify(protocolName)] = { type: SchemaBuilder.getObjectType({
+      name: protocolName,
+      schema: data.inputObjectTypeDefs[protocolName],
+      data,
+      oas,
+      isMutation: true
+    })}
+  }
+
+  let resolve = (root, args, ctx) => {
+    if (typeof ctx !== 'object') {
+      throw new Error(`Cannot resolve request because GraphQL context is ` +
+        `not an object - please pass explicit contextValue.`)
+    }
+
+    ctx.security = args
+    return {}
+  }
+
+  return {
+    viewerOT: new GraphQLObjectType({
+      name: name,
+      description: 'Warning: Not every request will work with this Viewer object type',
+      fields: viewerQueryFields
+    }),
+    resolve,
+    args
+  }
+}
+
 module.exports = {
   hasAuth,
   getSecurityProtocols,
-  getViewerOT
+  getViewerOT,
+  getViewerAnyAuthOT
 }

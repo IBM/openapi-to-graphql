@@ -44,8 +44,6 @@ const getResolver = ({
       operation.parameters,
       args)
     let url = baseUrl + path
-    // console.log(query)
-    // build request options:
     let options = {
       method: operation.method,
       url: url,
@@ -144,7 +142,7 @@ const getAuthOptions = (operation, ctx, data) => {
   let security = data.security[protocolName]
   switch (security.def.type) {
     case 'apiKey':
-      let apiKey = ctx.security[protocolName].apiKey
+      let apiKey = ctx.security[Oas3Tools.beautify(protocolName)].apiKey
       if (typeof apiKey === 'string') {
         if ('in' in security.def) {
           if (security.def.in === 'header') {
@@ -167,11 +165,10 @@ const getAuthOptions = (operation, ctx, data) => {
     case 'http':
       switch (security.def.scheme) {
         case 'basic':
-          let username = ctx.security[protocolName].username
-          let password = ctx.security[protocolName].password
+          let username = ctx.security[Oas3Tools.beautify(protocolName)].username
+          let password = ctx.security[Oas3Tools.beautify(protocolName)].password
           if (typeof username === 'string' && typeof password === 'string') {
             authHeaders['Authorization'] = 'Basic ' + new Buffer(username + ':' + password).toString('base64')
-            // console.log(`headers: ${options.headers['Authorization']}`)
           } else {
             let error = new Error(`Username '${username}' and password are not Strings`)
             console.error(error)
@@ -224,6 +221,7 @@ const getAuthReqAndProtcolName = (operation, ctx, data) => {
     Object.keys(operation.securityProtocols).length > 0) {
     result.authRequired = true
 
+    // TODO: remove beautify
     for (let i in operation.securityProtocols) {
       let protocol = operation.securityProtocols[i]
       let protocolName = Object.keys(protocol)[0]
@@ -256,13 +254,13 @@ const allParamsPresent = (protocolName, ctx, data) => {
     return false
   }
 
-  if (!(protocolName in ctx.security)) {
+  if (!(Oas3Tools.beautify(protocolName) in ctx.security)) {
     log(`Cannot find any credentials for the security protocol '${protocolName}'`)
     return false
   }
 
   for (let param in data.security[protocolName].parameters) {
-    if (!(param in ctx.security[protocolName])) {
+    if (!(param in ctx.security[Oas3Tools.beautify(protocolName)])) {
       log(`Cannot use ${protocolName} for authentication - missing ${param}`)
       return false
     }

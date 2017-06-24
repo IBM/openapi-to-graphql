@@ -29,6 +29,80 @@ const preprocessOas = (oas) => {
     result.inputObjectTypeDefs[reqSchemaName] = schemaDef
   }
 
+  // Create input object types for the different security protocols for
+  // viewerAnyAuth and mutationViewerAnyAuth
+  for (let protocolName in oas.components.securitySchemes) {
+    let protocol = oas.components.securitySchemes[protocolName]
+    let schema
+    switch (protocol.type) {
+      case ('apiKey'):
+        schema = {
+          type: 'object',
+          description: `API key credentials for the protocol '${protocolName}'`,
+          properties: {
+            apiKey: {
+              type: 'string'
+            }
+          }
+        }
+        break
+
+      case ('http'):
+        switch (protocol.scheme) {
+          case ('basic'):
+            schema = {
+              type: 'object',
+              description: `Basic auth credentials for the protocol '${protocolName}'`,
+              properties: {
+                username: {
+                  type: 'string'
+                },
+                password: {
+                  type: 'string'
+                }
+              }
+            }
+            break
+
+          default:
+            let error = new Error(`HTTP protocol '${protocol.scheme}' is not currently supported`)
+            console.error(error)
+            throw error
+        }
+        break
+
+      case ('oauth2'):
+        schema = {
+          type: 'object',
+          description: `OAuth2 credentials for the protocol '${protocolName}'`,
+          properties: {
+            test: {
+              type: 'string'
+            }
+          }
+        }
+        break
+
+      case ('openIdConnect'):
+        schema = {
+          type: 'object',
+          description: `OpenID Connect credentials for the protocol '${protocolName}'`,
+          properties: {
+            test: {
+              type: 'string'
+            }
+          }
+        }
+        break
+
+      default:
+        let error = new Error('Invalid security protocol')
+        console.error(error)
+        throw error
+    }
+    result.inputObjectTypeDefs[protocolName] = schema
+  }
+
   /**
    * Process all operations
    */
@@ -43,7 +117,9 @@ const preprocessOas = (oas) => {
         endpoint.operationId = Oas3Tools.beautify(`${method}:${path}`)
       }
 
-      // hold on to operationId:
+      /**
+       * Hold on to operationId:
+       */
       let operationId = endpoint.operationId
 
       /**

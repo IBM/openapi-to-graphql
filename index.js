@@ -188,11 +188,11 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
           let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
           if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
             for (let protocolIndex in operation.securityProtocols) {
-              for (let protocol in operation.securityProtocols[protocolIndex]) {
-                if (typeof viewerMutationFields[protocol] !== 'object') {
-                  viewerMutationFields[protocol] = {}
+              for (let protocolName in operation.securityProtocols[protocolIndex]) {
+                if (typeof viewerMutationFields[protocolName] !== 'object') {
+                  viewerMutationFields[protocolName] = {}
                 }
-                viewerMutationFields[protocol][saneName] = field
+                viewerMutationFields[protocolName][saneName] = field
               }
             }
           } else {
@@ -214,11 +214,11 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
             data.saneMap)
           if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
             for (let protocolIndex in operation.securityProtocols) {
-              for (let protocol in operation.securityProtocols[protocolIndex]) {
-                if (typeof viewerQueryFields[protocol] !== 'object') {
-                  viewerQueryFields[protocol] = {}
+              for (let protocolName in operation.securityProtocols[protocolIndex]) {
+                if (typeof viewerQueryFields[protocolName] !== 'object') {
+                  viewerQueryFields[protocolName] = {}
                 }
-                viewerQueryFields[protocol][saneName] = field
+                viewerQueryFields[protocolName][saneName] = field
               }
             }
           } else {
@@ -267,7 +267,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
           args
         }
       }
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, allFields, 'QueryViewerAnyAuth')
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerAnyAuthOT(data, allFields, oas, 'viewerAnyAuth')
       rootQueryFields.viewerAnyAuth = {
         type: viewerOT,
         resolve,
@@ -295,7 +295,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
           args
         }
       }
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, allFields, 'MutationViewerAnyAuth')
+      let {viewerOT, args, resolve} = AuthBuilder.getViewerAnyAuthOT(data, allFields, oas, 'mutationViewerAnyAuth')
       rootMutationFields.mutationViewerAnyAuth = {
         type: viewerOT,
         resolve,
@@ -308,6 +308,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
     if (Object.keys(rootQueryFields).length > 0) {
       schemaDef.query = new GraphQLObjectType({
         name: 'RootQueryType',
+        description: 'The start of any query',
         fields: rootQueryFields
       })
     } else {
@@ -316,6 +317,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
     if (Object.keys(rootMutationFields).length > 0) {
       schemaDef.mutation = new GraphQLObjectType({
         name: 'RootMutationType',
+        description: 'The start of any mutation',
         fields: rootMutationFields
       })
     }

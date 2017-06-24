@@ -122,7 +122,7 @@ const getObjectType = ({
     console.error(`Warning: skipped creation of Object Type "${name}" which ` +
       `has no properties.`)
     return null
-  // case: ARRAY - create ArrayType:
+  // CASE: ARRAY - create ArrayType:
   } else if (type === 'array') {
     // minimal error-checking:
     if (!('items' in schema)) {
