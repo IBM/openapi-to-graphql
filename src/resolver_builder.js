@@ -181,9 +181,6 @@ const getAuthOptions = (operation, ctx, data) => {
           console.error(error)
           throw error
       }
-      // var username = 'username',
-      // password = 'password',
-      // url = 'http://' + username + ':' + password + '@some.server.com';
       break
 
     case 'oauth2':
