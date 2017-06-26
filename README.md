@@ -109,7 +109,7 @@ OASGraph.createGraphQLSchema(oas, {
 To test OASGraph, first make sure the example API server is running:
 
 ```bash
-node test/example_api_server.js
+npm run api
 ```
 
 Then, run tests:
