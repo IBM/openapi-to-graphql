@@ -138,7 +138,7 @@ const getAuthOptions = (operation, ctx, data) => {
   if (authRequired && typeof protocolName !== 'string') {
     throw new Error(`Missing information to authenticate API request.`)
   }
-  console.log(data.security)
+
   let security = data.security[protocolName]
   switch (security.def.type) {
     case 'apiKey':
@@ -233,36 +233,6 @@ const getAuthReqAndProtcolName = (operation, ctx, data) => {
   return {
     authRequired
   }
-}
-
-/**
- * Determines whether for the given authentication protocol all required
- * parameters are present in the given GraphQL context.
- *
- * @param  {String} protocolName Name of the security protocol
- * @param  {Object} ctx       GraphQL context
- * @param  {Object} data      Result from preprocessing
- * @return {Boolean}          True, if all needed parameters are present, false
- * if not.
- */
-const allParamsPresent = (protocolName, ctx, data) => {
-  if (typeof ctx.security !== 'object' || Object.keys(ctx.security) === 0) {
-    log(`Cannot find any credentials`)
-    return false
-  }
-
-  if (!(Oas3Tools.beautify(protocolName) in ctx.security)) {
-    log(`Cannot find any credentials for the security protocol '${protocolName}'`)
-    return false
-  }
-
-  for (let param in data.security[protocolName].parameters) {
-    if (!(param in ctx.security[Oas3Tools.beautify(protocolName)])) {
-      log(`Cannot use ${protocolName} for authentication - missing ${param}`)
-      return false
-    }
-  }
-  return true
 }
 
 module.exports = {
