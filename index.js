@@ -206,8 +206,9 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
     // create and add viewer object types to the query and mutation object types if applicable
     if (Object.keys(viewerFields).length > 0) {
       let viewerNames = {
-        objectPreface: 'viewer',
-        anyAuthName: 'queryViewerAnyAuth'
+        // the underscore is import for generating camel case with beautify
+        objectPreface: 'viewer_',
+        anyAuthName: 'viewerAnyAuth'
       }
       createAndLoadViewer(
           oas,
@@ -221,7 +222,8 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
 
     if (Object.keys(viewerMutationFields).length > 0) {
       let mutationViewerNames = {
-        objectPreface: 'mutationViewer',
+        // the underscore is import for generating camel case with beautify
+        objectPreface: 'mutationViewer_',
         anyAuthName: 'mutationViewerAnyAuth'
       }
       createAndLoadViewer(
@@ -357,11 +359,9 @@ const loadFields = (
       rootQueryFields[saneName] = field
     }
   } else {
-    // let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-    let saneName = Oas3Tools.beautifyAndStore(
-      operation.resSchemaName,
-      data.saneMap)
-    // determine if the mutation is authenticated
+    // Use operationId instead of operation.resSchemaName to avoid problems
+    // differentiating between post, put, patch, and delete the same object
+    let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
     if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
       for (let protocolIndex in operation.securityProtocols) {
         for (let protocol in operation.securityProtocols[protocolIndex]) {
@@ -401,7 +401,7 @@ const loadFields = (
  * @param  {object} queryFields Object that contains the fields for either
  * viewer or mutationViewer object types
  * @param  {object} rootFields Object that contains all object types of either
- * query or mutation object types
+ * query or mutation object
  */
 const createAndLoadViewer = (
     oas,
