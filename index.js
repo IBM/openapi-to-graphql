@@ -200,8 +200,8 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
       }
     }
 
-    const usedViewerNames = [] // keep track of viewer names we already used
-    const usedMutationViewerNames = [] // keep track of mutationViewer names we already used
+    const usedViewerNames = {} // keep track of viewer names we already used
+    const usedMutationViewerNames = {} // keep track of mutationViewer names we already used
 
     // create and add viewer object types to the query and mutation object types if applicable
     if (Object.keys(viewerFields).length > 0) {
@@ -345,6 +345,7 @@ const loadFields = (
     let saneName = Oas3Tools.beautifyAndStore(
       operation.resSchemaName,
       data.saneMap)
+
     // determine if the query is authenticated
     if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
       for (let protocolIndex in operation.securityProtocols) {
@@ -362,6 +363,8 @@ const loadFields = (
     // Use operationId instead of operation.resSchemaName to avoid problems
     // differentiating between post, put, patch, and delete the same object
     let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+
+    // determine if the query is authenticated
     if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
       for (let protocolIndex in operation.securityProtocols) {
         for (let protocol in operation.securityProtocols[protocolIndex]) {
@@ -417,14 +420,16 @@ const createAndLoadViewer = (
 
     // Check if the name has already been
     // If so, create a new name and add it to the list, if not add it to the list too
-    let objectName = Oas3Tools.beautify(objectNames.objectPreface + data.security[protocolName].def.type)
-    if (!usedObjectNames.includes(objectName)) {
-      usedObjectNames.push(objectName)
-    } else {
-      // TODO: what about n > 2???
-      objectName = Oas3Tools.beautify(objectName + '2')
-      usedObjectNames.push(objectName)
+    let type = data.security[protocolName].def.type
+    let objectName = Oas3Tools.beautify(objectNames.objectPreface + type)
+    if (!(type in usedObjectNames)) {
+      usedObjectNames[type] = []
     }
+    if (usedObjectNames[type].indexOf(objectName) !== -1) {
+      objectName += (usedObjectNames[type].length + 1)
+      usedObjectNames[type].push(objectName)
+    }
+    usedObjectNames[type].push(objectName)
 
     // Create the specialized viewer object types
     let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data,
