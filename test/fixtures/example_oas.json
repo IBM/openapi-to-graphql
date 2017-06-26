@@ -214,10 +214,10 @@
 				},
 				"security": [
 					{
-						"basic": []
+						"example_basic_protocol": []
 					},
 					{
-						"api_key2": []
+						"example_api_key_protocol_2": []
 					}
 				]
 			}
@@ -253,10 +253,10 @@
 				},
 				"security": [
 					{
-						"api_key": []
+						"example_api_key_protocol": []
 					},
 					{
-						"api_key2": []
+						"example_api_key_protocol_2": []
 					}
 				]
 			}
@@ -294,10 +294,10 @@
 				},
         "security": [
 					{
-						"api_key": []
+						"example_api_key_protocol": []
 					},
 					{
-						"api_key2": []
+						"example_api_key_protocol_2": []
 					}
 				]
 			}
@@ -479,17 +479,17 @@
 			}
 		},
 		"securitySchemes": {
-			"api_key": {
+			"example_api_key_protocol": {
 				"in": "header",
 				"name": "access_token",
 				"type": "apiKey"
 			},
-			"api_key2": {
+			"example_api_key_protocol_2": {
 				"in": "query",
 				"name": "access_token",
 				"type": "apiKey"
 			},
-			"basic": {
+			"example_basic_protocol": {
 				"type": "http",
 				"scheme": "basic"
 			}

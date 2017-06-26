@@ -138,7 +138,7 @@ const getAuthOptions = (operation, ctx, data) => {
   if (authRequired && typeof protocolName !== 'string') {
     throw new Error(`Missing information to authenticate API request.`)
   }
-
+  console.log(data.security)
   let security = data.security[protocolName]
   switch (security.def.type) {
     case 'apiKey':
@@ -213,29 +213,26 @@ const getAuthOptions = (operation, ctx, data) => {
  * protocolName fields
  */
 const getAuthReqAndProtcolName = (operation, ctx, data) => {
-  let result = {
-    authRequired: false
-  }
+  let authRequired = false
 
   if (typeof operation.securityProtocols === 'object' &&
     Object.keys(operation.securityProtocols).length > 0) {
-    result.authRequired = true
+    authRequired = true
 
-    // TODO: remove beautify
-    for (let i in operation.securityProtocols) {
-      let protocol = operation.securityProtocols[i]
-      let protocolName = Object.keys(protocol)[0]
-      if (typeof protocolName === 'string' &&
-        allParamsPresent(protocolName, ctx, data)) {
-        log(`Use ${protocolName} for authentication - all parameters present`)
-        result.protocolName = protocolName
-        break
+    for (let protocolIndex in operation.securityProtocols) {
+      for (let protocolName in operation.securityProtocols[protocolIndex]) {
+        if (Oas3Tools.beautify(protocolName) in ctx.security) {
+          return {
+            authRequired,
+            protocolName
+          }
+        }
       }
     }
-  } else {
-    result.authRequired = false
   }
-  return result
+  return {
+    authRequired
+  }
 }
 
 /**
