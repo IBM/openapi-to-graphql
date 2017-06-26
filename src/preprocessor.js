@@ -263,16 +263,26 @@ const getSecuritySchemes = (oas) => {
           apiKey: Oas3Tools.beautify(`${protocolName}_apiKey`)
         }
         break
+
       case ('http'):
-        parameters = {
-          username: Oas3Tools.beautify(`${protocolName}_username`),
-          password: Oas3Tools.beautify(`${protocolName}_password`)
+        switch (protocol.scheme) {
+          case ('basic'):
+            parameters = {
+              username: Oas3Tools.beautify(`${protocolName}_username`),
+              password: Oas3Tools.beautify(`${protocolName}_password`)
+            }
+            break
+          default:
+            throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
         }
         break
+
       case ('oauth2'):
         break
+
       case ('openIdConnect'):
         break
+
       default:
         throw new Error(`Security definition ${protocolName} does not have a valid type`)
     }

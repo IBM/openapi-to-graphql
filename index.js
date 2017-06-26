@@ -145,7 +145,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
      *
      * @type {Object}
      */
-    let viewerQueryFields = {}
+    let viewerFields = {}
 
     /**
      * Intermediate field used to input authentication credentials for mutations
@@ -166,39 +166,18 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length > 0) {
-        let field = getFieldForOperation(operation, data, oas)
-
-        if (operation.method.toLowerCase() === 'get') {
-          let saneName = Oas3Tools.beautifyAndStore(
-            operation.resSchemaName,
-            data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
-            for (let protocolIndex in operation.securityProtocols) {
-              for (let protocol in operation.securityProtocols[protocolIndex]) {
-                if (typeof viewerQueryFields[protocol] !== 'object') {
-                  viewerQueryFields[protocol] = {}
-                }
-                viewerQueryFields[protocol][saneName] = field
-              }
-            }
-          } else {
-            rootQueryFields[saneName] = field
+        loadFields(
+          {
+            operation,
+            operationId,
+            data,
+            oas,
+            rootQueryFields,
+            rootMutationFields,
+            viewerFields,
+            viewerMutationFields
           }
-        } else {
-          let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
-            for (let protocolIndex in operation.securityProtocols) {
-              for (let protocolName in operation.securityProtocols[protocolIndex]) {
-                if (typeof viewerMutationFields[protocolName] !== 'object') {
-                  viewerMutationFields[protocolName] = {}
-                }
-                viewerMutationFields[protocolName][saneName] = field
-              }
-            }
-          } else {
-            rootMutationFields[saneName] = field
-          }
-        }
+        )
       }
     }
 
@@ -206,101 +185,53 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length === 0) {
-        let field = getFieldForOperation(operation, data, oas)
-
-        if (operation.method.toLowerCase() === 'get') {
-          let saneName = Oas3Tools.beautifyAndStore(
-            operation.resSchemaName,
-            data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
-            for (let protocolIndex in operation.securityProtocols) {
-              for (let protocolName in operation.securityProtocols[protocolIndex]) {
-                if (typeof viewerQueryFields[protocolName] !== 'object') {
-                  viewerQueryFields[protocolName] = {}
-                }
-                viewerQueryFields[protocolName][saneName] = field
-              }
-            }
-          } else {
-            rootQueryFields[saneName] = field
+        loadFields(
+          {
+            operation,
+            operationId,
+            data,
+            oas,
+            rootQueryFields,
+            rootMutationFields,
+            viewerFields,
+            viewerMutationFields
           }
-        } else {
-          let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
-            for (let protocolIndex in operation.securityProtocols) {
-              for (let protocol in operation.securityProtocols[protocolIndex]) {
-                if (typeof viewerMutationFields[protocol] !== 'object') {
-                  viewerMutationFields[protocol] = {}
-                }
-                viewerMutationFields[protocol][saneName] = field
-              }
-            }
-          } else {
-            rootMutationFields[saneName] = field
-          }
-        }
+        )
       }
     }
 
     const usedViewerNames = [] // keep track of viewer names we already used
+    const usedMutationViewerNames = [] // keep track of mutationViewer names we already used
 
     // create and add viewer object types to the query and mutation object types if applicable
-    if (Object.keys(viewerQueryFields).length > 0) {
-      let allFields = {}
-      for (let protocolName in viewerQueryFields) {
-        Object.assign(allFields, viewerQueryFields[protocolName])
-
-        let objectName = Oas3Tools.beautify('viewer_' + data.security[protocolName].def.type)
-        if (!usedViewerNames.includes(objectName)) usedViewerNames.push(objectName)
-        else {
-          // TODO: what about n > 2???
-          objectName = Oas3Tools.beautify(objectName + '2')
-          usedViewerNames.push(objectName)
-        }
-
-        let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data,
-          viewerQueryFields[protocolName], objectName, protocolName)
-
-        rootQueryFields[objectName] = {
-          type: viewerOT,
-          resolve,
-          args
-        }
+    if (Object.keys(viewerFields).length > 0) {
+      let viewerNames = {
+        objectPreface: 'viewer',
+        anyAuthName: 'queryViewerAnyAuth'
       }
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerAnyAuthOT(data, allFields, oas, 'viewerAnyAuth')
-      rootQueryFields.viewerAnyAuth = {
-        type: viewerOT,
-        resolve,
-        args
-      }
+      createAndLoadViewer(
+          oas,
+          data,
+          viewerNames,
+          usedViewerNames,
+          viewerFields,
+          rootQueryFields
+      )
     }
 
     if (Object.keys(viewerMutationFields).length > 0) {
-      let allFields = {}
-      for (let protocolName in viewerMutationFields) {
-        Object.assign(allFields, viewerMutationFields[protocolName])
-
-        let objectName = Oas3Tools.beautify('mutationViewer_' + data.security[protocolName].def.type)
-        if (!usedViewerNames.includes(objectName)) usedViewerNames.push(objectName)
-        else {
-          // TODO: what about n > 2???
-          objectName = Oas3Tools.beautify(objectName + '2')
-          usedViewerNames.push(objectName)
-        }
-
-        let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data, viewerMutationFields[protocolName], objectName, protocolName)
-        rootMutationFields[objectName] = {
-          type: viewerOT,
-          resolve,
-          args
-        }
+      let mutationViewerNames = {
+        objectPreface: 'mutationViewer',
+        anyAuthName: 'mutationViewerAnyAuth'
       }
-      let {viewerOT, args, resolve} = AuthBuilder.getViewerAnyAuthOT(data, allFields, oas, 'mutationViewerAnyAuth')
-      rootMutationFields.mutationViewerAnyAuth = {
-        type: viewerOT,
-        resolve,
-        args
-      }
+      createAndLoadViewer(
+          oas,
+          data,
+          mutationViewerNames,
+          usedMutationViewerNames,
+          viewerMutationFields,
+          rootMutationFields
+      )
     }
 
     // build up the schema:
@@ -370,6 +301,151 @@ const getFieldForOperation = (operation, data, oas) => {
     type: type,
     resolve: resolve,
     args: args
+  }
+}
+
+/**
+ * Load the field object in the appropriate root object
+ *
+ * i.e. inside either rootQueryFields/rootMutationFields or inside
+ * rootQueryFields/rootMutationFields for further processing
+ *
+ * @param  {object} operation Operation as produced by preprocessing
+ * @param  {string} operationId Name used to identify a particular operation
+ * @param  {object} data      Data produced by preprocessing
+ * @param  {object} oas       OpenAPI Specification 3.0
+ * @param  {object} rootQueryFields Object that contains the definition all
+ * query objects type
+ * @param  {object} rootMutationFields Object that contains the definition all
+ * mutation objects type
+ * @param  {object} viewerFields Object that contains the definition of all
+ * authenticated query object types
+ * @param  {object} viewerMutationFields Object that contains the definition of
+ * all authenticated mutation object types
+ */
+const loadFields = (
+  {
+    operation,
+    operationId,
+    data,
+    oas,
+    rootQueryFields,
+    rootMutationFields,
+    viewerFields,
+    viewerMutationFields
+  }
+) => {
+  // get the fields for an operation
+  let field = getFieldForOperation(operation, data, oas)
+
+  // determine whether the operation is a query or a mutation
+  if (operation.method.toLowerCase() === 'get') {
+    let saneName = Oas3Tools.beautifyAndStore(
+      operation.resSchemaName,
+      data.saneMap)
+    // determine if the query is authenticated
+    if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+      for (let protocolIndex in operation.securityProtocols) {
+        for (let protocolName in operation.securityProtocols[protocolIndex]) {
+          if (typeof viewerFields[protocolName] !== 'object') {
+            viewerFields[protocolName] = {}
+          }
+          viewerFields[protocolName][saneName] = field
+        }
+      }
+    } else {
+      rootQueryFields[saneName] = field
+    }
+  } else {
+    // let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+    let saneName = Oas3Tools.beautifyAndStore(
+      operation.resSchemaName,
+      data.saneMap)
+    // determine if the mutation is authenticated
+    if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+      for (let protocolIndex in operation.securityProtocols) {
+        for (let protocol in operation.securityProtocols[protocolIndex]) {
+          if (typeof viewerMutationFields[protocol] !== 'object') {
+            viewerMutationFields[protocol] = {}
+          }
+          viewerMutationFields[protocol][saneName] = field
+        }
+      }
+    } else {
+      rootMutationFields[saneName] = field
+    }
+  }
+}
+
+/**
+ * Load the field object in the appropriate root object
+ *
+ * i.e. inside either rootQueryFields/rootMutationFields or inside
+ * rootQueryFields/rootMutationFields for further processing
+ *
+ * @param  {object} oas       OpenAPI Specification 3.0
+ * @param  {object} data      Data produced by preprocessing
+ * @param  {object} objectNames Contains the names that will be used to generate
+ * the viewer object types
+ *
+ * An example:
+ *  objectNames: {
+ *    objectPreface: 'viewer',  // Appended in front of the security type to
+ *                                 generate the viewer object name
+ *    anyAuthName: 'queryViewerAnyAuth' // Used as the name of the AnyAuth
+ *                                         object type
+ *  }
+ *
+ * @param  {object} usedObjectNames Object that contains all previously defined
+ * viewer object names
+ * @param  {object} queryFields Object that contains the fields for either
+ * viewer or mutationViewer object types
+ * @param  {object} rootFields Object that contains all object types of either
+ * query or mutation object types
+ */
+const createAndLoadViewer = (
+    oas,
+    data,
+    objectNames,
+    usedObjectNames,
+    queryFields,
+    rootFields
+) => {
+  let allFields = {}
+  for (let protocolName in queryFields) {
+    Object.assign(allFields, queryFields[protocolName])
+
+    // Check if the name has already been
+    // If so, create a new name and add it to the list, if not add it to the list too
+    let objectName = Oas3Tools.beautify(objectNames.objectPreface + data.security[protocolName].def.type)
+    if (!usedObjectNames.includes(objectName)) {
+      usedObjectNames.push(objectName)
+    } else {
+      // TODO: what about n > 2???
+      objectName = Oas3Tools.beautify(objectName + '2')
+      usedObjectNames.push(objectName)
+    }
+
+    // Create the specialized viewer object types
+    let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data,
+      queryFields[protocolName], objectName, protocolName)
+
+    // Add the viewer object type to the specified root query object type
+    rootFields[objectName] = {
+      type: viewerOT,
+      resolve,
+      args
+    }
+  }
+
+  // Create the AnyAuth viewer object type
+  let {viewerOT, args, resolve} = AuthBuilder.getViewerAnyAuthOT(data, allFields, oas, objectNames.anyAuthName)
+
+  // Add the AnyAuth object type to the specified root query object type
+  rootFields[objectNames.anyAuthName] = {
+    type: viewerOT,
+    resolve,
+    args
   }
 }
 
