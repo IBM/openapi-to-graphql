@@ -142,7 +142,7 @@ const getAuthOptions = (operation, ctx, data) => {
   let security = data.security[protocolName]
   switch (security.def.type) {
     case 'apiKey':
-      let apiKey = ctx.security[Oas3Tools.beautify(protocolName)].apiKey
+      let apiKey = ctx.security[protocolName].apiKey
       if (typeof apiKey === 'string') {
         if ('in' in security.def) {
           if (security.def.in === 'header') {
@@ -165,8 +165,8 @@ const getAuthOptions = (operation, ctx, data) => {
     case 'http':
       switch (security.def.scheme) {
         case 'basic':
-          let username = ctx.security[Oas3Tools.beautify(protocolName)].username
-          let password = ctx.security[Oas3Tools.beautify(protocolName)].password
+          let username = ctx.security[protocolName].username
+          let password = ctx.security[protocolName].password
           if (typeof username === 'string' && typeof password === 'string') {
             authHeaders['Authorization'] = 'Basic ' + new Buffer(username + ':' + password).toString('base64')
           } else {
@@ -218,7 +218,7 @@ const getAuthReqAndProtcolName = (operation, ctx, data) => {
 
     for (let protocolIndex in operation.securityProtocols) {
       for (let protocolName in operation.securityProtocols[protocolIndex]) {
-        if (Oas3Tools.beautify(protocolName) in ctx.security) {
+        if (protocolName in ctx.security) {
           return {
             authRequired,
             protocolName

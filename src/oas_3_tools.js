@@ -375,28 +375,35 @@ const getSecurityProtocols = (path, method, oas) => {
   let protocols = []
 
   if (typeof oas.security === 'object' && Object.keys(oas.security).length > 0) {
-    for (let protocol in oas.security) {
-      // TODO: enhance checking
-      if (typeof oas.security[protocol] === 'object') {
-        protocols.push(oas.security[protocol])
+    for (let protocolIndex in oas.security) {
+      for (let protocol in oas.security[protocolIndex]) {
+        // TODO: enhance checking
+        if (typeof oas.security[protocol] === 'object') {
+          let tempHash = {}
+          tempHash[beautify(protocol)] = oas.security[protocol]
+          protocols.push(tempHash)
+        }
       }
     }
   }
 
   // adding local security protocols
   let endpoint = oas.paths[path][method]
-
   if (typeof endpoint.security === 'object' && Object.keys(endpoint.security).length > 0) {
-    for (let protocolA in endpoint.security) {
-      if (typeof endpoint.security[protocolA] === 'object') {
-        (function () {
-          for (let protocolB in protocols) {
-            if (deepEqual(endpoint.security[protocolA], protocols[protocolB])) {
-              return
+    for (let protocolAIndex in endpoint.security) {
+      for (let protocolA in endpoint.security[protocolAIndex]) {
+        if (typeof endpoint.security[protocolAIndex][protocolA] === 'object') {
+          (function () {
+            for (let protocolB in protocols) {
+              if (deepEqual(endpoint.security[protocolAIndex][protocolA], protocols[protocolB])) {
+                return
+              }
             }
-          }
-          protocols.push(endpoint.security[protocolA])
-        })()
+            let tempHash = {}
+            tempHash[beautify(protocolA)] = endpoint.security[protocolAIndex][protocolA]
+            protocols.push(tempHash)
+          })()
+        }
       }
     }
   }
@@ -523,7 +530,7 @@ const trim = (str, length) => {
     str = JSON.stringify(str)
   }
 
-  if (str.length > length) {
+  if (str && str.length > length) {
     str = `${str.substring(0, length)}...`
   }
 

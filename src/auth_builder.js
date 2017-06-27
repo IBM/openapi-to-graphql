@@ -4,7 +4,6 @@ const {
   GraphQLNonNull
 } = require('graphql')
 const SchemaBuilder = require('./schema_builder.js')
-const Oas3Tools = require('./oas_3_tools.js')
 
 /**
  * Checks if security is required in any operation
@@ -65,7 +64,7 @@ const getViewerOT = (data, viewerQueryFields, name, protocolName) => {
 
     ctx.security = {}
     if (typeof protocolName === 'string') {
-      ctx.security[Oas3Tools.beautify(protocolName)] = args
+      ctx.security[protocolName] = args
     } else {
       ctx.security.anyAuth = args
     }
@@ -99,7 +98,7 @@ const getViewerAnyAuthOT = (data, viewerQueryFields, oas, name) => {
   let args = {}
 
   for (let protocolName in data.security) {
-    args[Oas3Tools.beautify(protocolName)] = { type: SchemaBuilder.getObjectType({
+    args[protocolName] = { type: SchemaBuilder.getObjectType({
       name: protocolName,
       schema: data.inputObjectTypeDefs[protocolName],
       data,

@@ -11,7 +11,6 @@ const preprocessOas = (oas) => {
     inputObjectTypes: {},
     operations: {},
     saneMap: {},
-    saneAuthMap: {},
     security: {}
   }
 
@@ -100,7 +99,7 @@ const preprocessOas = (oas) => {
         console.error(error)
         throw error
     }
-    result.inputObjectTypeDefs[protocolName] = schema
+    result.inputObjectTypeDefs[Oas3Tools.beautify(protocolName)] = schema
   }
 
   /**
@@ -240,12 +239,14 @@ const preprocessOas = (oas) => {
  *
  * {
  *    MyApiKey: {
+ *      rawName: "My_api_key",
  *      def: {...},    // definition from oas.components.securitySchemes
  *      parameters: {  // mapping between beautified and distinctive param names
  *        apiKey: MyKey_apiKey
  *      }
  *    }
  *    MyBasicAuth: {
+ *      rawName: "My_basic_auth",
  *      def: {...},
  *      parameters: {
  *        username: MyBasicAuth_username,
@@ -295,7 +296,8 @@ const getSecuritySchemes = (oas) => {
     }
 
     // add protocol data:
-    security[protocolName] = {
+    security[Oas3Tools.beautify(protocolName)] = {
+      rawName: protocolName,
       def: protocol,
       parameters
     }
