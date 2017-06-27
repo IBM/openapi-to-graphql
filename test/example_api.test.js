@@ -252,7 +252,7 @@ test('Define header and query options', () => {
     }
   }
   let query = `{
-    Status
+    Status (globalquery: "test")
   }`
   return OasGraph.createGraphQlSchema(oas, options)
     .then(createdSchema => {

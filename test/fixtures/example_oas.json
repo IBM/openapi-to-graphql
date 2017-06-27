@@ -327,7 +327,12 @@
 						}
 					}
 				}
-			}
+			},
+			"parameters": [
+				{
+					"$ref": "#/components/parameters/GloablQuery"
+				}
+			]
 		}
 	},
 	"components": {
@@ -492,6 +497,16 @@
 			"example_basic_protocol": {
 				"type": "http",
 				"scheme": "basic"
+			}
+		},
+		"parameters": {
+			"GloablQuery": {
+				"name": "globalquery",
+				"in": "query",
+				"required": true,
+				"schema": {
+					"type": "string"
+				}
 			}
 		}
 	},

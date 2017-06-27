@@ -2,6 +2,7 @@
 
 const mutationMethods = ['post', 'put', 'patch', 'delete']
 const deepEqual = require('deep-equal')
+const log = require('debug')('translation')
 
 /**
  * OAS constants
@@ -346,17 +347,38 @@ const getEndpointLinks = (path, method, oas) => {
  */
 const getParameters = (path, method, oas) => {
   let parameters = []
-  let endpoint = oas.paths[path][method]
 
-  if ('parameters' in endpoint) {
-    parameters = endpoint.parameters.map(p => {
+  if (!isOperation(method)) {
+    log(`Warning: attempted to get parameters for ${method} ${path}, ` +
+      `which is not an opeartion.`)
+    return parameters
+  }
+
+  // first, consider parameters in Path Item Object:
+  if (Array.isArray(oas.paths[path].parameters)) {
+    let pathItemParameters = oas.paths[path].parameters.map(p => {
       if ('$ref' in p) {
         return resolveRef(p['$ref'], oas)
       } else {
         return p
       }
     })
+    parameters = parameters.concat(pathItemParameters)
   }
+
+  // second, consider parameters in Operation Object:
+  let endpoint = oas.paths[path][method]
+  if ('parameters' in endpoint) {
+    let opParameters = endpoint.parameters.map(p => {
+      if ('$ref' in p) {
+        return resolveRef(p['$ref'], oas)
+      } else {
+        return p
+      }
+    })
+    parameters = parameters.concat(opParameters)
+  }
+
   return parameters
 }
 
