@@ -4,6 +4,12 @@ const mutationMethods = ['post', 'put', 'patch', 'delete']
 const deepEqual = require('deep-equal')
 
 /**
+ * OAS constants
+ */
+const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
+const JSON_CONTENT_TYPES = ['application/json', '*/*']
+
+/**
  * Resolves the given reference in the given object.
  *
  * @param  {string} ref   A reference, for example "#/components/schemas/user"
@@ -193,13 +199,12 @@ const inferResourceNameFromPath = (path) => {
  * @param  {string} statusCode An HTTP status code
  * @return {string|null}       JSON-producing content type
  */
-const acceptableTypes = ['application/json', '*/*']
 const getResContentType = (endpoint, statusCode) => {
   if ('responses' in endpoint &&
     statusCode in endpoint.responses &&
     'content' in endpoint.responses[statusCode]) {
     for (let contentType in endpoint.responses[statusCode].content) {
-      if (acceptableTypes.includes(contentType) &&
+      if (JSON_CONTENT_TYPES.includes(contentType) &&
         'schema' in endpoint.responses[statusCode].content[contentType]) {
         return contentType
       }
@@ -220,7 +225,7 @@ const getReqContentType = (endpoint) => {
   if ('requestBody' in endpoint &&
     'content' in endpoint.requestBody) {
     for (let contentType in endpoint.requestBody.content) {
-      if (acceptableTypes.includes(contentType) &&
+      if (JSON_CONTENT_TYPES.includes(contentType) &&
         'schema' in endpoint.requestBody.content[contentType]) {
         return contentType
       }
@@ -525,6 +530,17 @@ const trim = (str, length) => {
   return str
 }
 
+/**
+ * Determines if the given "method" is indeed an operation. Alternatively, the
+ * method could point to other types of information (e.g., parameters, servers).
+ *
+ * @param  {String} method
+ * @return {Boolean}       True, if given method is an operation.
+ */
+const isOperation = (method) => {
+  return OAS_OPERATIONS.includes(method.toLowerCase())
+}
+
 module.exports = {
   resolveRef,
   getBaseUrl,
@@ -542,5 +558,6 @@ module.exports = {
   beautify,
   beautifyAndStore,
   beautifyAndStoreArray,
-  trim
+  trim,
+  isOperation
 }

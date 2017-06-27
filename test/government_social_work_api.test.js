@@ -3,6 +3,7 @@
 /* globals beforeAll, test, expect */
 
 const OasGraph = require('../index.js')
+const Oas3Tools = require('../src/oas_3_tools.js')
 const {
   parse,
   validate
@@ -42,7 +43,7 @@ test('All mutation endpoints present', () => {
   let oasMutCount = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
-      if (method !== 'get') oasMutCount++
+      if (Oas3Tools.isOperation(method) && method !== 'get') oasMutCount++
     }
   }
   let gqlTypes = Object.keys(schema

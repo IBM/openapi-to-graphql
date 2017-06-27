@@ -108,6 +108,13 @@ const preprocessOas = (oas) => {
    */
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
+      /**
+       * Only consider Operation Objects
+       */
+      if (!Oas3Tools.isOperation(method)) {
+        continue
+      }
+
       let endpoint = oas.paths[path][method]
 
       /**
