@@ -4,6 +4,7 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 <img src="docs/translation.png" alt="Overview of translation" width="600">
 
+
 ## Characteristics
 
 * **Data-centric**
@@ -35,6 +36,8 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
   Parts of an API that not compatible with GraphQL are automatically sanitized. For example, API parameters and data definition names with unsupported characters (e.g., `-`, `.`, `,`, `:`, `;`...) are sanitized.
 
 * **Custom request options** Provide headers and query parameters to send with every API request. This allows, for example, to handle authentication or tag requests from GraphQL.
+
+* **Swagger and OpenAPI 3 support** OASGraph can handle both Swagger (OpenAPI specification 2.0) as well as OpenAPI specification 3.
 
 
 ## Usage
@@ -102,6 +105,31 @@ OASGraph.createGraphQLSchema(oas, {
     limit: 30 // send limit query string in every request
   }
 })
+```
+
+
+## Authentication
+Per default, OASGraph will wrap API requests that need authentication in corresponding `viewers`, which allow to pass required credentials. OASGraph currently supports viewers for API keys and basic authentication.
+
+OASGraph further provides an `anyAuth` viewer, which allows to simultaneously provide information required by multiple authentication mechanisms. This mechanism allows OASGraph to resolve nested queries, which encompass API requests with different authentication mechanisms. For example, consider the following query:
+
+```javascript
+{
+  viewerAnyAuth (
+    exampleApiKeyProtocol: {apiKey: "a1p2i3k4e5y"}
+    exampleBasicProtocol: {
+      username: "erik"
+      password: "secret"
+    }
+  ) {
+    patentWithId (patentId: "test") {  // requires "exampleApiKeyProtocol"
+      patentId
+      inventor {                       // requires "exampleBasicProtocol"
+        name
+      }
+    }
+  }
+}
 ```
 
 
