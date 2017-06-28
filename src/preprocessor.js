@@ -2,6 +2,7 @@
 
 const Oas3Tools = require('./oas_3_tools.js')
 const deepEqual = require('deep-equal')
+const log = require('debug')('preprocessing')
 
 const preprocessOas = (oas) => {
   let result = {
@@ -135,7 +136,7 @@ const preprocessOas = (oas) => {
       let {reqSchema, reqSchemaNames, reqSchemaRequired} = Oas3Tools.getReqSchemaAndNames(
         path, method, oas)
 
-      if (typeof reqSchema === 'object') {
+      if (reqSchema && typeof reqSchema === 'object') {
         // determine name of this schema, if we already know it:
         reqSchemaName = getMatchingSchemaName(
           reqSchema, result.inputObjectTypeDefs)
@@ -165,7 +166,7 @@ const preprocessOas = (oas) => {
       let {resSchema, resSchemaNames} = Oas3Tools.getResSchemaAndNames(
         path, method, '200', oas) // TODO: fix - be smarter than 200 here
 
-      if (typeof resSchema === 'object') {
+      if (resSchema && typeof resSchema === 'object') {
         // determine name of this schema, if we already know it:
         resSchemaName = getMatchingSchemaName(
           resSchema, result.objectTypeDefs)
@@ -194,6 +195,10 @@ const preprocessOas = (oas) => {
 
           result.objectTypeDefs[resSchemaName] = resSchema
         }
+      } else {
+        log(`Warning: "${method.toUpperCase()} ${path}" has no valid ` +
+          `response schema. Ignore operation.`)
+        continue
       }
 
       /**
@@ -220,7 +225,8 @@ const preprocessOas = (oas) => {
         resSchemaName,
         links,
         parameters,
-        securityProtocols
+        securityProtocols,
+        operationId
       }
     }
   }

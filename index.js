@@ -10,8 +10,6 @@ const GraphQLTools = require('./src/graphql_tools.js')
 const Preprocessor = require('./src/preprocessor.js')
 const Oas3Tools = require('./src/oas_3_tools.js')
 const AuthBuilder = require('./src/auth_builder.js')
-const Swagger2OpenAPI = require('swagger2openapi')
-const OASValidator = require('swagger2openapi/validate.js')
 const log = require('debug')('translation')
 
 // increase stack trace logging for better debugging:
@@ -54,30 +52,15 @@ const createGraphQlSchema = (spec, options = {}) => {
       throw new Error(`Invalid specification provided`)
     }
 
-    // CASE: translate
-    if (typeof spec.swagger === 'string' && spec.swagger === '2.0') {
-      log(`Received Swagger - going to translate...`)
-      Swagger2OpenAPI.convertObj(spec, {})
-        .then(result => {
-          resolve(translateOpenApiToGraphQL(result.openapi, options))
-        })
-        .catch(reject)
-    // CASE: validate
-    } else if (typeof spec.openapi === 'string' && /^3/.test(spec.openapi)) {
-      log(`Received OpenAPI 3.0.x - going to validate...`)
-      let valid = true
-      try {
-        valid = OASValidator.validateSync(spec, {})
-      } catch (err) {
-        reject(err)
-      }
-      if (!valid) {
-        reject(new Error(`Validation of OpenAPI Specification failed`))
-      } else {
-        log(`OpenAPI Specification is validated`)
-        resolve(translateOpenApiToGraphQL(spec, options))
-      }
-    }
+    Oas3Tools.getValidOAS3(spec)
+      .then(oas => {
+        translateOpenApiToGraphQL(oas, options)
+          .then(schema => {
+            resolve(schema)
+          })
+          .catch(reject)
+      })
+      .catch(reject)
   })
 }
 
@@ -90,8 +73,6 @@ const createGraphQlSchema = (spec, options = {}) => {
  */
 const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
   return new Promise((resolve, reject) => {
-    log(`Translate valid OpenAPI specification to GraphQL...`)
-
     /**
      * Result of preprocessing OAS:
      *
@@ -262,6 +243,87 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
 }
 
 /**
+ * Load the field object in the appropriate root object
+ *
+ * i.e. inside either rootQueryFields/rootMutationFields or inside
+ * rootQueryFields/rootMutationFields for further processing
+ *
+ * @param  {object} operation Operation as produced by preprocessing
+ * @param  {string} operationId Name used to identify a particular operation
+ * @param  {object} data      Data produced by preprocessing
+ * @param  {object} oas       OpenAPI Specification 3.0
+ * @param  {object} rootQueryFields Object that contains the definition all
+ * query objects type
+ * @param  {object} rootMutationFields Object that contains the definition all
+ * mutation objects type
+ * @param  {object} viewerFields Object that contains the definition of all
+ * authenticated query object types
+ * @param  {object} viewerMutationFields Object that contains the definition of
+ * all authenticated mutation object types
+ */
+const loadFields = (
+  {
+    operation,
+    operationId,
+    data,
+    oas,
+    rootQueryFields,
+    rootMutationFields,
+    viewerFields,
+    viewerMutationFields
+  }
+) => {
+  // get the fields for an operation
+  let field = getFieldForOperation(operation, data, oas)
+
+  // if the operation has no valid type, abort:
+  if (!field.type || typeof field.type === 'undefined') {
+    log(`Warning: skipped operation "${operation.method.toUpperCase()} ` +
+      `${operation.path}" without defined Object Type.`)
+    return
+  }
+
+  // determine whether the operation is a query or a mutation
+  if (operation.method.toLowerCase() === 'get') {
+    let saneName = Oas3Tools.beautifyAndStore(
+      operation.resSchemaName,
+      data.saneMap)
+
+    // determine if the query is authenticated
+    if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+      for (let protocolIndex in operation.securityProtocols) {
+        for (let protocolName in operation.securityProtocols[protocolIndex]) {
+          if (typeof viewerFields[protocolName] !== 'object') {
+            viewerFields[protocolName] = {}
+          }
+          viewerFields[protocolName][saneName] = field
+        }
+      }
+    } else {
+      rootQueryFields[saneName] = field
+    }
+  } else {
+    // Use operationId instead of operation.resSchemaName to avoid problems
+    // differentiating between post, put, patch, and delete the same object
+    let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+
+    // determine if the query is authenticated
+    if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+      for (let protocolIndex in operation.securityProtocols) {
+        for (let protocol in operation.securityProtocols[protocolIndex]) {
+          if (typeof viewerMutationFields[protocol] !== 'object') {
+            viewerMutationFields[protocol] = {}
+          }
+          viewerMutationFields[protocol][saneName] = field
+        }
+      }
+    } else {
+      rootMutationFields[saneName] = field
+    }
+  }
+}
+
+/**
  * Creates the field object for a given operation.
  *
  * @param  {object} operation Operation as produced by preprocessing
@@ -312,80 +374,6 @@ const getFieldForOperation = (operation, data, oas) => {
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  *
- * @param  {object} operation Operation as produced by preprocessing
- * @param  {string} operationId Name used to identify a particular operation
- * @param  {object} data      Data produced by preprocessing
- * @param  {object} oas       OpenAPI Specification 3.0
- * @param  {object} rootQueryFields Object that contains the definition all
- * query objects type
- * @param  {object} rootMutationFields Object that contains the definition all
- * mutation objects type
- * @param  {object} viewerFields Object that contains the definition of all
- * authenticated query object types
- * @param  {object} viewerMutationFields Object that contains the definition of
- * all authenticated mutation object types
- */
-const loadFields = (
-  {
-    operation,
-    operationId,
-    data,
-    oas,
-    rootQueryFields,
-    rootMutationFields,
-    viewerFields,
-    viewerMutationFields
-  }
-) => {
-  // get the fields for an operation
-  let field = getFieldForOperation(operation, data, oas)
-
-  // determine whether the operation is a query or a mutation
-  if (operation.method.toLowerCase() === 'get') {
-    let saneName = Oas3Tools.beautifyAndStore(
-      operation.resSchemaName,
-      data.saneMap)
-
-    // determine if the query is authenticated
-    if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
-      for (let protocolIndex in operation.securityProtocols) {
-        for (let protocolName in operation.securityProtocols[protocolIndex]) {
-          if (typeof viewerFields[protocolName] !== 'object') {
-            viewerFields[protocolName] = {}
-          }
-          viewerFields[protocolName][saneName] = field
-        }
-      }
-    } else {
-      rootQueryFields[saneName] = field
-    }
-  } else {
-    // Use operationId instead of operation.resSchemaName to avoid problems
-    // differentiating between post, put, patch, and delete the same object
-    let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-
-    // determine if the query is authenticated
-    if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
-      for (let protocolIndex in operation.securityProtocols) {
-        for (let protocol in operation.securityProtocols[protocolIndex]) {
-          if (typeof viewerMutationFields[protocol] !== 'object') {
-            viewerMutationFields[protocol] = {}
-          }
-          viewerMutationFields[protocol][saneName] = field
-        }
-      }
-    } else {
-      rootMutationFields[saneName] = field
-    }
-  }
-}
-
-/**
- * Load the field object in the appropriate root object
- *
- * i.e. inside either rootQueryFields/rootMutationFields or inside
- * rootQueryFields/rootMutationFields for further processing
- *
  * @param  {object} oas       OpenAPI Specification 3.0
  * @param  {object} data      Data produced by preprocessing
  * @param  {object} objectNames Contains the names that will be used to generate
@@ -420,16 +408,16 @@ const createAndLoadViewer = (
 
     // Check if the name has already been
     // If so, create a new name and add it to the list, if not add it to the list too
-    let type = data.security[protocolName].def.type
-    let objectName = Oas3Tools.beautify(objectNames.objectPreface + type)
-    if (!(type in usedObjectNames)) {
-      usedObjectNames[type] = []
+    let typeName = data.security[protocolName].def.type
+    let objectName = Oas3Tools.beautify(objectNames.objectPreface + typeName)
+    if (!(typeName in usedObjectNames)) {
+      usedObjectNames[typeName] = []
     }
-    if (usedObjectNames[type].indexOf(objectName) !== -1) {
-      objectName += (usedObjectNames[type].length + 1)
-      usedObjectNames[type].push(objectName)
+    if (usedObjectNames[typeName].indexOf(objectName) !== -1) {
+      objectName += (usedObjectNames[typeName].length + 1)
+      usedObjectNames[typeName].push(objectName)
     }
-    usedObjectNames[type].push(objectName)
+    usedObjectNames[typeName].push(objectName)
 
     // Create the specialized viewer object types
     let {viewerOT, args, resolve} = AuthBuilder.getViewerOT(data,

@@ -119,7 +119,7 @@ const getObjectType = ({
 
   // CASE: object without properties:
   } else if (type === 'object' && Object.keys(schema.properties).length === 0) {
-    log(`Warning: skipped creation of Object Type "${name}" which ` +
+    log(`Warning: skipped creation of (Input) Object Type "${name}", which ` +
       `has no properties.`)
     return null
   // CASE: ARRAY - create ArrayType:
@@ -458,12 +458,13 @@ const getArgs = ({
       })
     }
 
-    // sanitize the argument name
-    let saneName = Oas3Tools.beautify(reqSchemaName)
-
-    args[saneName] = {
-      type: reqSchemaRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
-      description: data.inputObjectTypeDefs[reqSchemaName].description // might be undefined
+    if (reqObjectType) {
+      // sanitize the argument name
+      let saneName = Oas3Tools.beautify(reqSchemaName)
+      args[saneName] = {
+        type: reqSchemaRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
+        description: data.inputObjectTypeDefs[reqSchemaName].description // might be undefined
+      }
     }
   }
 

@@ -2,6 +2,10 @@
 
 const mutationMethods = ['post', 'put', 'patch', 'delete']
 const deepEqual = require('deep-equal')
+const Swagger2OpenAPI = require('swagger2openapi')
+const OASValidator = require('swagger2openapi/validate.js')
+
+const logPre = require('debug')('preprocessing')
 const log = require('debug')('translation')
 
 /**
@@ -9,6 +13,35 @@ const log = require('debug')('translation')
  */
 const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
 const JSON_CONTENT_TYPES = ['application/json', '*/*']
+
+const getValidOAS3 = (spec) => {
+  return new Promise((resolve, reject) => {
+    // CASE: translate
+    if (typeof spec.swagger === 'string' && spec.swagger === '2.0') {
+      logPre(`Received OpenAPI Specification 2.0 - going to translate...`)
+      Swagger2OpenAPI.convertObj(spec, {})
+        .then(result => {
+          resolve(result.openapi)
+        })
+        .catch(reject)
+    // CASE: validate
+    } else if (typeof spec.openapi === 'string' && /^3/.test(spec.openapi)) {
+      logPre(`Received OpenAPI Specification 3.0.x - going to validate...`)
+      let valid = true
+      try {
+        valid = OASValidator.validateSync(spec, {})
+      } catch (err) {
+        reject(err)
+      }
+      if (!valid) {
+        reject(new Error(`Validation of OpenAPI Specification failed.`))
+      } else {
+        logPre(`OpenAPI Specification is validated`)
+        resolve(spec)
+      }
+    }
+  })
+}
 
 /**
  * Resolves the given reference in the given object.
@@ -309,7 +342,10 @@ const getResSchemaAndNames = (path, method, statusCode, oas) => {
       resSchemaNames
     }
   } else {
-    throw new Error(`Operation ${method} ${path} does not produce JSON response.`)
+    return {
+      resSchema: null,
+      resSchemaNames: null
+    }
   }
 }
 
@@ -571,6 +607,7 @@ const isOperation = (method) => {
 }
 
 module.exports = {
+  getValidOAS3,
   resolveRef,
   getBaseUrl,
   instantiatePathAndGetQuery,
