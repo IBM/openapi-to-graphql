@@ -6,7 +6,9 @@
   "scripts": {
     "test": "jest",
     "api": "nodemon test/example_api_server.js",
-    "dev": "DEBUG=translation,http nodemon test/example_gql_server.js"
+    "dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
+    "guru-load": "node test/apis_guru/load_apis_guru.js",
+    "guru-test": "DEBUG=preprocessing,translation,http node test/apis_guru/apis_guru_test.js"
   },
   "author": "Erik Wittern",
   "license": "MIT",

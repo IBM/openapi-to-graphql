@@ -1,7 +1,6 @@
 'use strict'
 
-const Git = require('nodegit')
-const OasGraph = require('../index.js')
+const OasGraph = require('../../index.js')
 const Glob = require('glob')
 const rimraf = require('rimraf')
 const fs = require('fs')
@@ -12,26 +11,21 @@ const YAML = require('js-yaml')
  *
  * @return {Promise} Resolves on array of OAS
  */
-const downloadOas = () => {
+const loadOas = () => {
   return new Promise((resolve, reject) => {
     let OASList = []
-    Git.Clone(`https://github.com/APIs-guru/openapi-directory`, './tmp')
-      .then(repo => {
-        return repo.getCurrentBranch()
-      })
-      .then(branch => {
-        let paths = Glob.sync('tmp/**/@(*.yaml|*.json)')
-        paths.forEach(path => {
-          let oas = loadFile(path)
-          if (!oas) return
-          if (!isValidOAS(oas)) return
+    let paths = Glob.sync('tmp/**/@(*.yaml|*.json)')
+    paths.forEach(path => {
+      let oas = loadFile(path)
+      if (!oas) return
+      if (!isValidOAS(oas)) return
 
-          OASList.push(oas)
-        })
-        resolve(OASList.slice(0, 5))
-        return paths
-      })
-      .catch(reject)
+      // keep track of path for later logging:
+      oas['x-file-path'] = path
+
+      OASList.push(oas)
+    })
+    resolve(OASList.slice(0, 3))
   })
 }
 
@@ -39,28 +33,32 @@ const downloadOas = () => {
  * Attempts to build schema for every OAS in given list.
  */
 const checkOas = (OASList) => {
+  let results = {
+    successes: 0,
+    errors: 0
+  };
   (async () => {
     for (let oas of OASList) {
-      console.log(`\n\nProcess ${oas.info.title}...\n`)
+      console.log(`\n\nProcess ${oas.info.title}...`)
+      console.log(` (${oas['x-file-path']})\n`)
       await OasGraph.createGraphQlSchema(oas)
         .then(schema => {
-          console.log(`  Result: ${schema}`)
+          console.log(`O.k.`)
+          results.successes++
         })
         .catch(e => {
           console.error(e)
+          results.errors++
         })
     }
-    emptyTmp()
+
+    console.log(JSON.stringify(results, null, 2))
   })()
 }
 
 /**
  * Helpers
  */
-const emptyTmp = () => {
-  rimraf.sync('tmp')
-}
-
 const loadFile = (path) => {
   try {
     let doc
@@ -86,8 +84,6 @@ const isValidOAS = (oas) => {
 }
 
 // go go go:
-downloadOas()
+loadOas()
   .then(checkOas)
-  .catch(e => {
-    console.error(e)
-  })
+  .catch(console.error)

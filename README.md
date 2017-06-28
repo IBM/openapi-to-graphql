@@ -118,6 +118,19 @@ Then, run tests:
 npm test
 ```
 
+### APIs.guru
+OASGraph can be applied to all OAS contained in [APIs.guru OpenAPI repository](https://github.com/APIs-guru/openapi-directory). Load APIs.guru specifications into the `/tmp` folder:
+
+```bash
+npm run guru-load
+```
+
+Then, run tests:
+
+```bash
+npm run guru-test
+```
+
 
 ## Logging
 OASGraph provides multiple levels of logging, which can be controlled by a `DEBUG` environment variable. You can enable these levels using:
@@ -128,6 +141,7 @@ DEBUG=level_1,level_2 node app-using-oasgraph.js
 
 The following logging levels are supported:
 
+* `preprocessing`: Logs information about preprocessing the OAS to GraphQL.
 * `translation`: Logs information about translating an OAS to GraphQL.
 * `http`: Logs information about the HTTP requests made to the API.
 
