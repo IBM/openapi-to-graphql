@@ -146,6 +146,7 @@ Then, run tests:
 npm test
 ```
 
+
 ### APIs.guru
 OASGraph can be applied to all OAS contained in [APIs.guru OpenAPI repository](https://github.com/APIs-guru/openapi-directory). Load APIs.guru specifications into the `/tmp` folder:
 
@@ -172,6 +173,7 @@ The following logging levels are supported:
 * `preprocessing`: Logs information about preprocessing the OAS to GraphQL.
 * `translation`: Logs information about translating an OAS to GraphQL.
 * `http`: Logs information about the HTTP requests made to the API.
+
 
 ## Similar projects
 
