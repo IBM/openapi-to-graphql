@@ -2,7 +2,6 @@
 
 const OasGraph = require('../../index.js')
 const Glob = require('glob')
-const rimraf = require('rimraf')
 const fs = require('fs')
 const YAML = require('js-yaml')
 
