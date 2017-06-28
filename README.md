@@ -109,9 +109,27 @@ OASGraph.createGraphQLSchema(oas, {
 
 
 ## Authentication
-Per default, OASGraph will wrap API requests that need authentication in corresponding `viewers`, which allow to pass required credentials. OASGraph currently supports viewers for API keys and basic authentication.
+Per default, OASGraph will wrap API requests that need authentication in corresponding `viewers`, which allow to pass required credentials. OASGraph currently supports viewers for API keys and basic authentication. For example, a query using an API key viewer is:
 
-OASGraph further provides an `anyAuth` viewer, which allows to simultaneously provide information required by multiple authentication mechanisms. This mechanism allows OASGraph to resolve nested queries, which encompass API requests with different authentication mechanisms. For example, consider the following query:
+```javascript
+{
+  viewerApiKey (apiKey: "api_key_here") {
+    ...  // query for authenticated data here
+  }
+}
+```
+
+OASGraph uses dedicated viewers for mutations. For example, a mutation using an basic authentication viewer is:
+
+```javascript
+mutation {
+  mutationViewerHttp (username: "user", password: "secret") {
+    ...  // mutate authenticated data here
+  }
+}
+```
+
+OASGraph further provides an `anyAuth` viewers (for queries and mutations), which allow to simultaneously provide information for multiple authentication mechanisms. AnyAuth viewers allow OASGraph to resolve nested queries and mutations that encompass API requests with different authentication mechanisms. For example, consider the following query:
 
 ```javascript
 {
