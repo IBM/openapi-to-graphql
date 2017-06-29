@@ -559,6 +559,12 @@ const beautify = (str) => {
       sanitized = sanitized.slice(0, pos)
     }
   }
+
+  // special case: we cannot start with number, and cannot be empty:
+  if (/^[0-9]/.test(sanitized) || sanitized === '') {
+    sanitized = '_' + sanitized
+  }
+
   return sanitized
 }
 
@@ -572,7 +578,7 @@ const beautify = (str) => {
  * @return {string}     Sanitized string
  */
 const sanitize = (str) => {
-  let clean = str.replace(/[^_a-zA-Z0-9]/g, '_').replace(/^[0-9]+/g, '_')
+  let clean = str.replace(/[^_a-zA-Z0-9]/g, '_')
   return clean
 }
 
