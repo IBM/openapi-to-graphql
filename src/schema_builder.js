@@ -57,7 +57,7 @@ const getObjectType = ({
   }
 
   // some error checking:
-  if (typeof schema !== 'object') {
+  if (!schema || typeof schema !== 'object') {
     throw new Error(`Invalid schema for ${name} provided of type ${typeof schema}`)
   }
 
@@ -68,7 +68,9 @@ const getObjectType = ({
   }
 
   // CASE: object - create ObjectType:
-  if (type === 'object' && Object.keys(schema.properties).length > 0) {
+  if (type === 'object' &&
+    typeof schema.properties !== 'undefined' &&
+    Object.keys(schema.properties).length > 0) {
     if (!isMutation) {
       if (name in data.objectTypes) {
         return data.objectTypes[name]
@@ -118,7 +120,9 @@ const getObjectType = ({
     }
 
   // CASE: object without properties:
-  } else if (type === 'object' && Object.keys(schema.properties).length === 0) {
+  } else if (type === 'object' &&
+    (typeof schema.properties === 'undefined' ||
+      Object.keys(schema.properties).length === 0)) {
     log(`Warning: skipped creation of (Input) Object Type "${name}", which ` +
       `has no properties.`)
     return null
@@ -153,7 +157,7 @@ const getObjectType = ({
       // determine the type of the items in the array:
       let itemsType = Oas3Tools.getSchemaType(schema.items)
       if (!itemsType) {
-        throw new Error(`Type property missing in items schema`)
+        throw new Error(`Type property missing in items schema for "${name}"`)
       }
 
       if (itemsType === 'object' || itemsType === 'array') {
