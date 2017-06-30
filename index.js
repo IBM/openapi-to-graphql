@@ -71,7 +71,7 @@ const createGraphQlSchema = (spec, options = {}) => {
  * @return {promise}    Resolves on GraphQLSchema, rejects on error during
  * schema creation
  */
-const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
+const translateOpenApiToGraphQL = (oas, {headers, qs, viewer, tokenJSONpath}) => {
   return new Promise((resolve, reject) => {
     /**
      * Result of preprocessing OAS:
@@ -102,7 +102,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer}) => {
     /**
      * Store options to data
      */
-    data.options = {headers, qs, viewer}
+    data.options = {headers, qs, viewer, tokenJSONpath}
     log(`Provided options: ${JSON.stringify(data.options)}`)
 
     /**

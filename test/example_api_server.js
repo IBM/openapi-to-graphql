@@ -231,6 +231,17 @@ app.get('/api/status', (req, res) => {
   }
 })
 
+app.get('/api/secure', (req, res) => {
+  console.log(req.method, req.path, req.query, req.headers)
+  if (req.get('authorization') !== 'Bearer abcdef') {
+    res.status(401).send({
+      message: 'missing authorization header'
+    })
+  } else {
+    res.send('A secure message.')
+  }
+})
+
 app.get('/api/patents/:id', authMiddleware, (req, res) => {
   console.log(req.method, req.path)
   for (let patent in Patents) {

@@ -4,6 +4,7 @@ const request = require('request')
 const Oas3Tools = require('./oas_3_tools.js')
 const log = require('debug')('http')
 const querystring = require('querystring')
+const jp = require('jsonpath')
 
 /**
  * Creates and returns a resolver function that performs API requests for the
@@ -88,6 +89,10 @@ const getResolver = ({
     Object.assign(options.headers, authHeaders)
     Object.assign(options.qs, authQs)
 
+    // extract OAuth token from context (if available):
+    let oauthHeader = createOAuthHeader(data, ctx)
+    Object.assign(options.headers, oauthHeader)
+
     // make the call:
     log(`Call ${options.method.toUpperCase()} ${options.url}` +
       `?${querystring.stringify(options.qs)} ` +
@@ -108,6 +113,35 @@ const getResolver = ({
         }
       })
     })
+  }
+}
+
+/**
+ * Attempts to create an OAuth authorization header by extracting an OAuth token
+ * from the ctx based on the JSON path provided in the options.
+ *
+ * @param  {Object} data Data produced by preprocessing
+ * @param  {Object} ctx  GraphQL context
+ * @return {Object}      Object, possibly containing 'Authorization' header
+ */
+const createOAuthHeader = (data, ctx) => {
+  if (typeof data.options.tokenJSONpath !== 'string') {
+    return {}
+  }
+
+  // extract token:
+  let tokenJSONpath = data.options.tokenJSONpath
+  let tokens = jp.query(ctx, tokenJSONpath)
+  if (Array.isArray(tokens) && tokens.length > 0) {
+    let token = tokens[0]
+    log(`Extracted token "${token}" from "${tokenJSONpath}"`)
+    return {
+      Authorization: `Bearer ${token}`
+    }
+  } else {
+    log(`Warning: could not extract OAuth token from context at ` +
+      `"${tokenJSONpath}"`)
+    return {}
   }
 }
 

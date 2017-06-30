@@ -333,6 +333,25 @@
 					"$ref": "#/components/parameters/GloablQuery"
 				}
 			]
+		},
+		"/secure": {
+			"get": {
+				"operationId": "getSecure",
+				"description": "Used to test OAuth token being present in header.",
+				"responses": {
+					"200": {
+						"description": "Secure message.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "string",
+									"description": "A secure message."
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	},
 	"components": {
