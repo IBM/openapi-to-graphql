@@ -65,82 +65,39 @@ const getObjectType = ({
 
   // determine the type of the schema:
   let type = Oas3Tools.getSchemaType(schema)
+
+  // CASE: No known type
   if (!type) {
-    throw new Error(`Schema has no/wrong type: ${JSON.stringify(schema)}`)
-  }
+    log(`Warning: skipped creation of (Input) Object Type "${name}", which ` +
+      `has no valid schema.`)
+    return null
 
   // CASE: object - create ObjectType:
-  if (type === 'object' &&
-    typeof schema.properties !== 'undefined' &&
-    Object.keys(schema.properties).length > 0) {
-    if (!isMutation) {
-      if (name in data.objectTypes) {
-        return data.objectTypes[name]
-      } else {
-        // ensure name in OT is sanitized:
-        let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
-        data.objectTypes[name] = new GraphQLObjectType({
-          name: saneName,
-          description: schema.description, // might be undefined
-          fields: () => {
-            return createFields({
-              schemaName: name,
-              schema,
-              data,
-              links,
-              oas,
-              iteration,
-              isMutation
-            })
-          }
-        })
-        return data.objectTypes[name]
-      }
-    } else {
-      if (name in data.inputObjectTypes) {
-        return data.inputObjectTypes[name]
-      } else {
-        // ensure name in OT is sanitized:
-        let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
-        data.inputObjectTypes[name] = new GraphQLInputObjectType({
-          name: saneName,
-          description: schema.description, // might be undefined
-          fields: () => {
-            return createFields({
-              schemaName: name,
-              schema,
-              data,
-              links,
-              oas,
-              iteration,
-              isMutation
-            })
-          }
-        })
-        return data.inputObjectTypes[name]
-      }
-    }
+  } else if (type === 'object') {
+    return reuseOrCreateOt({
+      name,
+      schema,
+      data,
+      links,
+      oas,
+      iteration,
+      isMutation
+    })
 
   // CASE: enum:
   } else if (type === 'enum') {
-    let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
     return reuseOrCreateEnum({
-      name: saneName,
+      name,
       data,
       enumList: schema.enum
     })
-  // CASE: object without properties:
-  } else if (type === 'object' &&
-    (typeof schema.properties === 'undefined' ||
-      Object.keys(schema.properties).length === 0)) {
-    log(`Warning: skipped creation of (Input) Object Type "${name}", which ` +
-      `has no properties.`)
-    return null
+
   // CASE: ARRAY - create ArrayType:
   } else if (type === 'array') {
     // minimal error-checking:
     if (!('items' in schema)) {
-      throw new Error(`Items property missing in array schema definition`)
+      throw new Error(`Items property missing in array schema definition of ` +
+        `${name}`)
     }
 
     // if items are referenced, try to reuse or store schema:
@@ -206,22 +163,24 @@ const reuseOrCreateEnum = ({
   data,
   enumList
 }) => {
-  if (name in data.objectTypes) {
-    log(`reuse  GraphQLEnumType "${name}"`)
-    return data.objectTypes[name]
+  let saneName = Oas3Tools.beautify(name)
+
+  if (saneName in data.objectTypes) {
+    log(`reuse  GraphQLEnumType "${saneName}"`)
+    return data.objectTypes[saneName]
   } else {
-    log(`create GraphQLEnumType "${name}"`)
+    log(`create GraphQLEnumType "${saneName}"`)
     let values = {}
     enumList.forEach(e => {
       values[Oas3Tools.beautify(e)] = {
         value: e
       }
     })
-    data.objectTypes[name] = new GraphQLEnumType({
-      name,
+    data.objectTypes[saneName] = new GraphQLEnumType({
+      name: saneName,
       values
     })
-    return data.objectTypes[name]
+    return data.objectTypes[saneName]
   }
 }
 
@@ -236,11 +195,11 @@ const reuseOrCreateEnum = ({
  * @param  {number} options.iteration   Integer count of recursions used to
  * create this schema
  * @param  {boolean} options.isMutation Whether to create an Input Object Type
- * @return {object}                     GraphQLObjectType | GraphQLInputObjectType |
- * GraphQLList | Scalar GraphQL type
+ * @return {GraphQLObjectType|GraphQLInputObjectType}
  */
 const reuseOrCreateOt = ({
   name,
+  schema,
   data,
   links,
   oas,
@@ -249,36 +208,63 @@ const reuseOrCreateOt = ({
 }) => {
   if (!isMutation) {
     if (name in data.objectTypes) {
+      log(`reuse  Object Type "${name}"`)
       return data.objectTypes[name]
     } else {
-      let itemsType = getObjectType({
-        name: name,
-        schema: data.objectTypeDefs[name],
-        data,
-        links,
-        oas,
-        iteration: iteration + 1,
-        isMutation
+      log(`create Object Type "${name}"`)
+      // ensure name in OT is sanitized:
+      let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
+      // fetch schema, if not passed:
+      if (typeof schema === 'undefined') {
+        schema = data.objectTypeDefs[name]
+      }
+      data.objectTypes[name] = new GraphQLObjectType({
+        name: saneName,
+        description: schema.description, // might be undefined
+        fields: () => {
+          return createFields({
+            schemaName: name,
+            schema,
+            data,
+            links,
+            oas,
+            iteration,
+            isMutation
+          })
+        }
       })
-      data.objectTypes[name] = itemsType
-      return itemsType
+      return data.objectTypes[name]
     }
   } else {
-    let inputName = name + 'Input'
-    if (inputName in data.inputObjectTypes) {
-      return data.inputObjectTypes[inputName]
+    // append 'Input', if needed:
+    if (!/Input$/.test(name)) name += 'Input'
+    if (name in data.inputObjectTypes) {
+      log(`reuse  Input Object Type "${name}"`)
+      return data.inputObjectTypes[name]
     } else {
-      let itemsType = getObjectType({
-        name: inputName,
-        schema: data.inputObjectTypeDefs[inputName],
-        data,
-        links,
-        oas,
-        iteration: iteration + 1,
-        isMutation
+      log(`create Input Object Type "${name}"`)
+      // ensure name in OT is sanitized:
+      let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
+      // fetch schema, if not passed:
+      if (typeof schema === 'undefined') {
+        schema = data.inputObjectTypeDefs[name]
+      }
+      data.inputObjectTypes[name] = new GraphQLInputObjectType({
+        name: saneName,
+        description: schema.description, // might be undefined
+        fields: () => {
+          return createFields({
+            schemaName: name,
+            schema,
+            data,
+            links,
+            oas,
+            iteration,
+            isMutation
+          })
+        }
       })
-      data.inputObjectTypes[inputName] = itemsType
-      return itemsType
+      return data.inputObjectTypes[name]
     }
   }
 }

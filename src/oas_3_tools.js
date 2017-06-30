@@ -190,18 +190,33 @@ const instantiatePathAndGetQuery = (path, parameters, args) => {
  * @return {string}        Type of the JSON-schema
  */
 const getSchemaType = (schema) => {
+  // CASE: enum
   if (Array.isArray(schema.enum)) {
     return 'enum'
   }
-  if (typeof schema.type === 'string') {
-    return schema.type
+
+  // CASE: object
+  if (schema.type === 'object') {
+    if (typeof schema.properties === 'undefined' ||
+      Object.keys(schema.properties).length === 0) {
+      return null
+    }
+    return 'object'
   }
   if ('properties' in schema) {
     return 'object'
   }
+
+  // CASE: array
   if ('items' in schema) {
     return 'array'
   }
+
+  // CASE: a type is present
+  if (typeof schema.type === 'string') {
+    return schema.type
+  }
+
   return null
 }
 
