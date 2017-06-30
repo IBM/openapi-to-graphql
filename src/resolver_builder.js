@@ -136,7 +136,8 @@ const createOAuthHeader = (data, ctx) => {
     let token = tokens[0]
     log(`Extracted token "${token}" from "${tokenJSONpath}"`)
     return {
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
+      'User-Agent': 'oasgraph'
     }
   } else {
     log(`Warning: could not extract OAuth token from context at ` +

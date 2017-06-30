@@ -79,7 +79,8 @@ const resolveRef = (ref, obj, parts) => {
  */
 const getBaseUrl = (oas) => {
   // TODO: fix this...
-  return oas.servers[0].url
+  let url = oas.servers[0].url
+  return url.replace(/\/$/, '')
 }
 
 /**
