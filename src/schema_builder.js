@@ -8,7 +8,8 @@ const {
   GraphQLBoolean,
   GraphQLNonNull,
   GraphQLList,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
+  GraphQLEnumType
 } = require('graphql')
 const Oas3Tools = require('./oas_3_tools.js')
 const ResolverBuilder = require('./resolver_builder.js')
@@ -58,7 +59,8 @@ const getObjectType = ({
 
   // some error checking:
   if (!schema || typeof schema !== 'object') {
-    throw new Error(`Invalid schema for ${name} provided of type ${typeof schema}`)
+    throw new Error(`Invalid schema for ${name} provided of type ` +
+      `${typeof schema}`)
   }
 
   // determine the type of the schema:
@@ -119,6 +121,14 @@ const getObjectType = ({
       }
     }
 
+  // CASE: enum:
+  } else if (type === 'enum') {
+    let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
+    return reuseOrCreateEnum({
+      name: saneName,
+      data,
+      enumList: schema.enum
+    })
   // CASE: object without properties:
   } else if (type === 'object' &&
     (typeof schema.properties === 'undefined' ||
@@ -180,6 +190,38 @@ const getObjectType = ({
   // CASE: scalar
   } else {
     return getScalarType(type)
+  }
+}
+
+/**
+ * Returns an existing Enum Type or creates a new one, and stores it in data.
+ *
+ * @param  {String} options.name     Name of the enum type
+ * @param  {Object} options.data     Data produced by preprocessing
+ * @param  {Array}  options.enumList List of enum entries
+ * @return {GraphQLEnumType}
+ */
+const reuseOrCreateEnum = ({
+  name,
+  data,
+  enumList
+}) => {
+  if (name in data.objectTypes) {
+    log(`reuse  GraphQLEnumType "${name}"`)
+    return data.objectTypes[name]
+  } else {
+    log(`create GraphQLEnumType "${name}"`)
+    let values = {}
+    enumList.forEach(e => {
+      values[Oas3Tools.beautify(e)] = {
+        value: e
+      }
+    })
+    data.objectTypes[name] = new GraphQLEnumType({
+      name,
+      values
+    })
+    return data.objectTypes[name]
   }
 }
 

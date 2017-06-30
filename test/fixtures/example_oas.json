@@ -358,6 +358,9 @@
 						"items": {
 							"type": "string"
 						}
+					},
+					"status": {
+						"enum": ["staff", "contractor", "alumni"]
 					}
 				},
 				"required": ["name", "address", "employerId", "hobbies"]

@@ -27,14 +27,15 @@ beforeAll(() => {
     })
 })
 
-test('Get resource', () => {
+test('Get resource (incl. enum)', () => {
   let query = `{
     user (username: "erik") {
       name
+      status
     }
   }`
   return graphql(schema, query).then(result => {
-    expect(result).toEqual({data: {user: {name: 'Erik Wittern'}}})
+    expect(result).toEqual({data: {user: {name: 'Erik Wittern', status: 'staff'}}})
   })
 })
 

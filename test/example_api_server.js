@@ -14,7 +14,8 @@ const Users = {
       city: 'New York City'
     },
     employerId: 'ibm',
-    hobbies: ['lion dancing', 'doing CEO stuff']
+    hobbies: ['lion dancing', 'doing CEO stuff'],
+    status: 'staff'
   },
   jim: {
     name: 'Jim Laredo',
@@ -23,7 +24,8 @@ const Users = {
       city: 'Katonah'
     },
     employerId: 'ibm',
-    hobbies: ['lion dancing', 'baseball']
+    hobbies: ['lion dancing', 'baseball'],
+    status: 'staff'
   },
   ginni: {
     name: 'Ginni Rometti',
@@ -32,7 +34,8 @@ const Users = {
       city: 'Armonk'
     },
     employerId: 'ibm',
-    hobbies: ['chess', 'tennis']
+    hobbies: ['chess', 'tennis'],
+    status: 'staff'
   },
   bill: {
     name: 'Bill Gates',
@@ -41,7 +44,8 @@ const Users = {
       city: 'Redmond'
     },
     employerId: 'microsoft',
-    hobbies: ['making money', 'making more money']
+    hobbies: ['making money', 'making more money'],
+    status: 'alumni'
   }
 }
 
