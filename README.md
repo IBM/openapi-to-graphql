@@ -92,7 +92,9 @@ The following options can be set:
 
 * `qs` (type: `object`, default: `{}`): Query parameters to be sent in every request. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OASGraph.
 
-* `viewer` (type: `boolean`, default: `true`): The viewer object types (i.e. QueryViewer and MutationViewer) are artificial constructs that allow a user to pass authentication credentials to OASGraph. Unfortunately, they are bulky and do not provide an accurate representation of the API. Depending on the API, it may be possible to send all your credentials through the header option, so if you would like to authenticate without the OASGraph-generated viewer object types, you can set the viewer option to false. 
+* `viewer` (type: `boolean`, default: `true`): The viewer object types (i.e. QueryViewer and MutationViewer) are artificial constructs that allow a user to pass authentication credentials to OASGraph. Unfortunately, they are bulky and do not provide an accurate representation of the API. Depending on the API, it may be possible to send all your credentials through the header option, so if you would like to authenticate without the OASGraph-generated viewer object types, you can set the viewer option to false.
+
+* `tokenJSONpath` (type: `string`, default: `""`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](https://github.ibm.com/apiharmony/oasgraph#authorization).
 
 For example:
 
@@ -109,7 +111,7 @@ OASGraph.createGraphQLSchema(oas, {
 
 
 ## Authentication
-Per default, OASGraph will wrap API requests that need authentication in corresponding `viewers`, which allow to pass required credentials. OASGraph currently supports viewers for API keys and basic authentication. For example, a query using an API key viewer is:
+Per default, OASGraph will wrap API requests that need authentication in corresponding `viewers`, which allow the user to pass required credentials. OASGraph currently supports viewers for basic authentication and API keys. For example, a query using an API key viewer is:
 
 ```javascript
 {
@@ -119,17 +121,17 @@ Per default, OASGraph will wrap API requests that need authentication in corresp
 }
 ```
 
-OASGraph uses dedicated viewers for mutations. For example, a mutation using an basic authentication viewer is:
+OASGraph uses dedicated viewers for mutations. For example, a mutation using a basic authentication viewer is:
 
 ```javascript
 mutation {
-  mutationViewerHttp (username: "user", password: "secret") {
+  mutationViewerBasic (username: "user", password: "secret") {
     ...  // mutate authenticated data here
   }
 }
 ```
 
-OASGraph further provides an `anyAuth` viewers (for queries and mutations), which allow to simultaneously provide information for multiple authentication mechanisms. AnyAuth viewers allow OASGraph to resolve nested queries and mutations that encompass API requests with different authentication mechanisms. For example, consider the following query:
+OASGraph further provides `anyAuth` viewers (for queries and mutations), which allow the user to simultaneously provide information for multiple authentication mechanisms. AnyAuth viewers allow OASGraph to resolve nested queries and mutations that encompass API requests with different authentication mechanisms. For example, consider the following query:
 
 ```javascript
 {
@@ -150,6 +152,12 @@ OASGraph further provides an `anyAuth` viewers (for queries and mutations), whic
 }
 ```
 
+## Authorization
+OASGraph now supports OAuth 2.0!
+
+Because OASGraph is a library, it cannot make the callbacks that OAuth requires by itself. Instead, the user must take care of the callback. After the user has obtained the OAuth token from the callback, simply pass the token, specifically the path of the token, to OASGraph through the `tokenJSONpath` [option](https://github.ibm.com/apiharmony/oasgraph#options).
+
+To see an example of how this would work, click [here](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)!
 
 ## Testing
 To test OASGraph, first make sure the example API server is running:
