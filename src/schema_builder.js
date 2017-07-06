@@ -131,7 +131,7 @@ const reuseOrCreateList = ({
       `${name}`)
   }
 
-  let def = Preprocessor.createOrReuseDataDef(schema, {fromRef: name}, data)
+  let def = Preprocessor.createOrReuseDataDef(schema, {fromRef: `${name}List`}, data)
 
   // try to reuse existing (Input) Object Type
   if (!isMutation && typeof def.ot !== 'undefined') {
@@ -147,7 +147,7 @@ const reuseOrCreateList = ({
 
   // determine itemsType:
   let itemsSchema = schema.items
-  let itemsName = 'ArrayItem'
+  let itemsName = `${name}ListItem`
   if ('$ref' in itemsSchema) {
     itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
     itemsName = schema.items['$ref'].split('/').pop()

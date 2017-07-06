@@ -131,7 +131,7 @@ const createOrReuseDataDef = (schema, names, data) => {
   }
 
   // ...else, lets define names, store the def, and return it:
-  let name = getSchemaName(names, schema, data)
+  let name = getSchemaName(names, data)
 
   let def = {
     schema,
@@ -265,7 +265,7 @@ const getSecuritySchemes = (oas) => {
  * @param  {Object} data        Result of preprocessing
  * @return {String}             Determined name for the schema
  */
-const getSchemaName = (names, schema, data) => {
+const getSchemaName = (names, data) => {
   if (typeof names === 'undefined') {
     throw new Error(`Cannot create data definition without name(s).`)
   }
@@ -305,11 +305,6 @@ const getSchemaName = (names, schema, data) => {
       appendix++
     }
     schemaName = `${tempName}${appendix}`
-  }
-
-  // if schema is of type Array, append 'List'
-  if (Oas3Tools.getSchemaType(schema) === 'array') {
-    schemaName += 'List'
   }
 
   // store beautification of name:
