@@ -299,14 +299,14 @@ const getReqContentType = (endpoint) => {
  */
 const getReqSchemaAndNames = (path, method, oas) => {
   let endpoint = oas.paths[path][method]
-  let reqSchemaRequired = false
+  let reqRequired = false
   let reqSchemaNames = {}
   let contentType = getReqContentType(endpoint)
 
   if (contentType) {
     let reqSchema = endpoint.requestBody.content[contentType].schema
     if (typeof endpoint.requestBody.required === 'boolean') {
-      reqSchemaRequired = endpoint.requestBody.required
+      reqRequired = endpoint.requestBody.required
     }
     reqSchemaNames.fromPath = beautify(inferResourceNameFromPath(path))
 
@@ -321,7 +321,7 @@ const getReqSchemaAndNames = (path, method, oas) => {
     return {
       reqSchema,
       reqSchemaNames,
-      reqSchemaRequired
+      reqRequired
     }
   }
   return {}

@@ -98,9 +98,9 @@ const getViewerAnyAuthOT = (data, viewerQueryFields, oas, name) => {
   let args = {}
 
   for (let protocolName in data.security) {
-    args[protocolName] = { type: SchemaBuilder.getObjectType({
+    args[protocolName] = { type: SchemaBuilder.getGraphQLType({
       name: protocolName,
-      schema: data.inputObjectTypeDefs[protocolName],
+      schema: data.security[protocolName].schema,
       data,
       oas,
       isMutation: true

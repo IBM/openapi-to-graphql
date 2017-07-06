@@ -13,6 +13,7 @@ const {
 } = require('graphql')
 const Oas3Tools = require('./oas_3_tools.js')
 const ResolverBuilder = require('./resolver_builder.js')
+const Preprocessor = require('./preprocessor.js')
 const log = require('debug')('translation')
 
 /**
@@ -43,7 +44,8 @@ const log = require('debug')('translation')
  * @return {object}                 GraphQLObjectType | GraphQLInputObjectType |
  * GraphQLList | Scalar GraphQL type
  */
-const getObjectType = ({
+// TODO: rename to getGraphQLType ???
+const getGraphQLType = ({
   name,
   schema,
   data,
@@ -55,6 +57,11 @@ const getObjectType = ({
   // avoid excessive iterations:
   if (iteration === 20) {
     throw new Error(`Too many iterations when creating schema ${name}`)
+  }
+
+  // no valid schema name:
+  if (!name || typeof name !== 'string') {
+    throw new Error(`Invalid schema name provided.`)
   }
 
   // some error checking:
@@ -94,60 +101,131 @@ const getObjectType = ({
 
   // CASE: ARRAY - create ArrayType:
   } else if (type === 'array') {
-    // minimal error-checking:
-    if (!('items' in schema)) {
-      throw new Error(`Items property missing in array schema definition of ` +
-        `${name}`)
-    }
-
-    // if items are referenced, try to reuse or store schema:
-    if ('$ref' in schema.items) {
-      let itemsName = schema.items['$ref'].split('/').pop()
-
-      let itemsOt = reuseOrCreateOt({
-        name: itemsName,
-        data,
-        links,
-        oas,
-        iteration,
-        isMutation
-      })
-      return new GraphQLList(itemsOt)
-    } else {
-      // determine name of items:
-      let itemsName = 'ArrayItems'
-
-      if ('title' in schema.items) {
-        itemsName = schema.items.title
-      }
-
-      // determine the type of the items in the array:
-      let itemsType = Oas3Tools.getSchemaType(schema.items)
-      if (!itemsType) {
-        throw new Error(`Type property missing in items schema for "${name}"`)
-      }
-
-      if (itemsType === 'object' || itemsType === 'array') {
-        let type = getObjectType({
-          name: itemsName,
-          schema: schema.items, // schema not referenced, can't do better here
-          data,
-          links,
-          oas,
-          iteration: iteration + 1,
-          isMutation
-        })
-        return new GraphQLList(type)
-      } else {
-        let type = getScalarType(itemsType)
-        return new GraphQLList(type)
-      }
-    }
-
+    return reuseOrCreateList({
+      name,
+      data,
+      schema,
+      links,
+      oas,
+      iteration,
+      isMutation
+    })
   // CASE: scalar
   } else {
     return getScalarType(type)
   }
+}
+
+const reuseOrCreateList = ({
+  name,
+  data,
+  schema,
+  links,
+  oas,
+  iteration,
+  isMutation
+}) => {
+  // minimal error-checking:
+  if (!('items' in schema)) {
+    throw new Error(`Items property missing in array schema definition of ` +
+      `${name}`)
+  }
+
+  let def = Preprocessor.createOrReuseDataDef(schema, {fromRef: name}, data)
+
+  // try to reuse existing (Input) Object Type
+  if (!isMutation && typeof def.ot !== 'undefined') {
+    log(`reuse  GraphQLList "${def.otName}"`)
+    return def.ot
+  } else if (isMutation && typeof def.iot !== 'undefined') {
+    log(`reuse  GraphQLList "${def.iotName}"`)
+    return def.iot
+  }
+
+  // create new (Input) Object Type
+  log(`create GraphQLList "${def.otName}"`)
+
+  // determine itemsType:
+  let itemsSchema = schema.items
+  let itemsName = 'ArrayItem'
+  if ('$ref' in itemsSchema) {
+    itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
+    itemsName = schema.items['$ref'].split('/').pop()
+  }
+
+  let itemsType = getGraphQLType({
+    name: itemsName,
+    schema: itemsSchema,
+    data,
+    links,
+    oas,
+    iteration: iteration + 1,
+    isMutation
+  })
+
+  let listObjectType = new GraphQLList(itemsType)
+
+  // store newly created List (Input) Object Type:
+  if (!isMutation) {
+    def.ot = listObjectType
+  } else {
+    def.iot = listObjectType
+  }
+
+  return listObjectType
+
+  // // if items are referenced, try to reuse or store schema:
+  // if ('$ref' in schema.items) {
+  //   let itemsName = schema.items['$ref'].split('/').pop()
+
+  //   let itemsOt = reuseOrCreateOt({
+  //     name: itemsName,
+  //     schema: schema.items,
+  //     data,
+  //     links,
+  //     oas,
+  //     iteration,
+  //     isMutation
+  //   })
+  //   listObjectType = new GraphQLList(itemsOt)
+  // } else {
+  //   // determine name of items:
+  //   let itemsName = 'ArrayItems'
+
+  //   if ('title' in schema.items) {
+  //     itemsName = schema.items.title
+  //   }
+
+  //   // determine the type of the items in the array:
+  //   let itemsType = Oas3Tools.getSchemaType(schema.items)
+  //   if (!itemsType) {
+  //     throw new Error(`Type property missing in items schema for "${name}"`)
+  //   }
+
+  //   if (itemsType === 'object' || itemsType === 'array') {
+  //     let type = getGraphQLType({
+  //       name: itemsName,
+  //       schema: schema.items, // schema not referenced, can't do better here
+  //       data,
+  //       links,
+  //       oas,
+  //       iteration: iteration + 1,
+  //       isMutation
+  //     })
+  //     listObjectType = new GraphQLList(type)
+  //   } else {
+  //     let type = getScalarType(itemsType)
+  //     listObjectType = new GraphQLList(type)
+  //   }
+  // }
+
+  // if (!isMutation) {
+  //   def.ot = listObjectType
+  // } else {
+  //   def.iot = listObjectType
+  // }
+
+  // return listObjectType
 }
 
 /**
@@ -163,24 +241,24 @@ const reuseOrCreateEnum = ({
   data,
   enumList
 }) => {
-  let saneName = Oas3Tools.beautify(name)
+  let def = Preprocessor.createOrReuseDataDef(enumList, {fromRef: name}, data)
 
-  if (saneName in data.objectTypes) {
-    log(`reuse  GraphQLEnumType "${saneName}"`)
-    return data.objectTypes[saneName]
+  if (typeof def.ot !== 'undefined') {
+    log(`reuse  GraphQLEnumType "${def.otName}"`)
+    return def.ot
   } else {
-    log(`create GraphQLEnumType "${saneName}"`)
+    log(`create GraphQLEnumType "${def.otName}"`)
     let values = {}
     enumList.forEach(e => {
       values[Oas3Tools.beautify(e)] = {
         value: e
       }
     })
-    data.objectTypes[saneName] = new GraphQLEnumType({
-      name: saneName,
+    def.ot = new GraphQLEnumType({
+      name: def.otName,
       values
     })
-    return data.objectTypes[saneName]
+    return def.ot
   }
 }
 
@@ -203,23 +281,27 @@ const reuseOrCreateOt = ({
   data,
   links,
   oas,
-  iteration,
+  iteration = 0,
   isMutation
 }) => {
+  // some validation:
+  if (typeof schema === 'undefined') {
+    throw new Error(`no schema passed to reuseOrCreateOt for name ${name}`)
+  }
+
+  // fetch or create data definition:
+  let def = Preprocessor.createOrReuseDataDef(schema, {fromRef: name}, data)
+
+  // CASE: query - create or reuse OT
   if (!isMutation) {
-    if (name in data.objectTypes) {
-      log(`reuse  Object Type "${name}"`)
-      return data.objectTypes[name]
+    if (typeof def.ot !== 'undefined') {
+      log(`reuse  Object Type "${def.otName}"`)
+      return def.ot
     } else {
-      log(`create Object Type "${name}"`)
-      // ensure name in OT is sanitized:
-      let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
-      // fetch schema, if not passed:
-      if (typeof schema === 'undefined') {
-        schema = data.objectTypeDefs[name]
-      }
-      data.objectTypes[name] = new GraphQLObjectType({
-        name: saneName,
+      log(`create Object Type "${def.otName}"`)
+
+      def.ot = new GraphQLObjectType({
+        name: def.otName,
         description: schema.description, // might be undefined
         fields: () => {
           return createFields({
@@ -233,24 +315,17 @@ const reuseOrCreateOt = ({
           })
         }
       })
-      return data.objectTypes[name]
+      return def.ot
     }
+  // CASE: mutation - create or reuse IOT
   } else {
-    // append 'Input', if needed:
-    if (!/Input$/.test(name)) name += 'Input'
-    if (name in data.inputObjectTypes) {
-      log(`reuse  Input Object Type "${name}"`)
-      return data.inputObjectTypes[name]
+    if (typeof def.iot !== 'undefined') {
+      log(`reuse  Input Object Type "${def.iotName}"`)
+      return def.iot
     } else {
-      log(`create Input Object Type "${name}"`)
-      // ensure name in OT is sanitized:
-      let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
-      // fetch schema, if not passed:
-      if (typeof schema === 'undefined') {
-        schema = data.inputObjectTypeDefs[name]
-      }
-      data.inputObjectTypes[name] = new GraphQLInputObjectType({
-        name: saneName,
+      log(`create Input Object Type "${def.iotName}"`)
+      def.iot = new GraphQLInputObjectType({
+        name: def.iotName,
         description: schema.description, // might be undefined
         fields: () => {
           return createFields({
@@ -264,7 +339,7 @@ const reuseOrCreateOt = ({
           })
         }
       })
-      return data.inputObjectTypes[name]
+      return def.iot
     }
   }
 }
@@ -290,6 +365,11 @@ const createFields = ({
 }) => {
   let fields = {}
 
+  // resolve $ref:
+  if ('$ref' in schema) {
+    schema = Oas3Tools.resolveRef(schema['$ref'], oas)
+  }
+
   /**
    * Create fields for properties
    */
@@ -307,6 +387,7 @@ const createFields = ({
       schemaName = schema.properties[propName]['$ref'].split('/').pop()
       objectType = reuseOrCreateOt({
         name: schemaName,
+        schema: schema.properties[propName],
         data,
         links,
         oas,
@@ -319,15 +400,7 @@ const createFields = ({
     } else {
       let propSchema = schema.properties[propName]
 
-      // TODO: we have to be careful not to assign an already existing name to the
-      // property's Object Type...
-      if (schemaName in data.objectTypeDefs ||
-        schemaName in data.inputObjectTypeDefs) {
-        log(`Warning: creating Object Type for property with colluding
-          name ${schemaName}`)
-      }
-
-      objectType = getObjectType({
+      objectType = getGraphQLType({
         name: schemaName,
         schema: propSchema,
         data,
@@ -396,7 +469,9 @@ const createFields = ({
       })
 
       // get response object type:
-      let resObjectType = data.objectTypes[linkedOp.resSchemaName]
+      // (We just use the reference here. The OT will be built up some other
+      // time.)
+      let resObjectType = linkedOp.resDef.ot
 
       // finally, add the object type to the fields (using sanitized field name):
       let saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap)
@@ -417,6 +492,7 @@ const createFields = ({
  * Type.
  *
  * @param  {array}  options.parameters    List of OAS parameters
+ * @param  {Object} options.reqSchema     JSON schema of request
  * @param  {string} options.reqSchemaName Name of request payload schema
  * @param  {boolean}options.reqSchemaRequired Whether the request schema is
  * required
@@ -427,8 +503,9 @@ const createFields = ({
  */
 const getArgs = ({
   parameters,
+  reqSchema,
   reqSchemaName,
-  reqSchemaRequired = false,
+  reqRequired = false,
   oas,
   data
 }) => {
@@ -477,25 +554,20 @@ const getArgs = ({
 
   // handle reqBodySchema:
   if (typeof reqSchemaName === 'string') {
-    let reqObjectType
-    if (reqSchemaName in data.inputObjectTypes) {
-      reqObjectType = data.inputObjectTypes[reqSchemaName]
-    } else {
-      reqObjectType = getObjectType({
-        name: reqSchemaName,
-        schema: data.inputObjectTypeDefs[reqSchemaName],
-        data,
-        oas,
-        isMutation: true
-      })
-    }
+    let reqObjectType = getGraphQLType({
+      name: reqSchemaName,
+      schema: reqSchema,
+      data,
+      oas,
+      isMutation: true
+    })
 
     if (reqObjectType) {
       // sanitize the argument name
       let saneName = Oas3Tools.beautify(reqSchemaName)
       args[saneName] = {
-        type: reqSchemaRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
-        description: data.inputObjectTypeDefs[reqSchemaName].description // might be undefined
+        type: reqRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
+        description: reqSchema.description // might be undefined
       }
     }
   }
@@ -525,6 +597,6 @@ const getScalarType = (type) => {
 }
 
 module.exports = {
-  getObjectType,
+  getGraphQLType,
   getArgs
 }

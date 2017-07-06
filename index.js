@@ -77,10 +77,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer, tokenJSONpath}) =>
      * Result of preprocessing OAS:
      *
      * {
-     *  objectTypeDefs      // key: schemaName, val: JSON schema
-     *  objectTypes         // key: schemaName, val: GraphQLObjectType
-     *  inputObjectTypeDefs // key: schemaName, val: JSON schema
-     *  inputObjectTypes    // key: schemaName, val: GraphQLInputObjectType
+     *  dataDefs            // list of data definitions (schema, names, ot, iot)
      *  saneMap             // key: sanitized value, val: raw value
      *  security            // key: schemaName, val: JSON schema
      *  operations {
@@ -285,9 +282,8 @@ const loadFields = (
 
   // determine whether the operation is a query or a mutation
   if (operation.method.toLowerCase() === 'get') {
-    let saneName = Oas3Tools.beautifyAndStore(
-      operation.resSchemaName,
-      data.saneMap)
+    // use name of the response data schema as field name:
+    let name = operation.resDef.otName
 
     // determine if the query is authenticated
     if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
@@ -296,15 +292,23 @@ const loadFields = (
           if (typeof viewerFields[protocolName] !== 'object') {
             viewerFields[protocolName] = {}
           }
-          viewerFields[protocolName][saneName] = field
+          // avoid overwriting fields that return the same data:
+          if (name in viewerFields[protocolName]) {
+            name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+          }
+          viewerFields[protocolName][name] = field
         }
       }
     } else {
-      rootQueryFields[saneName] = field
+      // avoid overwriting fields that return the same data:
+      if (name in rootQueryFields) {
+        name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+      }
+      rootQueryFields[name] = field
     }
   } else {
-    // Use operationId instead of operation.resSchemaName to avoid problems
-    // differentiating between post, put, patch, and delete the same object
+    // use operationId to avoid problems differentiating between post, put,
+    // patch, and delete of the same object
     let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
 
     // determine if the query is authenticated
@@ -332,39 +336,39 @@ const loadFields = (
  * @return {object}           Field object
  */
 const getFieldForOperation = (operation, data, oas) => {
-  // determine type:
-  let type = data.objectTypes[operation.resSchemaName]
-  if (typeof type === 'undefined') {
-    type = SchemaBuilder.getObjectType({
-      name: operation.resSchemaName,
-      schema: data.objectTypeDefs[operation.resSchemaName],
-      data: data,
-      links: operation.links,
-      oas
-    })
-  }
+  // create OT if needed:
+  let type = SchemaBuilder.getGraphQLType({
+    name: operation.resDef.otName,
+    schema: operation.resDef.schema,
+    data,
+    links: operation.links,
+    oas
+  })
 
   // determine resolve function:
+  let reqSchemaName = (operation.reqDef ? operation.reqDef.iotName : null)
+  let reqSchema = (operation.reqDef ? operation.reqDef.schema : null)
   let resolve = ResolverBuilder.getResolver({
     operation,
     oas,
-    payloadName: operation.reqSchemaName,
+    payloadName: reqSchemaName,
     data
   })
 
   // determine args:
   let args = SchemaBuilder.getArgs({
     parameters: operation.parameters,
-    reqSchemaName: operation.reqSchemaName,
+    reqSchemaName: reqSchemaName,
+    reqSchema,
     oas,
     data,
-    reqSchemaRequired: operation.reqSchemaRequired
+    reqRequired: operation.reqRequired
   })
 
   return {
-    type: type,
-    resolve: resolve,
-    args: args
+    type,
+    resolve,
+    args
   }
 }
 

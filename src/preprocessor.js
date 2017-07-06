@@ -5,102 +5,18 @@ const deepEqual = require('deep-equal')
 const log = require('debug')('preprocessing')
 
 const preprocessOas = (oas) => {
-  let result = {
-    objectTypeDefs: {},
-    objectTypes: {},
-    inputObjectTypeDefs: {},
-    inputObjectTypes: {},
+  let data = {
+    // stores (Input) Object Type names already used
+    usedOTNames: [],
+    // stores objects with unique JSON schema, names object, Object Type, and
+    // Input Object Type
+    defs: [],
     operations: {},
     saneMap: {},
+    // stores, per protocol, the schema (= JSON schema for the Input Object
+    // Type), rawName (of the protocol), def (= the OAS definition), and
+    // parameters
     security: {}
-  }
-
-  /**
-   * Keep track of all schema definitions in the OAS components section. These
-   * can be reused later on.
-   */
-  for (let schemaName in oas.components.schemas) {
-    let schemaDef = oas.components.schemas[schemaName]
-    result.objectTypeDefs[schemaName] = schemaDef
-
-    // request schema names get "Input" ending to avoid collision with
-    // response schema names:
-    let reqSchemaName = schemaName + 'Input'
-    result.inputObjectTypeDefs[reqSchemaName] = schemaDef
-  }
-
-  // Create input object types for the different security protocols for
-  // viewerAnyAuth and mutationViewerAnyAuth
-  for (let protocolName in oas.components.securitySchemes) {
-    let protocol = oas.components.securitySchemes[protocolName]
-    let schema
-    switch (protocol.type) {
-      case ('apiKey'):
-        schema = {
-          type: 'object',
-          description: `API key credentials for the protocol '${protocolName}'`,
-          properties: {
-            apiKey: {
-              type: 'string'
-            }
-          }
-        }
-        break
-
-      case ('http'):
-        switch (protocol.scheme) {
-          case ('basic'):
-            schema = {
-              type: 'object',
-              description: `Basic auth credentials for the protocol '${protocolName}'`,
-              properties: {
-                username: {
-                  type: 'string'
-                },
-                password: {
-                  type: 'string'
-                }
-              }
-            }
-            break
-
-          default:
-            let error = new Error(`HTTP protocol '${protocol.scheme}' is not currently supported`)
-            console.error(error)
-            throw error
-        }
-        break
-
-      case ('oauth2'):
-        schema = {
-          type: 'object',
-          description: `OAuth2 credentials for the protocol '${protocolName}'`,
-          properties: {
-            test: {
-              type: 'string'
-            }
-          }
-        }
-        break
-
-      case ('openIdConnect'):
-        schema = {
-          type: 'object',
-          description: `OpenID Connect credentials for the protocol '${protocolName}'`,
-          properties: {
-            test: {
-              type: 'string'
-            }
-          }
-        }
-        break
-
-      default:
-        let error = new Error('Invalid security protocol')
-        console.error(error)
-        throw error
-    }
-    result.inputObjectTypeDefs[Oas3Tools.beautify(protocolName)] = schema
   }
 
   /**
@@ -132,74 +48,24 @@ const preprocessOas = (oas) => {
       /**
        * Request schema
        */
-      let reqSchemaName
-      let {reqSchema, reqSchemaNames, reqSchemaRequired} = Oas3Tools.getReqSchemaAndNames(
+      let {reqSchema, reqSchemaNames, reqRequired} = Oas3Tools.getReqSchemaAndNames(
         path, method, oas)
 
-      if (reqSchema && typeof reqSchema === 'object') {
-        // determine name of this schema, if we already know it:
-        reqSchemaName = getMatchingSchemaName(
-          reqSchema, result.inputObjectTypeDefs)
-
-        // if the schema does not yet exist, store it:
-        if (!reqSchemaName) {
-          let forbiddenNames = Object.keys(result.inputObjectTypeDefs)
-          reqSchemaName = getSchemaName(reqSchemaNames, forbiddenNames, operationId)
-
-          // request schema names get "Input" ending to avoid collision with
-          // response schema names:
-          reqSchemaName = reqSchemaName + 'Input'
-
-          // estimated reqSchemaName may still collide with other schema name:
-          while (reqSchemaName in result.inputObjectTypeDefs) {
-            reqSchemaName += Math.floor(Math.random() * 10)
-          }
-
-          result.inputObjectTypeDefs[reqSchemaName] = reqSchema
-        }
-      }
+      let reqDef = createOrReuseDataDef(reqSchema, reqSchemaNames, data)
 
       /**
        * Response schema
        */
-      let resSchemaName
       let {resSchema, resSchemaNames} = Oas3Tools.getResSchemaAndNames(
         path, method, '200', oas) // TODO: fix - be smarter than 200 here
 
-      if (resSchema && typeof resSchema === 'object') {
-        // determine name of this schema, if we already know it:
-        resSchemaName = getMatchingSchemaName(
-          resSchema, result.objectTypeDefs)
-
-        // if another get operation already produces this schema, we use the
-        // operationId here to support both operations
-        if (method.toLowerCase() === 'get') {
-          for (let opId in result.operations) {
-            if (result.operations[opId].resSchemaName === resSchemaName &&
-              result.operations[opId].method.toLowerCase() === 'get') {
-              resSchemaName = operationId
-              result.objectTypeDefs[resSchemaName] = resSchema
-            }
-          }
-        }
-
-        // if the schema does not yet exist, store it:
-        if (!resSchemaName) {
-          let forbiddenNames = Object.keys(result.objectTypeDefs)
-          resSchemaName = getSchemaName(resSchemaNames, forbiddenNames, operationId)
-
-          // estimated reqSchemaName may still collide with other schema name:
-          while (resSchemaName in result.objectTypeDefs) {
-            resSchemaName += Math.floor(Math.random() * 10)
-          }
-
-          result.objectTypeDefs[resSchemaName] = resSchema
-        }
-      } else {
+      if (!resSchema || typeof resSchema !== 'object') {
         log(`Warning: "${method.toUpperCase()} ${path}" has no valid ` +
           `response schema. Ignore operation.`)
         continue
       }
+
+      let resDef = createOrReuseDataDef(resSchema, resSchemaNames, data)
 
       /**
        * Links
@@ -217,12 +83,12 @@ const preprocessOas = (oas) => {
       let securityProtocols = Oas3Tools.getSecurityProtocols(path, method, oas)
 
       // store determined information for operation:
-      result.operations[operationId] = {
+      data.operations[operationId] = {
         path,
         method: method.toLowerCase(),
-        reqSchemaName,
-        reqSchemaRequired,
-        resSchemaName,
+        reqDef,
+        reqRequired,
+        resDef,
         links,
         parameters,
         securityProtocols,
@@ -234,9 +100,47 @@ const preprocessOas = (oas) => {
   /**
    * Security schemas
    */
-  result.security = getSecuritySchemes(oas)
+  data.security = getSecuritySchemes(oas)
 
-  return result
+  return data
+}
+
+/**
+ * Method to either create a new or reuse an existing, centrally stored data
+ * definition. Data definitions are objects that hold a schema (= JSON schema),
+ * an otName (= String to use as the name for Object Types), and an iotName
+ * (= String to use as the name for Input Object Types). Eventually, data
+ * definitions also hold an ot (= the Object Type for the schema) and an iot
+ * (= the Input Object Type for the schema).
+ *
+ * @param  {[type]} schema [description]
+ * @param  {[type]} names  [description]
+ * @param  {[type]} data   [description]
+ * @return {[type]}        [description]
+ */
+const createOrReuseDataDef = (schema, names, data) => {
+  // don't do anything without a valid schema:
+  if (typeof schema === 'undefined') {
+    return null
+  }
+
+  // determine index of possibly existing data definition:
+  let index = getSchemaIndex(data.defs, schema)
+  if (index !== -1) {
+    return data.defs[index]
+  }
+
+  // ...else, lets define names, store the def, and return it:
+  let name = getSchemaName(names, schema, data)
+
+  let def = {
+    schema,
+    otName: name,
+    iotName: name + 'Input'
+  }
+  data.defs.push(def)
+
+  return def
 }
 
 /**
@@ -269,12 +173,22 @@ const getSecuritySchemes = (oas) => {
 
   for (let protocolName in oas.components.securitySchemes) {
     let protocol = oas.components.securitySchemes[protocolName]
+    let schema
     // determine parameters for scheme:
     let parameters = {}
     switch (protocol.type) {
       case ('apiKey'):
         parameters = {
           apiKey: Oas3Tools.beautify(`${protocolName}_apiKey`)
+        }
+        schema = {
+          type: 'object',
+          description: `API key credentials for the protocol '${protocolName}'`,
+          properties: {
+            apiKey: {
+              type: 'string'
+            }
+          }
         }
         break
 
@@ -285,6 +199,18 @@ const getSecuritySchemes = (oas) => {
               username: Oas3Tools.beautify(`${protocolName}_username`),
               password: Oas3Tools.beautify(`${protocolName}_password`)
             }
+            schema = {
+              type: 'object',
+              description: `Basic auth credentials for the protocol '${protocolName}'`,
+              properties: {
+                username: {
+                  type: 'string'
+                },
+                password: {
+                  type: 'string'
+                }
+              }
+            }
             break
           default:
             throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
@@ -292,9 +218,29 @@ const getSecuritySchemes = (oas) => {
         break
 
       case ('oauth2'):
+        // TODO: revise this - OAuth actually does not need a viewer
+        schema = {
+          type: 'object',
+          description: `OAuth credentials for the protocol '${protocolName}'`,
+          properties: {
+            test: {
+              type: 'string'
+            }
+          }
+        }
         break
 
       case ('openIdConnect'):
+        // TODO: revise this when implementing OpenIdConnect
+        schema = {
+          type: 'object',
+          description: `OpenID Connect credentials for the protocol '${protocolName}'`,
+          properties: {
+            test: {
+              type: 'string'
+            }
+          }
+        }
         break
 
       default:
@@ -305,50 +251,94 @@ const getSecuritySchemes = (oas) => {
     security[Oas3Tools.beautify(protocolName)] = {
       rawName: protocolName,
       def: protocol,
-      parameters
+      parameters,
+      schema
     }
   }
   return security
 }
 
 /**
- * Checks if the given schema matches any schema defined in the given object and
- * returns the key of that schema.
+ * Determines name to use for schema from previously determined schemaNames.
  *
- * @param  {object} schema     JSON schema
- * @param  {object} schemaDict Dictionary of JSON schemas
- * @return {string}            Key of matching schema in schemaDict, or null
+ * @param  {Object} names       Contains fromRef, fromSchema, fromPath
+ * @param  {Object} data        Result of preprocessing
+ * @return {String}             Determined name for the schema
  */
-const getMatchingSchemaName = (schema, schemaDict) => {
-  for (let key in schemaDict) {
-    if (deepEqual(schemaDict[key], schema)) return key
+const getSchemaName = (names, schema, data) => {
+  if (typeof names === 'undefined') {
+    throw new Error(`Cannot create data definition without name(s).`)
   }
-  return null
+
+  let schemaName
+
+  // CASE: name from reference
+  if (typeof names.fromRef === 'string') {
+    let saneName = Oas3Tools.beautify(names.fromRef)
+    if (!data.usedOTNames.includes(saneName)) {
+      schemaName = names.fromRef
+    }
+  }
+
+  // CASE: name from schema (i.e., "title" property in schema)
+  if (!schemaName && typeof names.fromSchema === 'string') {
+    let saneName = Oas3Tools.beautify(names.fromSchema)
+    if (!data.usedOTNames.includes(saneName)) {
+      schemaName = names.fromSchema
+    }
+  }
+
+  // CASE: name from path
+  if (!schemaName && typeof names.fromPath === 'string') {
+    let saneName = Oas3Tools.beautify(names.fromPath)
+    if (!data.usedOTNames.includes(saneName)) {
+      schemaName = names.fromPath
+    }
+  }
+
+  // CASE: create approximate name
+  if (!schemaName) {
+    let tempName = typeof names.fromRef === 'string' ? names.fromRef : (
+      typeof names.fromSchema === 'string' ? names.fromSchema : names.fromPath)
+    let appendix = 2
+    while (data.usedOTNames.includes(`${tempName}${appendix}`)) {
+      appendix++
+    }
+    schemaName = `${tempName}${appendix}`
+  }
+
+  // if schema is of type Array, append 'List'
+  if (Oas3Tools.getSchemaType(schema) === 'array') {
+    schemaName += 'List'
+  }
+
+  // store beautification of name:
+  let saneName = Oas3Tools.beautifyAndStore(schemaName, data.saneMap)
+
+  // remember this name was used:
+  data.usedOTNames.push(saneName)
+
+  return saneName
 }
 
 /**
- * Determines name to use for schema from previously determined schemaNames.
+ * Determines the index of the data definition object that contains the same
+ * schema as the given one.
  *
- * @param  {object} schemaNames Contains fromRef, fromSchema, fromPath
- * @param  {array} usedNames    List of names that cannot be chosen
- * @param  {string} operationId The operationId, used as backup name
- * @return {string}             Determined name for the schema
+ * @param  {Array} dataDefs  List of data definition objects
+ * @param  {Object} schema   JSON schema
+ * @return {Number}          Index of the data definition object, or -1
  */
-const getSchemaName = (schemaNames, usedNames, operationId) => {
-  if (typeof schemaNames.fromRef === 'string' &&
-    !usedNames.includes(schemaNames.fromRef)) {
-    return schemaNames.fromRef
-  } else if (typeof schemaNames.fromSchema === 'string' &&
-    !usedNames.includes(schemaNames.fromSchema)) {
-    return schemaNames.fromRef
-  } else if (typeof schemaNames.fromPath === 'string' &&
-    !usedNames.includes(schemaNames.fromPath)) {
-    return schemaNames.fromPath
-  } else {
-    return operationId
+const getSchemaIndex = (dataDefs, schema) => {
+  for (let i in dataDefs) {
+    if (deepEqual(dataDefs[i].schema, schema)) {
+      return i
+    }
   }
+  return -1
 }
 
 module.exports = {
-  preprocessOas
+  preprocessOas,
+  createOrReuseDataDef
 }
