@@ -592,7 +592,7 @@ const getScalarType = (type) => {
     case 'boolean':
       return GraphQLBoolean
     default:
-      return null
+      return GraphQLString
   }
 }
 

@@ -298,8 +298,8 @@ const getSchemaName = (names, schema, data) => {
 
   // CASE: create approximate name
   if (!schemaName) {
-    let tempName = typeof names.fromRef === 'string' ? names.fromRef : (
-      typeof names.fromSchema === 'string' ? names.fromSchema : names.fromPath)
+    let tempName = Oas3Tools.beautify(typeof names.fromRef === 'string' ? names.fromRef : (
+      typeof names.fromSchema === 'string' ? names.fromSchema : names.fromPath))
     let appendix = 2
     while (data.usedOTNames.includes(`${tempName}${appendix}`)) {
       appendix++
