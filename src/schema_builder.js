@@ -17,34 +17,19 @@ const Preprocessor = require('./preprocessor.js')
 const log = require('debug')('translation')
 
 /**
- * Creates a GraphQL (Input) Object Type for the given JSON schema.
+ * Creates a GraphQL (Input) Type for the given JSON schema.
  *
- * Nested example: https://gist.github.com/xpepermint/7376b8c67caa926e19d2
- *
- * A returned GraphQLObjectType has the following internal structure:
- *
- *   new GraphQLObjectType({
- *     name        // optional name of the type
- *     description // optional description of type
- *     fields      // REQUIRED thunk returning fields
- *       type      // REQUIRED definition of the field type
- *       args      // optional definition of types
- *       resolve   // optional function defining how to obtain this type
- *   })
- *
- * @param  {string}  options.name   Name of the (Input) Object Type to create
- * @param  {object}  options.schema JSON schema of the (Input) Object Type to
- * create
- * @param  {obejct}  options.data   Data produced by preprocessing
- * @param  {object}  options.links  Links belonging to (Input) Object Type
- * @param  {object}  oas            OpenAPI Specification 3.0
- * @param  {Number}  iteration      Integer count of recursions used to create
- * this schema
- * @param  {Boolean} isMutation     Whether to create an Input Object Type
- * @return {object}                 GraphQLObjectType | GraphQLInputObjectType |
+ * @param  {String}  options.name   Name of the type to create (ignored for
+ * scalar types)
+ * @param  {object}  options.schema JSON schema
+ * @param  {Object}  options.data   Data produced by preprocessing
+ * @param  {Object}  options.links  Links belonging to (Input) Type
+ * @param  {Object}  oas            OpenAPI Specification 3.0
+ * @param  {Number}  iteration      Count of recursions used to create type
+ * @param  {Boolean} isMutation     Whether to create an Input Type
+ * @return {Object}                 GraphQLObjectType | GraphQLInputObjectType |
  * GraphQLList | Scalar GraphQL type
  */
-// TODO: rename to getGraphQLType ???
 const getGraphQLType = ({
   name,
   schema,
@@ -61,13 +46,13 @@ const getGraphQLType = ({
 
   // no valid schema name:
   if (!name || typeof name !== 'string') {
-    throw new Error(`Invalid schema name provided.`)
+    throw new Error(`Invalid schema name provided`)
   }
 
   // some error checking:
   if (!schema || typeof schema !== 'object') {
     throw new Error(`Invalid schema for ${name} provided of type ` +
-      `${typeof schema}`)
+      `"${typeof schema}"`)
   }
 
   // determine the type of the schema:
@@ -75,8 +60,8 @@ const getGraphQLType = ({
 
   // CASE: No known type
   if (!type) {
-    log(`Warning: skipped creation of (Input) Object Type "${name}", which ` +
-      `has no valid schema.`)
+    log(`Warning: skipped creation of (Input) Type "${name}", which has no ` +
+      `valid schema type`)
     return null
 
   // CASE: object - create ObjectType:
@@ -110,12 +95,25 @@ const getGraphQLType = ({
       iteration,
       isMutation
     })
+
   // CASE: scalar
   } else {
     return getScalarType(type)
   }
 }
 
+/**
+ * Returns an existing List Type or creates a new one, and stores it in data.
+ *
+ * @param  {String} options.name        Name of the list type
+ * @param  {Object} options.data        Data produced by preprocessing
+ * @param  {Object} options.schema      JSON schema describing list
+ * @param  {Object} options.links       Links belonging to (Input) Type
+ * @param  {Object} options.oas         OpenAPI Specification 3.0
+ * @param  {Number} options.iteration   Count of recursions used to create type
+ * @param  {Boolean} options.isMutation Whether to create an Input Type
+ * @return {GraphQLList}
+ */
 const reuseOrCreateList = ({
   name,
   data,
@@ -173,59 +171,6 @@ const reuseOrCreateList = ({
   }
 
   return listObjectType
-
-  // // if items are referenced, try to reuse or store schema:
-  // if ('$ref' in schema.items) {
-  //   let itemsName = schema.items['$ref'].split('/').pop()
-
-  //   let itemsOt = reuseOrCreateOt({
-  //     name: itemsName,
-  //     schema: schema.items,
-  //     data,
-  //     links,
-  //     oas,
-  //     iteration,
-  //     isMutation
-  //   })
-  //   listObjectType = new GraphQLList(itemsOt)
-  // } else {
-  //   // determine name of items:
-  //   let itemsName = 'ArrayItems'
-
-  //   if ('title' in schema.items) {
-  //     itemsName = schema.items.title
-  //   }
-
-  //   // determine the type of the items in the array:
-  //   let itemsType = Oas3Tools.getSchemaType(schema.items)
-  //   if (!itemsType) {
-  //     throw new Error(`Type property missing in items schema for "${name}"`)
-  //   }
-
-  //   if (itemsType === 'object' || itemsType === 'array') {
-  //     let type = getGraphQLType({
-  //       name: itemsName,
-  //       schema: schema.items, // schema not referenced, can't do better here
-  //       data,
-  //       links,
-  //       oas,
-  //       iteration: iteration + 1,
-  //       isMutation
-  //     })
-  //     listObjectType = new GraphQLList(type)
-  //   } else {
-  //     let type = getScalarType(itemsType)
-  //     listObjectType = new GraphQLList(type)
-  //   }
-  // }
-
-  // if (!isMutation) {
-  //   def.ot = listObjectType
-  // } else {
-  //   def.iot = listObjectType
-  // }
-
-  // return listObjectType
 }
 
 /**
@@ -265,14 +210,24 @@ const reuseOrCreateEnum = ({
 /**
  * Returns an existing (Input) Object Type or creates a new one, and stores it
  * in data.
+ * A returned GraphQLObjectType has the following internal structure:
  *
- * @param  {string} options.name        Name of the schema
- * @param  {object} options.data        Data produced by preprocessing
- * @param  {object} options.links       Links belonging to (Input) Object Type
- * @param  {object} options.oas         OpenAPI Specification 3.0
- * @param  {number} options.iteration   Integer count of recursions used to
+ *   new GraphQLObjectType({
+ *     name        // optional name of the type
+ *     description // optional description of type
+ *     fields      // REQUIRED thunk returning fields
+ *       type      // REQUIRED definition of the field type
+ *       args      // optional definition of types
+ *       resolve   // optional function defining how to obtain this type
+ *   })
+ *
+ * @param  {String} options.name        Name of the schema
+ * @param  {Object} options.data        Data produced by preprocessing
+ * @param  {Object} options.links       Links belonging to (Input) Object Type
+ * @param  {Object} options.oas         OpenAPI Specification 3.0
+ * @param  {Number} options.iteration   Integer count of recursions used to
  * create this schema
- * @param  {boolean} options.isMutation Whether to create an Input Object Type
+ * @param  {Boolean} options.isMutation Whether to create an Input Object Type
  * @return {GraphQLObjectType|GraphQLInputObjectType}
  */
 const reuseOrCreateOt = ({
@@ -347,13 +302,13 @@ const reuseOrCreateOt = ({
 /**
  * Creates the fields object to be used by an ObjectType.
  *
- * @param  {object} options.schema      JSON schema to create fields for
- * @param  {object} options.links       Links belonging to (Input) Object Type
- * @param  {object} options.data        Data produced by preprocessing
- * @param  {object} options.oas         OpenAPI Specification 3.0
- * @param  {number} options.iteration
- * @param  {boolean} options.isMutation
- * @return {object}                     Object containing fields
+ * @param  {Object} options.schema      JSON schema to create fields for
+ * @param  {Object} options.links       Links belonging to (Input) Object Type
+ * @param  {Object} options.data        Data produced by preprocessing
+ * @param  {Object} options.oas         OpenAPI Specification 3.0
+ * @param  {Number} options.iteration
+ * @param  {Boolean} options.isMutation
+ * @return {Object}                     Object containing fields
  */
 const createFields = ({
   schema,
@@ -480,13 +435,13 @@ const createFields = ({
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
  * Type.
  *
- * @param  {array}  options.parameters    List of OAS parameters
+ * @param  {Array}  options.parameters    List of OAS parameters
  * @param  {Object} options.reqSchema     JSON schema of request
- * @param  {string} options.reqSchemaName Name of request payload schema
- * @param  {boolean}options.reqSchemaRequired Whether the request schema is
+ * @param  {String} options.reqSchemaName Name of request payload schema
+ * @param  {Boolean}options.reqSchemaRequired Whether the request schema is
  * required
- * @param  {object} options.oas
- * @param  {object} options.data
+ * @param  {Object} options.oas
+ * @param  {Object} options.data
  * @return {Object}                       Key: name of argument, value: object
  * stating the parameter type
  */
@@ -567,8 +522,8 @@ const getArgs = ({
 /**
  * Returns the scalar GraphQL type matching the given JSON schema type.
  *
- * @param  {string} type Scalar JSON schema type
- * @return {string}      Scalar GraphQL type
+ * @param  {String} type Scalar JSON schema type
+ * @return {String}      Scalar GraphQL type
  */
 const getScalarType = (type) => {
   switch (type) {
