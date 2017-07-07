@@ -8,7 +8,7 @@
     "api": "nodemon test/example_api_server.js",
     "dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
     "guru-load": "node test/apis_guru/load_apis_guru.js",
-    "guru-test": "node test/apis_guru/apis_guru_test.js"
+    "guru-test": "DEBUG=preprocessing,translation node test/apis_guru/apis_guru_test.js"
   },
   "author": "Erik Wittern",
   "license": "MIT",

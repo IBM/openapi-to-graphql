@@ -61,7 +61,7 @@ const getGraphQLType = ({
   // CASE: No known type
   if (!type) {
     log(`Warning: skipped creation of (Input) Type "${name}", which has no ` +
-      `valid schema type`)
+      `valid schema type. Schema: ${JSON.stringify(schema)}`)
     return null
 
   // CASE: object - create ObjectType:
