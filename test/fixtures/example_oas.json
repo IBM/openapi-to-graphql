@@ -53,7 +53,7 @@
 					"required": true
 				},
 				"responses": {
-					"200": {
+					"201": {
 						"description": "The posted user.",
 						"content": {
 							"application/json": {
@@ -144,7 +144,7 @@
 					"required": true
 				},
 				"responses": {
-					"200": {
+					"201": {
 						"description": "A product.",
 						"content": {
 							"application/json": {
@@ -286,7 +286,7 @@
 					"required": true
 				},
 				"responses": {
-					"200": {
+					"201": {
 						"description": "A product.",
 						"content": {
 							"application/json": {

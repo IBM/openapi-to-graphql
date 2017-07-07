@@ -189,7 +189,7 @@ app.post('/api/users', (req, res) => {
     })
   } else {
     Users[user.name] = user
-    res.send(user)
+    res.status(201).send(user)
   }
 })
 
@@ -215,7 +215,7 @@ app.post('/api/products', (req, res) => {
       message: 'wrong data'
     })
   } else {
-    res.send(product)
+    res.status(201).send(product)
   }
 })
 
@@ -276,7 +276,7 @@ app.post('/api/projects', authMiddleware, (req, res) => {
       message: 'wrong data'
     })
   } else {
-    res.send(project)
+    res.status(201).send(project)
   }
 })
 

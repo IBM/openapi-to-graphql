@@ -14,6 +14,7 @@ const log = require('debug')('translation')
  */
 const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
 const JSON_CONTENT_TYPES = ['application/json', '*/*']
+const SUCCESS_STATUS_RX = /2[0-9]{2}/
 
 const getValidOAS3 = (spec) => {
   return new Promise((resolve, reject) => {
@@ -308,11 +309,10 @@ const getResContentType = (endpoint, statusCode) => {
 }
 
 /**
- * Returns JSON-compatible content-type required by the given endpoint and given
- * HTTP status code - or null, if no JSON-compatible content-type exists.
+ * Returns JSON-compatible content-type required by the given endpoint - or
+ * null, if no JSON-compatible content-type exists.
  *
  * @param  {object} endpoint   OAS endpoint
- * @param  {string} statusCode An HTTP status code
  * @return {string|null}       JSON-producing content type
  */
 const getReqContentType = (endpoint) => {
@@ -375,13 +375,13 @@ const getReqSchemaAndNames = (path, method, oas) => {
  *
  * @param  {string} path
  * @param  {string} method
- * @param  {string} statusCode
  * @param  {object} oas
  * @return {object}
  */
-const getResSchemaAndNames = (path, method, statusCode, oas) => {
+const getResSchemaAndNames = (path, method, oas) => {
   let endpoint = oas.paths[path][method]
   let resSchemaNames = {}
+  let statusCode = getResStatusCode(path, method, oas)
   let contentType = getResContentType(endpoint, statusCode)
 
   if (contentType) {
@@ -410,6 +410,33 @@ const getResSchemaAndNames = (path, method, statusCode, oas) => {
 }
 
 /**
+ * Returns the success status code for the operation at the given path and
+ * method (or null).
+ * @param  {String} path
+ * @param  {String} method
+ * @param  {Object} oas    OpenAPI Specification 3.0.x
+ * @return {String|null}
+ */
+const getResStatusCode = (path, method, oas) => {
+  let endpoint = oas.paths[path][method]
+
+  if (typeof endpoint.responses === 'object') {
+    let codes = Object.keys(endpoint.responses)
+    let successCodes = codes.filter(code => {
+      return SUCCESS_STATUS_RX.test(code)
+    })
+    if (successCodes.length === 1) {
+      return successCodes[0]
+    } else if (successCodes.length > 1) {
+      log(`Warning: operation ${method.toUpperCase()} ${path} has more than ` +
+        `one success status code (200 - 299) - use ${successCodes[0]}`)
+      return successCodes[0]
+    }
+  }
+  return null
+}
+
+/**
  * Returns an object containing the links defined in the given endpoint.
  *
  * @param  {string} path
@@ -420,9 +447,10 @@ const getResSchemaAndNames = (path, method, statusCode, oas) => {
 const getEndpointLinks = (path, method, oas) => {
   let links = {}
   let endpoint = oas.paths[path][method]
-  if ('links' in endpoint.responses['200']) {
-    for (let linkKey in endpoint.responses['200'].links) {
-      let link = endpoint.responses['200'].links[linkKey]
+  let statusCode = getResStatusCode(path, method, oas)
+  if ('links' in endpoint.responses[statusCode]) {
+    for (let linkKey in endpoint.responses[statusCode].links) {
+      let link = endpoint.responses[statusCode].links[linkKey]
       if ('$ref' in link) {
         link = resolveRef(link['$ref'], oas)
       }

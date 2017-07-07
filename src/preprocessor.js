@@ -57,7 +57,7 @@ const preprocessOas = (oas) => {
        * Response schema
        */
       let {resSchema, resSchemaNames} = Oas3Tools.getResSchemaAndNames(
-        path, method, '200', oas) // TODO: fix - be smarter than 200 here
+        path, method, oas)
 
       if (!resSchema || typeof resSchema !== 'object') {
         log(`Warning: "${method.toUpperCase()} ${path}" has no valid ` +
