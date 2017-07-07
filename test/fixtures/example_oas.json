@@ -23,10 +23,20 @@
 		"name": "test",
 		"description": "Indicates this API is for testing"
 	}],
-	"servers": [{
-		"url": "http://localhost:3000/api",
-		"description": "The location of the local test server."
-	}],
+	"servers": [
+		{
+			"url": "http://localhost:{port}/{basePath}",
+			"description": "The location of the local test server.",
+			"variables": {
+				"port": {
+					"default": "3000"
+				},
+				"basePath": {
+					"default": "api"
+				}
+			}
+		}
+	],
 	"paths": {
 		"/users": {
 			"post": {
