@@ -183,7 +183,7 @@ npm run guru-load
 Then, run tests:
 
 ```bash
-npm run guru-test
+npm run guru-test <number of APIs to test at most>
 ```
 
 

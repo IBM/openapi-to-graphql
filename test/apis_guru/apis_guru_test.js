@@ -5,6 +5,8 @@ const Glob = require('glob')
 const fs = require('fs')
 const YAML = require('js-yaml')
 
+let limit = 0
+
 /**
  * Download all OAS from APIs.guru.
  *
@@ -24,7 +26,7 @@ const loadOas = () => {
 
       OASList.push(oas)
     })
-    resolve(OASList.slice(0, 3))
+    resolve(OASList.slice(0, limit))
   })
 }
 
@@ -34,11 +36,12 @@ const loadOas = () => {
 const checkOas = (OASList) => {
   let results = {
     successes: 0,
-    errors: 0
+    errors: 0,
+    errorAPIs: []
   };
   (async () => {
     for (let oas of OASList) {
-      console.log(`\n\nProcess ${oas.info.title}...`)
+      console.log(`\n\nProcess "${oas.info.title}"...`)
       console.log(` (${oas['x-file-path']})\n`)
       await OasGraph.createGraphQlSchema(oas)
         .then(schema => {
@@ -47,11 +50,16 @@ const checkOas = (OASList) => {
         })
         .catch(e => {
           console.error(e)
+          results.errorAPIs.push(`${oas.info.title} (${oas['x-file-path']})`)
           results.errors++
         })
     }
 
-    console.log(JSON.stringify(results, null, 2))
+    // print results:
+    console.log(`Failed APIs:`)
+    console.log(JSON.stringify(results.errorAPIs, null, 2))
+    console.log(`Successes: ${results.successes}`)
+    console.log(`Errors:    ${results.errors}`)
   })()
 }
 
@@ -80,6 +88,16 @@ const isValidOAS = (oas) => {
     typeof oas.info.description === 'string' &&
     typeof oas.swagger === 'string' &&
     oas.swagger === '2.0'
+}
+
+// determine maximum number of OAS to test:
+try {
+  limit = Number(process.argv[2])
+  if (isNaN(limit)) throw new Error(`Not a number`)
+} catch (e) {
+  console.error(`Error: Please provide maximum number of APIs to check. ` +
+    `For example:\n\n     npm run guru-test 10\n`)
+  process.exit()
 }
 
 // go go go:
