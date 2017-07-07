@@ -26,7 +26,7 @@ const getResolver = ({
   payloadName,
   data
 }) => {
-  // determine the base URL:
+  // determine the appropriate URL:
   let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
   // return resolve function:
