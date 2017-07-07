@@ -88,7 +88,7 @@ const getBaseUrl = (oas, operation) => {
       logHttp(`Warning: randomly selected first server ${url}`)
     }
 
-    return url
+    return url.replace(/\/$/, '')
   }
 
   if (typeof oas.servers === 'object' && Object.keys(oas.servers).length > 0) {
@@ -98,7 +98,7 @@ const getBaseUrl = (oas, operation) => {
       logHttp(`Warning: randomly selected first server ${url}`)
     }
 
-    return url
+    return url.replace(/\/$/, '')
   }
 
   throw new Error('Cannot find a server to call')
