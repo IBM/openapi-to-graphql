@@ -374,49 +374,37 @@ const createFields = ({
    * Create fields for properties
    */
   for (let propName in schema.properties) {
-    let objectType // holds the object type to for this prop
+    let propSchema = schema.properties[propName]
     let schemaName = propName // name of schema for this prop's field
 
     // determine if this property is required in mutations:
-    let requiredMutationProp = (isMutation &&
+    let reqMutationProp = (isMutation &&
       ('required' in schema) &&
       schema.required.includes(propName))
 
     // if properties are referenced, try to reuse schemas:
-    if ('$ref' in schema.properties[propName]) {
-      schemaName = schema.properties[propName]['$ref'].split('/').pop()
-      objectType = reuseOrCreateOt({
-        name: schemaName,
-        schema: schema.properties[propName],
-        data,
-        links,
-        oas,
-        iteration,
-        isMutation
-      })
-    // if no reference was found, we create the schema:
-    // NOTE: we do not try to reuse a schema based on the propName here, because
-    // the propName could collide with a schema name.
-    } else {
-      let propSchema = schema.properties[propName]
-
-      objectType = getGraphQLType({
-        name: schemaName,
-        schema: propSchema,
-        data,
-        links,
-        oas,
-        iteration: iteration + 1,
-        isMutation
-      })
+    if ('$ref' in propSchema) {
+      schemaName = propSchema['$ref'].split('/').pop()
+      propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas)
     }
+
+    // get object type describing the property:
+    let objectType = getGraphQLType({
+      name: schemaName,
+      schema: propSchema,
+      data,
+      links,
+      oas,
+      iteration: iteration + 1,
+      isMutation
+    })
 
     // finally, add the object type to the fields (using sanitized field name):
     if (objectType) {
       let sanePropName = Oas3Tools.beautifyAndStore(propName, data.saneMap)
       fields[sanePropName] = {
-        type: requiredMutationProp ? new GraphQLNonNull(objectType) : objectType,
-        description: schema.properties[propName].description // might be undefined
+        type: reqMutationProp ? new GraphQLNonNull(objectType) : objectType,
+        description: propSchema.description // might be undefined
       }
     }
   }
@@ -430,7 +418,8 @@ const createFields = ({
       let linkedOpId
       // TODO: href is yet another alternative to operationRef and operationId
       // if ('operationRef' in links[linkKey]) {
-      //   operationId = Oas3Tools.resolveRef(links[linkKey].operationRef, oas).operationId
+      //   operationId = Oas3Tools.resolveRef(links[linkKey].operationRef, oas)
+      //   .operationId
       // } else if ('operationId' in links[linkKey]) {
       if ('operationId' in links[linkKey]) {
         linkedOpId = links[linkKey].operationId
@@ -443,8 +432,8 @@ const createFields = ({
       // determine parameters provided via link:
       let linkParameters = links[linkKey].parameters
       let argsFromLink = {}
-      for (let linkParamKey in linkParameters) {
-        argsFromLink[linkParamKey] = linkParameters[linkParamKey].split('body#/')[1]
+      for (let paramKey in linkParameters) {
+        argsFromLink[paramKey] = linkParameters[paramKey].split('body#/')[1]
       }
 
       // remove argsFromLinks from operation parameters:
