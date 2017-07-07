@@ -280,13 +280,16 @@ const loadFields = (
     return
   }
 
-  // determine whether the operation is a query or a mutation
+  // determine if the operation is authenticated
+  let isAuthenticated = Object.keys(operation.securityProtocols).length > 0 &&
+    data.options.viewer
+
+  // CASE: query
   if (operation.method.toLowerCase() === 'get') {
     // use name of the response data schema as field name:
     let name = operation.resDef.otName
 
-    // determine if the query is authenticated
-    if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+    if (isAuthenticated) {
       for (let protocolIndex in operation.securityProtocols) {
         for (let protocolName in operation.securityProtocols[protocolIndex]) {
           if (typeof viewerFields[protocolName] !== 'object') {
@@ -306,13 +309,14 @@ const loadFields = (
       }
       rootQueryFields[name] = field
     }
+
+  // CASE: mutation
   } else {
     // use operationId to avoid problems differentiating between post, put,
     // patch, and delete of the same object
     let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
 
-    // determine if the query is authenticated
-    if (Object.keys(operation.securityProtocols).length > 0 && data.options.viewer !== false) {
+    if (isAuthenticated) {
       for (let protocolIndex in operation.securityProtocols) {
         for (let protocol in operation.securityProtocols[protocolIndex]) {
           if (typeof viewerMutationFields[protocol] !== 'object') {
