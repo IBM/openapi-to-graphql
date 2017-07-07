@@ -282,7 +282,7 @@ const loadFields = (
 
   // determine if the operation is authenticated
   let isAuthenticated = Object.keys(operation.securityProtocols).length > 0 &&
-    data.options.viewer
+    data.options.viewer !== false
 
   // CASE: query
   if (operation.method.toLowerCase() === 'get') {
