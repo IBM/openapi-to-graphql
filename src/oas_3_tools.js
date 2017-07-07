@@ -5,6 +5,7 @@ const deepEqual = require('deep-equal')
 const Swagger2OpenAPI = require('swagger2openapi')
 const OASValidator = require('swagger2openapi/validate.js')
 
+const logHttp = require('debug')('http')
 const logPre = require('debug')('preprocessing')
 const log = require('debug')('translation')
 
@@ -72,15 +73,55 @@ const resolveRef = (ref, obj, parts) => {
 }
 
 /**
- * Returns the base URL from the given OAS.
+ * Returns an appropriate url for a given OAS and operation.
  *
  * @param  {object} oas
- * @return {string}     Base URL
+ * @param  {object} operation
+ * @return {string}     URL
  */
-const getBaseUrl = (oas) => {
-  // TODO: fix this...
-  let url = oas.servers[0].url
-  return url.replace(/\/$/, '')
+const getBaseUrl = (oas, operation) => {
+  // check for local servers
+  if (typeof operation.servers === 'object' && Object.keys(operation.servers).length > 0) {
+    let url = buildUrl(operation.servers[0])
+
+    if (Object.keys(operation.servers).length > 1) {
+      logHttp(`Warning: randomly selected first server ${url}`)
+    }
+
+    return url
+  }
+
+  if (typeof oas.servers === 'object' && Object.keys(oas.servers).length > 0) {
+    let url = buildUrl(oas.servers[0])
+
+    if (Object.keys(oas.servers).length > 1) {
+      logHttp(`Warning: randomly selected first server ${url}`)
+    }
+
+    return url
+  }
+
+  throw new Error('Cannot find a server to call')
+}
+
+/**
+ * Returns the default URL for a given OAS server object
+ *
+ * @param  {object} server
+ * @return {string}     URL
+ */
+const buildUrl = (server) => {
+  let url = server.url
+  // necessary?
+  if (typeof server.variables === 'object' && Object.keys(server.variables).length > 0) {
+    for (let variableKey in server.variables) {
+      // check for default? Would be invalid OAS
+      // url = url.replace(`{${variableKey}}`, `${server.variables[variableKey].default}`)
+      url = url.replace(`{${variableKey}}`, server.variables[variableKey].default.toString())
+    }
+  }
+
+  return url
 }
 
 /**

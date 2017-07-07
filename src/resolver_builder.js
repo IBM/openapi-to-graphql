@@ -10,8 +10,7 @@ const jp = require('jsonpath')
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query.
  *
- * @param  {string} options.path         Path to invoke
- * @param  {string} options.method       Method to invoke
+ * @param  {object} options.operation    Corresponding operation
  * @param  {object} options.oas
  * @param  {object} options.argsFromLink Object containing the args for this
  * resolver provided through links
@@ -28,7 +27,7 @@ const getResolver = ({
   data
 }) => {
   // determine the base URL:
-  let baseUrl = Oas3Tools.getBaseUrl(oas)
+  let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
   // return resolve function:
   return (root, args, ctx) => {
