@@ -32,9 +32,6 @@ test('All query endpoints present', () => {
     ._typeMap
     .RootQueryType
     .getFields()
-    .viewerAnyAuth
-    .type
-    .getFields()
   ).length
   expect(gqlTypes).toEqual(oasGetCount)
 })
@@ -50,27 +47,22 @@ test('All mutation endpoints present', () => {
     ._typeMap
     .RootMutationType
     .getFields()
-    .mutationViewerAnyAuth
-    .type
-    .getFields()
   ).length
   expect(gqlTypes).toEqual(oasMutCount)
 })
 
 test('Get resource', () => {
   let query = `{
-    viewerAnyAuth {
-      AssessmentTypes (
-        ContentType: ""
-        AcceptLanguage: ""
-        UserAgent:""
-        ApiVersion:"1.1.0"
-        offset: "40"
-        limit: "test"
-      ) {
-        data {
-          assessmentTypeId
-        }
+    AssessmentTypes (
+      ContentType: ""
+      AcceptLanguage: ""
+      UserAgent:""
+      ApiVersion:"1.1.0"
+      offset: "40"
+      limit: "test"
+    ) {
+      data {
+        assessmentTypeId
       }
     }
   }`

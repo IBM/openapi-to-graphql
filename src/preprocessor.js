@@ -218,29 +218,9 @@ const getSecuritySchemes = (oas) => {
         break
 
       case ('oauth2'):
-        // TODO: revise this - OAuth actually does not need a viewer
-        schema = {
-          type: 'object',
-          description: `OAuth credentials for the protocol '${protocolName}'`,
-          properties: {
-            test: {
-              type: 'string'
-            }
-          }
-        }
         break
 
       case ('openIdConnect'):
-        // TODO: revise this when implementing OpenIdConnect
-        schema = {
-          type: 'object',
-          description: `OpenID Connect credentials for the protocol '${protocolName}'`,
-          properties: {
-            test: {
-              type: 'string'
-            }
-          }
-        }
         break
 
       default:
