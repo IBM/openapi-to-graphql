@@ -4,7 +4,7 @@ const Oas3Tools = require('./oas_3_tools.js')
 const deepEqual = require('deep-equal')
 const log = require('debug')('preprocessing')
 
-const preprocessOas = (oas) => {
+const preprocessOas = (oas, strict) => {
   let data = {
     // stores (Input) Object Type names already used
     usedOTNames: [],
@@ -100,7 +100,7 @@ const preprocessOas = (oas) => {
   /**
    * Security schemas
    */
-  data.security = getSecuritySchemes(oas)
+  data.security = getSecuritySchemes(oas, strict)
 
   return data
 }
@@ -168,7 +168,7 @@ const createOrReuseDataDef = (schema, names, data) => {
  * @param  {Object} oas OpenAPI Specification 3.0.x
  * @return {Object}     Extracted security definitions (see above)
  */
-const getSecuritySchemes = (oas) => {
+const getSecuritySchemes = (oas, strict) => {
   let security = {}
 
   for (let protocolName in oas.components.securitySchemes) {
@@ -213,7 +213,10 @@ const getSecuritySchemes = (oas) => {
             }
             break
           default:
-            throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+            if (strict) {
+              throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+            }
+            log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
         }
         break
 
@@ -224,7 +227,10 @@ const getSecuritySchemes = (oas) => {
         break
 
       default:
-        throw new Error(`Security definition ${protocolName} does not have a valid type`)
+        if (strict) {
+          throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+        }
+        log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
     }
 
     // add protocol data:

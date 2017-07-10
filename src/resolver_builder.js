@@ -177,22 +177,17 @@ const getAuthOptions = (operation, ctx, data) => {
   switch (security.def.type) {
     case 'apiKey':
       let apiKey = ctx.security[protocolName].apiKey
-      if (typeof apiKey === 'string') {
-        if ('in' in security.def) {
-          if (security.def.in === 'header') {
-            authHeaders[security.def.name] = apiKey
-          } else if (security.def.in === 'query') {
-            authQs[security.def.name] = apiKey
-          } else {
-            let error = new Error(`Cannot send apiKey in ${security.def.in}`)
-            console.error(error)
-            throw error
+      if ('in' in security.def) {
+        if (security.def.in === 'header') {
+          authHeaders[security.def.name] = apiKey
+        } else if (security.def.in === 'query') {
+          authQs[security.def.name] = apiKey
+        } else {
+          if (data.strict) {
+            throw new Error(`Cannot send apiKey in ${security.def.in}`)
           }
+          log(`Warning: cannot send apiKey in ${security.def.in}`)
         }
-      } else {
-        let error = new Error(`API key '${apiKey}' is not a String`)
-        console.error(error)
-        throw error
       }
       break
 
@@ -201,19 +196,14 @@ const getAuthOptions = (operation, ctx, data) => {
         case 'basic':
           let username = ctx.security[protocolName].username
           let password = ctx.security[protocolName].password
-          if (typeof username === 'string' && typeof password === 'string') {
-            authHeaders['Authorization'] = 'Basic ' + new Buffer(username + ':' + password).toString('base64')
-          } else {
-            let error = new Error(`Username '${username}' and password are not Strings`)
-            console.error(error)
-            throw error
-          }
+          authHeaders['Authorization'] = 'Basic ' + new Buffer(username + ':' + password).toString('base64')
           break
 
         default:
-          let error = new Error(`Cannot recognize http security scheme '${security.def.scheme}'`)
-          console.error(error)
-          throw error
+          if (data.options.strict) {
+            throw new Error(`Cannot recognize http security scheme '${security.def.scheme}'`)
+          }
+          log(`Warning: cannot recognize http security scheme '${security.def.scheme}'`)
       }
       break
 

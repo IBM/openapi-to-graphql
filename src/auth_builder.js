@@ -5,6 +5,7 @@ const {
 } = require('graphql')
 const SchemaBuilder = require('./schema_builder.js')
 const Oas3Tools = require('./oas_3_tools.js')
+const log = require('debug')('translation')
 
 /**
  * Checks if security is required in any operation
@@ -143,7 +144,10 @@ const createAndLoadViewer = (
           break
 
         default:
-          throw new Error(`Unsupported scheme ${data.security[protocolName].def.scheme} for HTTP authentication`)
+          if (data.options.strict) {
+            throw new Error(`Unsupported scheme ${data.security[protocolName].def.scheme} for HTTP authentication`)
+          }
+          log(`Unsupported scheme ${data.security[protocolName].def.scheme} for HTTP authentication`)
       }
     }
     let objectName = Oas3Tools.beautify(objectNames.objectPreface + typeName)
