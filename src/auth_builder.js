@@ -136,6 +136,16 @@ const createAndLoadViewer = (
     // Check if the name has already been
     // If so, create a new name and add it to the list, if not add it to the list too
     let typeName = data.security[protocolName].def.type
+    if (typeName === 'http') {
+      switch (data.security[protocolName].def.scheme) {
+        case 'basic':
+          typeName = 'BasicAuth'
+          break
+
+        default:
+          throw new Error(`Unsupported scheme ${data.security[protocolName].def.scheme} for HTTP authentication`)
+      }
+    }
     let objectName = Oas3Tools.beautify(objectNames.objectPreface + typeName)
     if (!(typeName in usedObjectNames)) {
       usedObjectNames[typeName] = []

@@ -5,9 +5,9 @@ const graphqlHTTP = require('express-graphql')
 const app = express()
 const OasGraph = require('../index.js')
 
-// let oas = require('./fixtures/example_oas.json')
+let oas = require('./fixtures/example_oas.json')
 // let oas = require('./fixtures/instagram.json')
-let oas = require('./fixtures/government_social_work_api.json')
+// let oas = require('./fixtures/government_social_work_api.json')
 
 OasGraph.createGraphQlSchema(oas)
   .then(schema => {
