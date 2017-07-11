@@ -88,6 +88,8 @@ OASGraph.createGraphQLSchema(oas, options)
 
 The following options can be set:
 
+* `strict` (type: `boolean`, default: `false`): OASGraph will try to interpret the provided OAS and may make some unintended changes in order to maximize usability and stability. If this option is set to false, OASGraph will not try to adjust the OAS. 
+
 * `headers` (type: `object`, default: `{}`): Headers to be sent in every request. Parameters defined in the OpenAPI Specification to set these headers will be ignored by OASGraph.
 
 * `qs` (type: `object`, default: `{}`): Query parameters to be sent in every request. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OASGraph.
