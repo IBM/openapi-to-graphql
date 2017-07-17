@@ -88,7 +88,7 @@ OASGraph.createGraphQLSchema(oas, options)
 
 The following options can be set:
 
-* `strict` (type: `boolean`, default: `false`): OASGraph will try to interpret the provided OAS and may make some unintended changes in order to maximize usability and stability. If this option is set to false, OASGraph will not try to adjust the OAS. 
+* `strict` (type: `boolean`, default: `false`): OASGraph generally tries to produce a working GraphQL interface for a given OAS. If OASGraph cannot fully translate a given OAS (e.g., because data schema definitions are incomplete or there are name collusions that cannot be resolved), OASGraph will per default degrade gracefully and produce a partly working GraphQL interface. OASGraph will log warnings (given logging is enabled). If OASGraph operates in `strict` mode, however, it will throw if it cannot create a GraphQL interface matching the given OAS perfectly.
 
 * `headers` (type: `object`, default: `{}`): Headers to be sent in every request. Parameters defined in the OpenAPI Specification to set these headers will be ignored by OASGraph.
 
@@ -96,18 +96,22 @@ The following options can be set:
 
 * `viewer` (type: `boolean`, default: `true`): The viewer object types (i.e. QueryViewer and MutationViewer) are artificial constructs that allow a user to pass authentication credentials to OASGraph. Unfortunately, they are bulky and do not provide an accurate representation of the API. Depending on the API, it may be possible to send all your credentials through the header option, so if you would like to authenticate without the OASGraph-generated viewer object types, you can set the viewer option to false.
 
-* `tokenJSONpath` (type: `string`, default: `""`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](https://github.ibm.com/apiharmony/oasgraph#authorization).
+* `tokenJSONpath` (type: `string`, default: `undefined`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](https://github.ibm.com/apiharmony/oasgraph#authorization).
 
-For example:
+* `addSubOperations` (type: `boolean`, default: `true`): When true, OASGraph will nest `GET` operations based on their path hierarchy in the given OAS. E.g., when the OAS contains two paths `/users/{id}` and `/users/{id}/friends`, OASGraph will make `friends` queryable from within `user`.
+
+Consider this example of passing options:
 
 ```javascript
 OASGraph.createGraphQLSchema(oas, {
   headers: {
     authorization: 'asfl3032lkj2' // send authorization header in every request
+    'x-origin': 'GraphQL' // send header to identify requests made via GraphQL
   },
   qs: {
     limit: 30 // send limit query string in every request
-  }
+  },
+  addSubOperations: false
 })
 ```
 

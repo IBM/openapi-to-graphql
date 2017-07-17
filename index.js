@@ -71,8 +71,25 @@ const createGraphQlSchema = (spec, options = {}) => {
  * @return {promise}    Resolves on GraphQLSchema, rejects on error during
  * schema creation
  */
-const translateOpenApiToGraphQL = (oas, {headers, qs, viewer, tokenJSONpath, strict}) => {
+const translateOpenApiToGraphQL = (oas, {
+  headers,
+  qs,
+  viewer,
+  tokenJSONpath,
+  strict = false,
+  addSubOperations = true
+}) => {
   return new Promise((resolve, reject) => {
+    let options = {
+      headers,
+      qs,
+      viewer,
+      tokenJSONpath,
+      strict,
+      addSubOperations
+    }
+    log(`Options: ${JSON.stringify(options)}`)
+
     /**
      * Result of preprocessing OAS:
      *
@@ -94,13 +111,7 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer, tokenJSONpath, str
      *
      * @type {Object}
      */
-    let data = Preprocessor.preprocessOas(oas, strict)
-
-    /**
-     * Store options to data
-     */
-    data.options = {headers, qs, viewer, tokenJSONpath, strict}
-    log(`Provided options: ${JSON.stringify(data.options)}`)
+    let data = Preprocessor.preprocessOas(oas, options)
 
     /**
      * Holds on to the highest-level (entry-level) object types for queries
@@ -233,6 +244,14 @@ const translateOpenApiToGraphQL = (oas, {headers, qs, viewer, tokenJSONpath, str
       })
     }
 
+    // fill in yet undefined Object Types to avoid GraphQLSchema from breaking:
+    for (let i in data.operations) {
+      let operation = data.operations[i]
+      if (typeof operation.resDef.ot === 'undefined') {
+        operation.resDef.ot = GraphQLTools.getEmptyObjectType()
+      }
+    }
+
     let schema = new GraphQLSchema(schemaDef)
 
     resolve(schema)
@@ -357,6 +376,7 @@ const getFieldForOperation = (operation, data, oas) => {
     name: operation.resDef.otName,
     schema: operation.resDef.schema,
     data,
+    operation,
     links: operation.links,
     oas
   })

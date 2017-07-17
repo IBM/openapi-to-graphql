@@ -4,7 +4,7 @@ const Oas3Tools = require('./oas_3_tools.js')
 const deepEqual = require('deep-equal')
 const log = require('debug')('preprocessing')
 
-const preprocessOas = (oas, strict) => {
+const preprocessOas = (oas, options) => {
   let data = {
     // stores (Input) Object Type names already used
     usedOTNames: [],
@@ -16,7 +16,8 @@ const preprocessOas = (oas, strict) => {
     // stores, per protocol, the schema (= JSON schema for the Input Object
     // Type), rawName (of the protocol), def (= the OAS definition), and
     // parameters
-    security: {}
+    security: {},
+    options
   }
 
   /**
@@ -98,11 +99,50 @@ const preprocessOas = (oas, strict) => {
   }
 
   /**
+   * Determine "links" based on sub-paths
+   * (Only now, when every operation is guaranteed to have an operationId)
+   */
+  if (data.options.addSubOperations) {
+    for (let i in data.operations) {
+      let operation = data.operations[i]
+      operation.subOps = getSubOps(operation, data.operations)
+    }
+  }
+
+  /**
    * Security schemas
    */
-  data.security = getSecuritySchemes(oas, strict)
+  data.security = getSecuritySchemes(oas, options)
 
   return data
+}
+
+/**
+ * Returns an array of operations whose path contains the path of the given
+ * operation. E.g., output could be an array with an operation having a path
+ * '/users/{id}/profile' for a given operation with a path of '/users/{id}'.
+ * Sub operations are only returned if the path of the given operation contains
+ * at least one path parameter.
+ *
+ * @param  {Object} operation  Operation object created by preprocessing
+ * @param  {Array} operations  List of operation objects
+ * @return {Array}            List of operation objects
+ */
+const getSubOps = (operation, operations) => {
+  let subOps = []
+  let hasPathParams = /\{.*\}/g.test(operation.path)
+  if (!hasPathParams) return subOps
+
+  for (let i in operations) {
+    let subOp = operations[i]
+    if (subOp.method === 'get' && operation.method === 'get' &&
+      subOp.operationId !== operation.operationId &&
+      subOp.path.includes(operation.path)) {
+      subOps.push(subOp)
+    }
+  }
+
+  return subOps
 }
 
 /**
@@ -168,7 +208,7 @@ const createOrReuseDataDef = (schema, names, data) => {
  * @param  {Object} oas OpenAPI Specification 3.0.x
  * @return {Object}     Extracted security definitions (see above)
  */
-const getSecuritySchemes = (oas, strict) => {
+const getSecuritySchemes = (oas, options) => {
   let security = {}
 
   for (let protocolName in oas.components.securitySchemes) {
@@ -213,7 +253,7 @@ const getSecuritySchemes = (oas, strict) => {
             }
             break
           default:
-            if (strict) {
+            if (options.strict) {
               throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
             }
             log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
@@ -227,7 +267,7 @@ const getSecuritySchemes = (oas, strict) => {
         break
 
       default:
-        if (strict) {
+        if (options.strict) {
           throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
         }
         log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)

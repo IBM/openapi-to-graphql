@@ -21,19 +21,21 @@ const log = require('debug')('translation')
  *
  * @param  {String}  options.name   Name of the type to create (ignored for
  * scalar types)
- * @param  {object}  options.schema JSON schema
- * @param  {Object}  options.data   Data produced by preprocessing
- * @param  {Object}  options.links  Links belonging to (Input) Type
- * @param  {Object}  oas            OpenAPI Specification 3.0
- * @param  {Number}  iteration      Count of recursions used to create type
- * @param  {Boolean} isMutation     Whether to create an Input Type
- * @return {Object}                 GraphQLObjectType | GraphQLInputObjectType |
- * GraphQLList | Scalar GraphQL type
+ * @param  {object}  options.schema    JSON schema
+ * @param  {Object}  options.data      Data produced by preprocessing
+ * @param  {Object}  options.operation Operation being translated
+ * @param  {Object}  options.links     Links belonging to (Input) Type
+ * @param  {Object}  oas               OpenAPI Specification 3.0
+ * @param  {Number}  iteration         Count of recursions used to create type
+ * @param  {Boolean} isMutation        Whether to create an Input Type
+ * @return {Object}                    GraphQLObjectType |
+ * GraphQLInputObjectType | GraphQLList | Scalar GraphQL type
  */
 const getGraphQLType = ({
   name,
   schema,
   data,
+  operation = {},
   links = {},
   oas,
   iteration = 0,
@@ -70,6 +72,7 @@ const getGraphQLType = ({
       name,
       schema,
       data,
+      operation,
       links,
       oas,
       iteration,
@@ -107,6 +110,7 @@ const getGraphQLType = ({
  *
  * @param  {String} options.name        Name of the list type
  * @param  {Object} options.data        Data produced by preprocessing
+ * @param  {Object} options.operation   Operation being translated
  * @param  {Object} options.schema      JSON schema describing list
  * @param  {Object} options.links       Links belonging to (Input) Type
  * @param  {Object} options.oas         OpenAPI Specification 3.0
@@ -117,6 +121,7 @@ const getGraphQLType = ({
 const reuseOrCreateList = ({
   name,
   data,
+  operation,
   schema,
   links,
   oas,
@@ -155,6 +160,7 @@ const reuseOrCreateList = ({
     name: itemsName,
     schema: itemsSchema,
     data,
+    operation,
     links,
     oas,
     iteration: iteration + 1,
@@ -223,6 +229,7 @@ const reuseOrCreateEnum = ({
  *
  * @param  {String} options.name        Name of the schema
  * @param  {Object} options.data        Data produced by preprocessing
+ * @param  {Object} options.operation   Operation being translated
  * @param  {Object} options.links       Links belonging to (Input) Object Type
  * @param  {Object} options.oas         OpenAPI Specification 3.0
  * @param  {Number} options.iteration   Integer count of recursions used to
@@ -234,6 +241,7 @@ const reuseOrCreateOt = ({
   name,
   schema,
   data,
+  operation,
   links,
   oas,
   iteration = 0,
@@ -263,6 +271,7 @@ const reuseOrCreateOt = ({
             schemaName: name,
             schema,
             data,
+            operation,
             links,
             oas,
             iteration,
@@ -287,6 +296,7 @@ const reuseOrCreateOt = ({
             schemaName: name,
             schema,
             data,
+            operation,
             links,
             oas,
             iteration,
@@ -305,6 +315,7 @@ const reuseOrCreateOt = ({
  * @param  {Object} options.schema      JSON schema to create fields for
  * @param  {Object} options.links       Links belonging to (Input) Object Type
  * @param  {Object} options.data        Data produced by preprocessing
+ * @param  {Object} options.operation   Operation being translated
  * @param  {Object} options.oas         OpenAPI Specification 3.0
  * @param  {Number} options.iteration
  * @param  {Boolean} options.isMutation
@@ -314,6 +325,7 @@ const createFields = ({
   schema,
   links,
   data,
+  operation,
   oas,
   iteration,
   isMutation
@@ -348,6 +360,7 @@ const createFields = ({
       name: schemaName,
       schema: propSchema,
       data,
+      operation,
       links,
       oas,
       iteration: iteration + 1,
@@ -422,8 +435,56 @@ const createFields = ({
       fields[saneLinkKey] = {
         type: resObjectType,
         resolve: linkResolver,
-        args: args,
+        args,
         description: links[linkKey].description // may be undefined
+      }
+    }
+  }
+
+  /**
+   * Create fields for subOperations
+   */
+  if (iteration === 0) {
+    for (let i in operation.subOps) {
+      let subOp = operation.subOps[i]
+      let fieldName = subOp.resDef.otName
+      if (typeof fields[fieldName] !== 'undefined') {
+        log(`Warning: cannot add sub operation "${fieldName}" to ` +
+          `"${operation.resDef.otName}". Collision detected.`)
+        continue
+      }
+
+      log(`Add sub operation "${fieldName}" to ` +
+        `"${operation.resDef.otName}"`)
+
+      // determine parameters provided via parent operation:
+      let argsFromParent = operation.parameters.filter(p => {
+        return p.in === 'path'
+      }).map(a => a.name)
+
+      let subOpResolver = ResolverBuilder.getResolver({
+        operation: subOp,
+        oas,
+        argsFromParent,
+        data
+      })
+
+      let dynamicParams = subOp.parameters.filter(p => {
+        return !argsFromParent.includes(p.name)
+      })
+
+      // get args:
+      let args = getArgs({
+        parameters: dynamicParams,
+        oas,
+        data
+      })
+
+      fields[fieldName] = {
+        type: subOp.resDef.ot,
+        resolve: subOpResolver,
+        args,
+        description: subOp.resDef.schema.description
       }
     }
   }
@@ -442,6 +503,7 @@ const createFields = ({
  * required
  * @param  {Object} options.oas
  * @param  {Object} options.data
+ * @param  {Object} options.operation     Operation being translated
  * @return {Object}                       Key: name of argument, value: object
  * stating the parameter type
  */
@@ -451,7 +513,8 @@ const getArgs = ({
   reqSchemaName,
   reqRequired = false,
   oas,
-  data
+  data,
+  operation
 }) => {
   let args = {}
 
@@ -502,6 +565,7 @@ const getArgs = ({
       name: reqSchemaName,
       schema: reqSchema,
       data,
+      operation,
       oas,
       isMutation: true
     })

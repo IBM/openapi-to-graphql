@@ -10,19 +10,22 @@ const jp = require('jsonpath')
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query.
  *
- * @param  {object} options.operation    Corresponding operation
- * @param  {object} options.oas
- * @param  {object} options.argsFromLink Object containing the args for this
+ * @param  {Object} options.operation      Corresponding operation
+ * @param  {Object} options.oas
+ * @param  {Object} options.argsFromLink   Object containing the args for this
  * resolver provided through links
- * @param  {string} options.payloadName  Name of the argument to send as request
- * payload
- * @param  {object} options.data         Data produced by preprocessor.js
- * @return {function}                    Resolver function
+ * @param  {Array}  options.argsFromParent List of names of parameter provided
+ * by parent operation - i.e., their arguments are present in ctx.usedParam
+ * @param  {String} options.payloadName    Name of the argument to send as
+ * request payload
+ * @param  {Object} options.data           Data produced by preprocessor.js
+ * @return {Function}                      Resolver function
  */
 const getResolver = ({
   operation,
   oas,
   argsFromLink = {},
+  argsFromParent = [],
   payloadName,
   data
 }) => {
@@ -30,13 +33,26 @@ const getResolver = ({
   let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
   // return resolve function:
-  return (root, args, ctx) => {
+  return (root, args, ctx = {}) => {
+    if (typeof ctx.usedParams === 'undefined') {
+      ctx.usedParams = {}
+    }
+
     // handle arguments provided by links:
     if (typeof argsFromLink === 'object') {
       for (let key in argsFromLink) {
         args[key] = root[argsFromLink[key]]
       }
     }
+
+    // handle arguments provided by parent - we reuse parameters populated in
+    // previous calls from the context
+    for (let argName in argsFromParent) {
+      args[argName] = ctx.usedParams[argName]
+    }
+
+    // stored used parameters to future requests:
+    ctx.usedParams = Object.assign(ctx.usedParams, args)
 
     // build URL (i.e., fill in path parameters):
     let {path, query} = Oas3Tools.instantiatePathAndGetQuery(
