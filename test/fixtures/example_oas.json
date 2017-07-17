@@ -340,7 +340,7 @@
 			},
 			"parameters": [
 				{
-					"$ref": "#/components/parameters/GloablQuery"
+					"$ref": "#/components/parameters/GlobalQuery"
 				}
 			]
 		},
@@ -532,7 +532,7 @@
 			}
 		},
 		"parameters": {
-			"GloablQuery": {
+			"GlobalQuery": {
 				"name": "globalquery",
 				"in": "query",
 				"required": true,
