@@ -255,7 +255,7 @@ test('Sub operations are properly made available', () => {
       }
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(schema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
         user: {
