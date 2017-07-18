@@ -19,27 +19,27 @@ Error.stackTraceLimit = Infinity
  * Creates a GraphQL interface from the given OpenAPI Specification.
  *
  * Some general notes:
+ *
  * - GraphQL interfaces rely on sanitized strings for (Input) Object Type names
  *   and fields. We perform sanitization only when assigning (field-) names, but
  *   keep keys in the OAS otherwise as-is, to ensure that inner-OAS references
  *   work as expected.
- * - GraphQL (Input) Object Types must have a unique name. Thus, sometimes Input
+ *
+ *  - GraphQL (Input) Object Types must have a unique name. Thus, sometimes Input
  *   Object Types and Object Types need separate names, despite them having the
  *   same structure. We thus append 'Input' to every Input Object Type's name
  *   as a convention.
  *
- *  TODO: edit below
- * - OasGraph can handle authentication through GraphQL. To do this, we can
- *  create two new intermediate Object Types called QueryViewer and
- *  MutationViewer that we can use to pass security credentials through the
- *  resolver context. We identify all the different security protocols and
- *  create parameters for the Viewer Object Types based on the data that each
- *  protocol requires. For example, a protocol that uses an API key will require
- *  a parameter to pass an API key and a protocol that uses Basic Auth will
- *  require two parameters to pass a username and password. Because GraphQL rely
- *  on sanitized strings for fields, we have to sanitize our parameter names,
- *  which take the form ${protocol name}_${protocol field} (e.g. MyApiKey_apiKey
- *  and MyBasicAuth_username and MyBasicAuth_password).
+ * - To pass data between resolve functions, OASGraph uses a _oasgraph object
+ *   returned by every resolver in addition to its original data (OASGraph does
+ *   not use the context to do so, which is an anti-pattern according to=
+ *   https://github.com/graphql/graphql-js/issues/953).
+ *
+ * - OasGraph can handle basic authentication and api key-based authentication
+ *   through GraphQL. To do this, OASGraph creates two new intermediate Object
+ *   Types called QueryViewer and MutationViewer that take as input security
+ *   credentials and pass them on using the _oasgraph object to other resolve
+ *   functions.
  *
  * @param  {object} spec Swagger / OpenAPI Specification 2.0 / 3.0.x
  * @return {promise}     Resolves on GraphQLSchema, rejects on error during

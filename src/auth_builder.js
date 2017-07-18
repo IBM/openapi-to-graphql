@@ -59,18 +59,20 @@ const getViewerOT = (data, viewerQueryFields, name, protocolName) => {
   let protocol = data.security[protocolName]
 
   let resolve = (root, args, ctx) => {
-    if (typeof ctx !== 'object') {
-      throw new Error(`Cannot resolve request because GraphQL context is ` +
-        `not an object - please pass explicit contextValue.`)
+    let security = {}
+    if (typeof protocolName === 'string') {
+      security[protocolName] = args
+    } else {
+      security.anyAuth = args
     }
 
-    ctx.security = {}
-    if (typeof protocolName === 'string') {
-      ctx.security[protocolName] = args
-    } else {
-      ctx.security.anyAuth = args
+    // viewers are always root, so we can instantiate _oasgraph here without
+    // previously checking for its existence
+    return {
+      _oasgraph: {
+        security
+      }
     }
-    return {}
   }
 
   let args = {}
@@ -199,13 +201,11 @@ const getViewerAnyAuthOT = (data, viewerQueryFields, oas, name) => {
   }
 
   let resolve = (root, args, ctx) => {
-    if (typeof ctx !== 'object') {
-      throw new Error(`Cannot resolve request because GraphQL context is ` +
-        `not an object - please pass explicit contextValue.`)
+    return {
+      _oasgraph: {
+        security: args
+      }
     }
-
-    ctx.security = args
-    return {}
   }
 
   return {
