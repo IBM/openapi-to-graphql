@@ -161,7 +161,6 @@ const createOAuthHeader = (data, ctx) => {
   let tokens = jp.query(ctx, tokenJSONpath)
   if (Array.isArray(tokens) && tokens.length > 0) {
     let token = tokens[0]
-    log(`Extracted token "${token}" from "${tokenJSONpath}"`)
     return {
       Authorization: `Bearer ${token}`,
       'User-Agent': 'oasgraph'
