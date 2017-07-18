@@ -5,6 +5,8 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 <img src="docs/translation.png" alt="Overview of translation" width="600">
 
 
+An example application exposing GitHub's public REST-like API via OASGraph can be found [here](https://oasgraph-github.mybluemix.net/) ([source code](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)).
+
 ## Characteristics
 
 * **Data-centric**
