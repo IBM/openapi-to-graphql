@@ -177,6 +177,21 @@ app.get('/api/users/:username', (req, res) => {
   res.send(Users[req.params.username])
 })
 
+app.get('/api/users/:username/car', (req, res) => {
+  console.log(req.method, req.path)
+  if (typeof req.params.username !== 'string' ||
+    req.params.username === 'undefined') {
+    res.status(401).send({
+      message: 'Wrong username.'
+    })
+  } else {
+    res.send({
+      model: 'BMW 7 series',
+      color: 'black'
+    })
+  }
+})
+
 app.post('/api/users', (req, res) => {
   console.log(req.method, req.path)
   let user = req.body

@@ -98,6 +98,33 @@
 				}
 			}
 		},
+		"/users/{username}/car": {
+			"get": {
+				"operationId": "getUserCar",
+				"description": "Returns a car to test nesting of sub operations",
+				"parameters": [{
+					"name": "username",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					},
+					"description": "Identifier of a user."
+				}],
+				"responses": {
+					"200": {
+						"description": "A car of a user.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/car"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/companies/{id}": {
 			"get": {
 				"operationId": "getCompanyById",
@@ -434,6 +461,20 @@
 					"city": {
 						"type": "string",
 						"description": "The city a user lives in"
+					}
+				}
+			},
+			"car": {
+				"type": "object",
+				"description": "A car",
+				"properties": {
+					"model": {
+						"type": "string",
+						"description": "The model of the car."
+					},
+					"color": {
+						"type": "string",
+						"description": "The color of the car."
 					}
 				}
 			},

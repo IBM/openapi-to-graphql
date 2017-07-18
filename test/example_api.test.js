@@ -21,7 +21,9 @@ let oas = require('./fixtures/example_oas.json')
 
 beforeAll(() => {
   let oas = require('./fixtures/example_oas.json')
-  return OasGraph.createGraphQlSchema(oas)
+  return OasGraph.createGraphQlSchema(oas, {
+    addSubOperations: true
+  })
     .then(createdSchema => {
       schema = createdSchema
     })
@@ -237,6 +239,31 @@ test('Request data is correctly de-sanitized to be sent', () => {
           'productName': 'Soccer ball',
           'productId': 'ball123',
           'productTag': 'sports'
+        }
+      }
+    })
+  })
+})
+
+test('Sub operations are properly made available', () => {
+  let query = `{
+    user (username: "erik") {
+      name
+      car {
+        color
+        model
+      }
+    }
+  }`
+  return graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Erik Wittern',
+          car: {
+            color: 'black',
+            model: 'BMW 7 series'
+          }
         }
       }
     })

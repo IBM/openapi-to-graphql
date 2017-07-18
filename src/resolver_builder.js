@@ -47,7 +47,7 @@ const getResolver = ({
 
     // handle arguments provided by parent - we reuse parameters populated in
     // previous calls from the context
-    for (let argName in argsFromParent) {
+    for (let argName of argsFromParent) {
       args[argName] = ctx.usedParams[argName]
     }
 

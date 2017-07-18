@@ -77,7 +77,7 @@ const translateOpenApiToGraphQL = (oas, {
   viewer,
   tokenJSONpath,
   strict = false,
-  addSubOperations = true
+  addSubOperations = false
 }) => {
   return new Promise((resolve, reject) => {
     let options = {
@@ -146,15 +146,17 @@ const translateOpenApiToGraphQL = (oas, {
     /**
      * Translate every endpoint to GraphQL schemes.
      *
-     * Do this first for endpoints that DO contain links, so that built up
-     * GraphQL object types that are reused contain these links.
+     * Do this first for endpoints that DO contain links OR that DO contain sub
+     * operation, so that built up GraphQL object types that are reused contain
+     * these links.
      *
      * This necessitates a second iteration, though, for the endpoints that
      * DO NOT have links.
      */
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
-      if (Object.keys(operation.links).length > 0) {
+      if (Object.keys(operation.links).length > 0 ||
+        (Array.isArray(operation.subOps) && operation.subOps.length > 0)) {
         loadFields(
           {
             operation,
@@ -173,7 +175,8 @@ const translateOpenApiToGraphQL = (oas, {
     // ...and again for endpoints without links:
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
-      if (Object.keys(operation.links).length === 0) {
+      if (Object.keys(operation.links).length === 0 &&
+        (!Array.isArray(operation.subOps) || operation.subOps.length === 0)) {
         loadFields(
           {
             operation,
