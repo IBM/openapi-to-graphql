@@ -349,14 +349,14 @@ const getReqSchemaAndNames = (path, method, oas) => {
     if (typeof endpoint.requestBody.required === 'boolean') {
       reqRequired = endpoint.requestBody.required
     }
-    reqSchemaNames.fromPath = beautify(inferResourceNameFromPath(path))
+    reqSchemaNames.fromPath = inferResourceNameFromPath(path)
 
     if ('$ref' in reqSchema) {
-      reqSchemaNames.fromRef = beautify(reqSchema['$ref'].split('/').pop())
+      reqSchemaNames.fromRef = reqSchema['$ref'].split('/').pop()
       reqSchema = resolveRef(reqSchema['$ref'], oas)
     }
     if ('title' in reqSchema) {
-      reqSchemaNames.fromSchema = beautify(reqSchema.title)
+      reqSchemaNames.fromSchema = reqSchema.title
     }
 
     return {
@@ -387,14 +387,14 @@ const getResSchemaAndNames = (path, method, oas) => {
   if (contentType) {
     let resSchema = endpoint.responses[statusCode].content[contentType].schema
 
-    resSchemaNames.fromPath = beautify(inferResourceNameFromPath(path))
+    resSchemaNames.fromPath = inferResourceNameFromPath(path)
 
     if ('$ref' in resSchema) {
-      resSchemaNames.fromRef = beautify(resSchema['$ref'].split('/').pop())
+      resSchemaNames.fromRef = resSchema['$ref'].split('/').pop()
       resSchema = resolveRef(resSchema['$ref'], oas)
     }
     if ('title' in resSchema) {
-      resSchemaNames.fromSchema = beautify(resSchema.title)
+      resSchemaNames.fromSchema = resSchema.title
     }
 
     return {
@@ -580,49 +580,6 @@ const beautifyAndStore = (str, mapping, options) => {
 }
 
 /**
- * TODO:   beautifyAndStore() maps the beautified to the original while
- *         beautifyAndStoreArray() maps the original to the beautified array
- */
-
-/**
- * Beautifies the array of strings and stores the string-to-sanitized array
- * mapping in the given mapping.
- *
- * @param  {string} str
- * @param  {object} array
- * @param  {object} mapping
- * @return {object}           Beautified array
- */
-const beautifyAndStoreArray = (str, array, mapping) => {
-  if (!(typeof mapping === 'object')) {
-    throw new Error(`No/invalid mapping passed to beautifyAndStore.`)
-  }
-  if (array.isArray()) {
-    let tempArray = []
-    for (let element in array) {
-      if (typeof element === 'string') {
-        tempArray.push(beautify(element))
-      } else {
-        let warning = `Warning: Cannot beautify "${element}" in array field.` +
-          `Options should be an array of Strings.`
-        console.warn(warning)
-      }
-    }
-    if (str in mapping && tempArray !== mapping[str]) {
-      console.warn(`Warning: "${tempArray}" and "${mapping[str]}" both` +
-        `sanitize to ${str} - collusion possible. Desanitize to
-        ${tempArray}.`)
-    }
-    mapping[str] = tempArray
-    return tempArray
-  } else {
-    let error = new Error('options parameter is not an array')
-    console.error(error)
-    throw error
-  }
-}
-
-/**
  * First sanitizes given string and then also camel-cases it.
  *
  * @param  {string} str
@@ -717,7 +674,6 @@ module.exports = {
   desanitizeObjKeys,
   beautify,
   beautifyAndStore,
-  beautifyAndStoreArray,
   trim,
   isOperation
 }
