@@ -25,7 +25,7 @@ Error.stackTraceLimit = Infinity
  *   keep keys in the OAS otherwise as-is, to ensure that inner-OAS references
  *   work as expected.
  *
- *  - GraphQL (Input) Object Types must have a unique name. Thus, sometimes Input
+ * - GraphQL (Input) Object Types must have a unique name. Thus, sometimes Input
  *   Object Types and Object Types need separate names, despite them having the
  *   same structure. We thus append 'Input' to every Input Object Type's name
  *   as a convention.
