@@ -24,11 +24,13 @@
     "body-parser": "^1.17.2",
     "express": "^4.15.2",
     "express-graphql": "^0.6.4",
+    "fs": "0.0.1-security",
     "glob": "^7.1.2",
     "jest": "^20.0.4",
     "js-yaml": "^3.8.4",
     "nodegit": "^0.18.3",
     "pre-commit": "^1.2.2",
-    "rimraf": "^2.6.1"
+    "rimraf": "^2.6.1",
+    "yamljs": "^0.3.0"
   }
 }

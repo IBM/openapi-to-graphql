@@ -15,6 +15,7 @@ const Oas3Tools = require('./oas_3_tools.js')
 const ResolverBuilder = require('./resolver_builder.js')
 const Preprocessor = require('./preprocessor.js')
 const log = require('debug')('translation')
+const deepEqual = require('deep-equal')
 
 /**
  * Creates a GraphQL (Input) Type for the given JSON schema.
@@ -55,6 +56,13 @@ const getGraphQLType = ({
   if (!schema || typeof schema !== 'object') {
     throw new Error(`Invalid schema for ${name} provided of type ` +
       `"${typeof schema}"`)
+  }
+
+  // resolve allOf element in schema if applicable
+  if ('allOf' in schema) {
+    log(`resolve allOf in "${name}"`)
+    resolveAllOf(schema.allOf, schema, oas)
+    delete schema.allOf
   }
 
   // determine the type of the schema:
@@ -167,16 +175,20 @@ const reuseOrCreateList = ({
     isMutation
   })
 
-  let listObjectType = new GraphQLList(itemsType)
+  if (itemsType !== null) {
+    let listObjectType = new GraphQLList(itemsType)
 
-  // store newly created List (Input) Object Type:
-  if (!isMutation) {
-    def.ot = listObjectType
+    // store newly created List (Input) Object Type:
+    if (!isMutation) {
+      def.ot = listObjectType
+    } else {
+      def.iot = listObjectType
+    }
+    return listObjectType
   } else {
-    def.iot = listObjectType
+    log(`Warning: skipped creation of list '${name}' because list item '${itemsName}' has no valid schema. Schema: ${JSON.stringify(itemsSchema)}`)
+    return null
   }
-
-  return listObjectType
 }
 
 /**
@@ -454,7 +466,7 @@ const createFields = ({
         continue
       }
 
-      log(`Add sub operation "${fieldName}" to ` +
+      log(`add sub operation "${fieldName}" to ` +
         `"${operation.resDef.otName}"`)
 
       // determine parameters provided via parent operation:
@@ -601,6 +613,80 @@ const getScalarType = (type) => {
       return GraphQLBoolean
     default:
       return GraphQLString
+  }
+}
+
+/**
+ * Aggregates the subschemas in the allOf field into the mother schema
+ * Please note that the allOfSchema may not necessarily be an element of the
+ * mother schema. The purpose of this construction is to resolve nested allOf
+ * schemas inside references.
+ *
+ * @param  {Object} allOfSchema allOf schema
+ * @param  {Object} schema      Mother schema
+ * @param  {Object} oas Scalar JSON schema type
+ */
+const resolveAllOf = (allOfSchema, schema, oas) => {
+  for (let allOfSchemaIndex in allOfSchema) {
+    let subschema = allOfSchema[allOfSchemaIndex]
+
+    // resolve the reference is applicable
+    if ('$ref' in subschema) {
+      subschema = Oas3Tools.resolveRef(subschema.$ref, oas)
+    }
+
+    Object.keys(subschema).forEach(subschemaKey => {
+      switch (subschemaKey) {
+        case 'type':
+          // TODO: strict?
+          if (typeof schema.type === 'string' && schema.type !== subschema.type) {
+            throw new Error(`allOf will overwrite a preexisting type definition for schema '${schema}'`)
+          } else {
+            schema.type = subschema.type
+          }
+          break
+
+        case 'properties':
+          let properties = subschema.properties
+
+          let propertyNames = Object.keys(properties)
+
+          if (!('properties' in schema)) {
+            schema.properties = {}
+          }
+
+          for (let propertyNameIndex in propertyNames) {
+            let propertyName = propertyNames[propertyNameIndex]
+
+            if (!(propertyName in schema.properties)) {
+              schema.properties[propertyName] = properties[propertyName]
+
+            // check if the preexisting schema is the same
+            } else if (deepEqual(schema.properties[propertyName], subschema.properties[propertyName])) {
+              throw new Error(`allOf will overwrite a preexisting property 'property' for '${schema} schema`)
+            }
+          }
+          break
+
+        // TODO
+        case 'items':
+          if (!('items' in schema)) {
+            schema.items = {}
+          }
+
+          for (let itemIndex in subschema.items) {
+            schema.items = subschema.items[itemIndex]
+          }
+          break
+
+        case 'allOf':
+          resolveAllOf(subschema.allOf, schema, oas)
+          break
+
+        default:
+          log(`allOf contains currently unsupported element'${subschemaKey}'`)
+      }
+    })
   }
 }
 
