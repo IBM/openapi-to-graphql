@@ -15,7 +15,7 @@ An example application exposing GitHub's public REST-like API via OASGraph can b
   <img src="docs/data-centric.png" alt="Example of data-centric design" width="600">
 
 * **Nested data**
-  [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.md#linksObject) defined in the OAS are used to compose data definitions.
+  [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.md#linksObject) defined in the OAS are used to compose data definitions. Furthermore, hierarchical path structures can be used to nest data via the [`addSubOperations`](#options-addsuboperations) option.
 
   <img src="docs/links.png" alt="Example of links resolution" width="600">
 
@@ -100,7 +100,7 @@ The following options can be set:
 
 * `tokenJSONpath` (type: `string`, default: `undefined`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](https://github.ibm.com/apiharmony/oasgraph#authorization).
 
-* `addSubOperations` (type: `boolean`, default: `false`): When true, OASGraph will nest `GET` operations based on their path hierarchy in the given OAS. E.g., when the OAS contains two paths `/users/{id}` and `/users/{id}/friends`, OASGraph will make `friends` queryable from within `user`. Note: This may cause problems when resolving GraphQL types in certain contexts, where the required variables are not available.
+* `addSubOperations` (type: `boolean`, default: `false`): When true, OASGraph will nest `GET` operations based on their path hierarchy in the given OAS. E.g., when the OAS contains two paths `/users/{id}` and `/users/{id}/friends`, OASGraph will make `friends` queryable from within `user`. Note: This may cause problems when resolving GraphQL types in certain contexts, where the required variables are not available. (#options-addsuboperations)
 
 Consider this example of passing options:
 
