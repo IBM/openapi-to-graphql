@@ -100,7 +100,7 @@ The following options can be set:
 
 * `tokenJSONpath` (type: `string`, default: `undefined`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](https://github.ibm.com/apiharmony/oasgraph#authorization).
 
-* `addSubOperations` (type: `boolean`, default: `false`): When true, OASGraph will nest `GET` operations based on their path hierarchy in the given OAS. E.g., when the OAS contains two paths `/users/{id}` and `/users/{id}/friends`, OASGraph will make `friends` queryable from within `user`. Note: This may cause problems when resolving GraphQL types in certain contexts, where the required variables are not available. <a name="options-addsuboperations"></a>
+* <a name="options-addsuboperations"></a> `addSubOperations` (type: `boolean`, default: `false`): When true, OASGraph will nest `GET` operations based on their path hierarchy in the given OAS. E.g., when the OAS contains two paths `/users/{id}` and `/users/{id}/friends`, OASGraph will make `friends` queryable from within `user`. Note: This may cause problems when resolving GraphQL types in certain contexts, where the required variables are not available.
 
 Consider this example of passing options:
 
