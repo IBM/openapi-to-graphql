@@ -213,6 +213,9 @@ const getSecuritySchemes = (oas, options) => {
 
   for (let protocolName in oas.components.securitySchemes) {
     let protocol = oas.components.securitySchemes[protocolName]
+    if (protocol.type === 'oauth2') {
+      continue
+    }
     let schema
     // determine parameters for scheme:
     let parameters = {}
@@ -260,9 +263,7 @@ const getSecuritySchemes = (oas, options) => {
         }
         break
 
-      case ('oauth2'):
-        break
-
+      // TODO: implement
       case ('openIdConnect'):
         break
 

@@ -156,7 +156,7 @@ const translateOpenApiToGraphQL = (oas, {
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length > 0 ||
-        (Array.isArray(operation.subOps) && operation.subOps.length > 0)) {
+      (Array.isArray(operation.subOps) && operation.subOps.length > 0)) {
         loadFields(
           {
             operation,
@@ -314,22 +314,14 @@ const loadFields = (
     if (isAuthenticated) {
       for (let protocolIndex in operation.securityProtocols) {
         for (let protocolName in operation.securityProtocols[protocolIndex]) {
-          if (data.security[protocolName].def.type === 'oauth2') {
-            // avoid overwriting fields that return the same data:
-            if (name in rootQueryFields) {
-              name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-            }
-            rootQueryFields[name] = field
-          } else {
-            if (typeof viewerFields[protocolName] !== 'object') {
-              viewerFields[protocolName] = {}
-            }
-            // avoid overwriting fields that return the same data:
-            if (name in viewerFields[protocolName]) {
-              name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-            }
-            viewerFields[protocolName][name] = field
+          if (typeof viewerFields[protocolName] !== 'object') {
+            viewerFields[protocolName] = {}
           }
+          // avoid overwriting fields that return the same data:
+          if (name in viewerFields[protocolName]) {
+            name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+          }
+          viewerFields[protocolName][name] = field
         }
       }
     } else {
@@ -349,14 +341,10 @@ const loadFields = (
     if (isAuthenticated) {
       for (let protocolIndex in operation.securityProtocols) {
         for (let protocolName in operation.securityProtocols[protocolIndex]) {
-          if (data.security[protocolName].def.type === 'oauth2') {
-            rootMutationFields[saneName] = field
-          } else {
-            if (typeof viewerMutationFields[protocolName] !== 'object') {
-              viewerMutationFields[protocolName] = {}
-            }
-            viewerMutationFields[protocolName][saneName] = field
+          if (typeof viewerMutationFields[protocolName] !== 'object') {
+            viewerMutationFields[protocolName] = {}
           }
+          viewerMutationFields[protocolName][saneName] = field
         }
       }
     } else {

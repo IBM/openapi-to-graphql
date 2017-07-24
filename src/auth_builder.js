@@ -83,7 +83,7 @@ const getViewerOT = (data, viewerQueryFields, name, protocolName) => {
   } else {
     for (let protocolName in data.security) {
       for (let parameterName in data.security[protocolName].parameters) {
-        args[data.security[protocolName].parameters[parameterName]] = {type: GraphQLString}
+        args[protocol.parameters[parameterName]] = {type: GraphQLString}
       }
     }
   }
@@ -91,6 +91,7 @@ const getViewerOT = (data, viewerQueryFields, name, protocolName) => {
   return {
     viewerOT: new GraphQLObjectType({
       name: name,
+      description: `A viewer for the security protocol: "${protocol.rawName}"`,
       fields: viewerQueryFields
     }),
     resolve,

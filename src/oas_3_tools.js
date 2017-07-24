@@ -519,14 +519,14 @@ const getParameters = (path, method, oas) => {
  */
 const getSecurityProtocols = (path, method, oas) => {
   let protocols = []
-
   if (typeof oas.security === 'object' && Object.keys(oas.security).length > 0) {
     for (let protocolIndex in oas.security) {
-      for (let protocol in oas.security[protocolIndex]) {
+      for (let protocolKey in oas.security[protocolIndex]) {
         // TODO: enhance checking
-        if (typeof oas.security[protocol] === 'object') {
+        if (typeof oas.security[protocolIndex][protocolKey] === 'object' &&
+      oas.components.securitySchemes[protocolKey].type !== 'oauth2') {
           let tempHash = {}
-          tempHash[beautify(protocol)] = oas.security[protocol]
+          tempHash[beautify(protocolKey)] = oas.security[protocolIndex][protocolKey]
           protocols.push(tempHash)
         }
       }
@@ -537,18 +537,19 @@ const getSecurityProtocols = (path, method, oas) => {
   let endpoint = oas.paths[path][method]
   if (typeof endpoint.security === 'object' && Object.keys(endpoint.security).length > 0) {
     for (let protocolAIndex in endpoint.security) {
-      for (let protocolA in endpoint.security[protocolAIndex]) {
-        if (typeof endpoint.security[protocolAIndex][protocolA] === 'object') {
-          (function () {
-            for (let protocolB in protocols) {
-              if (deepEqual(endpoint.security[protocolAIndex][protocolA], protocols[protocolB])) {
-                return
+      for (let protocolAKey in endpoint.security[protocolAIndex]) {
+        if (typeof endpoint.security[protocolAIndex][protocolAKey] === 'object' &&
+      oas.components.securitySchemes[protocolAKey].type !== 'oauth2') {
+          inner: {
+            for (let protocolBKey in protocols) {
+              if (deepEqual(endpoint.security[protocolAIndex][protocolAKey], protocols[protocolBKey])) {
+                break inner
               }
             }
             let tempHash = {}
-            tempHash[beautify(protocolA)] = endpoint.security[protocolAIndex][protocolA]
+            tempHash[beautify(protocolAKey)] = endpoint.security[protocolAIndex][protocolAKey]
             protocols.push(tempHash)
-          })()
+          }
         }
       }
     }
