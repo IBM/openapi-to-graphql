@@ -74,7 +74,7 @@ const createGraphQlSchema = (spec, options = {}) => {
 const translateOpenApiToGraphQL = (oas, {
   headers,
   qs,
-  viewer,
+  viewer = true,
   tokenJSONpath,
   strict = false,
   addSubOperations = false
