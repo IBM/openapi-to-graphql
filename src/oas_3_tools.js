@@ -373,9 +373,20 @@ const getReqSchemaAndNames = (path, method, oas) => {
  * the given status code, and a dictionary of names from different sources (if
  * available).
  *
+ * Here is the structure of the output:
+ * {
+ *   {Object} resSchema        Respone schema
+ *   {Object} resSchemaNames { Contains possible raw names for the schema
+ *     {String} fromPath       Possible name derived from the path
+ *     {String} fromRef        Possible name derived from the reference path (if applicable)
+ *     {String} fromSchema     Possible name derived from the title parameter (if applicable)
+ *   }
+ * }
+ *
  * @param  {string} path
  * @param  {string} method
  * @param  {object} oas
+ *
  * @return {object}
  */
 const getResSchemaAndNames = (path, method, oas) => {

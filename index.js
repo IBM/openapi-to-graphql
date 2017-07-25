@@ -12,7 +12,7 @@ const Oas3Tools = require('./src/oas_3_tools.js')
 const AuthBuilder = require('./src/auth_builder.js')
 const log = require('debug')('translation')
 
-// increase stack trace logging for better debugging:
+// Increase stack trace logging for better debugging:
 Error.stackTraceLimit = Infinity
 
 /**
@@ -41,17 +41,19 @@ Error.stackTraceLimit = Infinity
  *   credentials and pass them on using the _oasgraph object to other resolve
  *   functions.
  *
- * @param  {object} spec Swagger / OpenAPI Specification 2.0 / 3.0.x
- * @return {promise}     Resolves on GraphQLSchema, rejects on error during
- * schema creation
+ * @param  {Object}  spec Swagger / OpenAPI Specification 2.0 / 3.0.x
+ * @return {Promise}      Resolves on GraphQLSchema, rejects on error during schema creation
  */
 const createGraphQlSchema = (spec, options = {}) => {
   return new Promise((resolve, reject) => {
-    // Some basic validation OAS
+    // Some basic validation
     if (typeof spec !== 'object') {
       throw new Error(`Invalid specification provided`)
     }
 
+    // Check if the spec is a valid OAS 3.0.x
+    // If the spec is OAS 2.0, attempt to translate it into 3.0.x
+    // Then try to translate the spec into a GraphQL schema
     Oas3Tools.getValidOAS3(spec)
       .then(oas => {
         translateOpenApiToGraphQL(oas, options)
@@ -64,19 +66,37 @@ const createGraphQlSchema = (spec, options = {}) => {
   })
 }
 
-/*
- * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x.
+/**
+ * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  *
- * @param  {object} oas OpenAPI Specification 3.0
- * @return {promise}    Resolves on GraphQLSchema, rejects on error during
- * schema creation
+ * Here is a list of the options we have currently implemented:
+ * {
+ *  {Boolean} strict           Adhere to the OAS as closely as possible
+ *  {Object}  headers          Additional headers sent with every request while resolving queries
+ *  {Object}  qs               Additional query parameters sent with every request while resolving queries
+ *  {Boolean} viewer           Do not create authentication viewers. Intended to be used with
+ *                              the headers option (i.e. if you provide all your authentication
+ *                              data in the headers options, you do not have to authenticate
+ *                              through the authentication viewers)
+ *  {String}  tokenJSONpath    Path to the OAuth 2.0 token. Because of technical reasons, we
+ *                              can create an OAuth 2.0 authentication viewer. Hence, the only
+ *                              way for OASGraph to bypass OAuth 2.0 is when the outer
+ *                              application provides it
+ *  {Boolean} addSubOperations Combine queries with similar paths and inputs
+ * }
+ *
+ * @param  {Object} oas     OpenAPI Specification 3.0
+ * @param  {Object} options A few different options that we have implemented to allow users to
+ *                           customize how they would like use our tool
+ *
+ * @return {Promise}        Resolves on GraphQLSchema, rejects on error during schema creation
  */
 const translateOpenApiToGraphQL = (oas, {
+  strict = false,
   headers,
   qs,
   viewer,
   tokenJSONpath,
-  strict = false,
   addSubOperations = false
 }) => {
   return new Promise((resolve, reject) => {
@@ -91,23 +111,8 @@ const translateOpenApiToGraphQL = (oas, {
     log(`Options: ${JSON.stringify(options)}`)
 
     /**
-     * Result of preprocessing OAS:
-     *
-     * {
-     *  dataDefs            // list of data definitions (schema, names, ot, iot)
-     *  saneMap             // key: sanitized value, val: raw value
-     *  security            // key: schemaName, val: JSON schema
-     *  operations {
-     *    path
-     *    method
-     *    resSchemaName
-     *    reqSchemaName
-     *    reqSchemaRequired
-     *    links
-     *    parameters
-     *    securityProtocols
-     *  }
-     * }
+     * Extract information from the OAS and put it inside a data structure that
+     *  is easier for OASGraph to use
      *
      * @type {Object}
      */
@@ -115,7 +120,7 @@ const translateOpenApiToGraphQL = (oas, {
 
     /**
      * Holds on to the highest-level (entry-level) object types for queries
-     * that are accessible in the schema to build.
+     *  that are accessible in the schema to build
      *
      * @type {Object}
      */
@@ -123,7 +128,7 @@ const translateOpenApiToGraphQL = (oas, {
 
     /**
      * Holds on to the highest-level (entry-level) object types for mutations
-     * that are accessible in the schema to build.
+     *  that are accessible in the schema to build
      *
      * @type {Object}
      */
