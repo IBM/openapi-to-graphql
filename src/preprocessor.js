@@ -35,6 +35,15 @@ const preprocessOas = (oas, options) => {
       let endpoint = oas.paths[path][method]
 
       /**
+       * Determine description
+       */
+      let description = endpoint.description
+      if ((typeof description !== 'string' || description === '') &&
+        typeof endpoint.summary === 'string') {
+        description = endpoint.summary
+      }
+
+      /**
        * Fill in possibly missing operationId.
        */
       if (typeof endpoint.operationId === 'undefined') {
@@ -93,7 +102,8 @@ const preprocessOas = (oas, options) => {
         links,
         parameters,
         securityProtocols,
-        operationId
+        operationId,
+        description
       }
     }
   }

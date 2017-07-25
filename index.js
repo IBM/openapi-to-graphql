@@ -395,7 +395,8 @@ const getFieldForOperation = (operation, data, oas) => {
   return {
     type,
     resolve,
-    args
+    args,
+    description: operation.description
   }
 }
 

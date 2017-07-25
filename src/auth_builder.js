@@ -171,7 +171,9 @@ const createAndLoadViewer = (
     rootFields[objectName] = {
       type: viewerOT,
       resolve,
-      args
+      args,
+      description: `A viewer that wraps all operations authenticated via ` +
+        `${typeName}`
     }
   }
 
@@ -182,7 +184,9 @@ const createAndLoadViewer = (
   rootFields[objectNames.anyAuthName] = {
     type: viewerOT,
     resolve,
-    args
+    args,
+    description: `A viewer that wraps operations for all available ` +
+      `authentication mechanisms`
   }
 }
 
