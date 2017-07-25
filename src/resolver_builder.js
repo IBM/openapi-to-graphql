@@ -293,8 +293,8 @@ const getAuthOptions = (operation, _oasgraph, data) => {
 const getAuthReqAndProtcolName = (operation, _oasgraph, data) => {
   let authRequired = false
 
-  if (typeof operation.securityProtocols === 'object' &&
-    Object.keys(operation.securityProtocols).length > 0) {
+  if (Array.isArray(operation.securityProtocols) &&
+    operation.securityProtocols.length > 0) {
     authRequired = true
 
     for (let protocolIndex in operation.securityProtocols) {

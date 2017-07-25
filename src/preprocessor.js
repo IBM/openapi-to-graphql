@@ -90,7 +90,10 @@ const preprocessOas = (oas, options) => {
       /**
        * Security protocols
        */
-      let securityProtocols = Oas3Tools.getSecurityProtocols(path, method, oas)
+      let securityProtocols = []
+      if (options.viewer) {
+        securityProtocols = Oas3Tools.getSecurityProtocols(path, method, oas)
+      }
 
       // store determined information for operation:
       data.operations[operationId] = {
