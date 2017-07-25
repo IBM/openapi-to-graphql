@@ -220,6 +220,23 @@ app.get('/api/products/:id', (req, res) => {
   res.send(Products)
 })
 
+app.get('/api/products/:id/reviews', (req, res) => {
+  console.log(req.method, req.path, req.params, req.query)
+  if (typeof req.params.id === 'undefined' ||
+    req.params.id === 'undefined' ||
+    typeof req.query['product-tag'] === 'undefined' ||
+    req.query['product-tag'] === 'undefined') {
+    res.status(400).send({
+      message: 'wrong data'
+    })
+  } else {
+    res.status(200).send([
+      'Great product',
+      'I love it'
+    ])
+  }
+})
+
 app.post('/api/products', (req, res) => {
   console.log(req.method, req.path)
   let product = req.body

@@ -52,7 +52,7 @@ test('Get resource 2', () => {
   })
 })
 
-test('Get nested resource', () => {
+test('Get nested resource via link $response.body#/...', () => {
   let query = `{
     user (username: "erik") {
       name
@@ -69,6 +69,25 @@ test('Get nested resource', () => {
           employerCompany: {
             legalForm: 'public'
           }
+        }
+      }
+    })
+  })
+})
+
+test('Get nested resource via link $request.path#/... and $request.query#/', () => {
+  let query = `{
+    productWithId (productId: "123" productTag: "blah") {
+      productName
+      reviews (productTag: "sport")
+    }
+  }`
+  return graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        'productWithId': {
+          'productName': 'Super Product',
+          'reviews': ['Great product', 'I love it']
         }
       }
     })

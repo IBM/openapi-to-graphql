@@ -214,10 +214,54 @@
 									"$ref": "#/components/schemas/product-with-id"
 								}
 							}
+						},
+						"links": {
+							"reviews": {
+								"$ref": "#/components/links/Reviews"
+							}
 						}
 					}
 				},
 				"security": []
+			}
+		},
+		"/products/{id}/reviews": {
+			"get": {
+				"operationId": "getProductReviews",
+				"description": "Obtain reviews for a product.",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					},
+					{
+						"name": "product-tag",
+						"in": "query",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"200": {
+						"description": "List of review texts",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					}
+				}
 			}
 		},
 		"/patents/{patent-id}": {
@@ -554,6 +598,13 @@
 					"username": "$response.body#/inventorId"
 				},
         "description": "Allows to fetch the user who invented a product."
+			},
+			"Reviews": {
+				"operationId": "getProductReviews",
+				"parameters": {
+					"id": "$request.path.product-id",
+					"produdct-tag": "request.query.product-tag"
+				}
 			}
 		},
 		"securitySchemes": {

@@ -394,6 +394,8 @@ const createFields = ({
    */
   if (iteration === 0) {
     for (let linkKey in links) {
+      log(`create link "${linkKey}"...`)
+
       // get linked operation:
       let linkedOpId
       // TODO: href is yet another alternative to operationRef and operationId
@@ -410,11 +412,7 @@ const createFields = ({
       let linkedOp = data.operations[linkedOpId]
 
       // determine parameters provided via link:
-      let linkParameters = links[linkKey].parameters
-      let argsFromLink = {}
-      for (let paramKey in linkParameters) {
-        argsFromLink[paramKey] = linkParameters[paramKey].split('body#/')[1]
-      }
+      let argsFromLink = links[linkKey].parameters
 
       // remove argsFromLinks from operation parameters:
       let endpointParameters = linkedOp.parameters

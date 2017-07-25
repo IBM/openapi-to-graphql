@@ -45,9 +45,35 @@ const getResolver = ({
     }
 
     // handle arguments provided by links:
-    if (typeof argsFromLink === 'object') {
-      for (let key in argsFromLink) {
-        args[key] = root[argsFromLink[key]]
+    for (let paramName in argsFromLink) {
+      let value = argsFromLink[paramName]
+
+      // parameter names can specify location of parameter (e.g., path.id):
+      let paramNameWithoutLocation = paramName
+      if (paramName.indexOf('.') !== -1) {
+        paramNameWithoutLocation = paramName.split('.')[1]
+      }
+
+      // CASE: parameter in body:
+      if (/body#/.test(value)) {
+        let tokens = jp.query(root, value.split('body#/')[1])
+        if (Array.isArray(tokens) && tokens.length > 0) {
+          args[paramNameWithoutLocation] = tokens[0]
+        } else {
+          log(`Warning: could not extract parameter ${paramName} form link`)
+        }
+      // CASE: parameter in previous query parameter:
+      } else if (/query\./.test(value)) {
+        args[paramNameWithoutLocation] =
+          _oasgraph.usedParams[Oas3Tools.beautify(value.split('query.')[1])]
+      // CASE: parameter in previous path parameter:
+      } else if (/path\./.test(value)) {
+        args[paramNameWithoutLocation] =
+          _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
+      // CASE: link OASGraph currently does not support:
+      } else {
+        log(`Warnung: could not process link parameter ${paramName} with ` +
+          `value ${value}`)
       }
     }
 
