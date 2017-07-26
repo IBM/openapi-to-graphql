@@ -97,7 +97,8 @@ const translateOpenApiToGraphQL = (oas, {
   qs,
   viewer = true,
   tokenJSONpath,
-  addSubOperations = false
+  addSubOperations = false,
+  sendOAuthTokenInQuery = false
 }) => {
   return new Promise((resolve, reject) => {
     let options = {
@@ -106,7 +107,8 @@ const translateOpenApiToGraphQL = (oas, {
       viewer,
       tokenJSONpath,
       strict,
-      addSubOperations
+      addSubOperations,
+      sendOAuthTokenInQuery
     }
     log(`Options: ${JSON.stringify(options)}`)
 
