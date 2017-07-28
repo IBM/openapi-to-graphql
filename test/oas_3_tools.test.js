@@ -2,6 +2,12 @@
 
 /* globals test, expect */
 
+const {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLString,
+  graphql
+} = require('graphql')
 const Oas3Tools = require('../src/oas_3_tools.js')
 
 test('Applying beautify multiple times does not change outcome', () => {
@@ -127,4 +133,47 @@ test('Desanitize object keys when given an array', () => {
       'product-tag': 'test'
     }
   }])
+})
+
+test('Properly treat null values during sanitization', () => {
+  let schema = new GraphQLSchema({
+    query: new GraphQLObjectType({
+      name: 'Query',
+      fields: {
+        User: {
+          name: 'name',
+          type: new GraphQLObjectType({
+            name: 'user',
+            fields: {
+              name: {
+                type: GraphQLString
+              }
+            }
+          }),
+          resolve: (root, args, context) => {
+            let data = {
+              name: null
+            }
+            return Oas3Tools.sanitizeObjKeys(data)
+          }
+        }
+      }
+    })
+  })
+
+  let query = `{
+    User {
+      name
+    }
+  }`
+
+  graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      'data': {
+        'User': {
+          'name': null
+        }
+      }
+    })
+  })
 })

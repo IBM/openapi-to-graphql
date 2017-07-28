@@ -135,7 +135,9 @@ const buildUrl = (server) => {
  */
 const sanitizeObjKeys = (obj, exceptions = []) => {
   const cleanKeys = (obj) => {
-    if (Array.isArray(obj)) {
+    if (!obj) {
+      return null
+    } else if (Array.isArray(obj)) {
       return obj.map(cleanKeys)
     } else if (typeof obj === 'object') {
       let res = {}
