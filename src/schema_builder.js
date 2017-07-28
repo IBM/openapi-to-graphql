@@ -646,14 +646,34 @@ const resolveAllOf = (allOfSchema, schema, oas) => {
       switch (subschemaKey) {
         case 'type':
           // TODO: strict?
-          if (typeof schema.type === 'string' && schema.type !== subschema.type) {
-            throw new Error(`allOf will overwrite a preexisting type definition for schema '${schema}'`)
+          if (typeof schema.type === 'string' && subschema.type !== subschema.type) {
+            /**
+             * if the schema is an object type but does not contain a properties
+             * field, than we can overwrite the type because a schema with
+             * an object tye and no properties field is equivalent to an empty
+             * schema
+             */
+            if (schema.type === 'object' && !('properties' in schema)) {
+              schema.type = subschema.type
+            } else {
+              throw new Error(`allOf will overwrite a preexisting type definition` +
+                `'type: ${schema.type}' with 'type: ${subschema.type}' in schema '${JSON.stringify(schema)}'`)
+            }
           } else {
             schema.type = subschema.type
           }
           break
 
         case 'properties':
+          // imply type object from properties field
+          if (!(typeof schema.type === 'string')) {
+            schema.type = 'object'
+          // cannot replace an object type with a scalar or array type
+          } else if (schema.type !== 'object') {
+            throw new Error(`allOf will overwrite a preexisting type definition` +
+              `'type: ${schema.type}' with 'type: object' in schema '${JSON.stringify(schema)}'`)
+          }
+
           let properties = subschema.properties
 
           let propertyNames = Object.keys(properties)
@@ -670,12 +690,23 @@ const resolveAllOf = (allOfSchema, schema, oas) => {
 
             // check if the preexisting schema is the same
             } else if (deepEqual(schema.properties[propertyName], subschema.properties[propertyName])) {
-              throw new Error(`allOf will overwrite a preexisting property 'property' for '${schema} schema`)
+              throw new Error(`allOf will overwrite a preexisting property ` +
+                `'${propertyName}: ${JSON.stringify(schema.properties[propertyName])}' ` +
+                `with '${propertyName}: ${JSON.stringify(subschema.properties[propertyName])}' ` +
+                `in schema '${JSON.stringify(schema)}`)
             }
           }
           break
 
         case 'items':
+          // imply type array from items field
+          if (!(typeof schema.type === 'string')) {
+            schema.type = 'array'
+          // cannot replace an array type with a scalar or object type
+          } else if (schema.type !== 'array') {
+            throw new Error(`allOf will overwrite a preexisting type definition` +
+              `'type: ${schema.type}' with 'type: array' in schema '${JSON.stringify(schema)}'`)
+          }
           if (!('items' in schema)) {
             schema.items = {}
           }
