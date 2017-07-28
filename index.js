@@ -42,6 +42,7 @@ Error.stackTraceLimit = Infinity
  *   functions.
  *
  * @param  {Object}  spec Swagger / OpenAPI Specification 2.0 / 3.0.x
+ *
  * @return {Promise}      Resolves on GraphQLSchema, rejects on error during schema creation
  */
 const createGraphQlSchema = (spec, options = {}) => {
@@ -51,9 +52,11 @@ const createGraphQlSchema = (spec, options = {}) => {
       throw new Error(`Invalid specification provided`)
     }
 
-    // Check if the spec is a valid OAS 3.0.x
-    // If the spec is OAS 2.0, attempt to translate it into 3.0.x
-    // Then try to translate the spec into a GraphQL schema
+    /**
+     * Check if the spec is a valid OAS 3.0.x
+     * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
+     * translate the spec into a GraphQL schema
+     */
     Oas3Tools.getValidOAS3(spec)
       .then(oas => {
         translateOpenApiToGraphQL(oas, options)
@@ -74,20 +77,18 @@ const createGraphQlSchema = (spec, options = {}) => {
  *  {Boolean} strict           Adhere to the OAS as closely as possible
  *  {Object}  headers          Additional headers sent with every request while resolving queries
  *  {Object}  qs               Additional query parameters sent with every request while resolving queries
- *  {Boolean} viewer           Do not create authentication viewers. Intended to be used with
- *                              the headers option (i.e. if you provide all your authentication
- *                              data in the headers options, you do not have to authenticate
- *                              through the authentication viewers)
- *  {String}  tokenJSONpath    Path to the OAuth 2.0 token. Because of technical reasons, we
- *                              can create an OAuth 2.0 authentication viewer. Hence, the only
- *                              way for OASGraph to bypass OAuth 2.0 is when the outer
- *                              application provides it
+ *  {Boolean} viewer           Do not create authentication viewers. Intended to be used with the headers option
+ *                              (i.e. if you provide all your authentication data in the headers options, you do not
+ *                              have to authenticate through the authentication viewers)
+ *  {String}  tokenJSONpath    Path to the OAuth 2.0 token. Because of technical reasons, wevcan create an OAuth 2.0
+ *                              authentication viewer. Hence, the only way for OASGraph to bypass OAuth 2.0 is when the
+ *                              outer application provides it
  *  {Boolean} addSubOperations Combine queries with similar paths and inputs
  * }
  *
  * @param  {Object} oas     OpenAPI Specification 3.0
- * @param  {Object} options A few different options that we have implemented to allow users to
- *                           customize how they would like use our tool
+ * @param  {Object} options A few different options that we have implemented to
+ *                           allow users to customize how they would like use our tool
  *
  * @return {Promise}        Resolves on GraphQLSchema, rejects on error during schema creation
  */
@@ -114,51 +115,35 @@ const translateOpenApiToGraphQL = (oas, {
 
     /**
      * Extract information from the OAS and put it inside a data structure that
-     *  is easier for OASGraph to use
-     *
-     * @type {Object}
+     * is easier for OASGraph to use
      */
     let data = Preprocessor.preprocessOas(oas, options)
 
     /**
-     * Holds on to the highest-level (entry-level) object types for queries
-     *  that are accessible in the schema to build
-     *
-     * @type {Object}
+     * Holds on to the highest-level (entry-level) object types for queries that
+     * are accessible in the schema to build
      */
     let rootQueryFields = {}
 
     /**
      * Holds on to the highest-level (entry-level) object types for mutations
-     *  that are accessible in the schema to build
-     *
-     * @type {Object}
+     * that are accessible in the schema to build
      */
     let rootMutationFields = {}
 
-    /**
-     * Intermediate field used to input authentication credentials for queries
-     *
-     * @type {Object}
-     */
+    // Intermediate field used to input authentication credentials for queries
     let viewerFields = {}
 
-    /**
-     * Intermediate field used to input authentication credentials for mutations
-     *
-     * @type {Object}
-     */
+    // Intermediate field used to input authentication credentials for mutations
     let viewerMutationFields = {}
 
     /**
      * Translate every endpoint to GraphQL schemes.
      *
      * Do this first for endpoints that DO contain links OR that DO contain sub
-     * operation, so that built up GraphQL object types that are reused contain
-     * these links.
+     * operation, so that built up GraphQL object types that are reused contain these links
      *
-     * This necessitates a second iteration, though, for the endpoints that
-     * DO NOT have links.
+     * This necessitates a second iteration, though, for the endpoints that DO NOT have links.
      */
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
@@ -168,18 +153,18 @@ const translateOpenApiToGraphQL = (oas, {
           {
             operation,
             operationId,
-            data,
-            oas,
             rootQueryFields,
             rootMutationFields,
             viewerFields,
-            viewerMutationFields
+            viewerMutationFields,
+            data,
+            oas
           }
         )
       }
     }
 
-    // ...and again for endpoints without links:
+    // ...and again for endpoints without links
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length === 0 &&
@@ -188,12 +173,12 @@ const translateOpenApiToGraphQL = (oas, {
           {
             operation,
             operationId,
-            data,
-            oas,
             rootQueryFields,
             rootMutationFields,
             viewerFields,
-            viewerMutationFields
+            viewerMutationFields,
+            data,
+            oas
           }
         )
       }
@@ -204,34 +189,23 @@ const translateOpenApiToGraphQL = (oas, {
 
     // create and add viewer object types to the query and mutation object types if applicable
     if (Object.keys(viewerFields).length > 0) {
-      let viewerNames = {
-        // the underscore is import for generating camel case with beautify
-        objectPreface: 'viewer_',
-        anyAuthName: 'viewerAnyAuth'
-      }
       AuthBuilder.createAndLoadViewer(
-          oas,
-          data,
-          viewerNames,
-          usedViewerNames,
           viewerFields,
-          rootQueryFields
+          rootQueryFields,
+          usedViewerNames,
+          data,
+          oas
       )
     }
 
     if (Object.keys(viewerMutationFields).length > 0) {
-      let mutationViewerNames = {
-        // the underscore is import for generating camel case with beautify
-        objectPreface: 'mutationViewer_',
-        anyAuthName: 'mutationViewerAnyAuth'
-      }
       AuthBuilder.createAndLoadViewer(
-          oas,
-          data,
-          mutationViewerNames,
-          usedMutationViewerNames,
           viewerMutationFields,
-          rootMutationFields
+          rootMutationFields,
+          usedMutationViewerNames,
+          data,
+          oas,
+          true
       )
     }
 
@@ -269,53 +243,52 @@ const translateOpenApiToGraphQL = (oas, {
 }
 
 /**
- * Load the field object in the appropriate root object
+ * Load the field object in the appropriate root object inside either
+ * rootQueryFields/rootMutationFields or inside rootQueryFields/rootMutationFields
+ * for further processing
  *
- * i.e. inside either rootQueryFields/rootMutationFields or inside
- * rootQueryFields/rootMutationFields for further processing
- *
- * @param  {object} operation Operation as produced by preprocessing
- * @param  {string} operationId Name used to identify a particular operation
- * @param  {object} data      Data produced by preprocessing
- * @param  {object} oas       OpenAPI Specification 3.0
- * @param  {object} rootQueryFields Object that contains the definition all
- * query objects type
- * @param  {object} rootMutationFields Object that contains the definition all
- * mutation objects type
- * @param  {object} viewerFields Object that contains the definition of all
- * authenticated query object types
+ * @param  {object} operation            Operation as produced by preprocessing
+ * @param  {string} operationId          Name used to identify a particular operation
+ * @param  {object} rootQueryFields      Object that contains the definition all
+ *                                        query objects type
+ * @param  {object} rootMutationFields   Object that contains the definition all
+ *                                        mutation objects type
+ * @param  {object} viewerFields         Object that contains the definition of all
+ *                                        authenticated query object types
  * @param  {object} viewerMutationFields Object that contains the definition of
- * all authenticated mutation object types
+ *                                        all authenticated mutation object types
+ * @param  {object} data                 Data produced by preprocessing
+ * @param  {object} oas                  Raw OpenAPI Specification 3.0
  */
 const loadFields = (
   {
     operation,
     operationId,
-    data,
-    oas,
     rootQueryFields,
     rootMutationFields,
     viewerFields,
-    viewerMutationFields
+    viewerMutationFields,
+    data,
+    oas
   }
 ) => {
-  // get the fields for an operation
+  // Get the fields for an operation
   let field = getFieldForOperation(operation, data, oas)
 
-  // if the operation has no valid type, abort:
+  // If the operation has no valid type, abort
   if (!field.type || typeof field.type === 'undefined') {
     log(`Warning: skipped operation "${operation.method.toUpperCase()} ` +
       `${operation.path}" without defined Object Type.`)
     return
   }
 
-  // determine if the operation is authenticated
+  // Determine if the operation is authenticated
   let isAuthenticated = Object.keys(operation.securityProtocols).length > 0 &&
     data.options.viewer !== false
 
   // CASE: query
   if (operation.method.toLowerCase() === 'get') {
-    // use name of the response data schema as field name:
+    // Use name of the response data schema as field name:
     let name = operation.resDef.otName
 
     if (isAuthenticated) {
@@ -324,7 +297,7 @@ const loadFields = (
           if (typeof viewerFields[protocolName] !== 'object') {
             viewerFields[protocolName] = {}
           }
-          // avoid overwriting fields that return the same data:
+          // Avoid overwriting fields that return the same data:
           if (name in viewerFields[protocolName]) {
             name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
           }
@@ -332,7 +305,7 @@ const loadFields = (
         }
       }
     } else {
-      // avoid overwriting fields that return the same data:
+      // Avoid overwriting fields that return the same data:
       if (name in rootQueryFields) {
         name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
       }
@@ -341,8 +314,7 @@ const loadFields = (
 
   // CASE: mutation
   } else {
-    // use operationId to avoid problems differentiating between post, put,
-    // patch, and delete of the same object
+    // Use operationId to avoid problems differentiating operations with the same path but differnet methods
     let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
 
     if (isAuthenticated) {
@@ -361,11 +333,12 @@ const loadFields = (
 }
 
 /**
- * Creates the field object for a given operation.
+ * Creates the field object for a given operation
  *
  * @param  {object} operation Operation as produced by preprocessing
  * @param  {object} data      Data produced by preprocessing
  * @param  {object} oas       OpenAPI Specification 3.0
+ *
  * @return {object}           Field object
  */
 const getFieldForOperation = (operation, data, oas) => {

@@ -8,33 +8,35 @@ const jp = require('jsonpath')
 
 /**
  * Creates and returns a resolver function that performs API requests for the
- * given GraphQL query.
+ * given GraphQL query
  *
  * @param  {Object} options.operation      Corresponding operation
- * @param  {Object} options.oas
  * @param  {Object} options.argsFromLink   Object containing the args for this
- * resolver provided through links
+ *                                           resolver provided through links
  * @param  {Array}  options.argsFromParent List of names of parameter provided
- * by parent operation - i.e., their arguments are present in ctx.usedParam
+ *                                           by parent operation - i.e., their arguments are present in ctx.usedParam
  * @param  {String} options.payloadName    Name of the argument to send as
- * request payload
- * @param  {Object} options.data           Data produced by preprocessor.js
+ *                                           request payload
+ * @param  {Object} options.data           Data produced by the preprocessor
+ * @param  {Object} options.oas            Raw OpenAPI 3.0.x specification
+ *
  * @return {Function}                      Resolver function
  */
 const getResolver = ({
   operation,
-  oas,
   argsFromLink = {},
   argsFromParent = [],
   payloadName,
-  data
+  data,
+  oas
 }) => {
   // determine the appropriate URL:
   let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
   // return resolve function:
   return (root, args, ctx = {}) => {
-    // fetch possibly existing _oasgraph:
+    // fetch possibly existing _oasgraph
+    // NOTE: _oasgraph is an object used to pass security information
     let _oasgraph = {}
     if (root && typeof root === 'object' &&
       typeof root._oasgraph === 'object') {
@@ -44,17 +46,17 @@ const getResolver = ({
       _oasgraph.usedParams = {}
     }
 
-    // handle arguments provided by links:
+    // handle arguments provided by links
     for (let paramName in argsFromLink) {
       let value = argsFromLink[paramName]
 
-      // parameter names can specify location of parameter (e.g., path.id):
+      // parameter names can specify location of parameter (e.g., path.id)
       let paramNameWithoutLocation = paramName
       if (paramName.indexOf('.') !== -1) {
         paramNameWithoutLocation = paramName.split('.')[1]
       }
 
-      // CASE: parameter in body:
+      // CASE: parameter in body
       if (/body#/.test(value)) {
         let tokens = jp.query(root, value.split('body#/')[1])
         if (Array.isArray(tokens) && tokens.length > 0) {
@@ -62,23 +64,25 @@ const getResolver = ({
         } else {
           log(`Warning: could not extract parameter ${paramName} form link`)
         }
-      // CASE: parameter in previous query parameter:
+      // CASE: parameter in previous query parameter
       } else if (/query\./.test(value)) {
         args[paramNameWithoutLocation] =
           _oasgraph.usedParams[Oas3Tools.beautify(value.split('query.')[1])]
-      // CASE: parameter in previous path parameter:
+      // CASE: parameter in previous path parameter
       } else if (/path\./.test(value)) {
         args[paramNameWithoutLocation] =
           _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
-      // CASE: link OASGraph currently does not support:
+      // CASE: link OASGraph currently does not support
       } else {
         log(`Warnung: could not process link parameter ${paramName} with ` +
           `value ${value}`)
       }
     }
 
-    // handle arguments provided by parent - we reuse parameters populated in
-    // previous calls from the context
+    /**
+     * handle arguments provided by parent - we reuse parameters populated in
+     * previous calls from the context
+     */
     for (let argName of argsFromParent) {
       args[argName] = _oasgraph.usedParams[argName]
     }
@@ -100,9 +104,10 @@ const getResolver = ({
       qs: query
     }
 
-    // determine possible payload:
-    // GraphQL produces sanitized payload names, so we have to sanitize before
-    // lookup here:
+    /**
+     * determine possible payload
+     * GraphQL produces sanitized payload names, so we have to sanitize before lookup here
+     */
     let sanePayloadName = Oas3Tools.beautify(payloadName)
     if (sanePayloadName in args) {
       // we need to desanitize the payload so the API understands it:
@@ -129,14 +134,14 @@ const getResolver = ({
       }
     }
 
-    // get authentication headers and query parameters:
+    // get authentication headers and query parameters
     let {authHeaders, authQs} = getAuthOptions(operation, _oasgraph, data)
 
-    // ...and pass them to the options:
+    // ...and pass them to the options
     Object.assign(options.headers, authHeaders)
     Object.assign(options.qs, authQs)
 
-    // extract OAuth token from context (if available):
+    // extract OAuth token from context (if available)
     if (data.options.sendOAuthTokenInQuery) {
       let oauthQueryObj = createOAuthQS(data, ctx)
       Object.assign(options.qs, oauthQueryObj)
@@ -145,7 +150,7 @@ const getResolver = ({
       Object.assign(options.headers, oauthHeader)
     }
 
-    // make the call:
+    // make the call
     log(`Call ${options.method.toUpperCase()} ${options.url}` +
       `?${querystring.stringify(options.qs)} ` +
       `headers:${JSON.stringify(options.headers)}`)
@@ -159,10 +164,10 @@ const getResolver = ({
           reject(new Error(`${response.statusCode} - ${JSON.stringify(body)}`))
         } else {
           log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
-          // deal with the fact that the server might send unsanitized data:
+          // deal with the fact that the server might send unsanitized data
           let saneData = Oas3Tools.sanitizeObjKeys(body)
 
-          // pass on _oasgraph to subsequent resolvers:
+          // pass on _oasgraph to subsequent resolvers
           if (typeof saneData === 'object') {
             saneData._oasgraph = _oasgraph
           }
@@ -215,7 +220,7 @@ const createOAuthHeader = (data, ctx) => {
     return {}
   }
 
-  // extract token:
+  // extract token
   let tokenJSONpath = data.options.tokenJSONpath
   let tokens = jp.query(ctx, tokenJSONpath)
   if (Array.isArray(tokens) && tokens.length > 0) {

@@ -450,12 +450,12 @@ const getResStatusCode = (path, method, oas) => {
 }
 
 /**
- * Returns an object containing the links defined in the given endpoint.
+ * Returns an hash containing the links defined in the given endpoint.
  *
- * @param  {string} path
- * @param  {string} method
- * @param  {object} oas
- * @return {object}          Object containing links of given endpoint
+ * @param  {String} path
+ * @param  {String} method
+ * @param  {Object} oas
+ * @return {Hash}          Hash containing links of given endpoint
  */
 const getEndpointLinks = (path, method, oas) => {
   let links = {}
