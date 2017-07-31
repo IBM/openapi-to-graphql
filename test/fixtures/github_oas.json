@@ -16495,7 +16495,7 @@
     },
     "branch": {
       "properties": {
-        "_links": {
+        "links": {
           "properties": {
             "html": {
               "type": "string"
@@ -17580,7 +17580,7 @@
     },
     "contents-path": {
       "properties": {
-        "_links": {
+        "links": {
           "properties": {
             "git": {
               "type": "string"
@@ -17849,7 +17849,7 @@
         },
         "content": {
           "properties": {
-            "_links": {
+            "links": {
               "properties": {
                 "git": {
                   "type": "string"
@@ -18611,7 +18611,7 @@
     },
     "feeds": {
       "properties": {
-        "_links": {
+        "links": {
           "properties": {
             "current_user": {
               "properties": {
@@ -19628,7 +19628,7 @@
     "issuesComments": {
       "items": {
         "properties": {
-          "_links": {
+          "links": {
             "properties": {
               "html": {
                 "properties": {
@@ -20614,7 +20614,7 @@
     },
     "pullRequest": {
       "properties": {
-        "_links": {
+        "links": {
           "properties": {
             "comments": {
               "properties": {
@@ -21048,7 +21048,7 @@
     "pulls": {
       "items": {
         "properties": {
-          "_links": {
+          "links": {
             "properties": {
               "comments": {
                 "properties": {
@@ -21438,7 +21438,7 @@
     },
     "pullsComment": {
       "properties": {
-        "_links": {
+        "links": {
           "properties": {
             "html": {
               "properties": {
@@ -21536,7 +21536,7 @@
     "pullsComments": {
       "items": {
         "properties": {
-          "_links": {
+          "links": {
             "properties": {
               "html": {
                 "properties": {
@@ -21682,7 +21682,7 @@
     },
     "readme": {
       "properties": {
-        "_links": {
+        "links": {
           "properties": {
             "git": {
               "type": "string"
