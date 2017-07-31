@@ -173,7 +173,7 @@ const reuseOrCreateOt = ({
         description: schema.description, // might be undefined
         fields: () => {
           return createFields({
-            schemaName: name,
+            schemaName: def.otName,
             schema,
             operation,
             links,
@@ -198,7 +198,7 @@ const reuseOrCreateOt = ({
         description: schema.description, // might be undefined
         fields: () => {
           return createFields({
-            schemaName: name,
+            schemaName: def.iotName,
             schema,
             operation,
             links,
@@ -352,6 +352,7 @@ const getScalarType = (type, data) => {
       return GraphQLBoolean
     default:
       if (!data.strict) {
+        log(`Warning: can't resolve type "${type}" - default to GraphQLString`)
         return GraphQLString
       } else {
         throw new Error(`Unknown JSON scalar "${type}"`)
@@ -373,6 +374,7 @@ const getScalarType = (type, data) => {
  * @return {Object}                     Object containing fields
  */
 const createFields = ({
+  schemaName,
   schema,
   operation,
   links,
