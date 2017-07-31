@@ -1,5 +1,5 @@
 {
-  "openapi": "3.0.0-RC1",
+  "openapi": "3.0.0",
   "servers": [
     {
       "url": "/government/socialwork"
@@ -4624,8 +4624,8 @@
         "type": "oauth2",
         "flows": {
           "authorizationCode": {
-            "authorizationUrl": " https://github.com/login/oauth/authorize ",
-            "tokenUrl": " https://github.com/login/oauth/access_token ",
+            "authorizationUrl": "https://github.com/login/oauth/authorize",
+            "tokenUrl": "https://github.com/login/oauth/access_token",
             "scopes": {
               "default": "Grants read/write access to api catalog"
             }
