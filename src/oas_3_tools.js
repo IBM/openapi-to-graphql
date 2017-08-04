@@ -1,6 +1,27 @@
+/* @flow */
+
 'use strict'
 
-const mutationMethods = ['post', 'put', 'patch', 'delete']
+import type {
+  Oas3,
+  ServerObject,
+  ParameterObject,
+  SchemaObject,
+  OperationObject,
+  ResponsesObject,
+  ResponseObject,
+  PathItemObject,
+  RequestBodyObject,
+  ReferenceObject,
+  LinksObject,
+  LinkObject,
+  SecuritySchemesObject,
+  SecuritySchemeObject,
+  SecurityRequirementObject
+} from './types/oas3.js'
+import type {Oas2} from './types/oas2.js'
+import type {Operation} from './types/operation.js'
+
 const deepEqual = require('deep-equal')
 const Swagger2OpenAPI = require('swagger2openapi')
 const OASValidator = require('swagger2openapi/validate.js')
@@ -16,7 +37,7 @@ const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path
 const JSON_CONTENT_TYPES = ['application/json', '*/*']
 const SUCCESS_STATUS_RX = /2[0-9]{2}/
 
-const getValidOAS3 = (spec) => {
+const getValidOAS3 = (spec: Oas2 | Oas3): Promise<Oas3> => {
   return new Promise((resolve, reject) => {
     // CASE: translate
     if (typeof spec.swagger === 'string' && spec.swagger === '2.0') {
@@ -53,7 +74,7 @@ const getValidOAS3 = (spec) => {
  * @param  {array}  parts (Optional) List of remaining ref. parts to resolve
  * @return {object}       Resolved object
  */
-const resolveRef = (ref, obj, parts) => {
+const resolveRef = (ref: string, obj: Object, parts?: string[]): any => {
   if (typeof parts === 'undefined') {
     parts = ref.split('/')
   }
@@ -74,28 +95,24 @@ const resolveRef = (ref, obj, parts) => {
 }
 
 /**
- * Returns an appropriate url for a given OAS and operation.
- *
- * @param  {object} oas
- * @param  {object} operation
- * @return {string}     URL
+ * From the given OAS, returns the base URL to use for the given operation.
  */
-const getBaseUrl = (oas, operation) => {
+const getBaseUrl = (oas: Oas3, operation: Operation): string => {
   // check for local servers
-  if (typeof operation.servers === 'object' && Object.keys(operation.servers).length > 0) {
+  if (Array.isArray(operation.servers) && operation.servers.length > 0) {
     let url = buildUrl(operation.servers[0])
 
-    if (Object.keys(operation.servers).length > 1) {
+    if (Array.isArray(operation.servers) && operation.servers.length > 1) {
       logHttp(`Warning: randomly selected first server ${url}`)
     }
 
     return url.replace(/\/$/, '')
   }
 
-  if (typeof oas.servers === 'object' && Object.keys(oas.servers).length > 0) {
+  if (Array.isArray(oas.servers) && oas.servers.length > 0) {
     let url = buildUrl(oas.servers[0])
 
-    if (Object.keys(oas.servers).length > 1) {
+    if (Array.isArray(oas.servers) && oas.servers.length > 1) {
       logHttp(`Warning: randomly selected first server ${url}`)
     }
 
@@ -106,19 +123,17 @@ const getBaseUrl = (oas, operation) => {
 }
 
 /**
- * Returns the default URL for a given OAS server object
- *
- * @param  {object} server
- * @return {string}     URL
+ * Returns the default URL for a given OAS server object.
  */
-const buildUrl = (server) => {
+const buildUrl = (server: ServerObject): string => {
   let url = server.url
   // necessary?
-  if (typeof server.variables === 'object' && Object.keys(server.variables).length > 0) {
+  if (typeof server.variables === 'object' &&
+  Object.keys(server.variables).length > 0) {
     for (let variableKey in server.variables) {
       // check for default? Would be invalid OAS
-      // url = url.replace(`{${variableKey}}`, `${server.variables[variableKey].default}`)
-      url = url.replace(`{${variableKey}}`, server.variables[variableKey].default.toString())
+      url = url.replace(`{${variableKey}}`,
+        server.variables[variableKey].default.toString())
     }
   }
 
@@ -128,19 +143,18 @@ const buildUrl = (server) => {
 /**
  * Returns object | array where all object keys are sanitized. Keys passed in
  * exceptions are not sanitized.
- *
- * @param  {any}    obj        Object | array etc. to sanitize
- * @param  {Array}  exceptions List of keys to leave as is
- * @return {any}
  */
-const sanitizeObjKeys = (obj, exceptions = []) => {
-  const cleanKeys = (obj) => {
+const sanitizeObjKeys = (
+  obj: Object | Array<any>,
+  exceptions: string[] = []
+): ?Object | Array<any> => {
+  const cleanKeys = (obj: ?Object | Array<any>): ?Object | Array<any> => {
     if (!obj) {
       return null
     } else if (Array.isArray(obj)) {
       return obj.map(cleanKeys)
     } else if (typeof obj === 'object') {
-      let res = {}
+      let res: Object = {}
       for (let key in obj) {
         if (!exceptions.includes(key)) {
           let saneKey = beautify(key)
@@ -162,12 +176,11 @@ const sanitizeObjKeys = (obj, exceptions = []) => {
 /**
  * Desanitizes keys in given object by replacing them with the keys stored in
  * the given mapping.
- *
- * @param  {any}    obj     Object | array etc. to desanitize
- * @param  {Object} mapping Key: sanitized key, Value: desanitized value
- * @return {any}
  */
-const desanitizeObjKeys = (obj, mapping = {}) => {
+const desanitizeObjKeys = (
+  obj: Object | Array<any>,
+  mapping: Object = {}
+): ?Object | Array<any> => {
   const replaceKeys = (obj) => {
     if (Array.isArray(obj)) {
       return obj.map(replaceKeys)
@@ -194,33 +207,34 @@ const desanitizeObjKeys = (obj, mapping = {}) => {
 /**
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
- *
- * @param  {string} path
- * @param  {object} endpoint
- * @param  {object} args     Arguments. NOTE: argument keys are sanitized!!!
- * @return {string}          Path with parameters replaced by argument values
  */
-const instantiatePathAndGetQuery = (path, parameters, args) => {
-  // case: nothing to do
-  if (!Array.isArray(parameters)) {
-    return path
-  }
-
+const instantiatePathAndGetQuery = (
+  path: string,
+  parameters: ParameterObject[],
+  args: Object // NOTE: argument keys are sanitized!
+): {
+  path: string,
+  query: Object
+} => {
   let query = {}
-  // iterate parameters:
-  for (let i in parameters) {
-    let param = parameters[i]
-    let sanitizedParamName = beautify(param.name)
 
-    // path parameters:
-    if (param.in === 'path') {
-      path = path.replace(`{${param.name}}`, args[sanitizedParamName])
-    }
+  // case: nothing to do
+  if (Array.isArray(parameters)) {
+    // iterate parameters:
+    for (let param: ParameterObject of parameters) {
+      let sanitizedParamName = beautify(param.name)
 
-    // query parameters:
-    if (param.in === 'query' &&
-      sanitizedParamName in args) {
-      query[param.name] = args[sanitizedParamName]
+      // path parameters:
+      if (param.in === 'path') {
+        path = path.replace(`{${param.name}}`, args[sanitizedParamName])
+      }
+
+      // query parameters:
+      if (param.in === 'query' &&
+        sanitizedParamName &&
+        sanitizedParamName in args) {
+        query[param.name] = args[sanitizedParamName]
+      }
     }
   }
 
@@ -230,11 +244,8 @@ const instantiatePathAndGetQuery = (path, parameters, args) => {
 /**
  * Returns the "type" of the given JSON schema. Makes best guesses if the type
  * is not explicitly defined.
- *
- * @param  {object} schema JSON-schema
- * @return {string}        Type of the JSON-schema
  */
-const getSchemaType = (schema) => {
+const getSchemaType = (schema: SchemaObject): ?string => {
   // CASE: enum
   if (Array.isArray(schema.enum)) {
     return 'enum'
@@ -242,6 +253,7 @@ const getSchemaType = (schema) => {
 
   // CASE: object
   if (schema.type === 'object') {
+    // if there are no properties:
     if (typeof schema.properties === 'undefined' ||
       Object.keys(schema.properties).length === 0) {
       return null
@@ -272,15 +284,11 @@ const getSchemaType = (schema) => {
 
 /**
  * Determines an approximate name for the resource at the given path.
- *
- * @param  {string} path
- * @return {string}      Inferred name
  */
-const inferResourceNameFromPath = (path) => {
+const inferResourceNameFromPath = (path: string): string => {
   let name = ''
   let parts = path.split('/')
-  for (let i in parts) {
-    let part = parts[i]
+  parts.forEach((part, i) => {
     if (!/{|}/g.test(part)) {
       let partClean = sanitize(parts[i])
       if (i === 0) {
@@ -289,26 +297,36 @@ const inferResourceNameFromPath = (path) => {
         name += partClean.charAt(0).toUpperCase() + partClean.slice(1)
       }
     }
-  }
+  })
+
   return name
 }
 
 /**
- * Returns JSON-compatible content-type produced by the given endpoint and the
- * given HTTP status code - or null, if no JSON-compatible content-type exists.
- *
- * @param  {object} endpoint   OAS endpoint
- * @param  {string} statusCode An HTTP status code
- * @return {string|null}       JSON-producing content type
+ * Returns JSON-compatible schema produced by the given endpoint - or null if it
+ * does not exist.
  */
-const getResContentType = (endpoint, statusCode) => {
-  if ('responses' in endpoint &&
-    statusCode in endpoint.responses &&
-    'content' in endpoint.responses[statusCode]) {
-    for (let contentType in endpoint.responses[statusCode].content) {
-      if (JSON_CONTENT_TYPES.includes(contentType) &&
-        'schema' in endpoint.responses[statusCode].content[contentType]) {
-        return contentType
+const getResSchema = (
+  endpoint: OperationObject,
+  statusCode: string,
+  oas: Oas3
+) : ?SchemaObject => {
+  if (typeof endpoint.responses === 'object') {
+    let responses: ResponsesObject = endpoint.responses
+    if (typeof responses[statusCode] === 'object') {
+      let response: ResponseObject | ReferenceObject = responses[statusCode]
+      if (typeof response.$ref === 'string') {
+        response = (resolveRef(response.$ref, oas) : ResponseObject)
+      }
+      if (typeof response.content !== 'undefined') {
+        let content = response.content
+        for (let contentType in content) {
+          let mediaTypeObject = content[contentType]
+          if (JSON_CONTENT_TYPES.includes(contentType) &&
+            typeof mediaTypeObject.schema === 'object') {
+            return mediaTypeObject.schema
+          }
+        }
       }
     }
   }
@@ -316,46 +334,71 @@ const getResContentType = (endpoint, statusCode) => {
 }
 
 /**
- * Returns JSON-compatible content-type required by the given endpoint - or
- * null, if no JSON-compatible content-type exists.
- *
- * @param  {object} endpoint   OAS endpoint
- * @return {string|null}       JSON-producing content type
+ * Returns JSON-compatible schema required by the given endpoint - or null if it
+ * does not exist.
  */
-const getReqContentType = (endpoint) => {
-  if ('requestBody' in endpoint &&
-    'content' in endpoint.requestBody) {
-    for (let contentType in endpoint.requestBody.content) {
-      if (JSON_CONTENT_TYPES.includes(contentType) &&
-        'schema' in endpoint.requestBody.content[contentType]) {
-        return contentType
+const getReqSchema = (
+  endpoint: OperationObject,
+  oas: Oas3
+) : ?SchemaObject => {
+  if (typeof endpoint.requestBody === 'object') {
+    let requestBody: RequestBodyObject | ReferenceObject = endpoint.requestBody
+
+    // make sure we have a RequestBodyObject:
+    if (typeof requestBody.$ref === 'string') {
+      requestBody = (resolveRef(requestBody.$ref, oas) : RequestBodyObject)
+    } else {
+      requestBody = ((requestBody: any): RequestBodyObject)
+    }
+
+    if (typeof requestBody.content === 'object') {
+      let content = requestBody.content
+      for (let contentType: string in content) {
+        if (JSON_CONTENT_TYPES.includes(contentType) &&
+          typeof content[contentType].schema === 'object') {
+          return content[contentType].schema
+        }
       }
     }
   }
   return null
+}
+
+type ReqSchemaAndNames = {
+  reqSchema?: SchemaObject | ReferenceObject,
+  reqSchemaNames?: {fromPath: string, fromSchema: string, fromRef: string},
+  reqRequired?: boolean
 }
 
 /**
  * Returns the request schema (if any) for endpoint at given path and method, a
  * dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
- *
- * @param  {string} path
- * @param  {string} method
- * @param  {object} oas
- * @return {object}
  */
-const getReqSchemaAndNames = (path, method, oas) => {
-  let endpoint = oas.paths[path][method]
+const getReqSchemaAndNames = (
+  path: string,
+  method: string,
+  oas: Oas3
+) : ReqSchemaAndNames => {
+  let endpoint: OperationObject = oas.paths[path][method]
   let reqRequired = false
   let reqSchemaNames = {}
-  let contentType = getReqContentType(endpoint)
+  let reqSchema: ?SchemaObject = getReqSchema(endpoint, oas)
 
-  if (contentType) {
-    let reqSchema = endpoint.requestBody.content[contentType].schema
-    if (typeof endpoint.requestBody.required === 'boolean') {
-      reqRequired = endpoint.requestBody.required
+  if (reqSchema) {
+    let requestBody = endpoint.requestBody
+
+    // determine if request body is required:
+    if (typeof requestBody === 'object') {
+      // resolve reference if needed:
+      if (typeof requestBody.$ref === 'string') {
+        requestBody = resolveRef(requestBody['$ref'], oas)
+      }
+      if (typeof requestBody.required === 'boolean') {
+        reqRequired = requestBody.required
+      }
     }
+
     reqSchemaNames.fromPath = inferResourceNameFromPath(path)
 
     if ('$ref' in reqSchema) {
@@ -375,36 +418,30 @@ const getReqSchemaAndNames = (path, method, oas) => {
   return {}
 }
 
+type ResSchemaAndNames = {
+  resSchema?: SchemaObject | ReferenceObject,
+  resSchemaNames?: {fromPath: string, fromSchema: string, fromRef: string}
+}
+
 /**
  * Returns the response schema for endpoint at given path and method and with
  * the given status code, and a dictionary of names from different sources (if
  * available).
- *
- * Here is the structure of the output:
- * {
- *   {Object} resSchema        Respone schema
- *   {Object} resSchemaNames { Contains possible raw names for the schema
- *     {String} fromPath       Possible name derived from the path
- *     {String} fromRef        Possible name derived from the reference path (if applicable)
- *     {String} fromSchema     Possible name derived from the title parameter (if applicable)
- *   }
- * }
- *
- * @param  {string} path
- * @param  {string} method
- * @param  {object} oas
- *
- * @return {object}
  */
-const getResSchemaAndNames = (path, method, oas) => {
-  let endpoint = oas.paths[path][method]
+const getResSchemaAndNames = (
+  path: string,
+  method: string,
+  oas: Oas3
+) : ResSchemaAndNames => {
+  let endpoint: OperationObject = oas.paths[path][method]
   let resSchemaNames = {}
   let statusCode = getResStatusCode(path, method, oas)
-  let contentType = getResContentType(endpoint, statusCode)
+  if (!statusCode) {
+    return {}
+  }
+  let resSchema = getResSchema(endpoint, statusCode, oas)
 
-  if (contentType) {
-    let resSchema = endpoint.responses[statusCode].content[contentType].schema
-
+  if (resSchema) {
     resSchemaNames.fromPath = inferResourceNameFromPath(path)
 
     if ('$ref' in resSchema) {
@@ -420,23 +457,20 @@ const getResSchemaAndNames = (path, method, oas) => {
       resSchemaNames
     }
   } else {
-    return {
-      resSchema: null,
-      resSchemaNames: null
-    }
+    return {}
   }
 }
 
 /**
  * Returns the success status code for the operation at the given path and
  * method (or null).
- * @param  {String} path
- * @param  {String} method
- * @param  {Object} oas    OpenAPI Specification 3.0.x
- * @return {String|null}
  */
-const getResStatusCode = (path, method, oas) => {
-  let endpoint = oas.paths[path][method]
+const getResStatusCode = (
+  path: string,
+  method: string,
+  oas: Oas3
+) : ?string => {
+  let endpoint: OperationObject = oas.paths[path][method]
 
   if (typeof endpoint.responses === 'object') {
     let codes = Object.keys(endpoint.responses)
@@ -456,23 +490,40 @@ const getResStatusCode = (path, method, oas) => {
 
 /**
  * Returns an hash containing the links defined in the given endpoint.
- *
- * @param  {String} path
- * @param  {String} method
- * @param  {Object} oas
- * @return {Hash}          Hash containing links of given endpoint
  */
-const getEndpointLinks = (path, method, oas) => {
+const getEndpointLinks = (
+  path: string,
+  method: string,
+  oas: Oas3
+) : ?{[string]: LinkObject} => {
   let links = {}
-  let endpoint = oas.paths[path][method]
+  let endpoint: OperationObject = oas.paths[path][method]
   let statusCode = getResStatusCode(path, method, oas)
-  if ('links' in endpoint.responses[statusCode]) {
-    for (let linkKey in endpoint.responses[statusCode].links) {
-      let link = endpoint.responses[statusCode].links[linkKey]
-      if ('$ref' in link) {
-        link = resolveRef(link['$ref'], oas)
+  if (!statusCode) {
+    return links
+  }
+  if (typeof endpoint.responses === 'object') {
+    let responses: ResponsesObject = endpoint.responses
+    if (typeof responses[statusCode] === 'object') {
+      let response: ResponseObject | ReferenceObject = responses[statusCode]
+
+      if (typeof response.$ref === 'string') {
+        response = (resolveRef(response.$ref, oas) : ResponseObject)
       }
-      links[linkKey] = link
+
+      // here, we can be ceratain we have a ResponseObject:
+      response = ((response: any): ResponseObject)
+
+      if (typeof response.links === 'object') {
+        let epLinks: LinksObject = response.links
+        for (let linkKey in epLinks) {
+          let link: LinkObject | ReferenceObject = epLinks[linkKey]
+          if (typeof link.$ref === 'string') {
+            link = resolveRef(link['$ref'], oas)
+          }
+          links[linkKey] = link
+        }
+      }
     }
   }
   return links
@@ -481,41 +532,51 @@ const getEndpointLinks = (path, method, oas) => {
 /**
  * Returns the list of parameters for the endpoint at the given method and path.
  * Resolves referenced parameters if needed.
- *
- * @param  {string} path
- * @param  {string} method
- * @param  {object} oas
- * @return {array}         List of parameters
  */
-const getParameters = (path, method, oas) => {
+const getParameters = (
+  path: string,
+  method: string,
+  oas: Oas3
+) : ParameterObject[] => {
   let parameters = []
 
   if (!isOperation(method)) {
     log(`Warning: attempted to get parameters for ${method} ${path}, ` +
-      `which is not an opeartion.`)
+      `which is not an operation.`)
     return parameters
   }
 
+  let pathItemObject: PathItemObject = oas.paths[path]
+
+  let pathParams = pathItemObject.parameters
+
   // first, consider parameters in Path Item Object:
-  if (Array.isArray(oas.paths[path].parameters)) {
-    let pathItemParameters = oas.paths[path].parameters.map(p => {
-      if ('$ref' in p) {
-        return resolveRef(p['$ref'], oas)
+  if (Array.isArray(pathParams)) {
+    let pathItemParameters: ParameterObject[] = pathParams.map(p => {
+      if (typeof p.$ref === 'string') {
+        // here we know we have a parameter object:
+        return (resolveRef(p['$ref'], oas) : ParameterObject)
       } else {
-        return p
+        // here we know we have a parameter object:
+        return ((p: any): ParameterObject)
       }
     })
     parameters = parameters.concat(pathItemParameters)
   }
 
   // second, consider parameters in Operation Object:
-  let endpoint = oas.paths[path][method]
-  if ('parameters' in endpoint) {
-    let opParameters = endpoint.parameters.map(p => {
-      if ('$ref' in p) {
-        return resolveRef(p['$ref'], oas)
+  let opObject: OperationObject = oas.paths[path][method]
+
+  let opObjectParameters = opObject.parameters
+
+  if (Array.isArray(opObjectParameters)) {
+    let opParameters: ParameterObject[] = opObjectParameters.map(p => {
+      if (typeof p.$ref === 'string') {
+        // here we know we have a parameter object:
+        return (resolveRef(p['$ref'], oas) : ParameterObject)
       } else {
-        return p
+        // here we know we have a parameter object:
+        return ((p: any): ParameterObject)
       }
     })
     parameters = parameters.concat(opParameters)
@@ -525,70 +586,96 @@ const getParameters = (path, method, oas) => {
 }
 
 /**
- * Returns the list of security protocols for the endpoint at the given method and path.
- * Resolves referenced parameters if needed.
- *
- * @param  {string} path
- * @param  {string} method
- * @param  {object} oas
- * @param  {object} mapping
- * @return {object}         Object containing security protocols of given
- *                          endpoint, method, and path
+ * Returns a map of strings to the Security Scheme definitions. Resolves
+ * possible references.
  */
-const getSecurityProtocols = (path, method, oas) => {
-  let protocols = []
-  if (typeof oas.security === 'object' && Object.keys(oas.security).length > 0) {
-    for (let protocolIndex in oas.security) {
-      for (let protocolKey in oas.security[protocolIndex]) {
-        // TODO: enhance checking
-        if (typeof oas.security[protocolIndex][protocolKey] === 'object' &&
-      oas.components.securitySchemes[protocolKey].type !== 'oauth2') {
-          let tempHash = {}
-          tempHash[beautify(protocolKey)] = oas.security[protocolIndex][protocolKey]
-          protocols.push(tempHash)
-        }
+const getSecuritySchemes = (oas: Oas3) : {[string]: SecuritySchemeObject} => {
+  // collect all security schemes:
+  let securitySchemes: {[string]: SecuritySchemeObject} = {}
+  if (typeof oas.components === 'object' &&
+  typeof oas.components.securitySchemes === 'object') {
+    for (let schemeKey in oas.components.securitySchemes) {
+      let obj = oas.components.securitySchemes[schemeKey]
+
+      // ensure we have actual SecuritySchemeObject:
+      if (typeof obj.$ref === 'string') {
+        // result of resolution will be SecuritySchemeObject:
+        securitySchemes[schemeKey] = ((resolveRef(obj.$ref, oas): any): SecuritySchemeObject)
+      } else {
+        // we already have a SecuritySchemeObject:
+        securitySchemes[schemeKey] = ((obj: any): SecuritySchemeObject)
       }
     }
   }
+  return securitySchemes
+}
 
-  // adding local security protocols
-  let endpoint = oas.paths[path][method]
-  if (typeof endpoint.security === 'object' && Object.keys(endpoint.security).length > 0) {
-    for (let protocolAIndex in endpoint.security) {
-      for (let protocolAKey in endpoint.security[protocolAIndex]) {
-        if (typeof endpoint.security[protocolAIndex][protocolAKey] === 'object' &&
-      oas.components.securitySchemes[protocolAKey].type !== 'oauth2') {
-          inner: {
-            for (let protocolBKey in protocols) {
-              if (deepEqual(endpoint.security[protocolAIndex][protocolAKey], protocols[protocolBKey])) {
-                break inner
-              }
-            }
-            let tempHash = {}
-            tempHash[beautify(protocolAKey)] = endpoint.security[protocolAIndex][protocolAKey]
-            protocols.push(tempHash)
+/**
+ * Returns the list of security protocols required by the operation at the given
+ * path and method. Resolves referenced parameters if needed.
+ */
+const getSecurityRequirements = (
+  path: string,
+  method: string,
+  securitySchemes: {[string]: SecuritySchemeObject},
+  oas: Oas3
+) : string[] => {
+  let results: string[] = []
+
+  // first, consider global requirements:
+  let globalSecurity: ?SecurityRequirementObject[] = oas.security
+  if (globalSecurity && typeof globalSecurity !== 'undefined') {
+    for (let secReq: SecurityRequirementObject of globalSecurity) {
+      for (let schemaKey: string in secReq) {
+        if (securitySchemes[schemaKey] &&
+          typeof securitySchemes[schemaKey] === 'object' &&
+          securitySchemes[schemaKey].type !== 'oauth2') {
+          let cleanSchemaKey = beautify(schemaKey)
+          if (typeof cleanSchemaKey === 'string') {
+            results.push(cleanSchemaKey)
           }
         }
       }
     }
   }
-  return protocols
+
+  // local:
+  let operation: OperationObject = oas.paths[path][method]
+  let localSecurity: ?SecurityRequirementObject[] = operation.security
+  if (localSecurity && typeof localSecurity !== 'undefined') {
+    for (let secReq: SecurityRequirementObject of localSecurity) {
+      for (let schemaKey: string in secReq) {
+        if (securitySchemes[schemaKey] &&
+          typeof securitySchemes[schemaKey] === 'object' &&
+          securitySchemes[schemaKey].type !== 'oauth2') {
+          let cleanSchemaKey = beautify(schemaKey)
+          if (typeof cleanSchemaKey === 'string' &&
+            !results.includes(cleanSchemaKey)) {
+            results.push(cleanSchemaKey)
+          }
+        }
+      }
+    }
+  }
+
+  return results
 }
 
 /**
  * Beautifies the given string and stores the sanitized-to-original mapping in
  * the given mapping.
- *
- * @param  {string} str
- * @param  {object} mapping
- * @return {string}           Beautified string or an array
  */
-const beautifyAndStore = (str, mapping, options) => {
+const beautifyAndStore = (
+  str: string,
+  mapping: {[string]: string}
+) : string => {
   if (!(typeof mapping === 'object')) {
-    throw new Error(`No/invalid mapping passed to beautifyAndStore.`)
+    throw new Error(`No/invalid mapping passed to beautifyAndStore`)
   }
   let clean = beautify(str)
-  if (clean !== str) {
+  if (!clean) {
+    throw new Error(`Cannot beautifyAndStore ${str}`)
+  } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
       console.warn(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
         `to ${clean} - collusion possible. Desanitize to ${str}.`)
@@ -600,12 +687,8 @@ const beautifyAndStore = (str, mapping, options) => {
 
 /**
  * First sanitizes given string and then also camel-cases it.
- *
- * @param  {string} str
- * @param  {string} charToRemove
- * @return {string}
  */
-const beautify = (str) => {
+const beautify = (str: string): ?string => {
   // only apply to strings:
   if (typeof str !== 'string') return null
 
@@ -635,25 +718,16 @@ const beautify = (str) => {
 /**
  * Sanitizes the given string so that it can be used as the name for a GraphQL
  * Object Type.
- *
- * GraphQL's validation Regex is: /^[_a-zA-Z][_a-zA-Z0-9]*$/
- *
- * @param  {string} str
- * @return {string}     Sanitized string
  */
-const sanitize = (str) => {
+const sanitize = (str: string) : string => {
   let clean = str.replace(/[^_a-zA-Z0-9]/g, '_')
   return clean
 }
 
 /**
  * Stringifies and possibly trims the given string to the provided length.
- *
- * @param  {any} str       If not a string, we stringify it
- * @param  {Number} length Desired length of returned string
- * @return {String}        Trimmed string
  */
-const trim = (str, length) => {
+const trim = (str: string, length: number) : string => {
   if (typeof str !== 'string') {
     str = JSON.stringify(str)
   }
@@ -668,11 +742,8 @@ const trim = (str, length) => {
 /**
  * Determines if the given "method" is indeed an operation. Alternatively, the
  * method could point to other types of information (e.g., parameters, servers).
- *
- * @param  {String} method
- * @return {Boolean}       True, if given method is an operation.
  */
-const isOperation = (method) => {
+const isOperation = (method: string) : boolean => {
   return OAS_OPERATIONS.includes(method.toLowerCase())
 }
 
@@ -685,10 +756,10 @@ module.exports = {
   inferResourceNameFromPath,
   getReqSchemaAndNames,
   getResSchemaAndNames,
-  mutationMethods,
   getEndpointLinks,
   getParameters,
-  getSecurityProtocols,
+  getSecuritySchemes,
+  getSecurityRequirements,
   sanitizeObjKeys,
   desanitizeObjKeys,
   beautify,

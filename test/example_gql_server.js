@@ -3,7 +3,7 @@
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
 const app = express()
-const OasGraph = require('../index.js')
+const OasGraph = require('../lib/index.js')
 
 let oas = require('./fixtures/example_oas.json')
 // let oas = require('./fixtures/github_oas.json')

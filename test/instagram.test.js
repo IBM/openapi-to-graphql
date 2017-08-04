@@ -2,7 +2,7 @@
 
 /* globals beforeAll, test, expect */
 
-const OasGraph = require('../index.js')
+const OasGraph = require('../lib/index.js')
 
 /**
  * Set up the schema first

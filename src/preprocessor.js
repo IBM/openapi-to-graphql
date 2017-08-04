@@ -1,3 +1,5 @@
+/* @flow */
+
 'use strict'
 
 const Oas3Tools = require('./oas_3_tools.js')
@@ -58,6 +60,9 @@ const preprocessOas = (oas, options) => {
     options
   }
 
+  // Security schemas
+  data.security = getProcessedSecuritySchemes(oas, options)
+
   // Process all operations
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -110,7 +115,7 @@ const preprocessOas = (oas, options) => {
       // Security protocols
       let securityProtocols = []
       if (options.viewer) {
-        securityProtocols = Oas3Tools.getSecurityProtocols(path, method, oas)
+        securityProtocols = Oas3Tools.getSecurityRequirements(path, method, data.security, oas)
       }
 
       // Store determined information for operation
@@ -141,10 +146,131 @@ const preprocessOas = (oas, options) => {
     }
   }
 
-  // Security schemas
-  data.security = getSecuritySchemes(oas, options)
-
   return data
+}
+
+/**
+ * Extracts the security schemes from given OAS and organizes the information in
+ * a data structure that is easier for OASGraph to use
+ *
+ * Here is the structure of the data:
+ * {
+ *   {String} [beautified name] { Contains information about the security protocol
+ *     {String} rawName           Stores the raw security protocol name
+ *     {Object} def               Definition provided by OAS
+ *     {Object} parameters        Stores the names of the authentication credentials
+ *                                  NOTE: Structure will depend on the type of the protocol
+ *                                    (e.g. basic authentication, API key, etc.)
+ *                                  NOTE: Mainly used for the AnyAuth viewers
+ *     {Object} schema            Stores the GraphQL schema to create the viewers
+ *   }
+ * }
+ *
+ * Here is an example:
+ * {
+ *   MyApiKey: {
+ *     rawName: "My_api_key",
+ *     def: { ... },
+ *     parameters: {
+ *       apiKey: MyKeyApiKey
+ *     },
+ *     schema: { ... }
+ *   }
+ *   MyBasicAuth: {
+ *     rawName: "My_basic_auth",
+ *     def: { ... },
+ *     parameters: {
+ *       username: MyBasicAuthUsername,
+ *       password: MyBasicAuthPassword,
+ *     },
+ *     schema: { ... }
+ *   }
+ * }
+ *
+ * @param  {Object} oas Raw OpenAPI Specification 3.0.x
+ *
+ * @return {Object}     Extracted security definitions (see above)
+ */
+const getProcessedSecuritySchemes = (oas, options) => {
+  let security = Oas3Tools.getSecuritySchemes(oas)
+
+  // Loop through all the security protocols
+  for (let protocolKey in security) {
+    let protocol = security[protocolKey]
+
+    // OASGraph uses separate mechanisms to handle OAuth 2.0 (see the tokenJSONpath option)
+    if (protocol.type === 'oauth2') {
+      continue
+    }
+
+    let schema
+    // Determine the parameters and the schema for the security protocol
+    let parameters = {}
+    switch (protocol.type) {
+      case ('apiKey'):
+        parameters = {
+          apiKey: Oas3Tools.beautify(`${protocolKey}_apiKey`)
+        }
+        schema = {
+          type: 'object',
+          description: `API key credentials for the protocol '${protocolKey}'`,
+          properties: {
+            apiKey: {
+              type: 'string'
+            }
+          }
+        }
+        break
+
+      case ('http'):
+        switch (protocol.scheme) {
+          // HTTP a number of authentication types (see http://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml)
+          case ('basic'):
+            parameters = {
+              username: Oas3Tools.beautify(`${protocolKey}_username`),
+              password: Oas3Tools.beautify(`${protocolKey}_password`)
+            }
+            schema = {
+              type: 'object',
+              description: `Basic auth credentials for the protocol '${protocolKey}'`,
+              properties: {
+                username: {
+                  type: 'string'
+                },
+                password: {
+                  type: 'string'
+                }
+              }
+            }
+            break
+          default:
+            if (options.strict) {
+              throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+            }
+            log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+        }
+        break
+
+      // TODO: Implement
+      case ('openIdConnect'):
+        break
+
+      default:
+        if (options.strict) {
+          throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+        }
+        log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+    }
+
+    // Add protocol data to the output
+    security[Oas3Tools.beautify(protocolKey)] = {
+      rawName: protocolKey,
+      def: protocol,
+      parameters,
+      schema
+    }
+  }
+  return security
 }
 
 /**
@@ -280,130 +406,6 @@ const getSchemaName = (names, data) => {
   data.usedOTNames.push(saneName)
 
   return saneName
-}
-
-/**
- * Extracts the security schemes from given OAS and organizes the information in
- * a data structure that is easier for OASGraph to use
- *
- * Here is the structure of the data:
- * {
- *   {String} [beautified name] { Contains information about the security protocol
- *     {String} rawName           Stores the raw security protocol name
- *     {Object} def               Definition provided by OAS
- *     {Object} parameters        Stores the names of the authentication credentials
- *                                  NOTE: Structure will depend on the type of the protocol
- *                                    (e.g. basic authentication, API key, etc.)
- *                                  NOTE: Mainly used for the AnyAuth viewers
- *     {Object} schema            Stores the GraphQL schema to create the viewers
- *   }
- * }
- *
- * Here is an example:
- * {
- *   MyApiKey: {
- *     rawName: "My_api_key",
- *     def: { ... },
- *     parameters: {
- *       apiKey: MyKeyApiKey
- *     },
- *     schema: { ... }
- *   }
- *   MyBasicAuth: {
- *     rawName: "My_basic_auth",
- *     def: { ... },
- *     parameters: {
- *       username: MyBasicAuthUsername,
- *       password: MyBasicAuthPassword,
- *     },
- *     schema: { ... }
- *   }
- * }
- *
- * @param  {Object} oas Raw OpenAPI Specification 3.0.x
- *
- * @return {Object}     Extracted security definitions (see above)
- */
-const getSecuritySchemes = (oas, options) => {
-  let security = {}
-
-  // Loop through all the security protocols
-  for (let protocolKey in oas.components.securitySchemes) {
-    let protocol = oas.components.securitySchemes[protocolKey]
-
-    // OASGraph uses separate mechanisms to handle OAuth 2.0 (see the tokenJSONpath option)
-    if (protocol.type === 'oauth2') {
-      continue
-    }
-
-    let schema
-    // Determine the parameters and the schema for the security protocol
-    let parameters = {}
-    switch (protocol.type) {
-      case ('apiKey'):
-        parameters = {
-          apiKey: Oas3Tools.beautify(`${protocolKey}_apiKey`)
-        }
-        schema = {
-          type: 'object',
-          description: `API key credentials for the protocol '${protocolKey}'`,
-          properties: {
-            apiKey: {
-              type: 'string'
-            }
-          }
-        }
-        break
-
-      case ('http'):
-        switch (protocol.scheme) {
-          // HTTP a number of authentication types (see http://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml)
-          case ('basic'):
-            parameters = {
-              username: Oas3Tools.beautify(`${protocolKey}_username`),
-              password: Oas3Tools.beautify(`${protocolKey}_password`)
-            }
-            schema = {
-              type: 'object',
-              description: `Basic auth credentials for the protocol '${protocolKey}'`,
-              properties: {
-                username: {
-                  type: 'string'
-                },
-                password: {
-                  type: 'string'
-                }
-              }
-            }
-            break
-          default:
-            if (options.strict) {
-              throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
-            }
-            log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
-        }
-        break
-
-      // TODO: Implement
-      case ('openIdConnect'):
-        break
-
-      default:
-        if (options.strict) {
-          throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
-        }
-        log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
-    }
-
-    // Add protocol data to the output
-    security[Oas3Tools.beautify(protocolKey)] = {
-      rawName: protocolKey,
-      def: protocol,
-      parameters,
-      schema
-    }
-  }
-  return security
 }
 
 /**

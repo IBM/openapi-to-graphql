@@ -6,7 +6,7 @@
  * Precondition: run `node test/example_api_server.js`
  */
 
-const OasGraph = require('../index.js')
+const OasGraph = require('../lib/index.js')
 const {
   graphql
 } = require('graphql')

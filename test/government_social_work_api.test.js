@@ -2,7 +2,7 @@
 
 /* globals beforeAll, test, expect */
 
-const OasGraph = require('../index.js')
+const OasGraph = require('../lib/index.js')
 const Oas3Tools = require('../src/oas_3_tools.js')
 const {
   parse,

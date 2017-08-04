@@ -8,7 +8,7 @@ const {
   GraphQLString,
   graphql
 } = require('graphql')
-const Oas3Tools = require('../src/oas_3_tools.js')
+const Oas3Tools = require('../lib/oas_3_tools.js')
 
 test('Applying beautify multiple times does not change outcome', () => {
   let str = 'this Super*annoying-string()'
