@@ -15,20 +15,19 @@ import type {
   ReferenceObject,
   LinksObject,
   LinkObject,
-  SecuritySchemesObject,
+  MediaTypesObject,
   SecuritySchemeObject,
   SecurityRequirementObject
 } from './types/oas3.js'
 import type {Oas2} from './types/oas2.js'
 import type {Operation} from './types/operation.js'
 
-const deepEqual = require('deep-equal')
-const Swagger2OpenAPI = require('swagger2openapi')
-const OASValidator = require('swagger2openapi/validate.js')
-
-const logHttp = require('debug')('http')
-const logPre = require('debug')('preprocessing')
-const log = require('debug')('translation')
+import Swagger2OpenAPI from 'swagger2openapi'
+import OASValidator from 'swagger2openapi/validate.js'
+import debug from 'debug'
+const logHttp = debug('http')
+const logPre = debug('preprocessing')
+const log = debug('translation')
 
 /**
  * OAS constants
@@ -37,6 +36,10 @@ const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path
 const JSON_CONTENT_TYPES = ['application/json', '*/*']
 const SUCCESS_STATUS_RX = /2[0-9]{2}/
 
+/**
+ * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
+ * if errors occur.
+ */
 const getValidOAS3 = (spec: Oas2 | Oas3): Promise<Oas3> => {
   return new Promise((resolve, reject) => {
     // CASE: translate
@@ -68,13 +71,12 @@ const getValidOAS3 = (spec: Oas2 | Oas3): Promise<Oas3> => {
 
 /**
  * Resolves the given reference in the given object.
- *
- * @param  {string} ref   A reference, for example "#/components/schemas/user"
- * @param  {object} obj   Object to resolve reference in, for example an OAS
- * @param  {array}  parts (Optional) List of remaining ref. parts to resolve
- * @return {object}       Resolved object
  */
-const resolveRef = (ref: string, obj: Object, parts?: string[]): any => {
+const resolveRef = (
+  ref: string,
+  obj: Object,
+  parts?: string[]
+): any => {
   if (typeof parts === 'undefined') {
     parts = ref.split('/')
   }
@@ -97,7 +99,10 @@ const resolveRef = (ref: string, obj: Object, parts?: string[]): any => {
 /**
  * From the given OAS, returns the base URL to use for the given operation.
  */
-const getBaseUrl = (oas: Oas3, operation: Operation): string => {
+const getBaseUrl = (
+  oas: Oas3,
+  operation: Operation
+): string => {
   // check for local servers
   if (Array.isArray(operation.servers) && operation.servers.length > 0) {
     let url = buildUrl(operation.servers[0])
@@ -315,12 +320,17 @@ const getResSchema = (
     let responses: ResponsesObject = endpoint.responses
     if (typeof responses[statusCode] === 'object') {
       let response: ResponseObject | ReferenceObject = responses[statusCode]
+
+      // make sure we have a ResponseObject:
       if (typeof response.$ref === 'string') {
         response = (resolveRef(response.$ref, oas) : ResponseObject)
+      } else {
+        response = ((response: any): ResponseObject)
       }
-      if (typeof response.content !== 'undefined') {
-        let content = response.content
-        for (let contentType in content) {
+
+      if (response.content && typeof response.content !== 'undefined') {
+        let content: MediaTypesObject = response.content
+        for (let contentType: string in content) {
           let mediaTypeObject = content[contentType]
           if (JSON_CONTENT_TYPES.includes(contentType) &&
             typeof mediaTypeObject.schema === 'object') {
@@ -495,7 +505,7 @@ const getEndpointLinks = (
   path: string,
   method: string,
   oas: Oas3
-) : ?{[string]: LinkObject} => {
+) : {[string]: LinkObject} => {
   let links = {}
   let endpoint: OperationObject = oas.paths[path][method]
   let statusCode = getResStatusCode(path, method, oas)
@@ -518,8 +528,12 @@ const getEndpointLinks = (
         let epLinks: LinksObject = response.links
         for (let linkKey in epLinks) {
           let link: LinkObject | ReferenceObject = epLinks[linkKey]
+
+          // make sure we have LinkObjects:
           if (typeof link.$ref === 'string') {
             link = resolveRef(link['$ref'], oas)
+          } else {
+            link = ((link: any): LinkObject)
           }
           links[linkKey] = link
         }
@@ -600,7 +614,7 @@ const getSecuritySchemes = (oas: Oas3) : {[string]: SecuritySchemeObject} => {
       // ensure we have actual SecuritySchemeObject:
       if (typeof obj.$ref === 'string') {
         // result of resolution will be SecuritySchemeObject:
-        securitySchemes[schemeKey] = ((resolveRef(obj.$ref, oas): any): SecuritySchemeObject)
+        securitySchemes[schemeKey] = (resolveRef(obj.$ref, oas): SecuritySchemeObject)
       } else {
         // we already have a SecuritySchemeObject:
         securitySchemes[schemeKey] = ((obj: any): SecuritySchemeObject)
@@ -612,7 +626,7 @@ const getSecuritySchemes = (oas: Oas3) : {[string]: SecuritySchemeObject} => {
 
 /**
  * Returns the list of security protocols required by the operation at the given
- * path and method. Resolves referenced parameters if needed.
+ * path and method.
  */
 const getSecurityRequirements = (
   path: string,

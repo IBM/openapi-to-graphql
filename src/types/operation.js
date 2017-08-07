@@ -3,16 +3,22 @@
 import type {
   LinkObject,
   ParameterObject,
-  SecuritySchemeObject,
-  ServerObject
+  ServerObject,
+  SchemaObject
 } from './oas3.js'
 
-type RequestDataDefinition = {
+import type {
+  GraphQLScalarType,
+  GraphQLObjectType,
+  GraphQLInputObjectType
+} from 'graphql'
 
-}
-
-type ResponseDataDefinition = {
-
+export type DataDefinition = {
+  schema: SchemaObject,
+  otName: string,
+  iotName: string,
+  ot?: GraphQLObjectType | GraphQLScalarType,
+  iot?: GraphQLInputObjectType
 }
 
 export type Operation = {
@@ -24,7 +30,7 @@ export type Operation = {
   /**
    * Human-readable description of the operation
    */
-  description: string,
+  description?: string,
 
   /**
    * URL path of this operation
@@ -39,7 +45,7 @@ export type Operation = {
   /**
    * Information about the request payload
    */
-  reqDef: RequestDataDefinition,
+  reqDef: DataDefinition,
 
   /**
    * Determines wheter request payload is required for the request
@@ -49,7 +55,7 @@ export type Operation = {
   /**
    * Information about the response payload
    */
-  resDef: ResponseDataDefinition,
+  resDef: DataDefinition,
 
   /**
    * Links of the operation
@@ -64,9 +70,9 @@ export type Operation = {
   parameters: ParameterObject[],
 
   /**
-   * Security protocols for this operation, except OAuth 2
+   * Security requirements for this operation, except OAuth 2
    */
-  securitySchemes: SecuritySchemeObject[],
+  securityRequirements: string[],
 
   /**
    * (Local) server definitions of the operation.

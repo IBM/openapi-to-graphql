@@ -2,55 +2,21 @@
 
 'use strict'
 
-const Oas3Tools = require('./oas_3_tools.js')
-const deepEqual = require('deep-equal')
-const log = require('debug')('preprocessing')
+import type {Oas3, SchemaObject} from './types/oas3.js'
+import type {Options} from './types/options.js'
+import type {PreprocessingData} from './types/preprocessing_data.js'
+import type {Operation, DataDefinition} from './types/operation.js'
+
+import Oas3Tools from './oas_3_tools.js'
+import deepEqual from 'deep-equal'
+import debug from 'debug'
+const log = debug('preprocessing')
 
 /**
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OASGraph to use
- *
- * Here is the data structure:
- * {
- *   {Object} operations {         Information on a per-operation level
- *     {String}  operationId       Contains the operation Id
- *     {String}  description       Contains the description
- *     {String}  path              Path of the operation
- *     {String}  method            REST verb of the operation
- *     {Object}  reqDef            Information about the request payload
- *                                   NOTE: An element from defs (see below)
- *     {Boolean} reqRequired       Request payload is required for the request
- *     {Object}  resDef            Information about the response payload
- *                                   NOTE: An element from defs (see below)
- *     {Hash}    links             Contains the links
- *     {Array}   parameters        Contains the parameters
- *     {Array}   securityProtocols Contains the security protocols
- *                                   NOTE: Does not contain OAuth 2.0
- *   }
- *   {Array}  defs [               Master list of all the defs
- *                                   NOTE: List will most likely grow even after preprocessing
- *                                   NOTE: Each def may be populated with an ot GraphQL Object Type
- *                                     and/or an iot GraphQL Input Object Type later in OASGraph
- *     {
- *       {Object} schema           JSON schema describing the structure of the payload
- *       {String} otName           Name to be used as a GraphQL Object Type
- *       {String} iotName          Name to be used as a GraphQL Input Object Type
- *     }
- *   ]
- *   {Array}  usedOTNames          List of all the used object names to avoid collision
- *   {Hash}   security             Contains all of the security schemas
- *                                   NOTE: Does not contain OAuth 2.0
- *   {Hash}   saneMap              Hash that relates beautified strings to their original forms
- *   {Object} options              Customizable features that the user can use to adjust OASGraph
- * }
- *
- * @param  {Object} oas     Raw OAS 3.0.x specification
- * @param  {Object} options Customizable options
- *
- * @return {Object}         See above
  */
-
-const preprocessOas = (oas, options) => {
+const preprocessOas = (oas: Oas3, options: Options) : PreprocessingData => {
   let data = {
     usedOTNames: [],
     defs: [],
@@ -79,14 +45,17 @@ const preprocessOas = (oas, options) => {
         typeof endpoint.summary === 'string') {
         description = endpoint.summary
       }
-
-      // Fill in possibly missing operationId
-      if (typeof endpoint.operationId === 'undefined') {
-        endpoint.operationId = Oas3Tools.beautify(`${method}:${path}`)
+      if (typeof description !== 'string') {
+        description = 'No description available.'
       }
 
       // Hold on to the operationId
       let operationId = endpoint.operationId
+
+      // Fill in possibly missing operationId
+      if (typeof operationId === 'undefined') {
+        operationId = ((Oas3Tools.beautify(`${method}:${path}`) : any) : string)
+      }
 
       // Request schema
       let {reqSchema, reqSchemaNames, reqRequired} = Oas3Tools.getReqSchemaAndNames(
@@ -113,13 +82,14 @@ const preprocessOas = (oas, options) => {
       let parameters = Oas3Tools.getParameters(path, method, oas)
 
       // Security protocols
-      let securityProtocols = []
+      let securityRequirements = []
       if (options.viewer) {
-        securityProtocols = Oas3Tools.getSecurityRequirements(path, method, data.security, oas)
+        securityRequirements = Oas3Tools.getSecurityRequirements(
+          path, method, data.security, oas)
       }
 
       // Store determined information for operation
-      data.operations[operationId] = {
+      let operation: Operation = {
         operationId,
         description,
         path,
@@ -129,15 +99,16 @@ const preprocessOas = (oas, options) => {
         resDef,
         links,
         parameters,
-        securityProtocols
+        securityRequirements
       }
+      data.operations[operationId] = operation
     }
   }
 
   /**
    * SubOperation option
    * Determine "links" based on sub-paths
-   * (Only now, when every operation is guaranteed to have an operationId)
+   * (Only now, when operations have been defined)
    */
   if (data.options.addSubOperations) {
     for (let operationIndex in data.operations) {
@@ -290,14 +261,8 @@ const getProcessedSecuritySchemes = (oas, options) => {
  *
  * NOTE: The data definition will contain an ot GraphQL Object Type and/or an iot GraphQL
  * Input Object Type down the pipeline
- *
- * @param  {Object} schema JSON schema
- * @param  {Object} names  A list of potential base names for the otName and iotName
- * @param  {Object} data   Result of preprocessing
- *
- * @return {Object}
  */
-const createOrReuseDataDef = (schema, names, data) => {
+const createOrReuseDataDef = (schema: SchemaObject, names, data: DataDefinition) => {
   // Do a basic validation check
   if (typeof schema === 'undefined') {
     return null
@@ -414,13 +379,11 @@ const getSchemaName = (names, data) => {
  * '/users/{id}/profile' for a given operation with a path of '/users/{id}'.
  * Sub operations are only returned if the path of the given operation contains
  * at least one path parameter.
- *
- * @param  {Object} operation  Operation object created by preprocessing
- * @param  {Array} operations  List of operation objects
- *
- * @return {Array}             List of operation objects
  */
-const getSubOps = (operation, operations) => {
+const getSubOps = (
+  operation: Operation,
+  operations: {[string]: Operation}
+) : Operation[] => {
   let subOps = []
   let hasPathParams = /\{.*\}/g.test(operation.path)
   if (!hasPathParams) return subOps
