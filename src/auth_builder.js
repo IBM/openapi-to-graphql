@@ -118,7 +118,6 @@ const createAndLoadViewer = (
       usedObjectNames[type].push(objectName)
     }
     usedObjectNames[type].push(objectName)
-
     // Create the specialized viewer object types
     let {viewerOT, args, resolve} = getViewerOT(objectName, protocolName, queryFields[protocolName], data)
 
@@ -223,7 +222,6 @@ const getViewerOT = (name, protocolName, queryFields, data) => {
  */
 const getViewerAnyAuthOT = (name, queryFields, data, oas) => {
   let args = {}
-
   for (let protocolName in data.security) {
     // create input object types for the viewer arguments
     // NOTE: does not need to check for OAuth 2.0 anymore

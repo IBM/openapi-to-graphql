@@ -192,6 +192,7 @@ const preprocessOas = (oas, options) => {
  * @return {Object}     Extracted security definitions (see above)
  */
 const getProcessedSecuritySchemes = (oas, options) => {
+  let result = {}
   let security = Oas3Tools.getSecuritySchemes(oas)
 
   // Loop through all the security protocols
@@ -263,14 +264,14 @@ const getProcessedSecuritySchemes = (oas, options) => {
     }
 
     // Add protocol data to the output
-    security[Oas3Tools.beautify(protocolKey)] = {
+    result[Oas3Tools.beautify(protocolKey)] = {
       rawName: protocolKey,
       def: protocol,
       parameters,
       schema
     }
   }
-  return security
+  return result
 }
 
 /**
