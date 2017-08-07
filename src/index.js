@@ -306,17 +306,15 @@ const loadFields = (
     let name = operation.resDef.otName
 
     if (isAuthenticated) {
-      for (let protocolIndex in operation.securityProtocols) {
-        for (let protocolName in operation.securityProtocols[protocolIndex]) {
-          if (typeof viewerFields[protocolName] !== 'object') {
-            viewerFields[protocolName] = {}
-          }
-          // Avoid overwriting fields that return the same data:
-          if (name in viewerFields[protocolName]) {
-            name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-          }
-          viewerFields[protocolName][name] = field
+      for (let securityRequirement of operation.securityProtocols) {
+        if (typeof viewerFields[securityRequirement] !== 'object') {
+          viewerFields[securityRequirement] = {}
         }
+        // Avoid overwriting fields that return the same data:
+        if (name in viewerFields[securityRequirement]) {
+          name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+        }
+        viewerFields[securityRequirement][name] = field
       }
     } else {
       // Avoid overwriting fields that return the same data:
@@ -332,13 +330,11 @@ const loadFields = (
     let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
 
     if (isAuthenticated) {
-      for (let protocolIndex in operation.securityProtocols) {
-        for (let protocolName in operation.securityProtocols[protocolIndex]) {
-          if (typeof viewerMutationFields[protocolName] !== 'object') {
-            viewerMutationFields[protocolName] = {}
-          }
-          viewerMutationFields[protocolName][saneName] = field
+      for (let securityRequirement of operation.securityProtocols) {
+        if (typeof viewerMutationFields[securityRequirement] !== 'object') {
+          viewerMutationFields[securityRequirement] = {}
         }
+        viewerMutationFields[securityRequirement][saneName] = field
       }
     } else {
       rootMutationFields[saneName] = field

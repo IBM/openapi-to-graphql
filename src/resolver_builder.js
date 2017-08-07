@@ -330,18 +330,15 @@ const getAuthOptions = (operation, _oasgraph, data) => {
  */
 const getAuthReqAndProtcolName = (operation, _oasgraph, data) => {
   let authRequired = false
-
   if (Array.isArray(operation.securityProtocols) &&
     operation.securityProtocols.length > 0) {
     authRequired = true
 
-    for (let protocolIndex in operation.securityProtocols) {
-      for (let protocolName in operation.securityProtocols[protocolIndex]) {
-        if (protocolName in _oasgraph.security) {
-          return {
-            authRequired,
-            protocolName
-          }
+    for (let securityRequirement of operation.securityProtocols) {
+      if (securityRequirement in _oasgraph.security) {
+        return {
+          authRequired,
+          securityRequirement
         }
       }
     }
