@@ -10,12 +10,12 @@ export type Options = {
   /**
    * Custom headers to send with every request made by a resolve function.
    */
-  headers?: Object,
+  headers?: {[string] : string},
 
   /**
    * Custom query parameters to send with every reqeust by a resolve function.
    */
-  qs?: Object,
+  qs?: {[string] : string},
 
   /**
    * Determines whether OASGraph should create viewers that allow users to pass

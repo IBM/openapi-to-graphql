@@ -10,15 +10,16 @@ import type {
 import type {
   GraphQLScalarType,
   GraphQLObjectType,
-  GraphQLInputObjectType
+  GraphQLInputObjectType,
+  GraphQLList
 } from 'graphql'
 
 export type DataDefinition = {
   schema: SchemaObject,
   otName: string,
   iotName: string,
-  ot?: GraphQLObjectType | GraphQLScalarType,
-  iot?: GraphQLInputObjectType
+  ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any>,
+  iot?: GraphQLInputObjectType | GraphQLList<any>
 }
 
 export type Operation = {
@@ -30,7 +31,7 @@ export type Operation = {
   /**
    * Human-readable description of the operation
    */
-  description?: string,
+  description: string,
 
   /**
    * URL path of this operation
@@ -43,9 +44,9 @@ export type Operation = {
   method: string,
 
   /**
-   * Information about the request payload
+   * Information about the request payload (if any)
    */
-  reqDef: DataDefinition,
+  reqDef: ?DataDefinition,
 
   /**
    * Determines wheter request payload is required for the request
@@ -77,5 +78,10 @@ export type Operation = {
   /**
    * (Local) server definitions of the operation.
    */
-  servers: ServerObject[]
+  servers: ServerObject[],
+
+  /**
+   * List of operations which are nested based on their path.
+   */
+  subOps?: Operation[]
 }

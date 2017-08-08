@@ -4,8 +4,12 @@
 
 import type {Oas3, SchemaObject} from './types/oas3.js'
 import type {Options} from './types/options.js'
-import type {PreprocessingData} from './types/preprocessing_data.js'
+import type {
+  PreprocessingData,
+  ProcessedSecurityScheme
+} from './types/preprocessing_data.js'
 import type {Operation, DataDefinition} from './types/operation.js'
+import type {SchemaNames} from './oas_3_tools.js'
 
 import Oas3Tools from './oas_3_tools.js'
 import deepEqual from 'deep-equal'
@@ -58,10 +62,13 @@ const preprocessOas = (oas: Oas3, options: Options) : PreprocessingData => {
       }
 
       // Request schema
-      let {reqSchema, reqSchemaNames, reqRequired} = Oas3Tools.getReqSchemaAndNames(
-        path, method, oas)
+      let {reqSchema, reqSchemaNames, reqRequired} =
+        Oas3Tools.getReqSchemaAndNames(path, method, oas)
 
-      let reqDef = createOrReuseDataDef(reqSchema, reqSchemaNames, data)
+      let reqDef
+      if (reqSchema && typeof reqSchema !== 'undefined') {
+        reqDef = createOrReuseDataDef(reqSchema, reqSchemaNames, data)
+      }
 
       // Response schema
       let {resSchema, resSchemaNames} = Oas3Tools.getResSchemaAndNames(
@@ -88,6 +95,9 @@ const preprocessOas = (oas: Oas3, options: Options) : PreprocessingData => {
           path, method, data.security, oas)
       }
 
+      // servers
+      let servers = Oas3Tools.getServers(path, method, oas)
+
       // Store determined information for operation
       let operation: Operation = {
         operationId,
@@ -99,7 +109,8 @@ const preprocessOas = (oas: Oas3, options: Options) : PreprocessingData => {
         resDef,
         links,
         parameters,
-        securityRequirements
+        securityRequirements,
+        servers
       }
       data.operations[operationId] = operation
     }
@@ -157,20 +168,19 @@ const preprocessOas = (oas: Oas3, options: Options) : PreprocessingData => {
  *     schema: { ... }
  *   }
  * }
- *
- * @param  {Object} oas Raw OpenAPI Specification 3.0.x
- *
- * @return {Object}     Extracted security definitions (see above)
  */
-const getProcessedSecuritySchemes = (oas, options) => {
+const getProcessedSecuritySchemes = (
+  oas: Oas3,
+  options: Options
+) : {[string]: ProcessedSecurityScheme} => {
   let result = {}
   let security = Oas3Tools.getSecuritySchemes(oas)
 
   // Loop through all the security protocols
-  for (let protocolKey in security) {
-    let protocol = security[protocolKey]
+  for (let key in security) {
+    let protocol = security[key]
 
-    // OASGraph uses separate mechanisms to handle OAuth 2.0 (see the tokenJSONpath option)
+    // We use a separate mechanisms to handle OAuth 2.0:
     if (protocol.type === 'oauth2') {
       continue
     }
@@ -181,11 +191,11 @@ const getProcessedSecuritySchemes = (oas, options) => {
     switch (protocol.type) {
       case ('apiKey'):
         parameters = {
-          apiKey: Oas3Tools.beautify(`${protocolKey}_apiKey`)
+          apiKey: Oas3Tools.beautify(`${key}_apiKey`)
         }
         schema = {
           type: 'object',
-          description: `API key credentials for the protocol '${protocolKey}'`,
+          description: `API key credentials for the protocol '${key}'`,
           properties: {
             apiKey: {
               type: 'string'
@@ -196,15 +206,17 @@ const getProcessedSecuritySchemes = (oas, options) => {
 
       case ('http'):
         switch (protocol.scheme) {
-          // HTTP a number of authentication types (see http://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml)
+          // HTTP a number of authentication types (see
+          // http://www.iana.org/assignments/http-authschemes/
+          // http-authschemes.xhtml)
           case ('basic'):
             parameters = {
-              username: Oas3Tools.beautify(`${protocolKey}_username`),
-              password: Oas3Tools.beautify(`${protocolKey}_password`)
+              username: Oas3Tools.beautify(`${key}_username`),
+              password: Oas3Tools.beautify(`${key}_password`)
             }
             schema = {
               type: 'object',
-              description: `Basic auth credentials for the protocol '${protocolKey}'`,
+              description: `Basic auth credentials for protocol '${key}'`,
               properties: {
                 username: {
                   type: 'string'
@@ -217,9 +229,11 @@ const getProcessedSecuritySchemes = (oas, options) => {
             break
           default:
             if (options.strict) {
-              throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+              throw new Error(`OASgraph currently does not support the HTTP ` +
+                `authentication scheme '${String(protocol.scheme)}'`)
             }
-            log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+            log(`OASgraph currently does not support the HTTP authentication ` +
+              `scheme '${String(protocol.scheme)}'`)
         }
         break
 
@@ -229,14 +243,16 @@ const getProcessedSecuritySchemes = (oas, options) => {
 
       default:
         if (options.strict) {
-          throw new Error(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+          throw new Error(`OASgraph currently does not support the HTTP ` +
+            `authentication scheme '${String(protocol.scheme)}'`)
         }
-        log(`OASgraph currently does not support the HTTP authentication scheme '${protocol.scheme}'`)
+        log(`OASgraph currently does not support the HTTP authentication ` +
+          `scheme '${String(protocol.scheme)}'`)
     }
 
     // Add protocol data to the output
-    result[Oas3Tools.beautify(protocolKey)] = {
-      rawName: protocolKey,
+    result[Oas3Tools.beautify(key)] = {
+      rawName: key,
       def: protocol,
       parameters,
       schema
@@ -253,20 +269,18 @@ const getProcessedSecuritySchemes = (oas, options) => {
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
  *
- * Here is the structure of the output:
- * {
- *   {Object} schema  JSON schema
- *   {String} otName  A potential name for a GraphQL Object Type with this JSON schema
- *   {String} iotName A potential name for a GraphQL Input Object Type with this JSON schema
- * }
- *
- * NOTE: The data definition will contain an ot GraphQL Object Type and/or an iot GraphQL
- * Input Object Type down the pipeline
+ * NOTE: The data definition will contain an ot GraphQLObjectType and/or an
+ * iot GraphQLInputObjectType down the pipeline
  */
-const createOrReuseDataDef = (schema: SchemaObject, names, data: DataDefinition) => {
+const createOrReuseDataDef = (
+  schema?: SchemaObject,
+  names?: SchemaNames,
+  data: PreprocessingData
+) : DataDefinition => {
   // Do a basic validation check
-  if (typeof schema === 'undefined') {
-    return null
+  if (!schema || typeof schema === 'undefined') {
+    throw new Error(`Cannot create data definition for invalid schema ` +
+      `"${String(schema)}"`)
   }
 
   // Determine the index of possible existing data definition
@@ -276,12 +290,18 @@ const createOrReuseDataDef = (schema: SchemaObject, names, data: DataDefinition)
   }
 
   // Else, define a new name, store the def, and return it
-  let name = getSchemaName(names, data)
+  let name = getSchemaName(names, data.usedOTNames)
+
+  // Store and beautify the name
+  let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
+
+  // Add the name to the master list
+  data.usedOTNames.push(saneName)
 
   let def = {
     schema,
-    otName: name,
-    iotName: name + 'Input'
+    otName: saneName,
+    iotName: saneName + 'Input'
   }
 
   // Add the def to the master list
@@ -291,19 +311,19 @@ const createOrReuseDataDef = (schema: SchemaObject, names, data: DataDefinition)
 }
 
 /**
- * Determines the index of the data definition object that contains the same
- * schema as the given one
- *
- * @param  {Object} schema   JSON schema
- * @param  {Array}  dataDefs List of data definition objects
- *                             NOTE: Usually refers to data.defs, the master list of defs
- *
- * @return {Number}          Index of the data definition object or -1
+ * Returns the index of the data definition object in the given list that
+ * contains the same schema as the given one. Returns -1 if that schema could
+ * not be found.
  */
-const getSchemaIndex = (schema, dataDefs) => {
-  for (let defIndex in dataDefs) {
-    if (deepEqual(schema, dataDefs[defIndex].schema)) {
-      return defIndex
+const getSchemaIndex = (
+  schema: SchemaObject,
+  dataDefs: DataDefinition[]
+) : number => {
+  let index = -1
+  for (let def of dataDefs) {
+    index++
+    if (deepEqual(schema, def.schema)) {
+      return index
     }
   }
   // If the schema could not be found in the master list
@@ -311,15 +331,14 @@ const getSchemaIndex = (schema, dataDefs) => {
 }
 
 /**
- * Determines name to use for schema from previously determined schemaNames
- *
- * @param  {Object} names Contains fromRef, fromSchema, fromPath
- * @param  {Object} data  Result of preprocessing
- *
- * @return {String}       Determined name for the schema
+ * Determines name to use for schema from previously determined schemaNames and
+ * considering not reusing existing names.
  */
-const getSchemaName = (names, data) => {
-  if (typeof names === 'undefined') {
+const getSchemaName = (
+  names?: SchemaNames,
+  usedNames: string[]
+) : string => {
+  if (!names || typeof names === 'undefined') {
     throw new Error(`Cannot create data definition without name(s).`)
   }
 
@@ -328,7 +347,7 @@ const getSchemaName = (names, data) => {
   // CASE: name from reference
   if (typeof names.fromRef === 'string') {
     let saneName = Oas3Tools.beautify(names.fromRef)
-    if (!data.usedOTNames.includes(saneName)) {
+    if (!usedNames.includes(saneName)) {
       schemaName = names.fromRef
     }
   }
@@ -336,7 +355,7 @@ const getSchemaName = (names, data) => {
   // CASE: name from schema (i.e., "title" property in schema)
   if (!schemaName && typeof names.fromSchema === 'string') {
     let saneName = Oas3Tools.beautify(names.fromSchema)
-    if (!data.usedOTNames.includes(saneName)) {
+    if (!usedNames.includes(saneName)) {
       schemaName = names.fromSchema
     }
   }
@@ -344,34 +363,31 @@ const getSchemaName = (names, data) => {
   // CASE: name from path
   if (!schemaName && typeof names.fromPath === 'string') {
     let saneName = Oas3Tools.beautify(names.fromPath)
-    if (!data.usedOTNames.includes(saneName)) {
+    if (!usedNames.includes(saneName)) {
       schemaName = names.fromPath
     }
   }
 
-  // CASE: create approximate name
+  // CASE: all names are already used - create approximate name
   if (!schemaName) {
-    let tempName = Oas3Tools.beautify(typeof names.fromRef === 'string' ? names.fromRef : (
-      typeof names.fromSchema === 'string' ? names.fromSchema : names.fromPath))
+    let tempName = Oas3Tools.beautify(typeof names.fromRef === 'string'
+      ? names.fromRef : (typeof names.fromSchema === 'string'
+      ? names.fromSchema : (typeof names.fromPath === 'string'
+      ? names.fromPath : 'RandomName')))
     let appendix = 2
 
     /**
-     * GraphQL Objects cannot share the name so if the name already exists in the master list
-     * append an incremental number until the name does not exist anymore
+     * GraphQL Objects cannot share the name so if the name already exists in
+     * the master list append an incremental number until the name does not
+     * exist anymore.
      */
-    while (data.usedOTNames.includes(`${tempName}${appendix}`)) {
+    while (usedNames.includes(`${tempName}${appendix}`)) {
       appendix++
     }
     schemaName = `${tempName}${appendix}`
   }
 
-  // Store and beautify the name
-  let saneName = Oas3Tools.beautifyAndStore(schemaName, data.saneMap)
-
-  // Add the name to the master list
-  data.usedOTNames.push(saneName)
-
-  return saneName
+  return schemaName
 }
 
 /**

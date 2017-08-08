@@ -1,6 +1,21 @@
 /* @flow */
 
-'use strict'
+export type SchemaNames = {
+  fromPath?: string,
+  fromSchema?: string,
+  fromRef?: string
+}
+
+export type ReqSchemaAndNames = {
+  reqSchema?: SchemaObject | ReferenceObject,
+  reqSchemaNames?: SchemaNames,
+  reqRequired: boolean
+}
+
+export type ResSchemaAndNames = {
+  resSchema?: SchemaObject | ReferenceObject,
+  resSchemaNames?: SchemaNames
+}
 
 import type {
   Oas3,
@@ -24,6 +39,7 @@ import type {Operation} from './types/operation.js'
 
 import Swagger2OpenAPI from 'swagger2openapi'
 import OASValidator from 'swagger2openapi/validate.js'
+import deepEqual from 'deep-equal'
 import debug from 'debug'
 const logHttp = debug('http')
 const logPre = debug('preprocessing')
@@ -103,6 +119,12 @@ const getBaseUrl = (
   oas: Oas3,
   operation: Operation
 ): string => {
+  // check for servers:
+  if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
+    throw new Error(`No servers defined for operation ` +
+      `"${operation.operationId}"`)
+  }
+
   // check for local servers
   if (Array.isArray(operation.servers) && operation.servers.length > 0) {
     let url = buildUrl(operation.servers[0])
@@ -374,12 +396,6 @@ const getReqSchema = (
   return null
 }
 
-type ReqSchemaAndNames = {
-  reqSchema?: SchemaObject | ReferenceObject,
-  reqSchemaNames?: {fromPath: string, fromSchema: string, fromRef: string},
-  reqRequired?: boolean
-}
-
 /**
  * Returns the request schema (if any) for endpoint at given path and method, a
  * dictionary of names from different sources (if available), and whether the
@@ -425,12 +441,9 @@ const getReqSchemaAndNames = (
       reqRequired
     }
   }
-  return {}
-}
-
-type ResSchemaAndNames = {
-  resSchema?: SchemaObject | ReferenceObject,
-  resSchemaNames?: {fromPath: string, fromSchema: string, fromRef: string}
+  return {
+    reqRequired: false
+  }
 }
 
 /**
@@ -600,6 +613,46 @@ const getParameters = (
 }
 
 /**
+ * Returns an array of server objects for the opeartion at the given path and
+ * method. Considers in the following order: global server definitions,
+ * definitions at the path item, definitions at the operation, or the OAS
+ * default.
+ */
+const getServers = (
+  path: string,
+  method: string,
+  oas: Oas3
+) : ServerObject[] => {
+  let servers = []
+  // global server definitions:
+  if (Array.isArray(oas.servers) && oas.servers.length > 0) {
+    servers = oas.servers
+  }
+
+  // path item server definitions override global:
+  let pathItem = oas.paths[path]
+  if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
+    servers = pathItem.servers
+  }
+
+  // operation server definitions override path item:
+  let operationObj = pathItem[method]
+  if (Array.isArray(operationObj.servers) && operationObj.servers.length > 0) {
+    servers = operationObj.servers
+  }
+
+  // default, in case there is no server:
+  if (servers.length === 0) {
+    let server: ServerObject = {
+      url: '/' // TODO: avoid double-slashes
+    }
+    servers.push(server)
+  }
+
+  return servers
+}
+
+/**
  * Returns a map of strings to the Security Scheme definitions. Resolves
  * possible references.
  */
@@ -614,7 +667,8 @@ const getSecuritySchemes = (oas: Oas3) : {[string]: SecuritySchemeObject} => {
       // ensure we have actual SecuritySchemeObject:
       if (typeof obj.$ref === 'string') {
         // result of resolution will be SecuritySchemeObject:
-        securitySchemes[schemeKey] = (resolveRef(obj.$ref, oas): SecuritySchemeObject)
+        securitySchemes[schemeKey] =
+          (resolveRef(obj.$ref, oas): SecuritySchemeObject)
       } else {
         // we already have a SecuritySchemeObject:
         securitySchemes[schemeKey] = ((obj: any): SecuritySchemeObject)
@@ -702,9 +756,11 @@ const beautifyAndStore = (
 /**
  * First sanitizes given string and then also camel-cases it.
  */
-const beautify = (str: string): ?string => {
+const beautify = (str: string): string => {
   // only apply to strings:
-  if (typeof str !== 'string') return null
+  if (typeof str !== 'string') {
+    throw new Error(`Cannot beautify "${str}" of type "${typeof str}"`)
+  }
 
   let charToRemove = '_'
   let sanitized = sanitize(str)
@@ -715,7 +771,8 @@ const beautify = (str: string): ?string => {
         sanitized.charAt(pos + 1).toUpperCase() +
         sanitized.slice(pos + 2, sanitized.length)
     } else if (sanitized.length === pos + 1) {
-      sanitized = sanitized.slice(0, pos) + sanitized.charAt(pos + 1).toUpperCase()
+      sanitized = sanitized.slice(0, pos) +
+        sanitized.charAt(pos + 1).toUpperCase()
     } else {
       sanitized = sanitized.slice(0, pos)
     }
@@ -761,8 +818,118 @@ const isOperation = (method: string) : boolean => {
   return OAS_OPERATIONS.includes(method.toLowerCase())
 }
 
+/**
+ * Aggregates the subschemas in the allOf field into the mother schema
+ * Please note that the allOfSchema may not necessarily be an element of the
+ * mother schema. The purpose of this construction is to resolve nested allOf
+ * schemas inside references.
+ *
+ * TODO: Tidy this up and return aggregated schema, rather than changing the OAS
+ */
+const resolveAllOf = (
+  allOfSchema: SchemaObject,
+  schema: SchemaObject, // the parent schema
+  oas: Oas3
+) : SchemaObject => {
+  for (let allOfSchemaIndex in allOfSchema) {
+    let subschema = allOfSchema[allOfSchemaIndex]
+
+    // resolve the reference if applicable
+    if ('$ref' in subschema) {
+      subschema = resolveRef(subschema.$ref, oas)
+    }
+
+    // iterate through all the subschema keys
+    Object.keys(subschema).forEach(subschemaKey => {
+      switch (subschemaKey) {
+        case 'type':
+          // TODO: strict?
+          if (typeof schema.type === 'string' &&
+            subschema.type !== subschema.type) {
+            /**
+             * if the schema is an object type but does not contain a properties
+             * field, than we can overwrite the type because a schema with
+             * an object tye and no properties field is equivalent to an empty
+             * schema
+             */
+            if (schema.type === 'object' && !('properties' in schema)) {
+              schema.type = subschema.type
+            } else {
+              throw new Error(`allOf will overwrite a preexisting type ` +
+                `definition 'type: ${schema.type}' with 'type: ` +
+                `${subschema.type}' in schema '${JSON.stringify(schema)}'`)
+            }
+          } else {
+            schema.type = subschema.type
+          }
+          break
+
+        case 'properties':
+          // imply type object from properties field
+          if (!(typeof schema.type === 'string')) {
+            schema.type = 'object'
+          // cannot replace an object type with a scalar or array type
+          } else if (schema.type !== 'object') {
+            throw new Error(`allOf will overwrite a preexisting type ` +
+              `definition 'type: ${schema.type}' with 'type: object' in ` +
+              `schema '${JSON.stringify(schema)}'`)
+          }
+
+          let properties = subschema.properties
+
+          let propertyNames = Object.keys(properties)
+
+          if (!('properties' in schema)) {
+            schema.properties = {}
+          }
+
+          for (let propertyName of propertyNames) {
+            if (!(propertyName in schema.properties)) {
+              schema.properties[propertyName] = properties[propertyName]
+
+            // check if the preexisting schema is the same
+            } else if (deepEqual(schema.properties[propertyName], subschema.properties[propertyName])) {
+              throw new Error(`allOf will overwrite a preexisting property ` +
+                `'${propertyName}: ${JSON.stringify(schema.properties[propertyName])}' ` +
+                `with '${propertyName}: ${JSON.stringify(subschema.properties[propertyName])}' ` +
+                `in schema '${JSON.stringify(schema)}`)
+            }
+          }
+          break
+
+        case 'items':
+          // imply type array from items field
+          if (!(typeof schema.type === 'string')) {
+            schema.type = 'array'
+          // cannot replace an array type with a scalar or object type
+          } else if (schema.type !== 'array') {
+            throw new Error(`allOf will overwrite a preexisting type definition` +
+              `'type: ${schema.type}' with 'type: array' in schema '${JSON.stringify(schema)}'`)
+          }
+          if (!('items' in schema)) {
+            schema.items = {}
+          }
+
+          for (let itemIndex in subschema.items) {
+            schema.items = subschema.items[itemIndex]
+          }
+          break
+
+        case 'allOf':
+          resolveAllOf(subschema.allOf, schema, oas)
+          break
+
+        default:
+          log(`allOf contains currently unsupported element'${subschemaKey}'`)
+      }
+    })
+  }
+  return {}
+}
+
 module.exports = {
   getValidOAS3,
+  getServers,
   resolveRef,
   getBaseUrl,
   instantiatePathAndGetQuery,
@@ -779,5 +946,6 @@ module.exports = {
   beautify,
   beautifyAndStore,
   trim,
-  isOperation
+  isOperation,
+  resolveAllOf
 }

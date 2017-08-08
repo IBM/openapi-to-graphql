@@ -11,7 +11,18 @@ export type ParameterObject = {
   description?: string,
   required?: boolean,
   deprecated?: boolean,
-  allowEmptyValue?: boolean
+  allowEmptyValue?: boolean,
+  style?: 'form' | 'simple',
+  explode?: boolean,
+  allowReserved?: boolean,
+  schema?: SchemaObject | ReferenceObject,
+  example?: any,
+  examples?: {
+    [string]: ExampleObject | ReferenceObject
+  },
+  content?: {
+    [string]: MediaTypeObject
+  }
 }
 
 export type ReferenceObject = {

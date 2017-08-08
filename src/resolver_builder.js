@@ -1,26 +1,54 @@
+/* @flow */
+
 'use strict'
 
-const request = require('request')
-const Oas3Tools = require('./oas_3_tools.js')
-const log = require('debug')('http')
-const querystring = require('querystring')
-const jp = require('jsonpath')
+import type {
+  Oas3
+} from './types/oas3.js'
+import type {Operation} from './types/operation.js'
+import type {PreprocessingData} from './types/preprocessing_data.js'
+
+import request from 'request'
+import Oas3Tools from './oas_3_tools.js'
+import querystring from 'querystring'
+import jp from 'jsonpath'
+import debug from 'debug'
+const log = debug('http')
+
+export type ResolveFunction =
+  (root: Object, args: Object, ctx: Object) => Promise<any> | any
+
+type GetResolverParams = {
+  operation: Operation,
+  argsFromLink?: {[string] : string},
+  argsFromParent?: string[],
+  payloadName?: ?string,
+  data: PreprocessingData,
+  oas: Oas3
+}
+
+type RequestOptions = {
+  method: string,
+  url: string,
+  json: true,
+  headers: {[string] : string},
+  qs: {[string] : string},
+  body?: ?(Object | Array<any> | string)
+}
+
+type AuthReqAndProtcolName = {
+  authRequired: boolean,
+  protocolName?: string
+}
+
+type AuthOptions = {
+  authHeaders: {[string] : string},
+  authQs: {[string] : string}
+}
 
 /**
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
- *
- * @param  {Object} options.operation      Corresponding operation
- * @param  {Object} options.argsFromLink   Object containing the args for this
- *                                           resolver provided through links
- * @param  {Array}  options.argsFromParent List of names of parameter provided
- *                                           by parent operation - i.e., their arguments are present in ctx.usedParam
- * @param  {String} options.payloadName    Name of the argument to send as
- *                                           request payload
- * @param  {Object} options.data           Data produced by the preprocessor
- * @param  {Object} options.oas            Raw OpenAPI 3.0.x specification
- *
- * @return {Function}                      Resolver function
  */
 const getResolver = ({
   operation,
@@ -29,7 +57,7 @@ const getResolver = ({
   payloadName,
   data,
   oas
-}) => {
+} : GetResolverParams) : ResolveFunction => {
   // determine the appropriate URL:
   let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
@@ -96,7 +124,7 @@ const getResolver = ({
       operation.parameters,
       args)
     let url = baseUrl + path
-    let options = {
+    let options: RequestOptions = {
       method: operation.method,
       url: url,
       json: true,
@@ -105,18 +133,22 @@ const getResolver = ({
     }
 
     /**
-     * determine possible payload
+     * Determine possible payload
      * GraphQL produces sanitized payload names, so we have to sanitize before lookup here
      */
-    let sanePayloadName = Oas3Tools.beautify(payloadName)
-    if (sanePayloadName in args) {
-      // we need to desanitize the payload so the API understands it:
-      let rawPayload = Oas3Tools.desanitizeObjKeys(
-        args[sanePayloadName], data.saneMap)
-      options.body = rawPayload
+    if (payloadName && typeof payloadName === 'string') {
+      let sanePayloadName = Oas3Tools.beautify(payloadName)
+      if (sanePayloadName in args) {
+        // we need to desanitize the payload so the API understands it:
+        let rawPayload = Oas3Tools.desanitizeObjKeys(
+          args[sanePayloadName], data.saneMap)
+        options.body = rawPayload
+      }
     }
 
-    // use OASGraph options:
+    /**
+     * Pass on OASGraph options
+     */
     if (typeof data.options === 'object') {
       // headers:
       if (typeof data.options.headers === 'object') {
@@ -168,7 +200,9 @@ const getResolver = ({
           let saneData = Oas3Tools.sanitizeObjKeys(body)
 
           // pass on _oasgraph to subsequent resolvers
-          if (typeof saneData === 'object') {
+          if (saneData &&
+            typeof saneData === 'object' &&
+            !Array.isArray(saneData)) {
             saneData._oasgraph = _oasgraph
           }
 
@@ -182,12 +216,11 @@ const getResolver = ({
 /**
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
- *
- * @param  {Object} data Data produced by preprocessing
- * @param  {Object} ctx  GraphQL context
- * @return {Object}      Object, possibly containing 'access_token' query string
  */
-const createOAuthQS = (data, ctx) => {
+const createOAuthQS = (
+  data: PreprocessingData,
+  ctx: Object
+) : {[string] : string} => {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -210,12 +243,11 @@ const createOAuthQS = (data, ctx) => {
 /**
  * Attempts to create an OAuth authorization header by extracting an OAuth token
  * from the ctx based on the JSON path provided in the options.
- *
- * @param  {Object} data Data produced by preprocessing
- * @param  {Object} ctx  GraphQL context
- * @return {Object}      Object, possibly containing 'Authorization' header
  */
-const createOAuthHeader = (data, ctx) => {
+const createOAuthHeader = (
+  data: PreprocessingData,
+  ctx: Object
+) : {[string] : string} => {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -238,16 +270,15 @@ const createOAuthHeader = (data, ctx) => {
 
 /**
  * Returns the headers and query strings to authenticate a request (if any).
- *
- * @param  {Object} operation Data from preprocessing about an operation
- * @param  {Object} _oasgraph Data populated by parent resolvers, contains
- * security object
- * @param  {Object} data      Result from preprocessing
- * @return {Object}           Object containing authHeader and authQs object,
+ * Object containing authHeader and authQs object,
  * which hold headers and query parameters respectively to authentication a
  * request.
  */
-const getAuthOptions = (operation, _oasgraph, data) => {
+const getAuthOptions = (
+  operation: Operation,
+  _oasgraph: Object,
+  data: PreprocessingData
+) : AuthOptions => {
   let authHeaders = {}
   let authQs = {}
 
@@ -266,51 +297,57 @@ const getAuthOptions = (operation, _oasgraph, data) => {
     throw new Error(`Missing information to authenticate API request.`)
   }
 
-  let security = data.security[protocolName]
-  switch (security.def.type) {
-    case 'apiKey':
-      let apiKey = _oasgraph.security[protocolName].apiKey
-      if ('in' in security.def) {
-        if (security.def.in === 'header') {
-          authHeaders[security.def.name] = apiKey
-        } else if (security.def.in === 'query') {
-          authQs[security.def.name] = apiKey
-        } else {
-          if (data.strict) {
-            throw new Error(`Cannot send apiKey in ${security.def.in}`)
+  if (typeof protocolName === 'string') {
+    let security = data.security[protocolName]
+    switch (security.def.type) {
+      case 'apiKey':
+        let apiKey = _oasgraph.security[protocolName].apiKey
+        if ('in' in security.def) {
+          if (security.def.in === 'header' &&
+            typeof security.def.name === 'string') {
+            authHeaders[security.def.name] = apiKey
+          } else if (security.def.in === 'query' &&
+            typeof security.def.name === 'string') {
+            authQs[security.def.name] = apiKey
+          } else {
+            if (data.strict) {
+              throw new Error(`Cannot send apiKey in ` +
+                `"${JSON.stringify(security.def.in)}"`)
+            }
+            log(`Warning: cannot send apiKey in ` +
+              `"${JSON.stringify(security.def.in)}"`)
           }
-          log(`Warning: cannot send apiKey in ${security.def.in}`)
         }
-      }
-      break
+        break
 
-    case 'http':
-      switch (security.def.scheme) {
-        case 'basic':
-          let username = _oasgraph.security[protocolName].username
-          let password = _oasgraph.security[protocolName].password
-          authHeaders['Authorization'] = 'Basic ' +
-            Buffer.from(username + ':' + password).toString('base64')
-          break
+      case 'http':
+        switch (security.def.scheme) {
+          case 'basic':
+            let username = _oasgraph.security[protocolName].username
+            let password = _oasgraph.security[protocolName].password
+            authHeaders['Authorization'] = 'Basic ' +
+              Buffer.from(username + ':' + password).toString('base64')
+            break
 
-        default:
-          if (data.options.strict) {
-            throw new Error(`Cannot recognize http security scheme ` +
-              `'${security.def.scheme}'`)
-          }
-          log(`Warning: cannot recognize http security scheme ` +
-            `'${security.def.scheme}'`)
-      }
-      break
+          default:
+            if (data.options.strict) {
+              throw new Error(`Cannot recognize http security scheme ` +
+                `'${JSON.stringify(security.def.scheme)}'`)
+            }
+            log(`Warning: cannot recognize http security scheme ` +
+              `'${JSON.stringify(security.def.scheme)}'`)
+        }
+        break
 
-    case 'oauth2':
-      break
+      case 'oauth2':
+        break
 
-    case 'openIdConnect':
-      break
+      case 'openIdConnect':
+        break
 
-    default:
-      throw new Error(`Cannot recognize security type '${security.def.type}'`)
+      default:
+        throw new Error(`Cannot recognize security type '${security.def.type}'`)
+    }
   }
 
   return {authHeaders, authQs}
@@ -320,21 +357,18 @@ const getAuthOptions = (operation, _oasgraph, data) => {
  * Determines whether given operation requires authentication, and which of the
  * (possibly multiple) authentication protocols can be used based on the data
  * present in the given context.
- *
- * @param  {Object} operation Data from preprocessing about an operation
- * @param  {Object} _oasgraph Data populated by parent resolvers, contains
- * security object
- * @param  {Object} data      Result from preprocessing
- * @return {Object}           Contains boolean authRequired and string
- * protocolName fields
  */
-const getAuthReqAndProtcolName = (operation, _oasgraph, data) => {
+const getAuthReqAndProtcolName = (
+  operation: Operation,
+  _oasgraph,
+  data: PreprocessingData
+) : AuthReqAndProtcolName => {
   let authRequired = false
-  if (Array.isArray(operation.securityProtocols) &&
-    operation.securityProtocols.length > 0) {
+  if (Array.isArray(operation.securityRequirements) &&
+    operation.securityRequirements.length > 0) {
     authRequired = true
 
-    for (let securityRequirement of operation.securityProtocols) {
+    for (let securityRequirement of operation.securityRequirements) {
       if (securityRequirement in _oasgraph.security) {
         return {
           authRequired,

@@ -6,8 +6,19 @@ import type { Options } from './types/options.js'
 import type { Oas3 } from './types/oas3.js'
 import type { Oas2 } from './types/oas2.js'
 import type {
-  GraphQLSchema as GraphQLSchemaType
+  GraphQLSchema as GraphQLSchemaType,
+  GraphQLObjectType as GQObjectType,
+  GraphQLInputObjectType as GQInputObjectType,
+  GraphQLScalarType,
+  GraphQLList,
+  GraphQLEnumType
 } from 'graphql'
+import type { Operation } from './types/operation.js'
+import type { ResolveFunction } from './resolver_builder.js'
+import type {
+  PreprocessingData
+} from './types/preprocessing_data.js'
+import type { Args } from './schema_builder.js'
 
 import {
   GraphQLSchema,
@@ -21,6 +32,24 @@ const Preprocessor = require('./preprocessor.js')
 const Oas3Tools = require('./oas_3_tools.js')
 const AuthBuilder = require('./auth_builder.js')
 const log = require('debug')('translation')
+
+type Viewer = {
+  type: GQObjectType | GQInputObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType,
+  resolve: ResolveFunction,
+  args: Args,
+  description: string
+}
+
+type LoadFieldsParams = {
+  operation: Operation,
+  operationId: string,
+  rootQueryFields: Object,
+  rootMutationFields: Object,
+  viewerFields: Object,
+  viewerMutationFields: Object,
+  data: PreprocessingData,
+  oas: Oas3
+}
 
 // Increase stack trace logging for better debugging:
 Error.stackTraceLimit = Infinity
@@ -85,36 +114,19 @@ const createGraphQlSchema = (
 
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
- *
- * Here is a list of the options we have currently implemented:
- * {
- *  {Boolean} strict           Adhere to the OAS as closely as possible
- *  {Object}  headers          Additional headers sent with every request while resolving queries
- *  {Object}  qs               Additional query parameters sent with every request while resolving queries
- *  {Boolean} viewer           Do not create authentication viewers. Intended to be used with the headers option
- *                              (i.e. if you provide all your authentication data in the headers options, you do not
- *                              have to authenticate through the authentication viewers)
- *  {String}  tokenJSONpath    Path to the OAuth 2.0 token. Because of technical reasons, wevcan create an OAuth 2.0
- *                              authentication viewer. Hence, the only way for OASGraph to bypass OAuth 2.0 is when the
- *                              outer application provides it
- *  {Boolean} addSubOperations Combine queries with similar paths and inputs
- * }
- *
- * @param  {Object} oas      OpenAPI Specification 3.0
- * @param  {Options} options A few different options that we have implemented to
- *                           allow users to customize how they would like use our tool
- *
- * @return {Promise}        Resolves on GraphQLSchema, rejects on error during schema creation
  */
-const translateOpenApiToGraphQL = (oas, {
-  strict = false,
-  headers,
-  qs,
-  viewer = true,
-  tokenJSONpath,
-  addSubOperations = false,
-  sendOAuthTokenInQuery = false
-}) => {
+const translateOpenApiToGraphQL = (
+  oas: Oas3,
+  {
+    strict,
+    headers,
+    qs,
+    viewer,
+    tokenJSONpath,
+    addSubOperations,
+    sendOAuthTokenInQuery
+  } : Options
+) => {
   return new Promise((resolve, reject) => {
     let options = {
       headers,
@@ -155,9 +167,11 @@ const translateOpenApiToGraphQL = (oas, {
      * Translate every endpoint to GraphQL schemes.
      *
      * Do this first for endpoints that DO contain links OR that DO contain sub
-     * operation, so that built up GraphQL object types that are reused contain these links
+     * operation, so that built up GraphQL object types that are reused contain
+     * these links
      *
-     * This necessitates a second iteration, though, for the endpoints that DO NOT have links.
+     * This necessitates a second iteration, though, for the endpoints that DO
+     * NOT have links.
      */
     for (let operationId in data.operations) {
       let operation = data.operations[operationId]
@@ -198,10 +212,11 @@ const translateOpenApiToGraphQL = (oas, {
       }
     }
 
-    const usedViewerNames = {} // keep track of viewer names we already used
-    const usedMutationViewerNames = {} // keep track of mutationViewer names we already used
+    const usedViewerNames = {} // remember used viewer names
+    const usedMutationViewerNames = {} // remember used mutationViewer names
 
-    // create and add viewer object types to the query and mutation object types if applicable
+    // create and add viewer object types to the query and mutation object types
+    // if applicable
     if (Object.keys(viewerFields).length > 0) {
       AuthBuilder.createAndLoadViewer(
           viewerFields,
@@ -258,34 +273,19 @@ const translateOpenApiToGraphQL = (oas, {
 
 /**
  * Load the field object in the appropriate root object inside either
- * rootQueryFields/rootMutationFields or inside rootQueryFields/rootMutationFields
- * for further processing
- *
- * @param  {object} operation            Operation as produced by preprocessing
- * @param  {string} operationId          Name used to identify a particular operation
- * @param  {object} rootQueryFields      Object that contains the definition all
- *                                        query objects type
- * @param  {object} rootMutationFields   Object that contains the definition all
- *                                        mutation objects type
- * @param  {object} viewerFields         Object that contains the definition of all
- *                                        authenticated query object types
- * @param  {object} viewerMutationFields Object that contains the definition of
- *                                        all authenticated mutation object types
- * @param  {object} data                 Data produced by preprocessing
- * @param  {object} oas                  Raw OpenAPI Specification 3.0
+ * rootQueryFields/rootMutationFields or inside rootQueryFields/
+ * rootMutationFields for further processing
  */
-const loadFields = (
-  {
-    operation,
-    operationId,
-    rootQueryFields,
-    rootMutationFields,
-    viewerFields,
-    viewerMutationFields,
-    data,
-    oas
-  }
-) => {
+const loadFields = ({
+  operation,
+  operationId,
+  rootQueryFields,
+  rootMutationFields,
+  viewerFields,
+  viewerMutationFields,
+  data,
+  oas
+} : LoadFieldsParams) => {
   // Get the fields for an operation
   let field = getFieldForOperation(operation, data, oas)
 
@@ -297,7 +297,7 @@ const loadFields = (
   }
 
   // Determine if the operation is authenticated
-  let isAuthenticated = Object.keys(operation.securityProtocols).length > 0 &&
+  let isAuthenticated = operation.securityRequirements.length > 0 &&
     data.options.viewer !== false
 
   // CASE: query
@@ -306,7 +306,7 @@ const loadFields = (
     let name = operation.resDef.otName
 
     if (isAuthenticated) {
-      for (let securityRequirement of operation.securityProtocols) {
+      for (let securityRequirement of operation.securityRequirements) {
         if (typeof viewerFields[securityRequirement] !== 'object') {
           viewerFields[securityRequirement] = {}
         }
@@ -326,11 +326,12 @@ const loadFields = (
 
   // CASE: mutation
   } else {
-    // Use operationId to avoid problems differentiating operations with the same path but differnet methods
+    // Use operationId to avoid problems differentiating operations with the
+    // same path but differnet methods
     let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
 
     if (isAuthenticated) {
-      for (let securityRequirement of operation.securityProtocols) {
+      for (let securityRequirement of operation.securityRequirements) {
         if (typeof viewerMutationFields[securityRequirement] !== 'object') {
           viewerMutationFields[securityRequirement] = {}
         }
@@ -344,21 +345,18 @@ const loadFields = (
 
 /**
  * Creates the field object for a given operation
- *
- * @param  {object} operation Operation as produced by preprocessing
- * @param  {object} data      Data produced by preprocessing
- * @param  {object} oas       OpenAPI Specification 3.0
- *
- * @return {object}           Field object
  */
-const getFieldForOperation = (operation, data, oas) => {
+const getFieldForOperation = (
+  operation: Operation,
+  data: PreprocessingData,
+  oas: Oas3
+) : Viewer => {
   // create OT if needed:
   let type = SchemaBuilder.getGraphQLType({
     name: operation.resDef.otName,
     schema: operation.resDef.schema,
     data,
     operation,
-    links: operation.links,
     oas
   })
 
@@ -373,13 +371,13 @@ const getFieldForOperation = (operation, data, oas) => {
   })
 
   // determine args:
-  let args = SchemaBuilder.getArgs({
+  let args: Args = SchemaBuilder.getArgs({
     parameters: operation.parameters,
     reqSchemaName: reqSchemaName,
     reqSchema,
-    oas,
+    operation,
     data,
-    reqRequired: operation.reqRequired
+    oas
   })
 
   return {

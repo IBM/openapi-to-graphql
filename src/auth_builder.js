@@ -1,51 +1,30 @@
-const {
+/* @flow */
+
+import type {Oas3} from './types/oas3.js'
+import type {
+  PreprocessingData,
+  ProcessedSecurityScheme
+} from './types/preprocessing_data.js'
+import type {
+  GraphQLObjectType as GQObjectType
+} from 'graphql'
+import type {ResolveFunction} from './resolver_builder.js'
+import type {Args} from './schema_builder.js'
+
+import {
   GraphQLString,
   GraphQLObjectType,
   GraphQLNonNull
-} = require('graphql')
+} from 'graphql'
 const SchemaBuilder = require('./schema_builder.js')
 const Oas3Tools = require('./oas_3_tools.js')
 const log = require('debug')('translation')
 
-/**
- * Checks if security is required in any operation
- *
- * @param  {Object}  oas Raw OpenAPI Specification 3.0
- *
- * @return {Boolean}
- */
-const hasAuth = (oas) => {
-  if ('security' in oas && oas.security.length > 0) {
-    return true
-  } else {
-    for (let path in oas.paths) {
-      for (let method in oas.paths[path]) {
-        if ('security' in oas.paths[path][method] && oas.paths[path][method].security.length > 0) {
-          return true
-        }
-      }
-    }
-  }
-  return false
-}
-
-/**
- * For a given operation, retrieve all the sercurity protocols that operation uses
- *
- * @param  {String} operationId Operation ID of the operation in question
- * @param  {Object} oas         Raw OpenAPI Specification 3.0
- *
- * @return {Object}
- */
-const getSecurityProtocols = (operationId, oas) => {
-  for (let path in oas.paths) {
-    for (let method in oas.paths[path]) {
-      if (oas.paths[path][method].operationId === operationId) {
-        return oas.paths[path][method].security
-      }
-    }
-  }
-  return null
+type Viewer = {
+  type: GQObjectType,
+  resolve: ResolveFunction,
+  args: Args,
+  description: string
 }
 
 /**
@@ -53,24 +32,15 @@ const getSecurityProtocols = (operationId, oas) => {
  *
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
- *
- * @param  {Object}  queryFields     Object that contains the fields for either
- *                                     viewer or mutationViewer object types
- * @param  {Object}  rootFields      Object that contains all object types of either
- *                                     query or mutation object
- * @param  {Object}  usedObjectNames Object that contains all previously defined
- *                                     viewer object names
- * @param  {Object}  data            Data produced by preprocessing
- * @param  {Object}  oas             Raw OpenAPI Specification 3.0
- * @param  {Boolean} isMutation      Whether to create a viewer or a mutationViewer
  */
 const createAndLoadViewer = (
-    queryFields,
-    rootFields,
-    usedObjectNames,
-    data,
-    oas,
-    isMutation = false
+    queryFields: Object,
+    rootFields: Object,
+    usedObjectNames: Object, // Object that contains all previously defined
+                             // viewer object names
+    data: PreprocessingData,
+    oas: Oas3,
+    isMutation: boolean = false
 ) => {
   let allFields = {}
   for (let protocolName in queryFields) {
@@ -85,19 +55,22 @@ const createAndLoadViewer = (
     /**
      * HTTP is not an authentication protocol
      * HTTP covers a number of different authentication type
-     * change the typeName to match the exact authentication type (e.g. basic authentication)
+     * change the typeName to match the exact authentication type (e.g. basic
+     * authentication)
      */
     if (type === 'http') {
-      switch (data.security[protocolName].def.scheme) {
+      let scheme = data.security[protocolName].def.scheme
+      switch (scheme) {
         case 'basic':
           type = 'BasicAuth'
           break
 
         default:
           if (data.options.strict) {
-            throw new Error(`Unsupported scheme ${data.security[protocolName].def.scheme} for HTTP authentication`)
+            throw new Error(`Unsupported scheme ${String(scheme)} for HTTP ` +
+              `authentication`)
           }
-          log(`Unsupported scheme ${data.security[protocolName].def.scheme} for HTTP authentication`)
+          log(`Unsupported scheme ${String(scheme)} for HTTP authentication`)
       }
     }
 
@@ -118,16 +91,9 @@ const createAndLoadViewer = (
       usedObjectNames[type].push(objectName)
     }
     usedObjectNames[type].push(objectName)
-    // Create the specialized viewer object types
-    let {viewerOT, args, resolve} = getViewerOT(objectName, protocolName, queryFields[protocolName], data)
 
     // Add the viewer object type to the specified root query object type
-    rootFields[objectName] = {
-      type: viewerOT,
-      resolve,
-      args,
-      description: `A viewer that wraps all operations authenticated via ${type}`
-    }
+    rootFields[objectName] = getViewerOT(objectName, protocolName, type, queryFields[protocolName], data)
   }
 
   // create name for the AnyAuth viewer
@@ -139,33 +105,23 @@ const createAndLoadViewer = (
     AnyAuthObjectName = 'mutationViewerAnyAuth'
   }
 
-  // Create the AnyAuth viewer object type
-  let {viewerOT, args, resolve} = getViewerAnyAuthOT(AnyAuthObjectName, allFields, data, oas)
-
   // Add the AnyAuth object type to the specified root query object type
-  rootFields[AnyAuthObjectName] = {
-    type: viewerOT,
-    resolve,
-    args,
-    description: `A viewer that wraps operations for all available ` +
-      `authentication mechanisms`
-  }
+  rootFields[AnyAuthObjectName] = getViewerAnyAuthOT(AnyAuthObjectName, allFields, data, oas)
 }
 
 /**
  * Gets the viewer Object, resolve function, and arguments
- *
- * @param  {String} name
- * @param  {String} protocolName Optional. Used to identify specific arguments rather than return all possible arguments
- * @param  {Object} queryFields  Object that contains the fields for object types
- *                                 that require the specified authentication protocol
- * @param  {Object} data
- *
- * @return {Object}              Contains viewer GraphQL Object Type, resolver, and arguments
  */
-const getViewerOT = (name, protocolName, queryFields, data) => {
-  let protocol = data.security[protocolName]
+const getViewerOT = (
+  name: string,
+  protocolName: string,
+  type: string,
+  queryFields: Object,
+  data: PreprocessingData
+) : Viewer => {
+  let scheme: ProcessedSecurityScheme = data.security[protocolName]
 
+  // resolve function:
   let resolve = (root, args, ctx) => {
     let security = {}
     if (typeof protocolName === 'string') {
@@ -185,53 +141,49 @@ const getViewerOT = (name, protocolName, queryFields, data) => {
     }
   }
 
+  // arguments:
   let args = {}
-  if (typeof protocol === 'object') {
-    for (let parameterName in protocol.parameters) {
+  if (typeof scheme === 'object') {
+    for (let parameterName in scheme.parameters) {
       args[parameterName] = {type: new GraphQLNonNull(GraphQLString)}
-    }
-  } else {
-    for (let protocolName in data.security) {
-      for (let parameterName in data.security[protocolName].parameters) {
-        args[protocol.parameters[parameterName]] = {type: GraphQLString}
-      }
     }
   }
 
   return {
-    viewerOT: new GraphQLObjectType({
+    type: new GraphQLObjectType({
       name: name,
-      description: `A viewer for the security protocol: "${protocol.rawName}"`,
+      description: `A viewer for the security protocol: "${scheme.rawName}"`,
       fields: queryFields
     }),
     resolve,
-    args
+    args,
+    description: `A viewer that wraps all operations authenticated via ${type}`
   }
 }
 
 /**
  * Create an object containing an AnyAuth viewer, its resolve function, and its args
- *
- * @param  {String}  name              Name of the AnyAuth object
- * @param  {Object}  queryFields       Object that contains the fields for all
- *                                       authenticated object types
- * @param  {Object}  data              Data produced by preprocessing
- * @param  {Object}  oas               Raw OpenAPI Specification 3.0
- *
- * @return {Object}                    Contains AnyAuth viewer, resolver, and args
  */
-const getViewerAnyAuthOT = (name, queryFields, data, oas) => {
+const getViewerAnyAuthOT = (
+  name: string,
+  queryFields: Object,
+  data: PreprocessingData,
+  oas: Oas3
+) : Viewer => {
   let args = {}
   for (let protocolName in data.security) {
     // create input object types for the viewer arguments
     // NOTE: does not need to check for OAuth 2.0 anymore
-    args[protocolName] = { type: SchemaBuilder.getGraphQLType({
+    // TODO: This is bad. We don't pass an operation, which is needed for
+    // creating the GraphQLType, though.
+    let type = SchemaBuilder.getGraphQLType({
       name: protocolName,
       schema: data.security[protocolName].schema,
       data,
       oas,
       isMutation: true
-    })}
+    })
+    args[protocolName] = { type }
   }
 
   // pass object containing security information to fields
@@ -244,18 +196,18 @@ const getViewerAnyAuthOT = (name, queryFields, data, oas) => {
   }
 
   return {
-    viewerOT: new GraphQLObjectType({
+    type: new GraphQLObjectType({
       name: name,
       description: 'Warning: Not every request will work with this Viewer object type',
       fields: queryFields
     }),
     resolve,
-    args
+    args,
+    description: `A viewer that wraps operations for all available ` +
+      `authentication mechanisms`
   }
 }
 
 module.exports = {
-  hasAuth,
-  getSecurityProtocols,
   createAndLoadViewer
 }
