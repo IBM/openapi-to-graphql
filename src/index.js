@@ -5,7 +5,7 @@
 /**
  * Defines the functions exposed by OASGraph.
  *
- *  Some general notes:
+ * Some general notes:
  *
  * - GraphQL interfaces rely on sanitized strings for (Input) Object Type names
  *   and fields. We perform sanitization only when assigning (field-) names, but
