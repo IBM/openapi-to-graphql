@@ -25,13 +25,14 @@ import {
   GraphQLObjectType
 } from 'graphql'
 
-const SchemaBuilder = require('./schema_builder.js')
-const ResolverBuilder = require('./resolver_builder.js')
-const GraphQLTools = require('./graphql_tools.js')
-const Preprocessor = require('./preprocessor.js')
-const Oas3Tools = require('./oas_3_tools.js')
-const AuthBuilder = require('./auth_builder.js')
-const log = require('debug')('translation')
+import SchemaBuilder from './schema_builder.js'
+import ResolverBuilder from './resolver_builder.js'
+import GraphQLTools from './graphql_tools.js'
+import Preprocessor from './preprocessor.js'
+import Oas3Tools from './oas_3_tools.js'
+import AuthBuilder from './auth_builder.js'
+import debug from 'debug'
+const log = debug('translation')
 
 type Viewer = {
   type: GQObjectType | GQInputObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType,

@@ -745,7 +745,7 @@ const beautifyAndStore = (
     throw new Error(`Cannot beautifyAndStore ${str}`)
   } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
-      console.warn(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
+      log(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
         `to ${clean} - collusion possible. Desanitize to ${str}.`)
     }
     mapping[clean] = str

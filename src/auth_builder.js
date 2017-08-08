@@ -16,9 +16,10 @@ import {
   GraphQLObjectType,
   GraphQLNonNull
 } from 'graphql'
-const SchemaBuilder = require('./schema_builder.js')
-const Oas3Tools = require('./oas_3_tools.js')
-const log = require('debug')('translation')
+import SchemaBuilder from './schema_builder.js'
+import Oas3Tools from './oas_3_tools.js'
+import debug from 'debug'
+const log = debug('translation')
 
 type Viewer = {
   type: GQObjectType,
