@@ -1,5 +1,10 @@
 /* @flow */
 
+/**
+ * Type definitions for the objects created during preprocessing for every
+ * operation in the OAS.
+ */
+
 import type {
   LinkObject,
   ParameterObject,

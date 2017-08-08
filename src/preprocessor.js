@@ -2,6 +2,7 @@
 
 'use strict'
 
+// Type imports:
 import type {Oas3, SchemaObject} from './types/oas3.js'
 import type {Options} from './types/options.js'
 import type {
@@ -11,6 +12,9 @@ import type {
 import type {Operation, DataDefinition} from './types/operation.js'
 import type {SchemaNames} from './oas_3_tools.js'
 
+// Type definitions & exports:
+
+// Imports:
 import Oas3Tools from './oas_3_tools.js'
 import deepEqual from 'deep-equal'
 import debug from 'debug'

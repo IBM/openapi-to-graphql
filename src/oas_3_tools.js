@@ -1,22 +1,12 @@
 /* @flow */
 
-export type SchemaNames = {
-  fromPath?: string,
-  fromSchema?: string,
-  fromRef?: string
-}
+'use strict'
 
-export type ReqSchemaAndNames = {
-  reqSchema?: SchemaObject | ReferenceObject,
-  reqSchemaNames?: SchemaNames,
-  reqRequired: boolean
-}
+/**
+ * Utility functions around the OpenAPI Specification 3.
+ */
 
-export type ResSchemaAndNames = {
-  resSchema?: SchemaObject | ReferenceObject,
-  resSchemaNames?: SchemaNames
-}
-
+// Type imports:
 import type {
   Oas3,
   ServerObject,
@@ -37,17 +27,35 @@ import type {
 import type {Oas2} from './types/oas2.js'
 import type {Operation} from './types/operation.js'
 
+// Type definitions & exports:
+export type SchemaNames = {
+  fromPath?: string,
+  fromSchema?: string,
+  fromRef?: string
+}
+
+export type ReqSchemaAndNames = {
+  reqSchema?: SchemaObject | ReferenceObject,
+  reqSchemaNames?: SchemaNames,
+  reqRequired: boolean
+}
+
+export type ResSchemaAndNames = {
+  resSchema?: SchemaObject | ReferenceObject,
+  resSchemaNames?: SchemaNames
+}
+
+// Imports:
 import Swagger2OpenAPI from 'swagger2openapi'
 import OASValidator from 'swagger2openapi/validate.js'
 import deepEqual from 'deep-equal'
 import debug from 'debug'
 const logHttp = debug('http')
 const logPre = debug('preprocessing')
+
 const log = debug('translation')
 
-/**
- * OAS constants
- */
+// OAS constants
 const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
 const JSON_CONTENT_TYPES = ['application/json', '*/*']
 const SUCCESS_STATUS_RX = /2[0-9]{2}/

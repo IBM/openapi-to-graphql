@@ -2,6 +2,11 @@
 
 'use strict'
 
+/**
+ * Functions to translate JSON schema to GraphQL (input) object types.
+ */
+
+// Type imports:
 import type {
   Operation,
   DataDefinition
@@ -22,26 +27,7 @@ import type {
   GraphQLFieldConfigMap
 } from 'graphql'
 
-import {
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLInt,
-  GraphQLFloat,
-  GraphQLBoolean,
-  GraphQLNonNull,
-  GraphQLList,
-  GraphQLInputObjectType,
-  GraphQLEnumType
-} from 'graphql'
-import Oas3Tools from './oas_3_tools.js'
-import ResolverBuilder from './resolver_builder.js'
-import Preprocessor from './preprocessor.js'
-import debug from 'debug'
-const log = debug('translation')
-
-/**
- * Type definitions
- */
+// Type definitions & exports:
 type GetGraphQLParams = {
   name: string,              // name of type to create NOTE: ignored for scalars
   schema: SchemaObject,
@@ -107,6 +93,25 @@ type CreateFieldsParams = {
 }
 
 type FieldsType = Thunk<GraphQLFieldConfigMap<Object, Object>>
+
+// Imports:
+import {
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLFloat,
+  GraphQLBoolean,
+  GraphQLNonNull,
+  GraphQLList,
+  GraphQLInputObjectType,
+  GraphQLEnumType
+} from 'graphql'
+import Oas3Tools from './oas_3_tools.js'
+import ResolverBuilder from './resolver_builder.js'
+import Preprocessor from './preprocessor.js'
+import debug from 'debug'
+
+const log = debug('translation')
 
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
@@ -460,8 +465,11 @@ const createFields = ({
   }
 
   // create fields for links
-  if (iteration === 0 && operation && typeof operation === 'object' &&
-    typeof operation.links === 'object' && !isMutation) {
+  if (iteration === 0 && // only for operation-level object types
+    operation && typeof operation === 'object' && // operation is provided
+    typeof operation.links === 'object' && // links are present
+    !isMutation // only if we are not talking INPUT object type
+  ) {
     for (let linkKey in operation.links) {
       log(`create link "${linkKey}"...`)
 

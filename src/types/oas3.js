@@ -1,5 +1,9 @@
 /* @flow */
 
+/**
+ * Type definitions for the OpenAPI Specification 3.
+ */
+
 type ExternalDocumentationObject = {
   description?: string,
   url: string

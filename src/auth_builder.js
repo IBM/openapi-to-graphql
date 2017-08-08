@@ -1,5 +1,13 @@
 /* @flow */
 
+'use strict'
+
+/**
+ * Functions to create viewers that allow users to pass credentials to resolve
+ * functions used by OASGraph.
+ */
+
+// Type imports:
 import type {Oas3} from './types/oas3.js'
 import type {
   PreprocessingData,
@@ -11,6 +19,15 @@ import type {
 import type {ResolveFunction} from './resolver_builder.js'
 import type {Args} from './schema_builder.js'
 
+// Type definitions & exports:
+type Viewer = {
+  type: GQObjectType,
+  resolve: ResolveFunction,
+  args: Args,
+  description: string
+}
+
+// Imports:
 import {
   GraphQLString,
   GraphQLObjectType,
@@ -19,14 +36,8 @@ import {
 import SchemaBuilder from './schema_builder.js'
 import Oas3Tools from './oas_3_tools.js'
 import debug from 'debug'
-const log = debug('translation')
 
-type Viewer = {
-  type: GQObjectType,
-  resolve: ResolveFunction,
-  args: Args,
-  description: string
-}
+const log = debug('translation')
 
 /**
  * Load the field object in the appropriate root object
@@ -94,7 +105,8 @@ const createAndLoadViewer = (
     usedObjectNames[type].push(objectName)
 
     // Add the viewer object type to the specified root query object type
-    rootFields[objectName] = getViewerOT(objectName, protocolName, type, queryFields[protocolName], data)
+    rootFields[objectName] = getViewerOT(
+      objectName, protocolName, type, queryFields[protocolName], data)
   }
 
   // create name for the AnyAuth viewer
@@ -107,7 +119,8 @@ const createAndLoadViewer = (
   }
 
   // Add the AnyAuth object type to the specified root query object type
-  rootFields[AnyAuthObjectName] = getViewerAnyAuthOT(AnyAuthObjectName, allFields, data, oas)
+  rootFields[AnyAuthObjectName] = getViewerAnyAuthOT(
+    AnyAuthObjectName, allFields, data, oas)
 }
 
 /**
@@ -163,7 +176,8 @@ const getViewerOT = (
 }
 
 /**
- * Create an object containing an AnyAuth viewer, its resolve function, and its args
+ * Create an object containing an AnyAuth viewer, its resolve function,
+ * and its args.
  */
 const getViewerAnyAuthOT = (
   name: string,
@@ -199,7 +213,7 @@ const getViewerAnyAuthOT = (
   return {
     type: new GraphQLObjectType({
       name: name,
-      description: 'Warning: Not every request will work with this Viewer object type',
+      description: 'Warning: Not every request will work with this viewer type',
       fields: queryFields
     }),
     resolve,

@@ -1,5 +1,9 @@
 /* @flow */
 
+/**
+ * Type definitions for the data created during preprocessing.
+ */
+
 import type {Operation, DataDefinition} from './operation.js'
 import type {Options} from './options.js'
 import type {
@@ -10,7 +14,17 @@ import type {
 export type ProcessedSecurityScheme = {
   rawName: string,
   def: SecuritySchemeObject,
+
+  /**
+   * Stores the names of the authentication credentials
+   * NOTE: Structure depends on the type of the protocol (basic, API key...)
+   * NOTE: Mainly used for the AnyAuth viewers
+   */
   parameters: {[string]: string},
+
+  /**
+   * JSON schema to create the viewer for this security scheme from.
+   */
   schema: SchemaObject
 }
 

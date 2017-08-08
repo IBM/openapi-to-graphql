@@ -2,63 +2,10 @@
 
 'use strict'
 
-import type { Options } from './types/options.js'
-import type { Oas3 } from './types/oas3.js'
-import type { Oas2 } from './types/oas2.js'
-import type {
-  GraphQLSchema as GraphQLSchemaType,
-  GraphQLObjectType as GQObjectType,
-  GraphQLInputObjectType as GQInputObjectType,
-  GraphQLScalarType,
-  GraphQLList,
-  GraphQLEnumType
-} from 'graphql'
-import type { Operation } from './types/operation.js'
-import type { ResolveFunction } from './resolver_builder.js'
-import type {
-  PreprocessingData
-} from './types/preprocessing_data.js'
-import type { Args } from './schema_builder.js'
-
-import {
-  GraphQLSchema,
-  GraphQLObjectType
-} from 'graphql'
-
-import SchemaBuilder from './schema_builder.js'
-import ResolverBuilder from './resolver_builder.js'
-import GraphQLTools from './graphql_tools.js'
-import Preprocessor from './preprocessor.js'
-import Oas3Tools from './oas_3_tools.js'
-import AuthBuilder from './auth_builder.js'
-import debug from 'debug'
-const log = debug('translation')
-
-type Viewer = {
-  type: GQObjectType | GQInputObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType,
-  resolve: ResolveFunction,
-  args: Args,
-  description: string
-}
-
-type LoadFieldsParams = {
-  operation: Operation,
-  operationId: string,
-  rootQueryFields: Object,
-  rootMutationFields: Object,
-  viewerFields: Object,
-  viewerMutationFields: Object,
-  data: PreprocessingData,
-  oas: Oas3
-}
-
-// Increase stack trace logging for better debugging:
-Error.stackTraceLimit = Infinity
-
 /**
- * Creates a GraphQL interface from the given OpenAPI Specification.
+ * Defines the functions exposed by OASGraph.
  *
- * Some general notes:
+ *  Some general notes:
  *
  * - GraphQL interfaces rely on sanitized strings for (Input) Object Type names
  *   and fields. We perform sanitization only when assigning (field-) names, but
@@ -80,7 +27,63 @@ Error.stackTraceLimit = Infinity
  *   Types called QueryViewer and MutationViewer that take as input security
  *   credentials and pass them on using the _oasgraph object to other resolve
  *   functions.
- *
+ */
+
+// Type imports:
+import type {Options} from './types/options.js'
+import type {Oas3} from './types/oas3.js'
+import type {Oas2} from './types/oas2.js'
+import type {
+  GraphQLSchema as GraphQLSchemaType,
+  GraphQLObjectType as GQObjectType,
+  GraphQLInputObjectType as GQInputObjectType,
+  GraphQLScalarType,
+  GraphQLList,
+  GraphQLEnumType
+} from 'graphql'
+import type {Operation} from './types/operation.js'
+import type {ResolveFunction} from './resolver_builder.js'
+import type {
+  PreprocessingData
+} from './types/preprocessing_data.js'
+import type {Args} from './schema_builder.js'
+
+// Type definitions & exports:
+type Viewer = {
+  type: GQObjectType | GQInputObjectType | GraphQLScalarType |
+    GraphQLList<any> | GraphQLEnumType,
+  resolve: ResolveFunction,
+  args: Args,
+  description: string
+}
+type LoadFieldsParams = {
+  operation: Operation,
+  operationId: string,
+  rootQueryFields: Object,
+  rootMutationFields: Object,
+  viewerFields: Object,
+  viewerMutationFields: Object,
+  data: PreprocessingData,
+  oas: Oas3
+}
+
+// Imports:
+import {
+  GraphQLSchema,
+  GraphQLObjectType
+} from 'graphql'
+import SchemaBuilder from './schema_builder.js'
+import ResolverBuilder from './resolver_builder.js'
+import GraphQLTools from './graphql_tools.js'
+import Preprocessor from './preprocessor.js'
+import Oas3Tools from './oas_3_tools.js'
+import AuthBuilder from './auth_builder.js'
+import debug from 'debug'
+
+const log = debug('translation')
+
+/**
+ * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
 const createGraphQlSchema = (
   spec: Oas3 | Oas2,

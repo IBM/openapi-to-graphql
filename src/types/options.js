@@ -1,5 +1,9 @@
 /* @flow */
 
+/**
+ * Type definition of the options that users can pass to OASGraph.
+ */
+
 export type Options = {
   /**
    * Adhere to the OAS as closely as possible. If set to true, any deviation

@@ -2,6 +2,10 @@
 
 'use strict'
 
+/**
+ * Utilities related to GraphQL.
+ */
+
 const {
   GraphQLObjectType,
   GraphQLInputObjectType,
