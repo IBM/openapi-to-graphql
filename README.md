@@ -209,6 +209,10 @@ The following logging levels are supported:
 * `http`: Logs information about the HTTP requests made to the API.
 
 
+## Development
+OASGraph is built using Facebook's [Flow](https://www.flow.org) static type checking system. All source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
+
+
 ## Similar projects
 
 * [swagger-to-graphql](https://github.com/yarax/swagger-to-graphql) turns a given Swagger (OpenAPI Specification 2.0) into a GraphQL interface, which resolves against the original API. GraphQL schema is based on endpoints, not on data definitions. No links are considered.

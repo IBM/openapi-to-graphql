@@ -142,7 +142,8 @@ const getResolver = ({
 
     /**
      * Determine possible payload
-     * GraphQL produces sanitized payload names, so we have to sanitize before lookup here
+     * GraphQL produces sanitized payload names, so we have to sanitize before
+     * lookup here
      */
     if (payloadName && typeof payloadName === 'string') {
       let sanePayloadName = Oas3Tools.beautify(payloadName)
