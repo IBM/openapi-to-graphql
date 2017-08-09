@@ -137,9 +137,7 @@ export function getGraphQLType ({
 
   // resolve allOf element in schema if applicable
   if ('allOf' in schema) {
-    // TODO: replace schema here, rather than change OAS
-
-    schema = Oas3Tools.resolveAllOf({}, schema.allOf, oas)
+    schema = Oas3Tools.resolveAllOf(schema, oas)
   }
 
   // determine the type of the schema

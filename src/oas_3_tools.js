@@ -835,12 +835,34 @@ export function isOperation (method: string) : boolean {
  * schemas inside references.
  *
  * TODO: Tidy this up and return aggregated schema, rather than changing the OAS
+ *
+ * TODO: Output may not be a SchemaObject
  */
 export function resolveAllOf (
-  resolvedSchema: SchemaObject,
+  schema: SchemaObject,
+  oas: Oas3
+): SchemaObject {
+  if ('allOf' in schema && typeof schema.allOf === 'object') {
+    // copy the original schema
+    let temp = JSON.parse(JSON.stringify(schema))
+
+    // let temp
+    // Object.assign(temp, schema)
+
+    // remove the allOf property
+    delete temp.allOf
+    // add the allOf properties and return
+    return resolveAllOfRec(temp, schema.allOf, oas)
+  } else {
+    throw new Error(`schema '${JSON.stringify(schema)}' does not contain an 'allOf' property`)
+  }
+}
+
+function resolveAllOfRec (
+  resolvedSchema: Object,
   allOfSchema: SchemaObject,
   oas: Oas3
-) : SchemaObject {
+): Object {
   for (let allOfSchemaIndex in allOfSchema) {
     let subschema = allOfSchema[allOfSchemaIndex]
 
@@ -926,7 +948,7 @@ export function resolveAllOf (
           break
 
         case 'allOf':
-          resolveAllOf(resolvedSchema, subschema.allOf, oas)
+          resolveAllOfRec(resolvedSchema, subschema.allOf, oas)
           break
 
         default:
