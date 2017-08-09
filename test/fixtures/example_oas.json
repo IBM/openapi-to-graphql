@@ -461,6 +461,25 @@
 					},
 					"status": {
 						"enum": ["staff", "contractor", "alumni"]
+					},
+					"nomenclature": {
+						"type": "object",
+						"allOf":[
+							{
+								"properties": {
+									"genus": {
+										"type": "string"
+									}
+								}
+							},
+							{
+								"properties": {
+									"species": {
+										"type": "string"
+									}
+								}
+							}
+						]
 					}
 				},
 				"required": ["name", "address", "employerId", "hobbies"]

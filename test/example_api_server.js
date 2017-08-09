@@ -15,7 +15,11 @@ const Users = {
     },
     employerId: 'ibm',
     hobbies: ['lion dancing', 'doing CEO stuff'],
-    status: 'staff'
+    status: 'staff',
+    nomenclature: {
+      genus: 'Homo',
+      species: 'sapiens'
+    }
   },
   jim: {
     name: 'Jim Laredo',
@@ -25,7 +29,11 @@ const Users = {
     },
     employerId: 'ibm',
     hobbies: ['lion dancing', 'baseball'],
-    status: 'staff'
+    status: 'staff',
+    nomenclature: {
+      genus: 'Homo',
+      species: 'sapiens'
+    }
   },
   ginni: {
     name: 'Ginni Rometti',
@@ -35,7 +43,11 @@ const Users = {
     },
     employerId: 'ibm',
     hobbies: ['chess', 'tennis'],
-    status: 'staff'
+    status: 'staff',
+    nomenclature: {
+      genus: 'Homo',
+      species: 'sapiens'
+    }
   },
   bill: {
     name: 'Bill Gates',
@@ -45,7 +57,11 @@ const Users = {
     },
     employerId: 'microsoft',
     hobbies: ['making money', 'making more money'],
-    status: 'alumni'
+    status: 'alumni',
+    nomenclature: {
+      genus: 'Homo',
+      species: 'ihavelotsofmoneyus'
+    }
   }
 }
 
