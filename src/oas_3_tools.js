@@ -7,6 +7,8 @@
  */
 
 // Type imports:
+import type {Oas2} from './types/oas2.js'
+import type {Operation} from './types/operation.js'
 import type {
   Oas3,
   ServerObject,
@@ -24,8 +26,6 @@ import type {
   SecuritySchemeObject,
   SecurityRequirementObject
 } from './types/oas3.js'
-import type {Oas2} from './types/oas2.js'
-import type {Operation} from './types/operation.js'
 
 // Type definitions & exports:
 export type SchemaNames = {

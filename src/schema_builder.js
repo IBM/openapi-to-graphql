@@ -7,16 +7,9 @@
  */
 
 // Type imports:
-import type {PreprocessingData} from './types/preprocessing_data.js'
-import type {
-  Operation,
-  DataDefinition
-} from './types/operation.js'
-import type {
-  Oas3,
-  SchemaObject,
-  ParameterObject
-} from './types/oas3.js'
+import type { PreprocessingData } from './types/preprocessing_data.js'
+import type { Operation, DataDefinition } from './types/operation.js'
+import type { Oas3, SchemaObject, ParameterObject } from './types/oas3.js'
 import type {
   GraphQLObjectType as GQObjectType,
   GraphQLScalarType,
@@ -96,8 +89,8 @@ type FieldsType = Thunk<GraphQLFieldConfigMap<Object, Object>>
 
 // Imports:
 import * as Oas3Tools from './oas_3_tools.js'
-import {getResolver} from './resolver_builder.js'
-import {preprocessOas, createOrReuseDataDef} from './preprocessor.js'
+import { getResolver } from './resolver_builder.js'
+import { preprocessOas, createOrReuseDataDef } from './preprocessor.js'
 import debug from 'debug'
 import {
   GraphQLObjectType,

@@ -7,9 +7,7 @@
  */
 
 // Type imports:
-import type {
-  Oas3
-} from './types/oas3.js'
+import type { Oas3 } from './types/oas3.js'
 import type {Operation} from './types/operation.js'
 import type {PreprocessingData} from './types/preprocessing_data.js'
 

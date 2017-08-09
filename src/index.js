@@ -30,9 +30,13 @@
  */
 
 // Type imports:
-import type {Options} from './types/options.js'
-import type {Oas3} from './types/oas3.js'
-import type {Oas2} from './types/oas2.js'
+import type { Options } from './types/options.js'
+import type { Oas3 } from './types/oas3.js'
+import type { Oas2 } from './types/oas2.js'
+import type { Args } from './schema_builder.js'
+import type { Operation } from './types/operation.js'
+import type { ResolveFunction } from './resolver_builder.js'
+import type { PreprocessingData } from './types/preprocessing_data.js'
 import type {
   GraphQLSchema as GraphQLSchemaType,
   GraphQLObjectType as GQObjectType,
@@ -41,12 +45,6 @@ import type {
   GraphQLList,
   GraphQLEnumType
 } from 'graphql'
-import type {Operation} from './types/operation.js'
-import type {ResolveFunction} from './resolver_builder.js'
-import type {
-  PreprocessingData
-} from './types/preprocessing_data.js'
-import type {Args} from './schema_builder.js'
 
 // Type definitions & exports:
 type Viewer = {
@@ -68,17 +66,17 @@ type LoadFieldsParams = {
 }
 
 // Imports:
+import { getGraphQLType, getArgs } from './schema_builder.js'
+import { getResolver } from './resolver_builder.js'
+import * as GraphQLTools from './graphql_tools.js'
+import { preprocessOas } from './preprocessor.js'
+import * as Oas3Tools from './oas_3_tools.js'
+import AuthBuilder from './auth_builder.js'
+import debug from 'debug'
 import {
   GraphQLSchema,
   GraphQLObjectType
 } from 'graphql'
-import {getGraphQLType, getArgs} from './schema_builder.js'
-import {getResolver} from './resolver_builder.js'
-import * as GraphQLTools from './graphql_tools.js'
-import {preprocessOas} from './preprocessor.js'
-import * as Oas3Tools from './oas_3_tools.js'
-import AuthBuilder from './auth_builder.js'
-import debug from 'debug'
 
 const log = debug('translation')
 
@@ -181,18 +179,16 @@ function translateOpenApiToGraphQL (
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length > 0 ||
       (Array.isArray(operation.subOps) && operation.subOps.length > 0)) {
-        loadFields(
-          {
-            operation,
-            operationId,
-            rootQueryFields,
-            rootMutationFields,
-            viewerFields,
-            viewerMutationFields,
-            data,
-            oas
-          }
-        )
+        loadField({
+          operation,
+          operationId,
+          rootQueryFields,
+          rootMutationFields,
+          viewerFields,
+          viewerMutationFields,
+          data,
+          oas
+        })
       }
     }
 
@@ -201,18 +197,16 @@ function translateOpenApiToGraphQL (
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length === 0 &&
         (!Array.isArray(operation.subOps) || operation.subOps.length === 0)) {
-        loadFields(
-          {
-            operation,
-            operationId,
-            rootQueryFields,
-            rootMutationFields,
-            viewerFields,
-            viewerMutationFields,
-            data,
-            oas
-          }
-        )
+        loadField({
+          operation,
+          operationId,
+          rootQueryFields,
+          rootMutationFields,
+          viewerFields,
+          viewerMutationFields,
+          data,
+          oas
+        })
       }
     }
 
@@ -223,22 +217,22 @@ function translateOpenApiToGraphQL (
     // if applicable
     if (Object.keys(viewerFields).length > 0) {
       AuthBuilder.createAndLoadViewer(
-          viewerFields,
-          rootQueryFields,
-          usedViewerNames,
-          data,
-          oas
+        viewerFields,
+        rootQueryFields,
+        usedViewerNames,
+        data,
+        oas
       )
     }
 
     if (Object.keys(viewerMutationFields).length > 0) {
       AuthBuilder.createAndLoadViewer(
-          viewerMutationFields,
-          rootMutationFields,
-          usedMutationViewerNames,
-          data,
-          oas,
-          true
+        viewerMutationFields,
+        rootMutationFields,
+        usedMutationViewerNames,
+        data,
+        oas,
+        true
       )
     }
 
@@ -276,11 +270,11 @@ function translateOpenApiToGraphQL (
 }
 
 /**
- * Load the field object in the appropriate root object inside either
- * rootQueryFields/rootMutationFields or inside rootQueryFields/
- * rootMutationFields for further processing
+ * Generates a field for the given operation and stores it in the given field
+ * objects (depending on whether the operation is a mutation, and on its
+ * authentication requirements).
  */
-function loadFields ({
+function loadField ({
   operation,
   operationId,
   rootQueryFields,
@@ -348,14 +342,14 @@ function loadFields ({
 }
 
 /**
- * Creates the field object for a given operation
+ * Creates the field object for the given operation.
  */
 function getFieldForOperation (
   operation: Operation,
   data: PreprocessingData,
   oas: Oas3
 ) : Viewer {
-  // create OT if needed:
+  // create OT returned by operation:
   let type = getGraphQLType({
     name: operation.resDef.otName,
     schema: operation.resDef.schema,
@@ -364,7 +358,7 @@ function getFieldForOperation (
     oas
   })
 
-  // determine resolve function:
+  // craete resolve function:
   let reqSchemaName = (operation.reqDef ? operation.reqDef.iotName : null)
   let reqSchema = (operation.reqDef ? operation.reqDef.schema : null)
   let resolve = getResolver({
@@ -374,7 +368,7 @@ function getFieldForOperation (
     data
   })
 
-  // determine args:
+  // create args:
   let args: Args = getArgs({
     parameters: operation.parameters,
     reqSchemaName: reqSchemaName,

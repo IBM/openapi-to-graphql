@@ -8,16 +8,14 @@
  */
 
 // Type imports:
-import type {Oas3} from './types/oas3.js'
+import type { Oas3 } from './types/oas3.js'
+import type { GraphQLObjectType as GQObjectType } from 'graphql'
+import type { ResolveFunction } from './resolver_builder.js'
+import type { Args } from './schema_builder.js'
 import type {
   PreprocessingData,
   ProcessedSecurityScheme
 } from './types/preprocessing_data.js'
-import type {
-  GraphQLObjectType as GQObjectType
-} from 'graphql'
-import type {ResolveFunction} from './resolver_builder.js'
-import type {Args} from './schema_builder.js'
 
 // Type definitions & exports:
 type Viewer = {
@@ -28,14 +26,14 @@ type Viewer = {
 }
 
 // Imports:
+import {getGraphQLType} from './schema_builder.js'
+import * as Oas3Tools from './oas_3_tools.js'
+import debug from 'debug'
 import {
   GraphQLString,
   GraphQLObjectType,
   GraphQLNonNull
 } from 'graphql'
-import {getGraphQLType} from './schema_builder.js'
-import * as Oas3Tools from './oas_3_tools.js'
-import debug from 'debug'
 
 const log = debug('translation')
 

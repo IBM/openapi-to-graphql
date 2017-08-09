@@ -3,14 +3,14 @@
 'use strict'
 
 // Type imports:
-import type {Oas3, SchemaObject} from './types/oas3.js'
-import type {Options} from './types/options.js'
+import type { Oas3, SchemaObject } from './types/oas3.js'
+import type { Options } from './types/options.js'
+import type { Operation, DataDefinition } from './types/operation.js'
+import type { SchemaNames } from './oas_3_tools.js'
 import type {
   PreprocessingData,
   ProcessedSecurityScheme
 } from './types/preprocessing_data.js'
-import type {Operation, DataDefinition} from './types/operation.js'
-import type {SchemaNames} from './oas_3_tools.js'
 
 // Type definitions & exports:
 
@@ -18,6 +18,7 @@ import type {SchemaNames} from './oas_3_tools.js'
 import * as Oas3Tools from './oas_3_tools.js'
 import deepEqual from 'deep-equal'
 import debug from 'debug'
+
 const log = debug('preprocessing')
 
 /**
