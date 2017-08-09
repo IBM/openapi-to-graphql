@@ -72,11 +72,11 @@ import {
   GraphQLSchema,
   GraphQLObjectType
 } from 'graphql'
-import SchemaBuilder from './schema_builder.js'
-import ResolverBuilder from './resolver_builder.js'
-import GraphQLTools from './graphql_tools.js'
-import Preprocessor from './preprocessor.js'
-import Oas3Tools from './oas_3_tools.js'
+import {getGraphQLType, getArgs} from './schema_builder.js'
+import {getResolver} from './resolver_builder.js'
+import * as GraphQLTools from './graphql_tools.js'
+import {preprocessOas} from './preprocessor.js'
+import * as Oas3Tools from './oas_3_tools.js'
 import AuthBuilder from './auth_builder.js'
 import debug from 'debug'
 
@@ -85,7 +85,7 @@ const log = debug('translation')
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-const createGraphQlSchema = (
+function createGraphQlSchema (
   spec: Oas3 | Oas2,
   options: Options = {
     // some default values:
@@ -94,7 +94,7 @@ const createGraphQlSchema = (
     viewer: true,
     sendOAuthTokenInQuery: false
   }
-): Promise<GraphQLSchemaType> => {
+): Promise<GraphQLSchemaType> {
   return new Promise((resolve, reject) => {
     // Some basic validation
     if (typeof spec !== 'object') {
@@ -119,7 +119,7 @@ const createGraphQlSchema = (
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-const translateOpenApiToGraphQL = (
+function translateOpenApiToGraphQL (
   oas: Oas3,
   {
     strict,
@@ -130,7 +130,7 @@ const translateOpenApiToGraphQL = (
     addSubOperations,
     sendOAuthTokenInQuery
   } : Options
-) => {
+) {
   return new Promise((resolve, reject) => {
     let options = {
       headers,
@@ -147,7 +147,7 @@ const translateOpenApiToGraphQL = (
      * Extract information from the OAS and put it inside a data structure that
      * is easier for OASGraph to use
      */
-    let data = Preprocessor.preprocessOas(oas, options)
+    let data = preprocessOas(oas, options)
 
     /**
      * Holds on to the highest-level (entry-level) object types for queries that
@@ -280,7 +280,7 @@ const translateOpenApiToGraphQL = (
  * rootQueryFields/rootMutationFields or inside rootQueryFields/
  * rootMutationFields for further processing
  */
-const loadFields = ({
+function loadFields ({
   operation,
   operationId,
   rootQueryFields,
@@ -289,7 +289,7 @@ const loadFields = ({
   viewerMutationFields,
   data,
   oas
-} : LoadFieldsParams) => {
+} : LoadFieldsParams) {
   // Get the fields for an operation
   let field = getFieldForOperation(operation, data, oas)
 
@@ -350,13 +350,13 @@ const loadFields = ({
 /**
  * Creates the field object for a given operation
  */
-const getFieldForOperation = (
+function getFieldForOperation (
   operation: Operation,
   data: PreprocessingData,
   oas: Oas3
-) : Viewer => {
+) : Viewer {
   // create OT if needed:
-  let type = SchemaBuilder.getGraphQLType({
+  let type = getGraphQLType({
     name: operation.resDef.otName,
     schema: operation.resDef.schema,
     data,
@@ -367,7 +367,7 @@ const getFieldForOperation = (
   // determine resolve function:
   let reqSchemaName = (operation.reqDef ? operation.reqDef.iotName : null)
   let reqSchema = (operation.reqDef ? operation.reqDef.schema : null)
-  let resolve = ResolverBuilder.getResolver({
+  let resolve = getResolver({
     operation,
     oas,
     payloadName: reqSchemaName,
@@ -375,7 +375,7 @@ const getFieldForOperation = (
   })
 
   // determine args:
-  let args: Args = SchemaBuilder.getArgs({
+  let args: Args = getArgs({
     parameters: operation.parameters,
     reqSchemaName: reqSchemaName,
     reqSchema,

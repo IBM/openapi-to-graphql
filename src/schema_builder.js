@@ -7,11 +7,11 @@
  */
 
 // Type imports:
+import type {PreprocessingData} from './types/preprocessing_data.js'
 import type {
   Operation,
   DataDefinition
 } from './types/operation.js'
-import type {PreprocessingData} from './types/preprocessing_data.js'
 import type {
   Oas3,
   SchemaObject,
@@ -95,6 +95,10 @@ type CreateFieldsParams = {
 type FieldsType = Thunk<GraphQLFieldConfigMap<Object, Object>>
 
 // Imports:
+import * as Oas3Tools from './oas_3_tools.js'
+import {getResolver} from './resolver_builder.js'
+import {preprocessOas, createOrReuseDataDef} from './preprocessor.js'
+import debug from 'debug'
 import {
   GraphQLObjectType,
   GraphQLString,
@@ -106,17 +110,13 @@ import {
   GraphQLInputObjectType,
   GraphQLEnumType
 } from 'graphql'
-import Oas3Tools from './oas_3_tools.js'
-import ResolverBuilder from './resolver_builder.js'
-import Preprocessor from './preprocessor.js'
-import debug from 'debug'
 
 const log = debug('translation')
 
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
-const getGraphQLType = ({
+export function getGraphQLType ({
   name,
   schema,
   operation,
@@ -125,7 +125,7 @@ const getGraphQLType = ({
   iteration = 0,
   isMutation = false
 } : GetGraphQLParams
-) : GQObjectType | GQInputObjectType | GraphQLScalarType | GQList<any> | GQEnumType => {
+) : GQObjectType | GQInputObjectType | GraphQLScalarType | GQList<any> | GQEnumType {
   // avoid excessive iterations
   if (iteration === 20) {
     throw new Error(`Too many iterations when creating schema ${name}`)
@@ -190,7 +190,7 @@ const getGraphQLType = ({
       enumList: schema.enum
     })
 
-// CASE: scalar - return scalar
+  // CASE: scalar - return scalar
   } else {
     return getScalarType(type, data)
   }
@@ -211,7 +211,7 @@ const getGraphQLType = ({
  *       resolve   // optional function defining how to obtain this type
  *   })
  */
-const reuseOrCreateOt = ({
+function reuseOrCreateOt ({
   name,
   schema,
   operation,
@@ -219,14 +219,14 @@ const reuseOrCreateOt = ({
   oas,
   iteration,
   isMutation
-} : ReuseOrCreateOtParams) : GQObjectType | GQInputObjectType | GraphQLScalarType => {
+} : ReuseOrCreateOtParams) : GQObjectType | GQInputObjectType | GraphQLScalarType {
   // some validation
   if (typeof schema === 'undefined') {
     throw new Error(`no schema passed to reuseOrCreateOt for name ${name}`)
   }
 
   // fetch or create data definition
-  let def: DataDefinition = Preprocessor.createOrReuseDataDef(schema, {fromRef: name}, data)
+  let def: DataDefinition = createOrReuseDataDef(schema, {fromRef: name}, data)
 
   // CASE: query - create or reuse OT
   if (!isMutation) {
@@ -285,7 +285,7 @@ const reuseOrCreateOt = ({
 /**
  * Returns an existing List or creates a new one, and stores it in data
  */
-const reuseOrCreateList = ({
+function reuseOrCreateList ({
   name,
   operation,
   schema,
@@ -293,14 +293,14 @@ const reuseOrCreateList = ({
   oas,
   iteration,
   isMutation
-}: ReuseOrCreateListParams) : GraphQLList<any> => {
+}: ReuseOrCreateListParams) : GraphQLList<any> {
   // minimal error-checking
   if (!('items' in schema)) {
     throw new Error(`Items property missing in array schema definition of ` +
       `${name}`)
   }
 
-  let def = Preprocessor.createOrReuseDataDef(
+  let def = createOrReuseDataDef(
     schema, {fromRef: `${name}List`}, data)
 
   // try to reuse existing Object Type
@@ -353,13 +353,13 @@ const reuseOrCreateList = ({
 /**
  * Returns an existing Enum Type or creates a new one, and stores it in data
  */
-const reuseOrCreateEnum = ({
+function reuseOrCreateEnum ({
   name,
   data,
   enumList
-} : ReuseOrCreateEnum) : GQEnumType => {
+} : ReuseOrCreateEnum) : GQEnumType {
   // try to reuse existing Enum Type
-  let def = Preprocessor.createOrReuseDataDef(enumList, {fromRef: name}, data)
+  let def = createOrReuseDataDef(enumList, {fromRef: name}, data)
 
   if (def.ot && typeof def.ot !== 'undefined') {
     log(`reuse  GraphQLEnumType "${def.otName}"`)
@@ -385,10 +385,10 @@ const reuseOrCreateEnum = ({
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-const getScalarType = (
+function getScalarType (
   type: string,
   data: PreprocessingData
-) : GraphQLScalarType => {
+) : GraphQLScalarType {
   switch (type) {
     case 'string':
       return GraphQLString
@@ -411,7 +411,7 @@ const getScalarType = (
 /**
  * Creates the fields object to be used by an ObjectType
  */
-const createFields = ({
+function createFields ({
   name,
   schema,
   operation,
@@ -419,7 +419,7 @@ const createFields = ({
   oas,
   iteration,
   isMutation
-} : CreateFieldsParams) : FieldsType => {
+} : CreateFieldsParams) : FieldsType {
   let fields = {}
 
   // resolve reference if applicable
@@ -498,7 +498,7 @@ const createFields = ({
       }
 
       // get resolve function for link
-      let linkResolver = ResolverBuilder.getResolver({
+      let linkResolver = getResolver({
         operation: linkedOp,
         argsFromLink,
         data,
@@ -553,7 +553,7 @@ const createFields = ({
         return param.in === 'path'
       }).map(args => args.name)
 
-      let subOpResolver = ResolverBuilder.getResolver({
+      let subOpResolver = getResolver({
         operation: subOp,
         argsFromParent,
         data,
@@ -587,14 +587,14 @@ const createFields = ({
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
  * Type
  */
-const getArgs = ({
+export function getArgs ({
   parameters,
   reqSchema,
   reqSchemaName,
   data,
   oas,
   operation
-} : GetArgsParams) : Args => {
+} : GetArgsParams) : Args {
   let args = {}
 
   // handle params:
@@ -669,9 +669,4 @@ const getArgs = ({
     }
   }
   return args
-}
-
-module.exports = {
-  getGraphQLType,
-  getArgs
 }

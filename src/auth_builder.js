@@ -33,8 +33,8 @@ import {
   GraphQLObjectType,
   GraphQLNonNull
 } from 'graphql'
-import SchemaBuilder from './schema_builder.js'
-import Oas3Tools from './oas_3_tools.js'
+import {getGraphQLType} from './schema_builder.js'
+import * as Oas3Tools from './oas_3_tools.js'
 import debug from 'debug'
 
 const log = debug('translation')
@@ -191,7 +191,7 @@ const getViewerAnyAuthOT = (
     // NOTE: does not need to check for OAuth 2.0 anymore
     // TODO: This is bad. We don't pass an operation, which is needed for
     // creating the GraphQLType, though.
-    let type = SchemaBuilder.getGraphQLType({
+    let type = getGraphQLType({
       name: protocolName,
       schema: data.security[protocolName].schema,
       data,

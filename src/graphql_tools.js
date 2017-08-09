@@ -6,13 +6,21 @@
  * Utilities related to GraphQL.
  */
 
-const {
+import type {
+  GraphQLObjectType as GQObjectType,
+  GraphQLInputObjectType as GQInputObjectType
+} from 'graphql'
+
+import {
   GraphQLObjectType,
   GraphQLInputObjectType,
   GraphQLString
-} = require('graphql')
+} from 'graphql'
 
-const getEmptyObjectType = () => {
+/**
+ * Returns empty GraphQLObjectType.
+ */
+export function getEmptyObjectType () : GQObjectType {
   return new GraphQLObjectType({
     name: 'placeholder',
     fields: {
@@ -26,7 +34,10 @@ const getEmptyObjectType = () => {
   })
 }
 
-const getEmptyInputObjectType = () => {
+/**
+ * Returns empty GraphQLInputObjectType.
+ */
+export function getEmptyInputObjectType () : GQInputObjectType {
   return new GraphQLInputObjectType({
     name: 'placeholder',
     fields: {
@@ -38,9 +49,4 @@ const getEmptyInputObjectType = () => {
       }
     }
   })
-}
-
-module.exports = {
-  getEmptyObjectType,
-  getEmptyInputObjectType
 }

@@ -15,7 +15,7 @@ import type {SchemaNames} from './oas_3_tools.js'
 // Type definitions & exports:
 
 // Imports:
-import Oas3Tools from './oas_3_tools.js'
+import * as Oas3Tools from './oas_3_tools.js'
 import deepEqual from 'deep-equal'
 import debug from 'debug'
 const log = debug('preprocessing')
@@ -24,7 +24,10 @@ const log = debug('preprocessing')
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OASGraph to use
  */
-const preprocessOas = (oas: Oas3, options: Options) : PreprocessingData => {
+export function preprocessOas (
+  oas: Oas3,
+  options: Options
+) : PreprocessingData {
   let data = {
     usedOTNames: [],
     defs: [],
@@ -173,10 +176,10 @@ const preprocessOas = (oas: Oas3, options: Options) : PreprocessingData => {
  *   }
  * }
  */
-const getProcessedSecuritySchemes = (
+function getProcessedSecuritySchemes (
   oas: Oas3,
   options: Options
-) : {[string]: ProcessedSecurityScheme} => {
+) : {[string]: ProcessedSecurityScheme} {
   let result = {}
   let security = Oas3Tools.getSecuritySchemes(oas)
 
@@ -276,11 +279,11 @@ const getProcessedSecuritySchemes = (
  * NOTE: The data definition will contain an ot GraphQLObjectType and/or an
  * iot GraphQLInputObjectType down the pipeline
  */
-const createOrReuseDataDef = (
+export function createOrReuseDataDef (
   schema?: SchemaObject,
   names?: SchemaNames,
   data: PreprocessingData
-) : DataDefinition => {
+) : DataDefinition {
   // Do a basic validation check
   if (!schema || typeof schema === 'undefined') {
     throw new Error(`Cannot create data definition for invalid schema ` +
@@ -319,10 +322,10 @@ const createOrReuseDataDef = (
  * contains the same schema as the given one. Returns -1 if that schema could
  * not be found.
  */
-const getSchemaIndex = (
+function getSchemaIndex (
   schema: SchemaObject,
   dataDefs: DataDefinition[]
-) : number => {
+) : number {
   let index = -1
   for (let def of dataDefs) {
     index++
@@ -338,10 +341,10 @@ const getSchemaIndex = (
  * Determines name to use for schema from previously determined schemaNames and
  * considering not reusing existing names.
  */
-const getSchemaName = (
+function getSchemaName (
   names?: SchemaNames,
   usedNames: string[]
-) : string => {
+) : string {
   if (!names || typeof names === 'undefined') {
     throw new Error(`Cannot create data definition without name(s).`)
   }
@@ -401,10 +404,10 @@ const getSchemaName = (
  * Sub operations are only returned if the path of the given operation contains
  * at least one path parameter.
  */
-const getSubOps = (
+function getSubOps (
   operation: Operation,
   operations: {[string]: Operation}
-) : Operation[] => {
+) : Operation[] {
   let subOps = []
   let hasPathParams = /\{.*\}/g.test(operation.path)
   if (!hasPathParams) return subOps
@@ -418,9 +421,4 @@ const getSubOps = (
     }
   }
   return subOps
-}
-
-module.exports = {
-  preprocessOas,
-  createOrReuseDataDef
 }

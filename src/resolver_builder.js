@@ -47,7 +47,7 @@ type AuthOptions = {
 
 // Imports:
 import request from 'request'
-import Oas3Tools from './oas_3_tools.js'
+import * as Oas3Tools from './oas_3_tools.js'
 import querystring from 'querystring'
 import jp from 'jsonpath'
 import debug from 'debug'
@@ -58,14 +58,14 @@ const log = debug('http')
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-const getResolver = ({
+export function getResolver ({
   operation,
   argsFromLink = {},
   argsFromParent = [],
   payloadName,
   data,
   oas
-} : GetResolverParams) : ResolveFunction => {
+} : GetResolverParams) : ResolveFunction {
   // determine the appropriate URL:
   let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
@@ -226,10 +226,10 @@ const getResolver = ({
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
-const createOAuthQS = (
+function createOAuthQS (
   data: PreprocessingData,
   ctx: Object
-) : {[string] : string} => {
+) : {[string] : string} {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -253,10 +253,10 @@ const createOAuthQS = (
  * Attempts to create an OAuth authorization header by extracting an OAuth token
  * from the ctx based on the JSON path provided in the options.
  */
-const createOAuthHeader = (
+function createOAuthHeader (
   data: PreprocessingData,
   ctx: Object
-) : {[string] : string} => {
+) : {[string] : string} {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -283,11 +283,11 @@ const createOAuthHeader = (
  * which hold headers and query parameters respectively to authentication a
  * request.
  */
-const getAuthOptions = (
+function getAuthOptions (
   operation: Operation,
   _oasgraph: Object,
   data: PreprocessingData
-) : AuthOptions => {
+) : AuthOptions {
   let authHeaders = {}
   let authQs = {}
 
@@ -367,11 +367,11 @@ const getAuthOptions = (
  * (possibly multiple) authentication protocols can be used based on the data
  * present in the given context.
  */
-const getAuthReqAndProtcolName = (
+function getAuthReqAndProtcolName (
   operation: Operation,
   _oasgraph,
   data: PreprocessingData
-) : AuthReqAndProtcolName => {
+) : AuthReqAndProtcolName {
   let authRequired = false
   if (Array.isArray(operation.securityRequirements) &&
     operation.securityRequirements.length > 0) {
@@ -389,8 +389,4 @@ const getAuthReqAndProtcolName = (
   return {
     authRequired
   }
-}
-
-module.exports = {
-  getResolver
 }
