@@ -17,6 +17,8 @@ const Users = {
     hobbies: ['lion dancing', 'doing CEO stuff'],
     status: 'staff',
     nomenclature: {
+      suborder: 'Haplorhini',
+      family: 'Hominidae',
       genus: 'Homo',
       species: 'sapiens'
     }
@@ -31,6 +33,8 @@ const Users = {
     hobbies: ['lion dancing', 'baseball'],
     status: 'staff',
     nomenclature: {
+      suborder: 'Haplorhini',
+      family: 'Hominidae',
       genus: 'Homo',
       species: 'sapiens'
     }
@@ -45,6 +49,8 @@ const Users = {
     hobbies: ['chess', 'tennis'],
     status: 'staff',
     nomenclature: {
+      suborder: 'Haplorhini',
+      family: 'Hominidae',
       genus: 'Homo',
       species: 'sapiens'
     }
@@ -59,6 +65,8 @@ const Users = {
     hobbies: ['making money', 'making more money'],
     status: 'alumni',
     nomenclature: {
+      suborder: 'Haplorhini',
+      family: 'Hominidae',
       genus: 'Homo',
       species: 'ihavelotsofmoneyus'
     }

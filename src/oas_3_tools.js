@@ -844,7 +844,9 @@ export function resolveAllOf (
 ): SchemaObject {
   if ('allOf' in schema && typeof schema.allOf === 'object') {
     // copy the original schema
-    let temp = Object.assign({}, schema)
+    // let temp = Object.assign({}, schema)
+
+    let temp = JSON.parse(JSON.stringify(schema))
 
     // remove the allOf property
     delete temp.allOf
@@ -917,7 +919,7 @@ function resolveAllOfRec (
               resolvedSchema.properties[propertyName] = properties[propertyName]
 
             // check if the preexisting schema is the same
-            } else if (deepEqual(resolvedSchema.properties[propertyName], subschema.properties[propertyName])) {
+            } else if (!deepEqual(resolvedSchema.properties[propertyName], subschema.properties[propertyName])) {
               throw new Error(`allOf will overwrite a preexisting property ` +
                 `'${propertyName}: ${JSON.stringify(resolvedSchema.properties[propertyName])}' ` +
                 `with '${propertyName}: ${JSON.stringify(subschema.properties[propertyName])}' ` +

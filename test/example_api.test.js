@@ -322,6 +322,8 @@ test('resolve allOf', () => {
     user (username: "erik") {
       name
       nomenclature {
+        suborder
+        family
         genus
         species
       }
@@ -333,6 +335,8 @@ test('resolve allOf', () => {
         user: {
           name: 'Erik Wittern',
           nomenclature: {
+            suborder: 'Haplorhini',
+            family: 'Hominidae',
             genus: 'Homo',
             species: 'sapiens'
           }

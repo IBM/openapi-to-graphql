@@ -467,19 +467,27 @@
 						"allOf":[
 							{
 								"properties": {
-									"genus": {
+									"suborder": {
 										"type": "string"
 									}
 								}
 							},
 							{
 								"properties": {
-									"species": {
+									"family": {
 										"type": "string"
 									}
 								}
 							}
-						]
+						],
+						"properties": {
+							"genus": {
+								"type": "string"
+							},
+							"species": {
+								"type": "string"
+							}
+						}
 					}
 				},
 				"required": ["name", "address", "employerId", "hobbies"]
