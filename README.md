@@ -210,7 +210,7 @@ The following logging levels are supported:
 
 
 ## Development
-OASGraph is built using Facebook's [Flow](https://www.flow.org) static type checking system. All source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
+OASGraph uses Facebook's [Flow](https://www.flow.org) static type checking system. All source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
 
 
 ## Similar projects
