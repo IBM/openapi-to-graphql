@@ -844,10 +844,7 @@ export function resolveAllOf (
 ): SchemaObject {
   if ('allOf' in schema && typeof schema.allOf === 'object') {
     // copy the original schema
-    let temp = JSON.parse(JSON.stringify(schema))
-
-    // let temp
-    // Object.assign(temp, schema)
+    let temp = Object.assign({}, schema)
 
     // remove the allOf property
     delete temp.allOf
