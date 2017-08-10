@@ -4,12 +4,9 @@
  * Type definitions for the data created during preprocessing.
  */
 
-import type {Operation, DataDefinition} from './operation.js'
-import type {Options} from './options.js'
-import type {
-  SecuritySchemeObject,
-  SchemaObject
-} from './oas3.js'
+import type { Operation, DataDefinition } from './operation.js'
+import type { Options } from './options.js'
+import type { SecuritySchemeObject, SchemaObject } from './oas3.js'
 
 export type ProcessedSecurityScheme = {
   rawName: string,
@@ -47,6 +44,7 @@ export type PreprocessingData = {
   /**
    * The security definitions contained in the OAS. References are resolved.
    *
+   * NOTE: Keys are beautified
    * NOTE: Does not contain OAuth 2.0-related security schemes
    */
   security: {[string]: ProcessedSecurityScheme},

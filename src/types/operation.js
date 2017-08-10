@@ -76,7 +76,10 @@ export type Operation = {
   parameters: ParameterObject[],
 
   /**
-   * Security requirements for this operation, except OAuth 2
+   * List of keys of security schemes required by this operation
+   *
+   * NOTE: Keys are beautified
+   * NOTE: Does not contain OAuth 2.0-related security schemes
    */
   securityRequirements: string[],
 

@@ -15,34 +15,34 @@ const {
  * Set up the schema first
  */
 let oas = require('./fixtures/example_oas.json')
-// let schema
-// beforeAll(() => {
-//   return OasGraph.createGraphQlSchema(oas)
-//     .then(createdSchema => {
-//       schema = createdSchema
-//     })
-// })
+let schema
+beforeAll(() => {
+  return OasGraph.createGraphQlSchema(oas)
+    .then(createdSchema => {
+      schema = createdSchema
+    })
+})
 
-// test('Get patent using basic auth', () => {
-//   let query = `{
-//     viewerHttp (username: "erik123", password: "password123") {
-//       patentWithId (patentId: "100") {
-//         patentId
-//       }
-//     }
-//   }`
-//   return graphql(schema, query, null, {}).then(result => {
-//     expect(result).toEqual({
-//       'data': {
-//         'viewerHttp': {
-//           'patentWithId': {
-//             'patentId': '100'
-//           }
-//         }
-//       }
-//     })
-//   })
-// })
+test('Get patent using basic auth', () => {
+  let query = `{
+    viewerHttp (username: "erik123", password: "password123") {
+      patentWithId (patentId: "100") {
+        patentId
+      }
+    }
+  }`
+  return graphql(schema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      'data': {
+        'viewerHttp': {
+          'patentWithId': {
+            'patentId': '100'
+          }
+        }
+      }
+    })
+  })
+})
 
 // test('Get patent using API key', () => {
 //   let query = `{

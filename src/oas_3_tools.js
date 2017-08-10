@@ -689,8 +689,8 @@ export function getSecuritySchemes (
 }
 
 /**
- * Returns the list of keys of security schemes required by the operation at
- * the given path and method.
+ * Returns the list of BEAUTIFIED keys of NON-OAUTH 2 security schemes
+ * required by the operation at the given path and method.
  */
 export function getSecurityRequirements (
   path: string,
