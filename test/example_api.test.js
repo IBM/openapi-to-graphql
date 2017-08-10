@@ -316,3 +316,32 @@ test('Define header and query options', () => {
       })
     })
 })
+
+test('resolve allOf', () => {
+  let query = `{
+    user (username: "erik") {
+      name
+      nomenclature {
+        suborder
+        family
+        genus
+        species
+      }
+    }
+  }`
+  return graphql(schema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Erik Wittern',
+          nomenclature: {
+            suborder: 'Haplorhini',
+            family: 'Hominidae',
+            genus: 'Homo',
+            species: 'sapiens'
+          }
+        }
+      }
+    })
+  })
+})

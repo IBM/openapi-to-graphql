@@ -835,12 +835,33 @@ export function isOperation (method: string) : boolean {
  * schemas inside references.
  *
  * TODO: Tidy this up and return aggregated schema, rather than changing the OAS
+ *
+ * TODO: Output may not be a SchemaObject
  */
 export function resolveAllOf (
-  allOfSchema: SchemaObject,
-  schema: SchemaObject, // the parent schema
+  schema: SchemaObject,
   oas: Oas3
-) : SchemaObject {
+): SchemaObject {
+  if ('allOf' in schema && typeof schema.allOf === 'object') {
+    // copy the original schema
+    // let temp = Object.assign({}, schema)
+
+    let temp = JSON.parse(JSON.stringify(schema))
+
+    // remove the allOf property
+    delete temp.allOf
+    // add the allOf properties and return
+    return resolveAllOfRec(temp, schema.allOf, oas)
+  } else {
+    throw new Error(`schema '${JSON.stringify(schema)}' does not contain an 'allOf' property`)
+  }
+}
+
+function resolveAllOfRec (
+  resolvedSchema: Object,
+  allOfSchema: SchemaObject,
+  oas: Oas3
+): Object {
   for (let allOfSchemaIndex in allOfSchema) {
     let subschema = allOfSchema[allOfSchemaIndex]
 
@@ -854,79 +875,79 @@ export function resolveAllOf (
       switch (subschemaKey) {
         case 'type':
           // TODO: strict?
-          if (typeof schema.type === 'string' &&
-            subschema.type !== subschema.type) {
+          if (typeof resolvedSchema.type === 'string' &&
+            resolvedSchema.type !== subschema.type) {
             /**
              * if the schema is an object type but does not contain a properties
              * field, than we can overwrite the type because a schema with
              * an object tye and no properties field is equivalent to an empty
              * schema
              */
-            if (schema.type === 'object' && !('properties' in schema)) {
-              schema.type = subschema.type
+            if (resolvedSchema.type === 'object' && !('properties' in resolvedSchema)) {
+              resolvedSchema.type = subschema.type
             } else {
               throw new Error(`allOf will overwrite a preexisting type ` +
-                `definition 'type: ${schema.type}' with 'type: ` +
-                `${subschema.type}' in schema '${JSON.stringify(schema)}'`)
+                `definition 'type: ${resolvedSchema.type}' with 'type: ` +
+                `${subschema.type}' in schema '${JSON.stringify(resolvedSchema)}'`)
             }
           } else {
-            schema.type = subschema.type
+            resolvedSchema.type = subschema.type
           }
           break
 
         case 'properties':
           // imply type object from properties field
-          if (!(typeof schema.type === 'string')) {
-            schema.type = 'object'
+          if (!(typeof resolvedSchema.type === 'string')) {
+            resolvedSchema.type = 'object'
           // cannot replace an object type with a scalar or array type
-          } else if (schema.type !== 'object') {
+          } else if (resolvedSchema.type !== 'object') {
             throw new Error(`allOf will overwrite a preexisting type ` +
-              `definition 'type: ${schema.type}' with 'type: object' in ` +
-              `schema '${JSON.stringify(schema)}'`)
+              `definition 'type: ${resolvedSchema.type}' with 'type: object' in ` +
+              `schema '${JSON.stringify(resolvedSchema)}'`)
           }
 
           let properties = subschema.properties
 
           let propertyNames = Object.keys(properties)
 
-          if (!('properties' in schema)) {
-            schema.properties = {}
+          if (!('properties' in resolvedSchema)) {
+            resolvedSchema.properties = {}
           }
 
           for (let propertyName of propertyNames) {
-            if (!(propertyName in schema.properties)) {
-              schema.properties[propertyName] = properties[propertyName]
+            if (!(propertyName in resolvedSchema.properties)) {
+              resolvedSchema.properties[propertyName] = properties[propertyName]
 
             // check if the preexisting schema is the same
-            } else if (deepEqual(schema.properties[propertyName], subschema.properties[propertyName])) {
+            } else if (!deepEqual(resolvedSchema.properties[propertyName], subschema.properties[propertyName])) {
               throw new Error(`allOf will overwrite a preexisting property ` +
-                `'${propertyName}: ${JSON.stringify(schema.properties[propertyName])}' ` +
+                `'${propertyName}: ${JSON.stringify(resolvedSchema.properties[propertyName])}' ` +
                 `with '${propertyName}: ${JSON.stringify(subschema.properties[propertyName])}' ` +
-                `in schema '${JSON.stringify(schema)}`)
+                `in schema '${JSON.stringify(resolvedSchema)}`)
             }
           }
           break
 
         case 'items':
           // imply type array from items field
-          if (!(typeof schema.type === 'string')) {
-            schema.type = 'array'
+          if (!(typeof resolvedSchema.type === 'string')) {
+            resolvedSchema.type = 'array'
           // cannot replace an array type with a scalar or object type
-          } else if (schema.type !== 'array') {
+          } else if (resolvedSchema.type !== 'array') {
             throw new Error(`allOf will overwrite a preexisting type definition` +
-              `'type: ${schema.type}' with 'type: array' in schema '${JSON.stringify(schema)}'`)
+              `'type: ${resolvedSchema.type}' with 'type: array' in schema '${JSON.stringify(resolvedSchema)}'`)
           }
-          if (!('items' in schema)) {
-            schema.items = {}
+          if (!('items' in resolvedSchema)) {
+            resolvedSchema.items = {}
           }
 
           for (let itemIndex in subschema.items) {
-            schema.items = subschema.items[itemIndex]
+            resolvedSchema.items = subschema.items[itemIndex]
           }
           break
 
         case 'allOf':
-          resolveAllOf(subschema.allOf, schema, oas)
+          resolveAllOfRec(resolvedSchema, subschema.allOf, oas)
           break
 
         default:
@@ -934,5 +955,5 @@ export function resolveAllOf (
       }
     })
   }
-  return {}
+  return resolvedSchema
 }
