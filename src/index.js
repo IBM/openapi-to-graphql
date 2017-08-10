@@ -57,10 +57,10 @@ type Viewer = {
 type LoadFieldsParams = {
   operation: Operation,
   operationId: string,
-  rootQueryFields: Object,
-  rootMutationFields: Object,
-  viewerFields: Object,
-  viewerMutationFields: Object,
+  queryFields: Object,
+  mutationFields: Object,
+  authQueryFields: Object,
+  authMutationFields: Object,
   data: PreprocessingData,
   oas: Oas3
 }
@@ -85,14 +85,15 @@ const log = debug('translation')
  */
 function createGraphQlSchema (
   spec: Oas3 | Oas2,
-  options: Options = {
-    // some default values:
-    strict: true,
-    addSubOperations: true,
-    viewer: true,
-    sendOAuthTokenInQuery: false
-  }
+  options: Options
 ): Promise<GraphQLSchemaType> {
+  // deal with defaults:
+  if (typeof options === 'undefined') options = {}
+  options.strict = options.strict || true
+  options.addSubOperations = options.addSubOperations || true
+  options.viewer = options.viewer || true
+  options.sendOAuthTokenInQuery = options.sendOAuthTokenInQuery || false
+
   return new Promise((resolve, reject) => {
     // Some basic validation
     if (typeof spec !== 'object') {
@@ -147,23 +148,17 @@ function translateOpenApiToGraphQL (
      */
     let data = preprocessOas(oas, options)
 
-    /**
-     * Holds on to the highest-level (entry-level) object types for queries that
-     * are accessible in the schema to build
-     */
-    let rootQueryFields = {}
+    // holds unauthenticated query fields
+    let queryFields = {}
 
-    /**
-     * Holds on to the highest-level (entry-level) object types for mutations
-     * that are accessible in the schema to build
-     */
-    let rootMutationFields = {}
+    // holds unauthenticated mutation fields
+    let mutationFields = {}
 
-    // Intermediate field used to input authentication credentials for queries
-    let viewerFields = {}
+    // holds authenticated query fields
+    let authQueryFields = {}
 
-    // Intermediate field used to input authentication credentials for mutations
-    let viewerMutationFields = {}
+    // holds authenticated mutation fields
+    let authMutationFields = {}
 
     /**
      * Translate every endpoint to GraphQL schemes.
@@ -182,10 +177,10 @@ function translateOpenApiToGraphQL (
         loadField({
           operation,
           operationId,
-          rootQueryFields,
-          rootMutationFields,
-          viewerFields,
-          viewerMutationFields,
+          queryFields,
+          mutationFields,
+          authQueryFields,
+          authMutationFields,
           data,
           oas
         })
@@ -200,40 +195,38 @@ function translateOpenApiToGraphQL (
         loadField({
           operation,
           operationId,
-          rootQueryFields,
-          rootMutationFields,
-          viewerFields,
-          viewerMutationFields,
+          queryFields,
+          mutationFields,
+          authQueryFields,
+          authMutationFields,
           data,
           oas
         })
       }
     }
 
-    const usedViewerNames = {} // remember used viewer names
-    const usedMutationViewerNames = {} // remember used mutationViewer names
-
     // create and add viewer object types to the query and mutation object types
     // if applicable
-    if (Object.keys(viewerFields).length > 0) {
-      AuthBuilder.createAndLoadViewer(
-        viewerFields,
-        rootQueryFields,
-        usedViewerNames,
+    const rootQueryFields = Object.assign({}, queryFields)
+    if (Object.keys(authQueryFields).length > 0) {
+      const queryViewers = AuthBuilder.createAndLoadViewer(
+        authQueryFields,
         data,
-        oas
+        oas,
+        false
       )
+      Object.assign(rootQueryFields, queryViewers)
     }
 
-    if (Object.keys(viewerMutationFields).length > 0) {
-      AuthBuilder.createAndLoadViewer(
-        viewerMutationFields,
-        rootMutationFields,
-        usedMutationViewerNames,
+    const rootMutationFields = Object.assign({}, mutationFields)
+    if (Object.keys(authMutationFields).length > 0) {
+      const mutationViewers = AuthBuilder.createAndLoadViewer(
+        authMutationFields,
         data,
         oas,
         true
       )
+      Object.assign(rootMutationFields, mutationViewers)
     }
 
     // build up the schema:
@@ -277,10 +270,10 @@ function translateOpenApiToGraphQL (
 function loadField ({
   operation,
   operationId,
-  rootQueryFields,
-  rootMutationFields,
-  viewerFields,
-  viewerMutationFields,
+  queryFields,
+  mutationFields,
+  authQueryFields,
+  authMutationFields,
   data,
   oas
 } : LoadFieldsParams) {
@@ -305,21 +298,21 @@ function loadField ({
 
     if (isAuthenticated) {
       for (let securityRequirement of operation.securityRequirements) {
-        if (typeof viewerFields[securityRequirement] !== 'object') {
-          viewerFields[securityRequirement] = {}
+        if (typeof authQueryFields[securityRequirement] !== 'object') {
+          authQueryFields[securityRequirement] = {}
         }
         // Avoid overwriting fields that return the same data:
-        if (name in viewerFields[securityRequirement]) {
+        if (name in authQueryFields[securityRequirement]) {
           name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
         }
-        viewerFields[securityRequirement][name] = field
+        authQueryFields[securityRequirement][name] = field
       }
     } else {
       // Avoid overwriting fields that return the same data:
-      if (name in rootQueryFields) {
+      if (name in queryFields) {
         name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
       }
-      rootQueryFields[name] = field
+      queryFields[name] = field
     }
 
   // CASE: mutation
@@ -330,13 +323,13 @@ function loadField ({
 
     if (isAuthenticated) {
       for (let securityRequirement of operation.securityRequirements) {
-        if (typeof viewerMutationFields[securityRequirement] !== 'object') {
-          viewerMutationFields[securityRequirement] = {}
+        if (typeof authMutationFields[securityRequirement] !== 'object') {
+          authMutationFields[securityRequirement] = {}
         }
-        viewerMutationFields[securityRequirement][saneName] = field
+        authMutationFields[securityRequirement][saneName] = field
       }
     } else {
-      rootMutationFields[saneName] = field
+      mutationFields[saneName] = field
     }
   }
 }

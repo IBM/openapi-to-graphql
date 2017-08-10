@@ -35,7 +35,7 @@ type RequestOptions = {
 
 type AuthReqAndProtcolName = {
   authRequired: boolean,
-  protocolName?: string
+  securityRequirement?: string
 }
 
 type AuthOptions = {
@@ -291,7 +291,7 @@ function getAuthOptions (
 
   // determine if authentication is required, and which protocol (if any) we
   // can use
-  let {authRequired, protocolName} = getAuthReqAndProtcolName(
+  let {authRequired, securityRequirement} = getAuthReqAndProtcolName(
     operation, _oasgraph, data)
 
   // possibly, we don't need to do anything:
@@ -300,15 +300,15 @@ function getAuthOptions (
   }
 
   // if authentication is required, but we can't fulfill the protocol, throw:
-  if (authRequired && typeof protocolName !== 'string') {
+  if (authRequired && typeof securityRequirement !== 'string') {
     throw new Error(`Missing information to authenticate API request.`)
   }
 
-  if (typeof protocolName === 'string') {
-    let security = data.security[protocolName]
+  if (typeof securityRequirement === 'string') {
+    let security = data.security[securityRequirement]
     switch (security.def.type) {
       case 'apiKey':
-        let apiKey = _oasgraph.security[protocolName].apiKey
+        let apiKey = _oasgraph.security[securityRequirement].apiKey
         if ('in' in security.def) {
           if (security.def.in === 'header' &&
             typeof security.def.name === 'string') {
@@ -330,8 +330,8 @@ function getAuthOptions (
       case 'http':
         switch (security.def.scheme) {
           case 'basic':
-            let username = _oasgraph.security[protocolName].username
-            let password = _oasgraph.security[protocolName].password
+            let username = _oasgraph.security[securityRequirement].username
+            let password = _oasgraph.security[securityRequirement].password
             authHeaders['Authorization'] = 'Basic ' +
               Buffer.from(username + ':' + password).toString('base64')
             break
@@ -376,7 +376,7 @@ function getAuthReqAndProtcolName (
     authRequired = true
 
     for (let securityRequirement of operation.securityRequirements) {
-      if (securityRequirement in _oasgraph.security) {
+      if (typeof _oasgraph.security[securityRequirement] === 'object') {
         return {
           authRequired,
           securityRequirement

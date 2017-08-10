@@ -45,16 +45,26 @@ const log = debug('translation')
  */
 const createAndLoadViewer = (
     queryFields: Object,
-    rootFields: Object,
-    usedObjectNames: Object, // Object that contains all previously defined
-                             // viewer object names
     data: PreprocessingData,
     oas: Oas3,
     isMutation: boolean = false
-) => {
-  let allFields = {}
+) : {[string]: Viewer} => {
+  let results = {}
+  /**
+   * Object that contains all previously defined viewer object names.
+   * The key is the security scheme type (apiKey or BasicAuth) and the value is
+   * a list of the names for the viewers for that security scheme type.
+   */
+  let usedViewerNames: {[string]: string[]} = {}
+
+  /**
+   * Used to collect all fields in the given querFields object, no matter which
+   * protocol. Used to populate anyAuthViewer.
+   */
+  let anyAuthFields = {}
+
   for (let protocolName in queryFields) {
-    Object.assign(allFields, queryFields[protocolName])
+    Object.assign(anyAuthFields, queryFields[protocolName])
 
     /**
      * check if the name has already been used (i.e. in the list)
@@ -72,7 +82,7 @@ const createAndLoadViewer = (
       let scheme = data.security[protocolName].def.scheme
       switch (scheme) {
         case 'basic':
-          type = 'BasicAuth'
+          type = 'basicAuth'
           break
 
         default:
@@ -85,40 +95,42 @@ const createAndLoadViewer = (
     }
 
     // create name for the viewer
-    let objectName
+    let viewerName
 
     if (!isMutation) {
-      objectName = Oas3Tools.beautify(`viewer ${type}`)
+      viewerName = Oas3Tools.beautify(`viewer ${type}`)
     } else {
-      objectName = Oas3Tools.beautify(`mutation viewer ${type}`)
+      viewerName = Oas3Tools.beautify(`mutation viewer ${type}`)
     }
 
-    if (!(type in usedObjectNames)) {
-      usedObjectNames[type] = []
+    if (!(type in usedViewerNames)) {
+      usedViewerNames[type] = []
     }
-    if (usedObjectNames[type].indexOf(objectName) !== -1) {
-      objectName += (usedObjectNames[type].length + 1)
-      usedObjectNames[type].push(objectName)
+    if (usedViewerNames[type].indexOf(viewerName) !== -1) {
+      viewerName += (usedViewerNames[type].length + 1)
+      usedViewerNames[type].push(viewerName)
     }
-    usedObjectNames[type].push(objectName)
+    usedViewerNames[type].push(viewerName)
 
     // Add the viewer object type to the specified root query object type
-    rootFields[objectName] = getViewerOT(
-      objectName, protocolName, type, queryFields[protocolName], data)
+    results[viewerName] = getViewerOT(
+      viewerName, protocolName, type, queryFields[protocolName], data)
   }
 
   // create name for the AnyAuth viewer
-  let AnyAuthObjectName
+  let anyAuthObjectName
 
   if (!isMutation) {
-    AnyAuthObjectName = 'viewerAnyAuth'
+    anyAuthObjectName = 'viewerAnyAuth'
   } else {
-    AnyAuthObjectName = 'mutationViewerAnyAuth'
+    anyAuthObjectName = 'mutationViewerAnyAuth'
   }
 
   // Add the AnyAuth object type to the specified root query object type
-  rootFields[AnyAuthObjectName] = getViewerAnyAuthOT(
-    AnyAuthObjectName, allFields, data, oas)
+  results[anyAuthObjectName] = getViewerAnyAuthOT(
+    anyAuthObjectName, anyAuthFields, data, oas)
+
+  return results
 }
 
 /**
