@@ -208,7 +208,7 @@ const getViewerAnyAuthOT = (
       oas,
       isMutation: true
     })
-    args[protocolName] = { type }
+    args[Oas3Tools.beautify(protocolName)] = {type}
   }
 
   // pass object containing security information to fields

@@ -259,7 +259,7 @@ function getProcessedSecuritySchemes (
     }
 
     // Add protocol data to the output
-    result[Oas3Tools.beautify(key)] = {
+    result[key] = {
       rawName: key,
       def: protocol,
       parameters,

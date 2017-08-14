@@ -705,13 +705,10 @@ export function getSecurityRequirements (
   if (globalSecurity && typeof globalSecurity !== 'undefined') {
     for (let secReq: SecurityRequirementObject of globalSecurity) {
       for (let schemaKey: string in secReq) {
-        let cleanSchemaKey = beautify(schemaKey)
-        if (typeof cleanSchemaKey === 'string') {
-          if (securitySchemes[cleanSchemaKey] &&
-            typeof securitySchemes[cleanSchemaKey] === 'object' &&
-            securitySchemes[cleanSchemaKey].type !== 'oauth2') {
-            results.push(cleanSchemaKey)
-          }
+        if (securitySchemes[schemaKey] &&
+          typeof securitySchemes[schemaKey] === 'object' &&
+          securitySchemes[schemaKey].type !== 'oauth2') {
+          results.push(schemaKey)
         }
       }
     }
@@ -723,14 +720,11 @@ export function getSecurityRequirements (
   if (localSecurity && typeof localSecurity !== 'undefined') {
     for (let secReq: SecurityRequirementObject of localSecurity) {
       for (let schemaKey: string in secReq) {
-        let cleanSchemaKey = beautify(schemaKey)
-        if (typeof cleanSchemaKey === 'string') {
-          if (securitySchemes[cleanSchemaKey] &&
-            typeof securitySchemes[cleanSchemaKey] === 'object' &&
-            securitySchemes[cleanSchemaKey].type !== 'oauth2') {
-            if (!results.includes(cleanSchemaKey)) {
-              results.push(cleanSchemaKey)
-            }
+        if (securitySchemes[schemaKey] &&
+          typeof securitySchemes[schemaKey] === 'object' &&
+          securitySchemes[schemaKey].type !== 'oauth2') {
+          if (!results.includes(schemaKey)) {
+            results.push(schemaKey)
           }
         }
       }
