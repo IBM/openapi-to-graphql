@@ -787,6 +787,10 @@ export function beautify (str: string): string {
     sanitized = '_' + sanitized
   }
 
+  // first character should be lowercase
+  sanitized = sanitized.charAt(0).toLowerCase() +
+  sanitized.slice(1, sanitized.length)
+
   return sanitized
 }
 
