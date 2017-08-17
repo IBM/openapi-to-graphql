@@ -56,9 +56,9 @@ const logPre = debug('preprocessing')
 const log = debug('translation')
 
 // OAS constants
-const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
-const JSON_CONTENT_TYPES = ['application/json', '*/*']
-const SUCCESS_STATUS_RX = /2[0-9]{2}/
+export const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
+export const JSON_CONTENT_TYPES = ['application/json', '*/*']
+export const SUCCESS_STATUS_RX = /2[0-9]{2}/
 
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects

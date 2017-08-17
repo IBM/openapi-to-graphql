@@ -89,7 +89,7 @@ function createGraphQlSchema (
 ): Promise<GraphQLSchemaType> {
   // deal with defaults:
   if (typeof options === 'undefined') options = {}
-  options.strict = options.strict || true
+  options.strict = options.strict || false
   options.addSubOperations = options.addSubOperations || true
   options.viewer = options.viewer || true
   options.sendOAuthTokenInQuery = options.sendOAuthTokenInQuery || false

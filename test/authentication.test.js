@@ -165,7 +165,7 @@ test('Post project using API key 2', () => {
 
 test('Extract token from context', () => {
   let query = `{
-    Secure
+    secure
   }`
 
   return OasGraph.createGraphQlSchema(oas, {tokenJSONpath: '$.user.token', viewer: true})
@@ -173,7 +173,7 @@ test('Extract token from context', () => {
       return graphql(createdSchema, query, null, {user: {token: 'abcdef'}}).then(result => {
         expect(result).toEqual({
           'data': {
-            Secure: 'A secure message.'
+            secure: 'A secure message.'
           }
         })
       })

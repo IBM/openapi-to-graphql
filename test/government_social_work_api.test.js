@@ -53,11 +53,11 @@ test('All mutation endpoints present', () => {
 
 test('Get resource', () => {
   let query = `{
-    AssessmentTypes (
-      ContentType: ""
-      AcceptLanguage: ""
-      UserAgent:""
-      ApiVersion:"1.1.0"
+    assessmentTypes (
+      contentType: ""
+      acceptLanguage: ""
+      userAgent:""
+      apiVersion:"1.1.0"
       offset: "40"
       limit: "test"
     ) {
