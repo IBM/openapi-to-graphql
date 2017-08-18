@@ -593,6 +593,15 @@ function createFields ({
   return fields
 }
 
+/**
+ * Returns the operationId that an operationRef is associated to
+ *
+ * NOTE: If the operation does not natively have operationId, this function
+ *  will try to produce an operationId the same way preprocessor.js does it.
+ *
+ *  Any changes to constructing operationIds in preprocessor.js should be
+ *  reflected here.
+ */
 function linkOpRefToOpId ({
   linkKey,
   operation,
