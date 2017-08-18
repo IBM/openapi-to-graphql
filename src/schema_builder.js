@@ -470,195 +470,13 @@ function createFields ({
       if (typeof operation.links[linkKey].operationId === 'string') {
         linkedOpId = operation.links[linkKey].operationId
       } else if (typeof operation.links[linkKey].operationRef === 'string') {
-        // linkedOpId = linkOpRefToOpId()
-
-        // TODO: external refs
-
-        let operationRef = operation.links[linkKey].operationRef
-        let linkRelativePathAndMethod
-
-        // example relative path: '#/paths/~12.0~1repositories~1{username}/get'
-        // example absolute path: 'https://na2.gigantic-server.com/#/paths/~12.0~1repositories~1{username}/get'
-        //
-        // extract relative path from relative path
-        if (operationRef.charAt(0) === '#') {
-          linkRelativePathAndMethod = operationRef
-
-        // extract relative path from absolute path
-        } else {
-          // '#' may exist in other places in the path
-          // '/#/' is more likely to point to the beginning of the path
-          let firstPathIndex = operationRef.indexOf('/#/paths/')
-
-          // found a relative path candidate
-          if (firstPathIndex !== -1) {
-            // check to see if there are other relative path candidates
-            let lastPathIndex = operationRef.lastIndexOf('/#/paths/')
-            if (firstPathIndex !== lastPathIndex) {
-              log(`Warning: Cannot pinpoint the beginning of relative path ` +
-                `in operationRef '${operationRef}' of link object ` +
-                `'${linkKey}' in object '${name}'. Will use first occurance ` +
-                `of '#/', may cause errors.`)
-            }
-
-            // +1 to avoid the first '/#'
-            linkRelativePathAndMethod = operationRef.substring(firstPathIndex + 1)
-
-          // TODO: redundant because we check to see if linkedOpId is initialized
-          // in the next section and if not, we throw a similar error
-          //
-          // cannot find relative path candidate
-          } else {
-            if (data.options.strict) {
-              throw new Error(`Could not find relative path in operationRef ` +
-                `'${operationRef}' of link object '${linkKey}' in object ` +
-                `'${name}'. Will not create link.`)
-            } else {
-              log(`Warning: Could not find relative path in operationRef ` +
-                `'${operationRef}' of link object '${linkKey}' in object ` +
-                `'${name}'. Will not create link.`)
-              continue
-            }
-          }
-        }
-
-        if (typeof linkRelativePathAndMethod === 'string') {
-          let linkPath
-          let linkMethod
-
-          // NOTE: following lines are based on preprocessor
-          //  I wish we could extract the linkedOpId by matching the
-          //  linkedOpObject with an operation in data and extracting the
-          //  operationId there but that does not seem to be possible
-          //  especiially because you need to know the operationId just to
-          //  access the operations
-
-          // linkPath should be the path followed by the method
-          // find the slash that divides the path from the method
-          let pivotSlashIndex = linkRelativePathAndMethod.lastIndexOf('/')
-
-          // check if there are any '/' in the linkPath
-          if (pivotSlashIndex !== -1) {
-            // getting method
-            // check if there is a method at the end of the linkPath
-            if (pivotSlashIndex !== linkRelativePathAndMethod.length - 1) {
-              // start at +1 because we do not want the starting '/'
-              linkMethod = linkRelativePathAndMethod.substring(pivotSlashIndex + 1)
-
-              // check if method is a valid method
-              if (!(Oas3Tools.OAS_OPERATIONS.includes(linkMethod))) {
-                if (data.options.strict) {
-                  throw new Error(`Method '${linkMethod}' at the end of ` +
-                  `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-                  `'${operationRef}' of link object '${linkKey}' in ` +
-                  `object '${name}' is not a valid method. Will not ` +
-                  `create link.`)
-                } else {
-                  log(`Warning: method '${linkMethod}' at the end of ` +
-                  `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-                  `'${operationRef}' of link object '${linkKey}' in ` +
-                  `object '${name}' is not a valid method. Will not ` +
-                  `create link.`)
-                  continue
-                }
-              }
-            // there is no method at the end of the path
-            } else {
-              if (data.options.strict) {
-                throw new Error(`No method at the end of ` +
-                `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-                `'${operationRef}' of link object '${linkKey}' in ` +
-                `object '${name}' is not a valid method. Will not ` +
-                `create link.`)
-              } else {
-                log(`Warning: No method at the end of ` +
-                `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-                `'${operationRef}' of link object '${linkKey}' in ` +
-                `object '${name}' is not a valid method. Will not ` +
-                `create link.`)
-                continue
-              }
-            }
-
-            // getting path
-            // substring ends at pivotSlashIndex to exclude '/'
-            // TODO: improve removing '/#/paths'?
-            linkPath = linkRelativePathAndMethod.substring(7, pivotSlashIndex)
-
-            if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
-              if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
-                let linkedOpObject = oas.paths[linkPath][linkMethod]
-
-                if ('operationId' in linkedOpObject) {
-                  linkedOpId = linkedOpObject.operationId
-                }
-              }
-
-              if (typeof linkedOpId !== 'string') {
-                let temp = ((Oas3Tools.beautify(`${linkMethod}:${linkPath}`) : any) : string)
-
-                // check if temp operationId is actually a key in data.operations
-                if (temp in data.operations) {
-                  linkedOpId = temp
-                // temp operationId is not actually a key in data.operations
-                } else {
-                  if (data.options.strict) {
-                    throw new Error(`Could not find operationId '${temp}' in ` +
-                    `data to produce link object '${linkKey}' for object ` +
-                    `'${name}'`)
-                  } else {
-                    log(`Warning: Could not find operationId '${temp}' in ` +
-                    `data to produce link object '${linkKey}' for object ` +
-                    `'${name}'. Will not create link.`)
-                    continue
-                  }
-                }
-              }
-            // path and method could not be found
-            } else {
-              if (data.options.strict) {
-                throw new Error(`Could not find path and/or method from ` +
-                  `operationRef '${operationRef}' to linked opject ` +
-                  `'${linkKey}' in object '${name}'. Will not created link.`)
-              } else {
-                log(`Warning: Could not find path and/or method from ` +
-                  `operationRef '${operationRef}' to linked opject ` +
-                  `'${linkKey}' in object '${name}'. Will not created link.`)
-                continue
-              }
-            }
-
-          // Cannot split relative path into path and method sections
-          } else {
-            if (data.options.strict) {
-              throw new Error(`Could not find path and method sections in ` +
-                `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-                `'${operationRef}' of link object '${linkKey}' in object ` +
-                `'${name}'. There should be at least one '/' that divides ` +
-                `the path from the method`)
-            } else {
-              log(`Warning: Could not find path and method sections in ` +
-                `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-                `'${operationRef}' of link object '${linkKey}' in object ` +
-                `'${name}'. There should be at least one '/' that divides ` +
-                `the path from the method. Will not create link.`)
-              continue
-            }
-          }
-
-        // Cannot extract relative path from absolute path
-        } else {
-          if (data.options.strict) {
-            throw new Error(`Could not extract relative path from operationRef ` +
-              `'${operationRef}' of link object '${linkKey}' in object ` +
-              `'${name}'`)
-          } else {
-            log(`Warning: Could not extract relative path from operationRef ` +
-              `'${operationRef}' of link object '${linkKey}' in object ` +
-              `'${name}'. Will not create link`)
-            continue
-          }
-        }
+        linkedOpId = linkOpRefToOpId({
+          linkKey,
+          operation,
+          name,
+          data,
+          oas
+        })
       }
 
       // linkedOpId may not be initialized because operationRef may lead to an
@@ -775,200 +593,201 @@ function createFields ({
   return fields
 }
 
-// function linkOpRefToOpId ({
-//   linkKey,
-//   operation,
-//   name,
-//   data,
-//   oas
-// }) {
-//   // TODO: external refs
-//
-//   let result
-//   let operationRef = operation.links[linkKey].operationRef
-//   let linkRelativePathAndMethod
-//
-//   // example relative path: '#/paths/~12.0~1repositories~1{username}/get'
-//   // example absolute path: 'https://na2.gigantic-server.com/#/paths/~12.0~1repositories~1{username}/get'
-//   //
-//   // extract relative path from relative path
-//   if (operationRef.charAt(0) === '#') {
-//     linkRelativePathAndMethod = operationRef
-//
-//   // extract relative path from absolute path
-//   } else {
-//     // '#' may exist in other places in the path
-//     // '/#/' is more likely to point to the beginning of the path
-//     let firstPathIndex = operationRef.indexOf('/#/')
-//
-//     // found a relative path candidate
-//     if (firstPathIndex !== -1) {
-//       // check to see if there are other relative path candidates
-//       let lastPathIndex = operationRef.lastIndexOf('/#/')
-//       if (firstPathIndex !== lastPathIndex) {
-//         log(`Warning: Cannot pinpoint the beginning of relative path ` +
-//           `in operationRef '${operationRef}' of link object ` +
-//           `'${linkKey}' in object '${name}'. Will use first occurance ` +
-//           `of '#/', may cause errors.`)
-//       }
-//
-//       // get the link's operation object of the related operation
-//       //
-//       // start at +1 because firstPathIndex points to the
-//       //  index of the first instance of '/#/'
-//       // a path starting with '/' will break Oas3Tools.resolveRef()
-//       linkRelativePathAndMethod = operationRef.substring(firstPathIndex + 1)
-//
-//     // TODO: redundant because we check to see if linkedOpId is initialized
-//     // in the next section and if not, we throw a similar error
-//     //
-//     // cannot find relative path candidate
-//     } else {
-//       if (data.options.strict) {
-//         throw new Error(`Could not find relative path in operationRef ` +
-//           `'${operationRef}' of link object '${linkKey}' in object ` +
-//           `'${name}'. Will not create link.`)
-//       } else {
-//         log(`Warning: Could not find relative path in operationRef ` +
-//           `'${operationRef}' of link object '${linkKey}' in object ` +
-//           `'${name}'. Will not create link.`)
-//         return
-//       }
-//     }
-//   }
-//
-//   if (typeof linkRelativePathAndMethod === 'string') {
-//     let linkedOpObject = Oas3Tools.resolveRef(linkRelativePathAndMethod, oas)
-//     let linkPath
-//     let linkMethod
-//
-//     // NOTE: following lines are based on preprocessor
-//     //  I wish we could extract the linkedOpId by matching the
-//     //  linkedOpObject with an operation in data and extracting the
-//     //  operationId there but that does not seem to be possible
-//     //  especiially because you need to know the operationId just to
-//     //  access the operations.
-//     // hold on to the operationId
-//     result = linkedOpObject.operationId
-//
-//     // fill in possibly missing operationId
-//     if (typeof result === 'undefined') {
-//       // linkPath should be the path followed by the method
-//       // find the slash that divides the path from the method
-//       let pivotSlashIndex = linkRelativePathAndMethod.lastIndexOf('/')
-//
-//       // check if there are any '/' in the linkPath
-//       if (pivotSlashIndex !== -1) {
-//         // getting method
-//         // check if there is a method at the end of the linkPath
-//         if (pivotSlashIndex !== linkRelativePathAndMethod.length - 1) {
-//           // start at +1 because we do not want the starting '/'
-//           let linkMethod = linkRelativePathAndMethod.substring(pivotSlashIndex + 1)
-//
-//           // check if method is a valid method
-//           if (!(linkMethod in Oas3Tools.OAS_OPERATIONS)) {
-//             if (data.options.strict) {
-//               throw new Error(`Method '${linkMethod}' at the end of ` +
-//               `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-//               `'${operationRef}' of link object '${linkKey}' in ` +
-//               `object '${name}' is not a valid method. Will not ` +
-//               `create link.`)
-//             } else {
-//               log(`Warning: method '${linkMethod}' at the end of ` +
-//               `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-//               `'${operationRef}' of link object '${linkKey}' in ` +
-//               `object '${name}' is not a valid method. Will not ` +
-//               `create link.`)
-//               return
-//             }
-//           }
-//         // there is no method at the end of the path
-//         } else {
-//           if (data.options.strict) {
-//             throw new Error(`No method at the end of ` +
-//             `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-//             `'${operationRef}' of link object '${linkKey}' in ` +
-//             `object '${name}' is not a valid method. Will not ` +
-//             `create link.`)
-//           } else {
-//             log(`Warning: No method at the end of ` +
-//             `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-//             `'${operationRef}' of link object '${linkKey}' in ` +
-//             `object '${name}' is not a valid method. Will not ` +
-//             `create link.`)
-//             return
-//           }
-//         }
-//
-//         // getting path
-//         // substring ends at pivotSlashIndex to exclude '/'
-//         linkPath = linkRelativePathAndMethod.substring(0, pivotSlashIndex)
-//
-//         if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
-//           let temp = ((Oas3Tools.beautify(`${linkMethod}:${linkPath}`) : any) : string)
-//
-//           // check if temp operationId is actually a key in data.operations
-//           if (temp in data.operations) {
-//             result = temp
-//           // temp operationId is not actually a key in data.operations
-//           } else {
-//             if (data.options.strict) {
-//               throw new Error(`Could not find operationId '${temp}' in ` +
-//               `data to produce link object '${linkKey}' for object ` +
-//               `'${name}'`)
-//             } else {
-//               log(`Warning: Could not find operationId '${temp}' in ` +
-//               `data to produce link object '${linkKey}' for object ` +
-//               `'${name}'. Will not create link.`)
-//               return null
-//             }
-//           }
-//         // path and method could not be found
-//         } else {
-//           if (data.options.strict) {
-//             throw new Error(`Could not find path and/or method from ` +
-//               `operationRef '${operationRef}' to linked opject ` +
-//               `'${linkKey}' in object '${name}'. Will not created link.`)
-//           } else {
-//             log(`Warning: Could not find path and/or method from ` +
-//               `operationRef '${operationRef}' to linked opject ` +
-//               `'${linkKey}' in object '${name}'. Will not created link.`)
-//             return
-//           }
-//         }
-//
-//       // Cannot split relative path into path and method sections
-//       } else {
-//         if (data.options.strict) {
-//           throw new Error(`Could not find path and method sections in ` +
-//             `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-//             `'${operationRef}' of link object '${linkKey}' in object ` +
-//             `'${name}'. There should be at least one '/' that divides ` +
-//             `the path from the method`)
-//         } else {
-//           log(`Warning: Could not find path and method sections in ` +
-//             `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-//             `'${operationRef}' of link object '${linkKey}' in object ` +
-//             `'${name}'. There should be at least one '/' that divides ` +
-//             `the path from the method. Will not create link.`)
-//           return
-//         }
-//       }
-//     }
-//   // Cannot extract relative path from absolute path
-//   } else {
-//     if (data.options.strict) {
-//       throw new Error(`Could not extract relative path from operationRef ` +
-//         `'${operationRef}' of link object '${linkKey}' in object ` +
-//         `'${name}'`)
-//     } else {
-//       log(`Warning: Could not extract relative path from operationRef ` +
-//         `'${operationRef}' of link object '${linkKey}' in object ` +
-//         `'${name}'. Will not create link`)
-//       return
-//     }
-//   }
-// }
+function linkOpRefToOpId ({
+  linkKey,
+  operation,
+  name,
+  data,
+  oas
+}) : ?string {
+  let linkedOpId
+
+  if (typeof operation.links[linkKey].operationRef === 'string') {
+    // TODO: external refs
+
+    let operationRef = operation.links[linkKey].operationRef
+    let linkRelativePathAndMethod
+
+    // example relative path: '#/paths/~12.0~1repositories~1{username}/get'
+    // example absolute path: 'https://na2.gigantic-server.com/#/paths/~12.0~1repositories~1{username}/get'
+    //
+    // extract relative path from relative path
+    if (operationRef.substring(0, 8) === '#/paths/') {
+      linkRelativePathAndMethod = operationRef
+
+    // extract relative path from absolute path
+    } else {
+      // '#' may exist in other places in the path
+      // '/#/' is more likely to point to the beginning of the path
+      let firstPathIndex = operationRef.indexOf('/#/paths/')
+
+      // found a relative path candidate
+      if (firstPathIndex !== -1) {
+        // check to see if there are other relative path candidates
+        let lastPathIndex = operationRef.lastIndexOf('/#/paths/')
+        if (firstPathIndex !== lastPathIndex) {
+          log(`Warning: Cannot pinpoint the beginning of relative path ` +
+            `in operationRef '${operationRef}' of link object ` +
+            `'${linkKey}' in object '${name}'. Will use first occurance ` +
+            `of '#/', may cause errors.`)
+        }
+
+        // +1 to avoid the first '/'
+        linkRelativePathAndMethod = operationRef.substring(firstPathIndex + 1)
+
+      // cannot find relative path candidate
+      } else {
+        if (data.options.strict) {
+          throw new Error(`Could not find relative path in operationRef ` +
+            `'${operationRef}' of link object '${linkKey}' in object ` +
+            `'${name}'. Will not create link.`)
+        } else {
+          log(`Warning: Could not find relative path in operationRef ` +
+            `'${operationRef}' of link object '${linkKey}' in object ` +
+            `'${name}'. Will not create link.`)
+          return
+        }
+      }
+    }
+
+    // infer operationId from relative path
+    if (typeof linkRelativePathAndMethod === 'string') {
+      let linkPath
+      let linkMethod
+
+      // NOTE: I wish we could extract the linkedOpId by matching the
+      //  linkedOpObject with an operation in data and extracting the
+      //  operationId there but that does not seem to be possible
+      //  especiially because you need to know the operationId just to
+      //  access the operations so what I have to do is reconstruct the
+      //  operationId the same way preprocessing does it
+
+      // linkPath should be the path followed by the method
+      // find the slash that divides the path from the method
+      let pivotSlashIndex = linkRelativePathAndMethod.lastIndexOf('/')
+
+      // check if there are any '/' in the linkPath
+      if (pivotSlashIndex !== -1) {
+        // getting method
+        // check if there is a method at the end of the linkPath
+        if (pivotSlashIndex !== linkRelativePathAndMethod.length - 1) {
+          // start at +1 because we do not want the starting '/'
+          linkMethod = linkRelativePathAndMethod.substring(pivotSlashIndex + 1)
+
+          // check if method is a valid method
+          if (!(Oas3Tools.OAS_OPERATIONS.includes(linkMethod))) {
+            if (data.options.strict) {
+              throw new Error(`Method '${linkMethod}' at the end of ` +
+              `relative path '${linkRelativePathAndMethod}' in operationRef ` +
+              `'${operationRef}' of link object '${linkKey}' in ` +
+              `object '${name}' is not a valid method. Will not ` +
+              `create link.`)
+            } else {
+              log(`Warning: method '${linkMethod}' at the end of ` +
+              `relative path '${linkRelativePathAndMethod}' in operationRef ` +
+              `'${operationRef}' of link object '${linkKey}' in ` +
+              `object '${name}' is not a valid method. Will not ` +
+              `create link.`)
+              return
+            }
+          }
+        // there is no method at the end of the path
+        } else {
+          if (data.options.strict) {
+            throw new Error(`No method at the end of ` +
+            `relative path '${linkRelativePathAndMethod}' in operationRef ` +
+            `'${operationRef}' of link object '${linkKey}' in ` +
+            `object '${name}' is not a valid method. Will not ` +
+            `create link.`)
+          } else {
+            log(`Warning: No method at the end of ` +
+            `relative path '${linkRelativePathAndMethod}' in operationRef ` +
+            `'${operationRef}' of link object '${linkKey}' in ` +
+            `object '${name}' is not a valid method. Will not ` +
+            `create link.`)
+            return
+          }
+        }
+
+        // getting path
+        // substring ends at pivotSlashIndex to exclude '/'
+        // TODO: improve removing '/#/paths'?
+        linkPath = linkRelativePathAndMethod.substring(7, pivotSlashIndex)
+
+        if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
+          if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
+            let linkedOpObject = oas.paths[linkPath][linkMethod]
+
+            if ('operationId' in linkedOpObject) {
+              linkedOpId = linkedOpObject.operationId
+            }
+          }
+
+          if (typeof linkedOpId !== 'string') {
+            linkedOpId = ((Oas3Tools.beautify(`${linkMethod}:${linkPath}`) : any) : string)
+          }
+
+          if (linkedOpId in data.operations) {
+            return linkedOpId
+          } else {
+            if (data.options.strict) {
+              throw new Error(`Could not find operationId '${linkedOpId}' in ` +
+              `data to produce link object '${linkKey}' for object ` +
+              `'${name}'`)
+            } else {
+              log(`Warning: Could not find operationId '${linkedOpId}' in ` +
+              `data to produce link object '${linkKey}' for object ` +
+              `'${name}'. Will not create link.`)
+              return
+            }
+          }
+        // path and method could not be found
+        } else {
+          if (data.options.strict) {
+            throw new Error(`Could not find path and/or method from ` +
+              `operationRef '${operationRef}' to linked opject ` +
+              `'${linkKey}' in object '${name}'. Will not created link.`)
+          } else {
+            log(`Warning: Could not find path and/or method from ` +
+              `operationRef '${operationRef}' to linked opject ` +
+              `'${linkKey}' in object '${name}'. Will not created link.`)
+            return
+          }
+        }
+
+      // Cannot split relative path into path and method sections
+      } else {
+        if (data.options.strict) {
+          throw new Error(`Could not find path and method sections in ` +
+            `relative path '${linkRelativePathAndMethod}' in operationRef ` +
+            `'${operationRef}' of link object '${linkKey}' in object ` +
+            `'${name}'. There should be at least one '/' that divides ` +
+            `the path from the method`)
+        } else {
+          log(`Warning: Could not find path and method sections in ` +
+            `relative path '${linkRelativePathAndMethod}' in operationRef ` +
+            `'${operationRef}' of link object '${linkKey}' in object ` +
+            `'${name}'. There should be at least one '/' that divides ` +
+            `the path from the method. Will not create link.`)
+          return
+        }
+      }
+
+    // Cannot extract relative path from absolute path
+    } else {
+      if (data.options.strict) {
+        throw new Error(`Could not extract relative path from operationRef ` +
+          `'${operationRef}' of link object '${linkKey}' in object ` +
+          `'${name}'`)
+      } else {
+        log(`Warning: Could not extract relative path from operationRef ` +
+          `'${operationRef}' of link object '${linkKey}' in object ` +
+          `'${name}'. Will not create link`)
+        return
+      }
+    }
+  }
+}
 
 /**
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
