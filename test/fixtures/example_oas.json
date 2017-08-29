@@ -599,14 +599,14 @@
 		},
 		"links": {
 			"EmployerCompany": {
-				"operationRef": "www.randomServer.com/#/paths/companies/{id}/get",
+        "operationId": "getCompanyById",
 				"parameters": {
 					"id": "$response.body#/employerId"
 				},
         "description": "Allows to fetch the user's employer company."
 			},
 			"CeoUser": {
-				"operationRef": "#/paths/users/{username}/get",
+        "operationId": "getUserByUsername",
 				"parameters": {
 					"username": "$response.body#/ceoUsername"
 				},
