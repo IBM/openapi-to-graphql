@@ -27,6 +27,12 @@ import type {
   SecurityRequirementObject
 } from './types/oas3.js'
 
+// Imports:
+import Swagger2OpenAPI from 'swagger2openapi'
+import OASValidator from 'swagger2openapi/validate.js'
+import deepEqual from 'deep-equal'
+import debug from 'debug'
+
 // Type definitions & exports:
 export type SchemaNames = {
   fromPath?: string,
@@ -45,11 +51,6 @@ export type ResSchemaAndNames = {
   resSchemaNames?: SchemaNames
 }
 
-// Imports:
-import Swagger2OpenAPI from 'swagger2openapi'
-import OASValidator from 'swagger2openapi/validate.js'
-import deepEqual from 'deep-equal'
-import debug from 'debug'
 const logHttp = debug('http')
 const logPre = debug('preprocessing')
 

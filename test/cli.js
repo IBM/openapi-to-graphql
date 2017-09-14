@@ -6,7 +6,7 @@ process.env.DEBUG = 'translation,http'
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
 const app = express()
-const OasGraph = require('../index.js')
+const OasGraph = require('../lib/index.js')
 const path = require('path')
 const log = require('debug')('translation')
 

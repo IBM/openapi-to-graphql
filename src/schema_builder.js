@@ -20,6 +20,23 @@ import type {
   GraphQLFieldConfigMap
 } from 'graphql'
 
+// Imports:
+import * as Oas3Tools from './oas_3_tools.js'
+import { getResolver } from './resolver_builder.js'
+import { createOrReuseDataDef } from './preprocessor.js'
+import debug from 'debug'
+import {
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLInt,
+  GraphQLFloat,
+  GraphQLBoolean,
+  GraphQLNonNull,
+  GraphQLList,
+  GraphQLInputObjectType,
+  GraphQLEnumType
+} from 'graphql'
+
 // Type definitions & exports:
 type GetGraphQLParams = {
   name: string,              // name of type to create NOTE: ignored for scalars
@@ -86,23 +103,6 @@ type CreateFieldsParams = {
 }
 
 type FieldsType = Thunk<GraphQLFieldConfigMap<Object, Object>>
-
-// Imports:
-import * as Oas3Tools from './oas_3_tools.js'
-import { getResolver } from './resolver_builder.js'
-import { preprocessOas, createOrReuseDataDef } from './preprocessor.js'
-import debug from 'debug'
-import {
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLInt,
-  GraphQLFloat,
-  GraphQLBoolean,
-  GraphQLNonNull,
-  GraphQLList,
-  GraphQLInputObjectType,
-  GraphQLEnumType
-} from 'graphql'
 
 const log = debug('translation')
 
@@ -747,7 +747,6 @@ function linkOpRefToOpId ({
               log(`Warning: Could not find operationId '${linkedOpId}' in ` +
               `data to produce link object '${linkKey}' for object ` +
               `'${name}'. Will not create link.`)
-              return
             }
           }
         // path and method could not be found
@@ -760,7 +759,6 @@ function linkOpRefToOpId ({
             log(`Warning: Could not find path and/or method from ` +
               `operationRef '${operationRef}' to linked opject ` +
               `'${linkKey}' in object '${name}'. Will not created link.`)
-            return
           }
         }
 
@@ -778,7 +776,6 @@ function linkOpRefToOpId ({
             `'${operationRef}' of link object '${linkKey}' in object ` +
             `'${name}'. There should be at least one '/' that divides ` +
             `the path from the method. Will not create link.`)
-          return
         }
       }
 
@@ -792,7 +789,6 @@ function linkOpRefToOpId ({
         log(`Warning: Could not extract relative path from operationRef ` +
           `'${operationRef}' of link object '${linkKey}' in object ` +
           `'${name}'. Will not create link`)
-        return
       }
     }
   }

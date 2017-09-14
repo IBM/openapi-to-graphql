@@ -11,6 +11,13 @@ import type { Oas3 } from './types/oas3.js'
 import type {Operation} from './types/operation.js'
 import type {PreprocessingData} from './types/preprocessing_data.js'
 
+// Imports:
+import request from 'request'
+import * as Oas3Tools from './oas_3_tools.js'
+import querystring from 'querystring'
+import jp from 'jsonpath'
+import debug from 'debug'
+
 // Type definitions & exports:
 export type ResolveFunction =
   (root: Object, args: Object, ctx: Object) => Promise<any> | any
@@ -42,13 +49,6 @@ type AuthOptions = {
   authHeaders: {[string] : string},
   authQs: {[string] : string}
 }
-
-// Imports:
-import request from 'request'
-import * as Oas3Tools from './oas_3_tools.js'
-import querystring from 'querystring'
-import jp from 'jsonpath'
-import debug from 'debug'
 
 const log = debug('http')
 

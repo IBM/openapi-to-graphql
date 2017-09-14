@@ -46,6 +46,19 @@ import type {
   GraphQLEnumType
 } from 'graphql'
 
+// Imports:
+import { getGraphQLType, getArgs } from './schema_builder.js'
+import { getResolver } from './resolver_builder.js'
+import * as GraphQLTools from './graphql_tools.js'
+import { preprocessOas } from './preprocessor.js'
+import * as Oas3Tools from './oas_3_tools.js'
+import AuthBuilder from './auth_builder.js'
+import debug from 'debug'
+import {
+  GraphQLSchema,
+  GraphQLObjectType
+} from 'graphql'
+
 // Type definitions & exports:
 type Viewer = {
   type: GQObjectType | GQInputObjectType | GraphQLScalarType |
@@ -64,19 +77,6 @@ type LoadFieldsParams = {
   data: PreprocessingData,
   oas: Oas3
 }
-
-// Imports:
-import { getGraphQLType, getArgs } from './schema_builder.js'
-import { getResolver } from './resolver_builder.js'
-import * as GraphQLTools from './graphql_tools.js'
-import { preprocessOas } from './preprocessor.js'
-import * as Oas3Tools from './oas_3_tools.js'
-import AuthBuilder from './auth_builder.js'
-import debug from 'debug'
-import {
-  GraphQLSchema,
-  GraphQLObjectType
-} from 'graphql'
 
 const log = debug('translation')
 
@@ -351,7 +351,7 @@ function getFieldForOperation (
     oas
   })
 
-  // craete resolve function:
+  // create resolve function:
   let reqSchemaName = (operation.reqDef ? operation.reqDef.iotName : null)
   let reqSchema = (operation.reqDef ? operation.reqDef.schema : null)
   let resolve = getResolver({

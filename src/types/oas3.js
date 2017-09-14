@@ -9,25 +9,7 @@ type ExternalDocumentationObject = {
   url: string
 }
 
-export type ParameterObject = {
-  name: string,
-  in: 'query' | 'header' | 'path' | 'cookie',
-  description?: string,
-  required?: boolean,
-  deprecated?: boolean,
-  allowEmptyValue?: boolean,
-  style?: 'form' | 'simple',
-  explode?: boolean,
-  allowReserved?: boolean,
-  schema?: SchemaObject | ReferenceObject,
-  example?: any,
-  examples?: {
-    [string]: ExampleObject | ReferenceObject
-  },
-  content?: {
-    [string]: MediaTypeObject
-  }
-}
+export type SchemaObject = Object // TODO: extend?
 
 export type ReferenceObject = {
   '$ref': string
@@ -59,12 +41,6 @@ type EncodingObject = {
   allowReserved?: boolean
 }
 
-export type SchemaObject = Object // TODO: extend?
-
-export type MediaTypesObject = {
-  [string]: MediaTypeObject
-}
-
 export type MediaTypeObject = {
   schema?: SchemaObject | ReferenceObject,
   example?: any,
@@ -74,6 +50,36 @@ export type MediaTypeObject = {
   encoding?: {
     [string]: EncodingObject
   }
+}
+
+export type ParameterObject = {
+  name: string,
+  in: 'query' | 'header' | 'path' | 'cookie',
+  description?: string,
+  required?: boolean,
+  deprecated?: boolean,
+  allowEmptyValue?: boolean,
+  style?: 'form' | 'simple',
+  explode?: boolean,
+  allowReserved?: boolean,
+  schema?: SchemaObject | ReferenceObject,
+  example?: any,
+  examples?: {
+    [string]: ExampleObject | ReferenceObject
+  },
+  content?: {
+    [string]: MediaTypeObject
+  }
+}
+
+export type MediaTypesObject = {
+  [string]: MediaTypeObject
+}
+
+export type ServerObject = {
+  url: string,
+  description?: string,
+  variables?: Object // TODO: extend
 }
 
 export type RequestBodyObject = {
@@ -99,10 +105,6 @@ export type LinksObject = {
   [string]: LinkObject | ReferenceObject
 }
 
-export type ResponsesObject = {
-  [string]: ResponseObject | ReferenceObject
-}
-
 export type ResponseObject = {
   description: string,
   headers?: {
@@ -110,6 +112,10 @@ export type ResponseObject = {
   },
   content?: MediaTypesObject,
   links?: LinksObject
+}
+
+export type ResponsesObject = {
+  [string]: ResponseObject | ReferenceObject
 }
 
 export type SecurityRequirementObject = {
@@ -144,12 +150,6 @@ type PathsObject = {
   [string]: PathItemObject
 }
 
-export type ServerObject = {
-  url: string,
-  description?: string,
-  variables?: Object // TODO: extend
-}
-
 type OAuthFlowObject = {
   authorizationUrl?: string, // optional, beacause applies only to certain flows
   tokenUrl?: string, // optional, beacause applies only to certain flows
@@ -166,10 +166,6 @@ type OAuthFlowsObject = {
   authorizationCode?: OAuthFlowObject
 }
 
-export type SecuritySchemesObject = {
-  [string]: SecuritySchemeObject | ReferenceObject
-}
-
 export type SecuritySchemeObject = {
   type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect',
   description?: string,
@@ -179,6 +175,10 @@ export type SecuritySchemeObject = {
   bearerFormat?: string,
   flows?: OAuthFlowsObject,  // optional, because applies only to oauth2
   openIdConnectUrl?: string // // optional, because applies only to openIdConnect
+}
+
+export type SecuritySchemesObject = {
+  [string]: SecuritySchemeObject | ReferenceObject
 }
 
 type ComponentsObject = {

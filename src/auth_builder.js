@@ -17,14 +17,6 @@ import type {
   ProcessedSecurityScheme
 } from './types/preprocessing_data.js'
 
-// Type definitions & exports:
-type Viewer = {
-  type: GQObjectType,
-  resolve: ResolveFunction,
-  args: Args,
-  description: string
-}
-
 // Imports:
 import {getGraphQLType} from './schema_builder.js'
 import * as Oas3Tools from './oas_3_tools.js'
@@ -34,6 +26,14 @@ import {
   GraphQLObjectType,
   GraphQLNonNull
 } from 'graphql'
+
+// Type definitions & exports:
+type Viewer = {
+  type: GQObjectType,
+  resolve: ResolveFunction,
+  args: Args,
+  description: string
+}
 
 const log = debug('translation')
 
