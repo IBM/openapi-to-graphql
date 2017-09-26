@@ -848,8 +848,21 @@ export function getArgs ({
       })
     }
 
+    // parameters are not required when a default exists:
+    let hasDefault = false
+    if (typeof parameter.schema === 'object') {
+      let schema = parameter.schema
+      if (typeof schema.$ref === 'string') {
+        schema = Oas3Tools.resolveRef(parameter.schema.$ref, oas)
+      }
+      if (typeof schema.default !== 'undefined') {
+        hasDefault = true
+      }
+    }
+    let paramRequired = parameter.required && !hasDefault
+
     args[saneName] = {
-      type: parameter.required ? new GraphQLNonNull(type) : type,
+      type: paramRequired ? new GraphQLNonNull(type) : type,
       description: parameter.description // might be undefined
     }
   }

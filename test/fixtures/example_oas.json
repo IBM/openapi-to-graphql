@@ -243,7 +243,8 @@
 						"in": "query",
 						"required": true,
 						"schema": {
-							"type": "string"
+							"type": "string",
+              "default": "sport"
 						}
 					}
 				],

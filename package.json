@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npm run build && jest",
     "api": "nodemon test/example_api_server.js",
-    "dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
+    "dev": "DEBUG=preprocessing,translation,http nodemon --inspect test/example_gql_server.js",
     "build": "babel src/ -d lib/",
     "flow": "flow",
     "guru-load": "node test/apis_guru/load_apis_guru.js",

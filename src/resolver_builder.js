@@ -121,6 +121,24 @@ export function getResolver ({
       args[argName] = _oasgraph.usedParams[argName]
     }
 
+    /**
+     * Handle default values of parameters, if they have not yet been defined by
+     * the user.
+     */
+    operation.parameters.forEach(param => {
+      let paramName = Oas3Tools.beautify(param.name)
+      if (typeof args[paramName] === 'undefined' &&
+      param.schema && typeof param.schema === 'object') {
+        let schema = param.schema
+        if (schema && schema.$ref && typeof schema.$ref === 'string') {
+          schema = Oas3Tools.resolveRef(schema.$ref, oas)
+        }
+        if (schema && schema.default && typeof schema.default !== 'undefined') {
+          args[paramName] = schema.default
+        }
+      }
+    })
+
     // stored used parameters to future requests:
     _oasgraph.usedParams = Object.assign(_oasgraph.usedParams, args)
 

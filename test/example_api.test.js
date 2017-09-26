@@ -94,6 +94,19 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
   })
 })
 
+test('Get response without providing parameter with default value', () => {
+  let query = `{
+    productsReviews (id: "100")
+  }`
+  return graphql(schema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        'productsReviews': ['Great product', 'I love it']
+      }
+    })
+  })
+})
+
 test('Get array of strings', () => {
   let query = `{
     user (username: "erik") {
@@ -317,7 +330,7 @@ test('Define header and query options', () => {
     })
 })
 
-test('resolve allOf', () => {
+test('Resolve allOf', () => {
   let query = `{
     user (username: "erik") {
       name
