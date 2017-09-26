@@ -233,7 +233,7 @@ function translateOpenApiToGraphQL (
     let schemaDef = {}
     if (Object.keys(rootQueryFields).length > 0) {
       schemaDef.query = new GraphQLObjectType({
-        name: 'RootQueryType',
+        name: 'query',
         description: 'The start of any query',
         fields: rootQueryFields
       })
@@ -242,7 +242,7 @@ function translateOpenApiToGraphQL (
     }
     if (Object.keys(rootMutationFields).length > 0) {
       schemaDef.mutation = new GraphQLObjectType({
-        name: 'RootMutationType',
+        name: 'mutation',
         description: 'The start of any mutation',
         fields: rootMutationFields
       })

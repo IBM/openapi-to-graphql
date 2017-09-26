@@ -30,7 +30,7 @@ test('All query endpoints present', () => {
   }
   let gqlTypes = Object.keys(schema
     ._typeMap
-    .RootQueryType
+    .query
     .getFields()
   ).length
   expect(gqlTypes).toEqual(oasGetCount)
@@ -45,7 +45,7 @@ test('All mutation endpoints present', () => {
   }
   let gqlTypes = Object.keys(schema
     ._typeMap
-    .RootMutationType
+    .mutation
     .getFields()
   ).length
   expect(gqlTypes).toEqual(oasMutCount)
