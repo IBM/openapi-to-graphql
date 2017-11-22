@@ -18,7 +18,7 @@ beforeAll(async () => {
 test('Get response', async () => {
   let query = `mutation {
     mutationViewerBasicAuth (username: "test" password: "data") {
-      postSpecActionTestAction2 (payloadInput: {age: 27}) {
+      postTestAction2 (payloadInput: {age: 27}) {
         payload
         age
       }
