@@ -83,8 +83,10 @@ export function preprocessOas (
         path, method, oas)
 
       if (!resSchema || typeof resSchema !== 'object') {
-        log(`Warning: "${method.toUpperCase()} ${path}" has no valid ` +
-          `response schema. Ignore operation.`)
+        let warning = `Warning: "${method.toUpperCase()} ${path}" has no valid ` +
+          `response schema. Ignore operation.`
+        log(warning)
+        options.report.warnings.push(warning)
         continue
       }
 
@@ -239,9 +241,12 @@ function getProcessedSecuritySchemes (
             if (options.strict) {
               throw new Error(`OASgraph currently does not support the HTTP ` +
                 `authentication scheme '${String(protocol.scheme)}'`)
+            } else {
+              let warning = `OASgraph currently does not support the HTTP ` +
+                `authentication scheme '${String(protocol.scheme)}'`
+              log(warning)
+              options.report.warnings.push(warning)
             }
-            log(`OASgraph currently does not support the HTTP authentication ` +
-              `scheme '${String(protocol.scheme)}'`)
         }
         break
 
@@ -253,9 +258,12 @@ function getProcessedSecuritySchemes (
         if (options.strict) {
           throw new Error(`OASgraph currently does not support the HTTP ` +
             `authentication scheme '${String(protocol.scheme)}'`)
+        } else {
+          let warning = `OASgraph currently does not support the HTTP ` +
+            `authentication scheme '${String(protocol.scheme)}'`
+          log(warning)
+          options.report.warnings.push(warning)
         }
-        log(`OASgraph currently does not support the HTTP authentication ` +
-          `scheme '${String(protocol.scheme)}'`)
     }
 
     // Add protocol data to the output

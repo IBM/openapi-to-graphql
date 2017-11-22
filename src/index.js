@@ -30,7 +30,7 @@
  */
 
 // Type imports:
-import type { Options } from './types/options.js'
+import type { Options, Report } from './types/options.js'
 import type { Oas3 } from './types/oas3.js'
 import type { Oas2 } from './types/oas2.js'
 import type { Args } from './schema_builder.js'
@@ -74,10 +74,12 @@ type LoadFieldsParams = {
   authQueryFields: Object,
   authMutationFields: Object,
   data: PreprocessingData,
-  oas: Oas3
+  oas: Oas3,
+  options: Options
 }
 type Result = {
-  schema: GraphQLSchema
+  schema: GraphQLSchema,
+  report: Report
 }
 
 const log = debug('translation')
@@ -101,6 +103,10 @@ async function createGraphQlSchema (
     throw new Error(`Invalid specification provided`)
   }
 
+  options.report = {
+    warnings: []
+  }
+
   /**
    * Check if the spec is a valid OAS 3.0.x
    * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
@@ -109,7 +115,8 @@ async function createGraphQlSchema (
   let oas = await Oas3Tools.getValidOAS3(spec)
   let schema = await translateOpenApiToGraphQL(oas, options)
   return {
-    schema
+    schema,
+    report: options.report
   }
 }
 
@@ -125,7 +132,8 @@ function translateOpenApiToGraphQL (
     viewer,
     tokenJSONpath,
     addSubOperations,
-    sendOAuthTokenInQuery
+    sendOAuthTokenInQuery,
+    report
   } : Options
 ): Promise<GraphQLSchema> {
   return new Promise((resolve, reject) => {
@@ -136,7 +144,8 @@ function translateOpenApiToGraphQL (
       tokenJSONpath,
       strict,
       addSubOperations,
-      sendOAuthTokenInQuery
+      sendOAuthTokenInQuery,
+      report
     }
     log(`Options: ${JSON.stringify(options)}`)
 
@@ -180,7 +189,8 @@ function translateOpenApiToGraphQL (
           authQueryFields,
           authMutationFields,
           data,
-          oas
+          oas,
+          options
         })
       }
     }
@@ -198,7 +208,8 @@ function translateOpenApiToGraphQL (
           authQueryFields,
           authMutationFields,
           data,
-          oas
+          oas,
+          options
         })
       }
     }
@@ -273,15 +284,19 @@ function loadField ({
   authQueryFields,
   authMutationFields,
   data,
-  oas
+  oas,
+  options
 } : LoadFieldsParams) {
   // Get the fields for an operation
   let field = getFieldForOperation(operation, data, oas)
 
   // If the operation has no valid type, abort
   if (!field.type || typeof field.type === 'undefined') {
-    log(`Warning: skipped operation "${operation.method.toUpperCase()} ` +
-      `${operation.path}" without defined Object Type.`)
+    let warning = `Warning: skipped operation ` +
+      `"${operation.method.toUpperCase()} ${operation.path}" without defined ` +
+      `Object Type.`
+    log(warning)
+    options.report.warnings.push(warning)
     return
   }
 

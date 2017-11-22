@@ -145,8 +145,10 @@ export function getGraphQLType ({
 
   // CASE: no known type
   if (!type) {
-    log(`Warning: skipped creation of (Input) Type "${name}", which has no ` +
-      `valid schema type. Schema: ${JSON.stringify(schema)}`)
+    let warning = `Warning: skipped creation of (Input) Type "${name}", ` +
+      `which has no valid schema type. Schema: ${JSON.stringify(schema)}`
+    log(warning)
+    data.options.report.warnings.push(warning)
     return GraphQLString
 
   // CASE: object - create ObjectType
@@ -335,8 +337,10 @@ function reuseOrCreateList ({
     }
     return listObjectType
   } else {
-    log(`Warning: skipped creation of list '${name}' because list item ` +
-      `'${itemsName}' has no valid schema: ${JSON.stringify(itemsSchema)}`)
+    let warning = `Warning: skipped creation of list '${name}' because list ` +
+      `item '${itemsName}' has no valid schema: ${JSON.stringify(itemsSchema)}`
+    log(warning)
+    data.options.report.warnings.push(warning)
     return new GraphQLList(GraphQLString)
   }
 }
@@ -393,7 +397,10 @@ function getScalarType (
       if (data.options.strict) {
         throw new Error(`Unknown JSON scalar "${type}"`)
       } else {
-        log(`Warning: can't resolve type "${type}" - default to GraphQLString`)
+        let warning = `Warning: can't resolve type "${type}" - default to ` +
+          `GraphQLString`
+        log(warning)
+        data.options.report.warnings.push(warning)
         return GraphQLString
       }
   }
@@ -534,8 +541,10 @@ function createFields ({
           throw new Error(`Cannot create link '${linkKey}' in object ` +
             `'${name}'. Invalid operationId, operationRef, and/or href.`)
         } else {
-          log(`Warning: Cannot create link '${linkKey}' in object ` +
-            `'${name}'. Invalid operationId, operationRef, and/or href.`)
+          let warning = `Warning: Cannot create link '${linkKey}' in object ` +
+            `'${name}'. Invalid operationId, operationRef, and/or href.`
+          log(warning)
+          data.options.report.warnings.push(warning)
         }
       }
     }
@@ -550,8 +559,10 @@ function createFields ({
       let fieldName = subOp.resDef.otName
       let otName = operation.resDef.otName
       if (typeof fields[fieldName] !== 'undefined') {
-        log(`Warning: cannot add sub operation "${fieldName}" to ` +
-          `"${otName}". Collision detected.`)
+        let warning = `Warning: cannot add sub operation "${fieldName}" to ` +
+          `"${otName}". Collision detected.`
+        log(warning)
+        data.options.report.warnings.push(warning)
         continue
       }
 
@@ -635,10 +646,12 @@ function linkOpRefToOpId ({
         // check to see if there are other relative path candidates
         let lastPathIndex = operationRef.lastIndexOf('/#/paths/')
         if (firstPathIndex !== lastPathIndex) {
-          log(`Warning: Cannot pinpoint the beginning of relative path ` +
-            `in operationRef '${operationRef}' of link object ` +
+          let warning = `Warning: Cannot pinpoint the beginning of relative ` +
+            `path in operationRef '${operationRef}' of link object ` +
             `'${linkKey}' in object '${name}'. Will use first occurance ` +
-            `of '#/', may cause errors.`)
+            `of '#/', may cause errors.`
+          log(warning)
+          data.options.report.warnings.push(warning)
         }
 
         // +1 to avoid the first '/'
@@ -651,9 +664,11 @@ function linkOpRefToOpId ({
             `'${operationRef}' of link object '${linkKey}' in object ` +
             `'${name}'. Will not create link.`)
         } else {
-          log(`Warning: Could not find relative path in operationRef ` +
-            `'${operationRef}' of link object '${linkKey}' in object ` +
-            `'${name}'. Will not create link.`)
+          let warning = `Warning: Could not find relative path in ` +
+            `operationRef '${operationRef}' of link object '${linkKey}' in ` +
+            `object '${name}'. Will not create link.`
+          log(warning)
+          data.options.report.warnings.push(warning)
           return
         }
       }
@@ -692,11 +707,13 @@ function linkOpRefToOpId ({
               `object '${name}' is not a valid method. Will not ` +
               `create link.`)
             } else {
-              log(`Warning: method '${linkMethod}' at the end of ` +
-              `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-              `'${operationRef}' of link object '${linkKey}' in ` +
-              `object '${name}' is not a valid method. Will not ` +
-              `create link.`)
+              let warning = `Warning: method '${linkMethod}' at the end of ` +
+                `relative path '${linkRelativePathAndMethod}' in ` +
+                `operationRef '${operationRef}' of link object '${linkKey}' ` +
+                `in object '${name}' is not a valid method. Will not ` +
+                `create link.`
+              log(warning)
+              data.options.report.warnings.push(warning)
               return
             }
           }
@@ -709,11 +726,13 @@ function linkOpRefToOpId ({
             `object '${name}' is not a valid method. Will not ` +
             `create link.`)
           } else {
-            log(`Warning: No method at the end of ` +
-            `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-            `'${operationRef}' of link object '${linkKey}' in ` +
-            `object '${name}' is not a valid method. Will not ` +
-            `create link.`)
+            let warning = `Warning: No method at the end of ` +
+              `relative path '${linkRelativePathAndMethod}' in operationRef ` +
+              `'${operationRef}' of link object '${linkKey}' in ` +
+              `object '${name}' is not a valid method. Will not ` +
+              `create link.`
+            log(warning)
+            data.options.report.warnings.push(warning)
             return
           }
         }
@@ -744,9 +763,11 @@ function linkOpRefToOpId ({
               `data to produce link object '${linkKey}' for object ` +
               `'${name}'`)
             } else {
-              log(`Warning: Could not find operationId '${linkedOpId}' in ` +
-              `data to produce link object '${linkKey}' for object ` +
-              `'${name}'. Will not create link.`)
+              let warning = `Warning: Could not find operationId ` +
+                `'${linkedOpId}' in data to produce link object '${linkKey}' ` +
+                `for object '${name}'. Will not create link.`
+              log(warning)
+              data.options.report.warnings.push(warning)
             }
           }
         // path and method could not be found
@@ -756,9 +777,11 @@ function linkOpRefToOpId ({
               `operationRef '${operationRef}' to linked opject ` +
               `'${linkKey}' in object '${name}'. Will not created link.`)
           } else {
-            log(`Warning: Could not find path and/or method from ` +
+            let warning = `Warning: Could not find path and/or method from ` +
               `operationRef '${operationRef}' to linked opject ` +
-              `'${linkKey}' in object '${name}'. Will not created link.`)
+              `'${linkKey}' in object '${name}'. Will not created link.`
+            log(warning)
+            data.options.report.warnings.push(warning)
           }
         }
 
@@ -771,11 +794,13 @@ function linkOpRefToOpId ({
             `'${name}'. There should be at least one '/' that divides ` +
             `the path from the method`)
         } else {
-          log(`Warning: Could not find path and method sections in ` +
+          let warning = `Warning: Could not find path and method sections in ` +
             `relative path '${linkRelativePathAndMethod}' in operationRef ` +
             `'${operationRef}' of link object '${linkKey}' in object ` +
             `'${name}'. There should be at least one '/' that divides ` +
-            `the path from the method. Will not create link.`)
+            `the path from the method. Will not create link.`
+          log(warning)
+          data.options.report.warnings.push(warning)
         }
       }
 
@@ -786,9 +811,11 @@ function linkOpRefToOpId ({
           `'${operationRef}' of link object '${linkKey}' in object ` +
           `'${name}'`)
       } else {
-        log(`Warning: Could not extract relative path from operationRef ` +
-          `'${operationRef}' of link object '${linkKey}' in object ` +
-          `'${name}'. Will not create link`)
+        let warning = `Warning: Could not extract relative path from ` +
+          `operationRef '${operationRef}' of link object '${linkKey}' in ` +
+          `object '${name}'. Will not create link`
+        log(warning)
+        data.options.report.warnings.push(warning)
       }
     }
   }
@@ -812,8 +839,10 @@ export function getArgs ({
   for (let parameter of parameters) {
     // we need at least a name
     if (typeof parameter.name !== 'string') {
-      log(`Warning: ignore parameter with no "name" property: ` +
-        `${JSON.stringify(parameter)}`)
+      let warning = `Warning: ignore parameter with no "name" property: ` +
+        `${JSON.stringify(parameter)}`
+      log(warning)
+      data.options.report.warnings.push(warning)
       continue
     }
 

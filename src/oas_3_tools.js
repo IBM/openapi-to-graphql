@@ -65,33 +65,23 @@ export const SUCCESS_STATUS_RX = /2[0-9]{2}/
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
-  return new Promise((resolve, reject) => {
-    // CASE: translate
-    if (typeof spec.swagger === 'string' && spec.swagger === '2.0') {
-      logPre(`Received OpenAPI Specification 2.0 - going to translate...`)
-      Swagger2OpenAPI.convertObj(spec, {})
-        .then(result => {
-          resolve(result.openapi)
-        })
-        .catch(reject)
-    // CASE: validate
-    } else if (typeof spec.openapi === 'string' && /^3/.test(spec.openapi)) {
-      logPre(`Received OpenAPI Specification 3.0.x - going to validate...`)
-      let valid = true
-      try {
-        valid = OASValidator.validateSync(spec, {})
-      } catch (err) {
-        reject(err)
-      }
-      if (!valid) {
-        reject(new Error(`Validation of OpenAPI Specification failed.`))
-      } else {
-        logPre(`OpenAPI Specification is validated`)
-        resolve(spec)
-      }
+export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<any> {
+  // CASE: translate
+  if (typeof spec.swagger === 'string' && spec.swagger === '2.0') {
+    logPre(`Received OpenAPI Specification 2.0 - going to translate...`)
+    let result = await Swagger2OpenAPI.convertObj(spec, {})
+    return (result.openapi: Oas3)
+  // CASE: validate
+  } else if (typeof spec.openapi === 'string' && /^3/.test(spec.openapi)) {
+    logPre(`Received OpenAPI Specification 3.0.x - going to validate...`)
+    let valid = OASValidator.validateSync(spec, {})
+    if (!valid) {
+      throw new Error(`Validation of OpenAPI Specification failed.`)
+    } else {
+      logPre(`OpenAPI Specification is validated`)
+      return (spec: Oas3)
     }
-  })
+  }
 }
 
 /**
