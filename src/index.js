@@ -38,7 +38,6 @@ import type { Operation } from './types/operation.js'
 import type { ResolveFunction } from './resolver_builder.js'
 import type { PreprocessingData } from './types/preprocessing_data.js'
 import type {
-  GraphQLSchema as GraphQLSchemaType,
   GraphQLObjectType as GQObjectType,
   GraphQLInputObjectType as GQInputObjectType,
   GraphQLScalarType,
@@ -77,42 +76,41 @@ type LoadFieldsParams = {
   data: PreprocessingData,
   oas: Oas3
 }
+type Result = {
+  schema: GraphQLSchema
+}
 
 const log = debug('translation')
 
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-function createGraphQlSchema (
+async function createGraphQlSchema (
   spec: Oas3 | Oas2,
   options: Options
-): Promise<GraphQLSchemaType> {
-  // deal with defaults:
+): Promise<Result> {
+  // deal with option defaults:
   if (typeof options === 'undefined') options = {}
   options.strict = options.strict || false
   options.addSubOperations = options.addSubOperations || true
   options.viewer = options.viewer || true
   options.sendOAuthTokenInQuery = options.sendOAuthTokenInQuery || false
 
-  return new Promise((resolve, reject) => {
-    // Some basic validation
-    if (typeof spec !== 'object') {
-      throw new Error(`Invalid specification provided`)
-    }
+  // Some basic validation
+  if (typeof spec !== 'object') {
+    throw new Error(`Invalid specification provided`)
+  }
 
-    /**
-     * Check if the spec is a valid OAS 3.0.x
-     * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
-     * translate the spec into a GraphQL schema
-     */
-    Oas3Tools.getValidOAS3(spec)
-      .then(oas => {
-        translateOpenApiToGraphQL(oas, options)
-          .then(resolve)
-          .catch(reject)
-      })
-      .catch(reject)
-  })
+  /**
+   * Check if the spec is a valid OAS 3.0.x
+   * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
+   * translate the spec into a GraphQL schema
+   */
+  let oas = await Oas3Tools.getValidOAS3(spec)
+  let schema = await translateOpenApiToGraphQL(oas, options)
+  return {
+    schema
+  }
 }
 
 /**
@@ -129,7 +127,7 @@ function translateOpenApiToGraphQL (
     addSubOperations,
     sendOAuthTokenInQuery
   } : Options
-) {
+): Promise<GraphQLSchema> {
   return new Promise((resolve, reject) => {
     let options = {
       headers,

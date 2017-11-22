@@ -43,7 +43,7 @@ An example application exposing GitHub's public REST-like API via OASGraph can b
 
 
 ## Usage
-Install this package. Then, simply pass it an OpenAPI Specification 3.0. The library returns a promise:
+Install this package. Then, simply pass it an OpenAPI Specification 3.0. The library returns a promise that resolves on an object containing the schema:
 
 ```javascript
 const OASGraph = require('oasgraph') // use real name here
@@ -51,7 +51,7 @@ const OASGraph = require('oasgraph') // use real name here
 let oas = require('./fixtures/example_oas.json') // or other means of obtaining the OAS
 
 OASGraph.createGraphQlSchema(oas)
-  .then(schema => {
+  .then(({schema}) => {
     // do something with the schema
   })
   .catch(err => {
@@ -68,9 +68,9 @@ const OASGraph = require('oasgraph') // use real name here
 const app = express()
 
 OASGraph.createGraphQlSchema(oas)
-  .then(schema => {
+  .then(({schema}) => {
     app.use('/graphql', graphqlHTTP({
-      schema: schema,
+      schema,
       graphiql: true
     }))
     app.listen(3001)

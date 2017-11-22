@@ -9,10 +9,11 @@ const {
 } = require('graphql')
 
 let oas = require('./fixtures/cloudfunction_oas.json')
-let schema
+let createdSchema
 
 beforeAll(async () => {
-  schema = await OasGraph.createGraphQlSchema(oas)
+  let {schema} = await OasGraph.createGraphQlSchema(oas)
+  createdSchema = schema
 })
 
 test('Get response', async () => {
@@ -26,6 +27,6 @@ test('Get response', async () => {
   }`
   // validate that 'limit' parameter is covered by options:
   let ast = parse(query)
-  let errors = validate(schema, ast)
+  let errors = validate(createdSchema, ast)
   expect(errors).toEqual([])
 })

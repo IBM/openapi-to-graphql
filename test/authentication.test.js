@@ -15,11 +15,11 @@ const {
  * Set up the schema first
  */
 let oas = require('./fixtures/example_oas.json')
-let schema
+let createdSchema
 beforeAll(() => {
   return OasGraph.createGraphQlSchema(oas)
-    .then(createdSchema => {
-      schema = createdSchema
+    .then(({schema}) => {
+      createdSchema = schema
     })
 })
 
@@ -31,7 +31,7 @@ test('Get patent using basic auth', () => {
       }
     }
   }`
-  return graphql(schema, query, null, {}).then(result => {
+  return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       'data': {
         'viewerBasicAuth': {
@@ -52,7 +52,7 @@ test('Get patent using API key', () => {
       }
     }
   }`
-  return graphql(schema, query, null, {}).then(result => {
+  return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       'data': {
         'viewerApiKey': {
@@ -73,7 +73,7 @@ test('Get project using API key 1', () => {
       }
     }
   }`
-  return graphql(schema, query, null, {}).then(result => {
+  return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       'data': {
         'viewerApiKey': {
@@ -94,7 +94,7 @@ test('Get project using API key 2', () => {
       }
     }
   }`
-  return graphql(schema, query, null, {}).then(result => {
+  return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       'data': {
         'viewerApiKey2': {
@@ -120,7 +120,7 @@ test('Post project using API key 1', () => {
       }
     }
   }`
-  return graphql(schema, query, null, {}).then(result => {
+  return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       'data': {
         'mutationViewerApiKey': {
@@ -148,7 +148,7 @@ test('Post project using API key 2', () => {
       }
     }
   }`
-  return graphql(schema, query, null, {}).then(result => {
+  return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       'data': {
         'mutationViewerApiKey2': {
@@ -169,8 +169,8 @@ test('Extract token from context', () => {
   }`
 
   return OasGraph.createGraphQlSchema(oas, {tokenJSONpath: '$.user.token', viewer: true})
-    .then(createdSchema => {
-      return graphql(createdSchema, query, null, {user: {token: 'abcdef'}}).then(result => {
+    .then(({schema}) => {
+      return graphql(schema, query, null, {user: {token: 'abcdef'}}).then(result => {
         expect(result).toEqual({
           'data': {
             secure: 'A secure message.'

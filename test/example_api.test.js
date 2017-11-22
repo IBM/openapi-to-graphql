@@ -16,7 +16,7 @@ const {
 /**
  * Set up the schema first
  */
-let schema
+let createdSchema
 let oas = require('./fixtures/example_oas.json')
 
 beforeAll(() => {
@@ -24,8 +24,8 @@ beforeAll(() => {
   return OasGraph.createGraphQlSchema(oas, {
     addSubOperations: true
   })
-    .then(createdSchema => {
-      schema = createdSchema
+    .then(({schema}) => {
+      createdSchema = schema
     })
 })
 
@@ -36,7 +36,7 @@ test('Get resource (incl. enum)', () => {
       status
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({data: {user: {name: 'Erik Wittern', status: 'staff'}}})
   })
 })
@@ -47,7 +47,7 @@ test('Get resource 2', () => {
       legalForm
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({data: {company: {legalForm: 'public'}}})
   })
 })
@@ -61,7 +61,7 @@ test('Get nested resource via link $response.body#/...', () => {
       }
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         user: {
@@ -82,7 +82,7 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
       reviews (productTag: "sport")
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         'productWithId': {
@@ -98,7 +98,7 @@ test('Get response without providing parameter with default value', () => {
   let query = `{
     productsReviews (id: "100")
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         'productsReviews': ['Great product', 'I love it']
@@ -113,7 +113,7 @@ test('Get array of strings', () => {
       hobbies
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         user: {
@@ -132,7 +132,7 @@ test('Get array of objects', () => {
       }
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         company: {
@@ -157,7 +157,7 @@ test('Get single resource', () => {
       }
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         user: {
@@ -185,7 +185,7 @@ test('Post resource', () => {
       name
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         postUser: {
@@ -215,7 +215,7 @@ test('Post resource and get nested resource back', () => {
       }
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         postUser: {
@@ -240,7 +240,7 @@ test('Operation id is correctly sanitized, schema names and fields are ' +
       productTag
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
         productWithId: {
@@ -264,7 +264,7 @@ test('Request data is correctly de-sanitized to be sent', () => {
       productTag
     }
   }`
-  return graphql(schema, query).then(result => {
+  return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       'data': {
         'postProductWithId': {
@@ -287,7 +287,7 @@ test('Sub operations are properly made available', () => {
       }
     }
   }`
-  return graphql(schema, query, null, {}).then(result => {
+  return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
         user: {
@@ -315,12 +315,12 @@ test('Define header and query options', () => {
     status (globalquery: "test")
   }`
   return OasGraph.createGraphQlSchema(oas, options)
-    .then(createdSchema => {
+    .then(({schema}) => {
       // validate that 'limit' parameter is covered by options:
       let ast = parse(query)
-      let errors = validate(createdSchema, ast)
+      let errors = validate(schema, ast)
       expect(errors).toEqual([])
-      return graphql(createdSchema, query).then(result => {
+      return graphql(schema, query).then(result => {
         expect(result).toEqual({
           data: {
             status: 'Ok.'
@@ -342,7 +342,7 @@ test('Resolve allOf', () => {
       }
     }
   }`
-  return graphql(schema, query, null, {}).then(result => {
+  return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
         user: {

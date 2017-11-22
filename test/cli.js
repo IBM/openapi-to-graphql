@@ -12,7 +12,7 @@ const log = require('debug')('translation')
 
 const startServer = (oas) => {
   OasGraph.createGraphQlSchema(oas)
-    .then(schema => {
+    .then(({schema}) => {
       app.use('/graphql', graphqlHTTP({
         schema: schema,
         graphiql: true

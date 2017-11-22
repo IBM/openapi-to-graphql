@@ -13,11 +13,11 @@ const {
  * Set up the schema first
  */
 let oas = require('./fixtures/government_social_work_api.json')
-let schema
+let createdSchema
 beforeAll(() => {
   return OasGraph.createGraphQlSchema(oas)
-    .then(createdSchema => {
-      schema = createdSchema
+    .then(({schema}) => {
+      createdSchema = schema
     })
 })
 
@@ -28,7 +28,7 @@ test('All query endpoints present', () => {
       if (method === 'get') oasGetCount++
     }
   }
-  let gqlTypes = Object.keys(schema
+  let gqlTypes = Object.keys(createdSchema
     ._typeMap
     .query
     .getFields()
@@ -43,7 +43,7 @@ test('All mutation endpoints present', () => {
       if (Oas3Tools.isOperation(method) && method !== 'get') oasMutCount++
     }
   }
-  let gqlTypes = Object.keys(schema
+  let gqlTypes = Object.keys(createdSchema
     ._typeMap
     .mutation
     .getFields()
@@ -67,6 +67,6 @@ test('Get resource', () => {
     }
   }`
   let ast = parse(query)
-  let errors = validate(schema, ast)
+  let errors = validate(createdSchema, ast)
   expect(errors).toEqual([])
 })
