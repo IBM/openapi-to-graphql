@@ -129,7 +129,7 @@ export function getBaseUrl (
     let url = buildUrl(operation.servers[0])
 
     if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-      logHttp(`Warning: randomly selected first server ${url}`)
+      logHttp(`Warning: Randomly selected first server ${url}`)
     }
 
     return url.replace(/\/$/, '')
@@ -139,7 +139,7 @@ export function getBaseUrl (
     let url = buildUrl(oas.servers[0])
 
     if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-      logHttp(`Warning: randomly selected first server ${url}`)
+      logHttp(`Warning: Randomly selected first server ${url}`)
     }
 
     return url.replace(/\/$/, '')
@@ -453,11 +453,12 @@ export function getReqSchemaAndNames (
 export function getResSchemaAndNames (
   path: string,
   method: string,
-  oas: Oas3
+  oas: Oas3,
+  strict: boolean = false
 ) : ResSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let resSchemaNames = {}
-  let statusCode = getResStatusCode(path, method, oas)
+  let statusCode = getResStatusCode(path, method, oas, strict)
   if (!statusCode) {
     return {}
   }
@@ -490,7 +491,8 @@ export function getResSchemaAndNames (
 export function getResStatusCode (
   path: string,
   method: string,
-  oas: Oas3
+  oas: Oas3,
+  strict: boolean = false
 ) : ?string {
   let endpoint: OperationObject = oas.paths[path][method]
 
@@ -502,9 +504,14 @@ export function getResStatusCode (
     if (successCodes.length === 1) {
       return successCodes[0]
     } else if (successCodes.length > 1) {
-      log(`Warning: operation ${method.toUpperCase()} ${path} has more than ` +
-        `one success status code (200 - 299) - use ${successCodes[0]}`)
-      return successCodes[0]
+      if (strict) {
+        throw new Error(`Operation ${method.toUpperCase()} ${path} has more ` +
+          `than one success status code (200 - 299)`)
+      } else {
+        log(`Warning: Operation ${method.toUpperCase()} ${path} has more than ` +
+          `one success status code (200 - 299) - use ${successCodes[0]}`)
+        return successCodes[0]
+      }
     }
   }
   return null
@@ -516,11 +523,12 @@ export function getResStatusCode (
 export function getEndpointLinks (
   path: string,
   method: string,
-  oas: Oas3
+  oas: Oas3,
+  strict: boolean = false
 ) : {[string]: LinkObject} {
   let links = {}
   let endpoint: OperationObject = oas.paths[path][method]
-  let statusCode = getResStatusCode(path, method, oas)
+  let statusCode = getResStatusCode(path, method, oas, strict)
   if (!statusCode) {
     return links
   }

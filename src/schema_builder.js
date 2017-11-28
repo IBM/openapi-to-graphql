@@ -145,11 +145,16 @@ export function getGraphQLType ({
 
   // CASE: no known type
   if (!type) {
-    let warning = `Warning: skipped creation of (Input) Type "${name}", ` +
-      `which has no valid schema type. Schema: ${JSON.stringify(schema)}`
-    log(warning)
-    data.options.report.warnings.push(warning)
-    return GraphQLString
+    if (data.options.strict) {
+      throw new Error(`(Input) Type '${name}' has no valid schema type. ` +
+        `Schema: ${JSON.stringify(schema)}`)
+    } else {
+      let warning = `Warning: (Input) Type '${name}' has no valid schema ` +
+        `type. Skipped creation. Schema: ${JSON.stringify(schema)}`
+      log(warning)
+      data.options.report.warnings.push(warning)
+      return GraphQLString
+    }
 
   // CASE: object - create ObjectType
   } else if (type === 'object') {
@@ -337,11 +342,16 @@ function reuseOrCreateList ({
     }
     return listObjectType
   } else {
-    let warning = `Warning: skipped creation of list '${name}' because list ` +
-      `item '${itemsName}' has no valid schema: ${JSON.stringify(itemsSchema)}`
-    log(warning)
-    data.options.report.warnings.push(warning)
-    return new GraphQLList(GraphQLString)
+    if (data.options.strict) {
+      throw new Error(`List item '${itemsName}' in list '${name}' has no ` +
+        `valid schema: ${JSON.stringify(itemsSchema)}`)
+    } else {
+      let warning = `Warning: List item '${itemsName}' in list '${name}' ` +
+        `has no valid schema. Skipped creation. ${JSON.stringify(itemsSchema)}`
+      log(warning)
+      data.options.report.warnings.push(warning)
+      return new GraphQLList(GraphQLString)
+    }
   }
 }
 
@@ -395,10 +405,10 @@ function getScalarType (
       return GraphQLBoolean
     default:
       if (data.options.strict) {
-        throw new Error(`Unknown JSON scalar "${type}"`)
+        throw new Error(`Unknown JSON scalar type '${type}'`)
       } else {
-        let warning = `Warning: can't resolve type "${type}" - default to ` +
-          `GraphQLString`
+        let warning = `Warning: Unknown JSON scalar type '${type}'. Default ` +
+          `to GraphQLString.`
         log(warning)
         data.options.report.warnings.push(warning)
         return GraphQLString
@@ -554,20 +564,27 @@ function createFields ({
   if (iteration === 0 && operation && typeof operation === 'object' &&
     Array.isArray(operation.subOps)) {
     for (let subOp of operation.subOps) {
-      // here, we know the operatoin is present
+      // here, we know the operation is present
       operation = ((operation: any): Operation)
       let fieldName = subOp.resDef.otName
       let otName = operation.resDef.otName
+
+      // check for collision with existing field name:
       if (typeof fields[fieldName] !== 'undefined') {
-        let warning = `Warning: cannot add sub operation "${fieldName}" to ` +
-          `"${otName}". Collision detected.`
-        log(warning)
-        data.options.report.warnings.push(warning)
-        continue
+        if (data.options.strict) {
+          throw new Error(`Cannot add sub operation '${fieldName}' to ` +
+            `'${otName}'. Collision detected.`)
+        } else {
+          let warning = `Warning: Cannot add sub operation '${fieldName}' to ` +
+            `'${otName}'. Collision detected.`
+          log(warning)
+          data.options.report.warnings.push(warning)
+          continue
+        }
       }
 
-      log(`add sub operation "${fieldName}" to ` +
-        `"${otName}"`)
+      log(`add sub operation '${fieldName}' to ` +
+        `'${otName}'`)
 
       // determine parameters provided via parent operation
       let argsFromParent = operation.parameters.filter(param => {
@@ -646,12 +663,18 @@ function linkOpRefToOpId ({
         // check to see if there are other relative path candidates
         let lastPathIndex = operationRef.lastIndexOf('/#/paths/')
         if (firstPathIndex !== lastPathIndex) {
-          let warning = `Warning: Cannot pinpoint the beginning of relative ` +
-            `path in operationRef '${operationRef}' of link object ` +
-            `'${linkKey}' in object '${name}'. Will use first occurance ` +
-            `of '#/', may cause errors.`
-          log(warning)
-          data.options.report.warnings.push(warning)
+          if (data.options.strict) {
+            throw new Error(`Cannot pinpoint the beginning of relative ` +
+              `path in operationRef '${operationRef}' of link object ` +
+              `'${linkKey}' in object '${name}'.`)
+          } else {
+            let warning = `Warning: Cannot pinpoint the beginning of relative ` +
+              `path in operationRef '${operationRef}' of link object ` +
+              `'${linkKey}' in object '${name}'. Will use first occurance ` +
+              `of '#/', may cause errors.`
+            log(warning)
+            data.options.report.warnings.push(warning)
+          }
         }
 
         // +1 to avoid the first '/'
@@ -839,11 +862,16 @@ export function getArgs ({
   for (let parameter of parameters) {
     // we need at least a name
     if (typeof parameter.name !== 'string') {
-      let warning = `Warning: ignore parameter with no "name" property: ` +
-        `${JSON.stringify(parameter)}`
-      log(warning)
-      data.options.report.warnings.push(warning)
-      continue
+      if (data.options.strict) {
+        throw new Error(`Parameter misses 'name' property: ` +
+          `${JSON.stringify(parameter)}`)
+      } else {
+        let warning = `Warning: ignore parameter with no "name" property: ` +
+          `${JSON.stringify(parameter)}`
+        log(warning)
+        data.options.report.warnings.push(warning)
+        continue
+      }
     }
 
     // if this parameter is provided via options, ignore

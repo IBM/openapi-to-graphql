@@ -70,3 +70,10 @@ test('Get resource', () => {
   let errors = validate(createdSchema, ast)
   expect(errors).toEqual([])
 })
+
+test('Strict mode throws exception', () => {
+  return OasGraph.createGraphQlSchema(oas, {strict: true})
+    .catch(e =>
+    expect(e.message).toMatch(`Cannot add sub operation 'caseCaseAssessments' to 'case'. Collision detected.`)
+  )
+})

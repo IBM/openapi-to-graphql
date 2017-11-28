@@ -80,20 +80,26 @@ export function preprocessOas (
 
       // Response schema
       let {resSchema, resSchemaNames} = Oas3Tools.getResSchemaAndNames(
-        path, method, oas)
+        path, method, oas, data.options.strict)
 
       if (!resSchema || typeof resSchema !== 'object') {
-        let warning = `Warning: "${method.toUpperCase()} ${path}" has no valid ` +
-          `response schema. Ignore operation.`
-        log(warning)
-        options.report.warnings.push(warning)
-        continue
+        if (data.options.strict) {
+          throw new Error(`Operation '${method.toUpperCase()} ${path}' has ` +
+            `no valid response schema.`)
+        } else {
+          let warning = `Warning: Operation '${method.toUpperCase()} ${path}' ` +
+            `has no valid response schema. Ignore operation.`
+          log(warning)
+          options.report.warnings.push(warning)
+          continue
+        }
       }
 
       let resDef = createOrReuseDataDef(resSchema, resSchemaNames, data)
 
       // Links
-      let links = Oas3Tools.getEndpointLinks(path, method, oas)
+      let links = Oas3Tools.getEndpointLinks(
+        path, method, oas, data.options.strict)
 
       // Parameters
       let parameters = Oas3Tools.getParameters(path, method, oas)
@@ -242,8 +248,8 @@ function getProcessedSecuritySchemes (
               throw new Error(`OASgraph currently does not support the HTTP ` +
                 `authentication scheme '${String(protocol.scheme)}'`)
             } else {
-              let warning = `OASgraph currently does not support the HTTP ` +
-                `authentication scheme '${String(protocol.scheme)}'`
+              let warning = `Warning: OASgraph currently does not support ` +
+                `the HTTP authentication scheme '${String(protocol.scheme)}'`
               log(warning)
               options.report.warnings.push(warning)
             }
@@ -259,8 +265,8 @@ function getProcessedSecuritySchemes (
           throw new Error(`OASgraph currently does not support the HTTP ` +
             `authentication scheme '${String(protocol.scheme)}'`)
         } else {
-          let warning = `OASgraph currently does not support the HTTP ` +
-            `authentication scheme '${String(protocol.scheme)}'`
+          let warning = `Warning: OASgraph currently does not support the ` +
+            `HTTP authentication scheme '${String(protocol.scheme)}'`
           log(warning)
           options.report.warnings.push(warning)
         }

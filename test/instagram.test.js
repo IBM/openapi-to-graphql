@@ -33,3 +33,10 @@ test('All Instagram query endpoints present', () => {
   ).length
   expect(gqlTypes).toEqual(oasGetCount)
 })
+
+test('Strict mode throws exception', () => {
+  return OasGraph.createGraphQlSchema(oas, {strict: true})
+    .catch(e =>
+    expect(e.message).toMatch(`Cannot add sub operation 'usersPagingResponse' to 'userResponse'. Collision detected.`)
+  )
+})

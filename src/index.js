@@ -292,12 +292,18 @@ function loadField ({
 
   // If the operation has no valid type, abort
   if (!field.type || typeof field.type === 'undefined') {
-    let warning = `Warning: skipped operation ` +
-      `"${operation.method.toUpperCase()} ${operation.path}" without defined ` +
-      `Object Type.`
-    log(warning)
-    options.report.warnings.push(warning)
-    return
+    if (data.options.strict) {
+      throw new Error(`Cannot translate operation ` +
+        `'${operation.method.toUpperCase()} ${operation.path}' without ` +
+        `Object Type.`)
+    } else {
+      let warning = `Warning: Cannot translate operation ` +
+        `'${operation.method.toUpperCase()} ${operation.path}' without ` +
+        `Object Type. Skipped operation.`
+      log(warning)
+      options.report.warnings.push(warning)
+      return
+    }
   }
 
   // Determine if the operation is authenticated
