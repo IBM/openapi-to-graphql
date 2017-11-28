@@ -53,6 +53,7 @@ import { preprocessOas } from './preprocessor.js'
 import * as Oas3Tools from './oas_3_tools.js'
 import AuthBuilder from './auth_builder.js'
 import debug from 'debug'
+import { handleWarning } from './utils.js'
 import {
   GraphQLSchema,
   GraphQLObjectType
@@ -292,18 +293,14 @@ function loadField ({
 
   // If the operation has no valid type, abort
   if (!field.type || typeof field.type === 'undefined') {
-    if (data.options.strict) {
-      throw new Error(`Cannot translate operation ` +
-        `'${operation.method.toUpperCase()} ${operation.path}' without ` +
-        `Object Type.`)
-    } else {
-      let warning = `Warning: Cannot translate operation ` +
-        `'${operation.method.toUpperCase()} ${operation.path}' without ` +
-        `Object Type. Skipped operation.`
-      log(warning)
-      options.report.warnings.push(warning)
-      return
-    }
+    handleWarning(
+      `Cannot translate operation '${operation.method.toUpperCase()} ` +
+      `${operation.path}' without Object Type.`,
+      `Will ignore operation.`,
+      data,
+      log
+    )
+    return
   }
 
   // Determine if the operation is authenticated

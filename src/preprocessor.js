@@ -18,6 +18,7 @@ import type {
 import * as Oas3Tools from './oas_3_tools.js'
 import deepEqual from 'deep-equal'
 import debug from 'debug'
+import { handleWarning } from './utils.js'
 
 const log = debug('preprocessing')
 
@@ -39,7 +40,7 @@ export function preprocessOas (
   }
 
   // Security schemas
-  data.security = getProcessedSecuritySchemes(oas, options)
+  data.security = getProcessedSecuritySchemes(oas, data)
 
   // Process all operations
   for (let path in oas.paths) {
@@ -80,26 +81,24 @@ export function preprocessOas (
 
       // Response schema
       let {resSchema, resSchemaNames} = Oas3Tools.getResSchemaAndNames(
-        path, method, oas, data.options.strict)
+        path, method, oas, data)
 
       if (!resSchema || typeof resSchema !== 'object') {
-        if (data.options.strict) {
-          throw new Error(`Operation '${method.toUpperCase()} ${path}' has ` +
-            `no valid response schema.`)
-        } else {
-          let warning = `Warning: Operation '${method.toUpperCase()} ${path}' ` +
-            `has no valid response schema. Ignore operation.`
-          log(warning)
-          options.report.warnings.push(warning)
-          continue
-        }
+        handleWarning(
+          `Operation '${method.toUpperCase()} ${path}' has no valid response ` +
+          `schema.`,
+          `Will ignore operation.`,
+          data,
+          log
+        )
+        continue
       }
 
       let resDef = createOrReuseDataDef(resSchema, resSchemaNames, data)
 
       // Links
       let links = Oas3Tools.getEndpointLinks(
-        path, method, oas, data.options.strict)
+        path, method, oas, data)
 
       // Parameters
       let parameters = Oas3Tools.getParameters(path, method, oas)
@@ -187,7 +186,7 @@ export function preprocessOas (
  */
 function getProcessedSecuritySchemes (
   oas: Oas3,
-  options: Options
+  data: PreprocessingData
 ) : {[string]: ProcessedSecurityScheme} {
   let result = {}
   let security = Oas3Tools.getSecuritySchemes(oas)
@@ -244,15 +243,13 @@ function getProcessedSecuritySchemes (
             }
             break
           default:
-            if (options.strict) {
-              throw new Error(`OASgraph currently does not support the HTTP ` +
-                `authentication scheme '${String(protocol.scheme)}'`)
-            } else {
-              let warning = `Warning: OASgraph currently does not support ` +
-                `the HTTP authentication scheme '${String(protocol.scheme)}'`
-              log(warning)
-              options.report.warnings.push(warning)
-            }
+            handleWarning(
+              `OASgraph currently does not support the HTTP authentication ` +
+              `scheme '${String(protocol.scheme)}'.`,
+              `Will ignore authentication scheme.`,
+              data,
+              log
+            )
         }
         break
 
@@ -261,15 +258,13 @@ function getProcessedSecuritySchemes (
         break
 
       default:
-        if (options.strict) {
-          throw new Error(`OASgraph currently does not support the HTTP ` +
-            `authentication scheme '${String(protocol.scheme)}'`)
-        } else {
-          let warning = `Warning: OASgraph currently does not support the ` +
-            `HTTP authentication scheme '${String(protocol.scheme)}'`
-          log(warning)
-          options.report.warnings.push(warning)
-        }
+        handleWarning(
+          `OASgraph currently does not support the HTTP authentication ` +
+          `scheme '${String(protocol.scheme)}'.`,
+          `Will ignore authentication scheme.`,
+          data,
+          log
+        )
     }
 
     // Add protocol data to the output

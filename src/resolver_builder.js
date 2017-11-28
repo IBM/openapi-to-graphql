@@ -335,15 +335,8 @@ function getAuthOptions (
             typeof security.def.name === 'string') {
             authQs[security.def.name] = apiKey
           } else {
-            if (data.options.strict) {
-              throw new Error(`Cannot send apiKey in ` +
-                `"${JSON.stringify(security.def.in)}"`)
-            } else {
-              let warning = `Warning: cannot send apiKey in ` +
-                `"${JSON.stringify(security.def.in)}"`
-              log(warning)
-              data.options.report.warnings.push(warning)
-            }
+            throw new Error(`Cannot send apiKey in ` +
+              `'${JSON.stringify(security.def.in)}'`)
           }
         }
         break
@@ -358,15 +351,8 @@ function getAuthOptions (
             break
 
           default:
-            if (data.options.strict) {
-              throw new Error(`Cannot recognize http security scheme ` +
-                `'${JSON.stringify(security.def.scheme)}'`)
-            } else {
-              let warning = `Warning: cannot recognize http security scheme ` +
-                `'${JSON.stringify(security.def.scheme)}'`
-              log(warning)
-              data.options.report.warnings.push(warning)
-            }
+            throw new Error(`Cannot recognize http security scheme ` +
+              `'${JSON.stringify(security.def.scheme)}'`)
         }
         break
 

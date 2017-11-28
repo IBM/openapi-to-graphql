@@ -21,6 +21,7 @@ import type {
 import {getGraphQLType} from './schema_builder.js'
 import * as Oas3Tools from './oas_3_tools.js'
 import debug from 'debug'
+import { handleWarning } from './utils.js'
 import {
   GraphQLString,
   GraphQLObjectType,
@@ -86,11 +87,11 @@ const createAndLoadViewer = (
           break
 
         default:
-          if (data.options.strict) {
-            throw new Error(`Unsupported scheme ${String(scheme)} for HTTP ` +
-              `authentication`)
-          }
-          log(`Unsupported scheme ${String(scheme)} for HTTP authentication`)
+          handleWarning(
+            `Unsupported scheme '${String(scheme)}' for HTTP authentication.`,
+            `Will ignore this protocol.`,
+            data,
+            log)
       }
     }
 

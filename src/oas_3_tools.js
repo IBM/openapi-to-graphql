@@ -26,12 +26,14 @@ import type {
   SecuritySchemeObject,
   SecurityRequirementObject
 } from './types/oas3.js'
+import type { PreprocessingData } from './types/preprocessing_data.js'
 
 // Imports:
 import Swagger2OpenAPI from 'swagger2openapi'
 import OASValidator from 'swagger2openapi/validate.js'
 import deepEqual from 'deep-equal'
 import debug from 'debug'
+import { handleWarning } from './utils.js'
 
 // Type definitions & exports:
 export type SchemaNames = {
@@ -454,11 +456,11 @@ export function getResSchemaAndNames (
   path: string,
   method: string,
   oas: Oas3,
-  strict: boolean = false
+  data: PreprocessingData
 ) : ResSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let resSchemaNames = {}
-  let statusCode = getResStatusCode(path, method, oas, strict)
+  let statusCode = getResStatusCode(path, method, oas, data)
   if (!statusCode) {
     return {}
   }
@@ -492,7 +494,7 @@ export function getResStatusCode (
   path: string,
   method: string,
   oas: Oas3,
-  strict: boolean = false
+  data: PreprocessingData
 ) : ?string {
   let endpoint: OperationObject = oas.paths[path][method]
 
@@ -504,14 +506,14 @@ export function getResStatusCode (
     if (successCodes.length === 1) {
       return successCodes[0]
     } else if (successCodes.length > 1) {
-      if (strict) {
-        throw new Error(`Operation ${method.toUpperCase()} ${path} has more ` +
-          `than one success status code (200 - 299)`)
-      } else {
-        log(`Warning: Operation ${method.toUpperCase()} ${path} has more than ` +
-          `one success status code (200 - 299) - use ${successCodes[0]}`)
-        return successCodes[0]
-      }
+      handleWarning(
+        `Operation ${method.toUpperCase()} ${path} has more than one success ` +
+        `status code (200 - 299).`,
+        `Will select response for ${successCodes[0]}.`,
+        data,
+        log
+      )
+      return successCodes[0]
     }
   }
   return null
@@ -524,11 +526,11 @@ export function getEndpointLinks (
   path: string,
   method: string,
   oas: Oas3,
-  strict: boolean = false
+  data: PreprocessingData
 ) : {[string]: LinkObject} {
   let links = {}
   let endpoint: OperationObject = oas.paths[path][method]
-  let statusCode = getResStatusCode(path, method, oas, strict)
+  let statusCode = getResStatusCode(path, method, oas, data)
   if (!statusCode) {
     return links
   }
@@ -850,7 +852,8 @@ export function resolveAllOf (
     // add the allOf properties and return
     return resolveAllOfRec(temp, schema.allOf, oas)
   } else {
-    throw new Error(`schema '${JSON.stringify(schema)}' does not contain an 'allOf' property`)
+    throw new Error(`schema '${JSON.stringify(schema)}' does not contain an ` +
+      `'allOf' property`)
   }
 }
 
@@ -880,10 +883,11 @@ function resolveAllOfRec (
              * an object tye and no properties field is equivalent to an empty
              * schema
              */
-            if (resolvedSchema.type === 'object' && !('properties' in resolvedSchema)) {
+            if (resolvedSchema.type === 'object' &&
+              !('properties' in resolvedSchema)) {
               resolvedSchema.type = subschema.type
             } else {
-              throw new Error(`allOf will overwrite a preexisting type ` +
+              throw new Error(`'allOf' will overwrite a preexisting type ` +
                 `definition 'type: ${resolvedSchema.type}' with 'type: ` +
                 `${subschema.type}' in schema '${JSON.stringify(resolvedSchema)}'`)
             }

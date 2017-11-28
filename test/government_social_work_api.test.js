@@ -74,6 +74,6 @@ test('Get resource', () => {
 test('Strict mode throws exception', () => {
   return OasGraph.createGraphQlSchema(oas, {strict: true})
     .catch(e =>
-    expect(e.message).toMatch(`Cannot add sub operation 'caseCaseAssessments' to 'case'. Collision detected.`)
+    expect(e.message).toMatch(`Warning: Cannot add sub operation 'caseCaseAssessments' to 'case' due to name collision.`)
   )
 })

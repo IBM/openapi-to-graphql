@@ -25,6 +25,7 @@ import * as Oas3Tools from './oas_3_tools.js'
 import { getResolver } from './resolver_builder.js'
 import { createOrReuseDataDef } from './preprocessor.js'
 import debug from 'debug'
+import { handleWarning } from './utils.js'
 import {
   GraphQLObjectType,
   GraphQLString,
@@ -145,16 +146,14 @@ export function getGraphQLType ({
 
   // CASE: no known type
   if (!type) {
-    if (data.options.strict) {
-      throw new Error(`(Input) Type '${name}' has no valid schema type. ` +
-        `Schema: ${JSON.stringify(schema)}`)
-    } else {
-      let warning = `Warning: (Input) Type '${name}' has no valid schema ` +
-        `type. Skipped creation. Schema: ${JSON.stringify(schema)}`
-      log(warning)
-      data.options.report.warnings.push(warning)
-      return GraphQLString
-    }
+    handleWarning(
+      `(Input) Type '${name}' has no valid schema type. ` +
+      `Schema: ${JSON.stringify(schema)}`,
+      `Will fall back to GraphQLString.`,
+      data,
+      log
+    )
+    return GraphQLString
 
   // CASE: object - create ObjectType
   } else if (type === 'object') {
@@ -220,7 +219,7 @@ function reuseOrCreateOt ({
 } : ReuseOrCreateOtParams) : GQObjectType | GQInputObjectType | GraphQLScalarType {
   // some validation
   if (typeof schema === 'undefined') {
-    throw new Error(`no schema passed to reuseOrCreateOt for name ${name}`)
+    throw new Error(`No schema passed to reuseOrCreateOt for name '${name}'.`)
   }
 
   // fetch or create data definition
@@ -295,7 +294,7 @@ function reuseOrCreateList ({
   // minimal error-checking
   if (!('items' in schema)) {
     throw new Error(`Items property missing in array schema definition of ` +
-      `${name}`)
+      `'${name}'.`)
   }
 
   let def = createOrReuseDataDef(
@@ -342,16 +341,13 @@ function reuseOrCreateList ({
     }
     return listObjectType
   } else {
-    if (data.options.strict) {
-      throw new Error(`List item '${itemsName}' in list '${name}' has no ` +
-        `valid schema: ${JSON.stringify(itemsSchema)}`)
-    } else {
-      let warning = `Warning: List item '${itemsName}' in list '${name}' ` +
-        `has no valid schema. Skipped creation. ${JSON.stringify(itemsSchema)}`
-      log(warning)
-      data.options.report.warnings.push(warning)
-      return new GraphQLList(GraphQLString)
-    }
+    handleWarning(
+      `List item '${itemsName}' in list '${name}' has no valid schema: ` +
+      `${JSON.stringify(itemsSchema)}`,
+      `Will fall back to GraphQLString.`,
+      data,
+      log)
+    return new GraphQLList(GraphQLString)
   }
 }
 
@@ -404,15 +400,13 @@ function getScalarType (
     case 'boolean':
       return GraphQLBoolean
     default:
-      if (data.options.strict) {
-        throw new Error(`Unknown JSON scalar type '${type}'`)
-      } else {
-        let warning = `Warning: Unknown JSON scalar type '${type}'. Default ` +
-          `to GraphQLString.`
-        log(warning)
-        data.options.report.warnings.push(warning)
-        return GraphQLString
-      }
+      handleWarning(
+        `Unknown JSON scalar type '${type}'.`,
+        `Will fall back to GraphQLString.`,
+        data,
+        log
+      )
+      return GraphQLString
   }
 }
 
@@ -547,15 +541,13 @@ function createFields ({
           description: operation.links[linkKey].description // may be undefined
         }
       } else {
-        if (data.options.strict) {
-          throw new Error(`Cannot create link '${linkKey}' in object ` +
-            `'${name}'. Invalid operationId, operationRef, and/or href.`)
-        } else {
-          let warning = `Warning: Cannot create link '${linkKey}' in object ` +
-            `'${name}'. Invalid operationId, operationRef, and/or href.`
-          log(warning)
-          data.options.report.warnings.push(warning)
-        }
+        handleWarning(
+          `Cannot create link '${linkKey}' in object '${name}'. Invalid ` +
+          `operationId, operationRef, and/or href.`,
+          `Will ignore link.`,
+          data,
+          log
+        )
       }
     }
   }
@@ -571,16 +563,14 @@ function createFields ({
 
       // check for collision with existing field name:
       if (typeof fields[fieldName] !== 'undefined') {
-        if (data.options.strict) {
-          throw new Error(`Cannot add sub operation '${fieldName}' to ` +
-            `'${otName}'. Collision detected.`)
-        } else {
-          let warning = `Warning: Cannot add sub operation '${fieldName}' to ` +
-            `'${otName}'. Collision detected.`
-          log(warning)
-          data.options.report.warnings.push(warning)
-          continue
-        }
+        handleWarning(
+          `Warning: Cannot add sub operation '${fieldName}' to '${otName}' ` +
+          `due to name collision.`,
+          `Will ignore link.`,
+          data,
+          log
+        )
+        continue
       }
 
       log(`add sub operation '${fieldName}' to ` +
@@ -663,18 +653,13 @@ function linkOpRefToOpId ({
         // check to see if there are other relative path candidates
         let lastPathIndex = operationRef.lastIndexOf('/#/paths/')
         if (firstPathIndex !== lastPathIndex) {
-          if (data.options.strict) {
-            throw new Error(`Cannot pinpoint the beginning of relative ` +
-              `path in operationRef '${operationRef}' of link object ` +
-              `'${linkKey}' in object '${name}'.`)
-          } else {
-            let warning = `Warning: Cannot pinpoint the beginning of relative ` +
-              `path in operationRef '${operationRef}' of link object ` +
-              `'${linkKey}' in object '${name}'. Will use first occurance ` +
-              `of '#/', may cause errors.`
-            log(warning)
-            data.options.report.warnings.push(warning)
-          }
+          handleWarning(
+            `Cannot pinpoint the beginning of relative path in operationRef ` +
+            `'${operationRef}' of link object '${linkKey}' in object '${name}'`,
+            `Will use first occurance of '#/', may cause errors`,
+            data,
+            log
+          )
         }
 
         // +1 to avoid the first '/'
@@ -682,18 +667,14 @@ function linkOpRefToOpId ({
 
       // cannot find relative path candidate
       } else {
-        if (data.options.strict) {
-          throw new Error(`Could not find relative path in operationRef ` +
-            `'${operationRef}' of link object '${linkKey}' in object ` +
-            `'${name}'. Will not create link.`)
-        } else {
-          let warning = `Warning: Could not find relative path in ` +
-            `operationRef '${operationRef}' of link object '${linkKey}' in ` +
-            `object '${name}'. Will not create link.`
-          log(warning)
-          data.options.report.warnings.push(warning)
-          return
-        }
+        handleWarning(
+          `Cannot find relative path in operationRef '${operationRef}' of ` +
+          `link object '${linkKey}' in object '${name}'.`,
+          `Will ignore link.`,
+          data,
+          log
+        )
+        return
       }
     }
 
@@ -723,41 +704,29 @@ function linkOpRefToOpId ({
 
           // check if method is a valid method
           if (!(Oas3Tools.OAS_OPERATIONS.includes(linkMethod))) {
-            if (data.options.strict) {
-              throw new Error(`Method '${linkMethod}' at the end of ` +
-              `relative path '${linkRelativePathAndMethod}' in operationRef ` +
+            handleWarning(
+              `Method '${linkMethod}' at the end of relative path ` +
+              `'${linkRelativePathAndMethod}' in operationRef ` +
               `'${operationRef}' of link object '${linkKey}' in ` +
-              `object '${name}' is not a valid method. Will not ` +
-              `create link.`)
-            } else {
-              let warning = `Warning: method '${linkMethod}' at the end of ` +
-                `relative path '${linkRelativePathAndMethod}' in ` +
-                `operationRef '${operationRef}' of link object '${linkKey}' ` +
-                `in object '${name}' is not a valid method. Will not ` +
-                `create link.`
-              log(warning)
-              data.options.report.warnings.push(warning)
-              return
-            }
+              `object '${name}' is not a valid method.`,
+              `Will ignore link.`,
+              data,
+              log
+            )
+            return
           }
         // there is no method at the end of the path
         } else {
-          if (data.options.strict) {
-            throw new Error(`No method at the end of ` +
-            `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-            `'${operationRef}' of link object '${linkKey}' in ` +
-            `object '${name}' is not a valid method. Will not ` +
-            `create link.`)
-          } else {
-            let warning = `Warning: No method at the end of ` +
-              `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-              `'${operationRef}' of link object '${linkKey}' in ` +
-              `object '${name}' is not a valid method. Will not ` +
-              `create link.`
-            log(warning)
-            data.options.report.warnings.push(warning)
-            return
-          }
+          handleWarning(
+            `No  valid method at the end of relative path ` +
+            `'${linkRelativePathAndMethod}' in operationRef ` +
+            `'${operationRef}' of link object '${linkKey}' in object ` +
+            `'${name}'.`,
+            `Will ignore link.`,
+            data,
+            log
+          )
+          return
         }
 
         // getting path
@@ -781,65 +750,49 @@ function linkOpRefToOpId ({
           if (linkedOpId in data.operations) {
             return linkedOpId
           } else {
-            if (data.options.strict) {
-              throw new Error(`Could not find operationId '${linkedOpId}' in ` +
-              `data to produce link object '${linkKey}' for object ` +
-              `'${name}'`)
-            } else {
-              let warning = `Warning: Could not find operationId ` +
-                `'${linkedOpId}' in data to produce link object '${linkKey}' ` +
-                `for object '${name}'. Will not create link.`
-              log(warning)
-              data.options.report.warnings.push(warning)
-            }
+            handleWarning(
+              `Could not find operationId '${linkedOpId}' in data to produce ` +
+              `link object '${linkKey}' for object '${name}'.`,
+              `Will ignore link.`,
+              data,
+              log
+            )
           }
         // path and method could not be found
         } else {
-          if (data.options.strict) {
-            throw new Error(`Could not find path and/or method from ` +
-              `operationRef '${operationRef}' to linked opject ` +
-              `'${linkKey}' in object '${name}'. Will not created link.`)
-          } else {
-            let warning = `Warning: Could not find path and/or method from ` +
-              `operationRef '${operationRef}' to linked opject ` +
-              `'${linkKey}' in object '${name}'. Will not created link.`
-            log(warning)
-            data.options.report.warnings.push(warning)
-          }
+          handleWarning(
+            `Could not find path and/or method from operationRef ` +
+            `'${operationRef}' to linked opject '${linkKey}' in object ` +
+            `'${name}'.`,
+            `Will ignore link.`,
+            data,
+            log
+          )
         }
 
       // Cannot split relative path into path and method sections
       } else {
-        if (data.options.strict) {
-          throw new Error(`Could not find path and method sections in ` +
-            `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-            `'${operationRef}' of link object '${linkKey}' in object ` +
-            `'${name}'. There should be at least one '/' that divides ` +
-            `the path from the method`)
-        } else {
-          let warning = `Warning: Could not find path and method sections in ` +
-            `relative path '${linkRelativePathAndMethod}' in operationRef ` +
-            `'${operationRef}' of link object '${linkKey}' in object ` +
-            `'${name}'. There should be at least one '/' that divides ` +
-            `the path from the method. Will not create link.`
-          log(warning)
-          data.options.report.warnings.push(warning)
-        }
+        handleWarning(
+          `Could not find path and method sections in relative path ` +
+          `'${linkRelativePathAndMethod}' in operationRef ` +
+          `'${operationRef}' of link object '${linkKey}' in object ` +
+          `'${name}'. There should be at least one '/' that divides ` +
+          `the path from the method.`,
+          `Will ignore link.`,
+          data,
+          log
+        )
       }
 
     // Cannot extract relative path from absolute path
     } else {
-      if (data.options.strict) {
-        throw new Error(`Could not extract relative path from operationRef ` +
-          `'${operationRef}' of link object '${linkKey}' in object ` +
-          `'${name}'`)
-      } else {
-        let warning = `Warning: Could not extract relative path from ` +
-          `operationRef '${operationRef}' of link object '${linkKey}' in ` +
-          `object '${name}'. Will not create link`
-        log(warning)
-        data.options.report.warnings.push(warning)
-      }
+      handleWarning(
+        `Could not extract relative path from operationRef '${operationRef}' ` +
+        `of link object '${linkKey}' in object '${name}'.`,
+        `Will ignore link.`,
+        data,
+        log
+      )
     }
   }
 }
@@ -862,16 +815,13 @@ export function getArgs ({
   for (let parameter of parameters) {
     // we need at least a name
     if (typeof parameter.name !== 'string') {
-      if (data.options.strict) {
-        throw new Error(`Parameter misses 'name' property: ` +
-          `${JSON.stringify(parameter)}`)
-      } else {
-        let warning = `Warning: ignore parameter with no "name" property: ` +
-          `${JSON.stringify(parameter)}`
-        log(warning)
-        data.options.report.warnings.push(warning)
-        continue
-      }
+      handleWarning(
+        `Parameter misses 'name' property: ${JSON.stringify(parameter)}`,
+        `Will ignore parameter.`,
+        data,
+        log
+      )
+      continue
     }
 
     // if this parameter is provided via options, ignore
