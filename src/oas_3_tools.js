@@ -67,11 +67,11 @@ export const SUCCESS_STATUS_RX = /2[0-9]{2}/
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<any> {
+export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
   // CASE: translate
   if (typeof spec.swagger === 'string' && spec.swagger === '2.0') {
     logPre(`Received OpenAPI Specification 2.0 - going to translate...`)
-    let result = await Swagger2OpenAPI.convertObj(spec, {})
+    let result : {openapi: Oas3} = await Swagger2OpenAPI.convertObj(spec, {})
     return (result.openapi: Oas3)
   // CASE: validate
   } else if (typeof spec.openapi === 'string' && /^3/.test(spec.openapi)) {
@@ -79,10 +79,11 @@ export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<any> {
     let valid = OASValidator.validateSync(spec, {})
     if (!valid) {
       throw new Error(`Validation of OpenAPI Specification failed.`)
-    } else {
-      logPre(`OpenAPI Specification is validated`)
-      return (spec: Oas3)
     }
+    logPre(`OpenAPI Specification is validated`)
+    return (spec: Oas3)
+  } else {
+    throw new Error(`Invalid specification provided`)
   }
 }
 

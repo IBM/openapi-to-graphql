@@ -20,7 +20,7 @@
     "graphql": "^0.9.6",
     "jsonpath": "^0.2.11",
     "request": "^2.81.0",
-    "swagger2openapi": "^2.3.3"
+    "swagger2openapi": "2.3.3"
   },
   "standard": {
     "parser": "babel-eslint",
@@ -37,12 +37,12 @@
     "eslint-plugin-flowtype": "^2.35.0",
     "express": "^4.15.2",
     "express-graphql": "^0.6.4",
-    "flow-bin": "^0.52.0",
+    "flow-bin": "^0.59.0",
     "fs": "0.0.1-security",
     "glob": "^7.1.2",
     "jest": "^20.0.4",
     "js-yaml": "^3.8.4",
-    "nodegit": "^0.18.3",
+    "nodegit": "^0.18.0",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.1",
     "yamljs": "^0.3.0"

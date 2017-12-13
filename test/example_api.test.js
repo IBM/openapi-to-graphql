@@ -18,13 +18,11 @@ const {
  */
 let createdSchema
 let oas = require('./fixtures/example_oas.json')
-
 beforeAll(() => {
-  let oas = require('./fixtures/example_oas.json')
   return OasGraph.createGraphQlSchema(oas, {
     addSubOperations: true
   })
-    .then(({schema}) => {
+    .then(({schema, report}) => {
       createdSchema = schema
     })
 })

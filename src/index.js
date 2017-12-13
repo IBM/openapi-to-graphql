@@ -98,12 +98,6 @@ async function createGraphQlSchema (
   options.addSubOperations = options.addSubOperations || true
   options.viewer = options.viewer || true
   options.sendOAuthTokenInQuery = options.sendOAuthTokenInQuery || false
-
-  // Some basic validation
-  if (typeof spec !== 'object') {
-    throw new Error(`Invalid specification provided`)
-  }
-
   options.report = {
     warnings: []
   }

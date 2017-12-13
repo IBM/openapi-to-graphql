@@ -262,7 +262,9 @@ function reuseOrCreateOt ({
       def.iot = new GraphQLInputObjectType({
         name: def.iotName,
         description: schema.description, // might be undefined
+        // $FlowFixMe: this is a valid thunk being returned
         fields: () => {
+          // $FlowFixMe
           return createFields({
             name: def.iotName,
             schema,
