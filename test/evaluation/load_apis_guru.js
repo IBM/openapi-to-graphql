@@ -28,7 +28,7 @@ const downloadOas = () => {
  * Helpers
  */
 const emptyTmp = () => {
-  rimraf.sync('tmp')
+  rimraf.sync(FOLDER_PATH)
 }
 
 // go go go:
