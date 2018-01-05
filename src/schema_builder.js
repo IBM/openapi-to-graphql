@@ -146,13 +146,12 @@ export function getGraphQLType ({
 
   // CASE: no known type
   if (!type) {
-    handleWarning(
-      `(Input) Type '${name}' has no valid schema type. ` +
-      `Schema: ${JSON.stringify(schema)}`,
-      `Will fall back to GraphQLString.`,
+    handleWarning({
+      typeKey: 'INVALID_SCHEMA_TYPE',
+      culprit: JSON.stringify(schema),
       data,
       log
-    )
+    })
     return GraphQLString
 
   // CASE: object - create ObjectType
@@ -343,12 +342,13 @@ function reuseOrCreateList ({
     }
     return listObjectType
   } else {
-    handleWarning(
-      `List item '${itemsName}' in list '${name}' has no valid schema: ` +
-      `${JSON.stringify(itemsSchema)}`,
-      `Will fall back to GraphQLString.`,
+    handleWarning({
+      typeKey: 'INVALID_SCHEMA_TYPE_LIST_ITEM',
+      culprit: `List item '${itemsName}' in list '${name}' with schema: ` +
+        `${JSON.stringify(itemsSchema)}`,
       data,
-      log)
+      log
+    })
     return new GraphQLList(GraphQLString)
   }
 }
@@ -402,12 +402,12 @@ function getScalarType (
     case 'boolean':
       return GraphQLBoolean
     default:
-      handleWarning(
-        `Unknown JSON scalar type '${type}'.`,
-        `Will fall back to GraphQLString.`,
+      handleWarning({
+        typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
+        culprit: `Unknown JSON scalar type '${type}'`,
         data,
         log
-      )
+      })
       return GraphQLString
   }
 }
@@ -543,13 +543,12 @@ function createFields ({
           description: operation.links[linkKey].description // may be undefined
         }
       } else {
-        handleWarning(
-          `Cannot create link '${linkKey}' in object '${name}'. Invalid ` +
-          `operationId, operationRef, and/or href.`,
-          `Will ignore link.`,
+        handleWarning({
+          typeKey: 'UNRESOLVABLE_LINK',
+          culprit: linkKey,
           data,
           log
-        )
+        })
       }
     }
   }
@@ -565,13 +564,12 @@ function createFields ({
 
       // check for collision with existing field name:
       if (typeof fields[fieldName] !== 'undefined') {
-        handleWarning(
-          `Warning: Cannot add sub operation '${fieldName}' to '${otName}' ` +
-          `due to name collision.`,
-          `Will ignore link.`,
+        handleWarning({
+          typeKey: 'LINK_NAME_COLLISION',
+          culprit: fieldName,
           data,
           log
-        )
+        })
         continue
       }
 
@@ -655,13 +653,12 @@ function linkOpRefToOpId ({
         // check to see if there are other relative path candidates
         let lastPathIndex = operationRef.lastIndexOf('/#/paths/')
         if (firstPathIndex !== lastPathIndex) {
-          handleWarning(
-            `Cannot pinpoint the beginning of relative path in operationRef ` +
-            `'${operationRef}' of link object '${linkKey}' in object '${name}'`,
-            `Will use first occurance of '#/', may cause errors`,
+          handleWarning({
+            typeKey: 'AMBIGUOUS_LINK',
+            culprit: operationRef,
             data,
             log
-          )
+          })
         }
 
         // +1 to avoid the first '/'
@@ -669,13 +666,13 @@ function linkOpRefToOpId ({
 
       // cannot find relative path candidate
       } else {
-        handleWarning(
-          `Cannot find relative path in operationRef '${operationRef}' of ` +
-          `link object '${linkKey}' in object '${name}'.`,
-          `Will ignore link.`,
+        handleWarning({
+          typeKey: 'UNRESOLVABLE_LINK',
+          culprit: `Link '${linkKey}' has not relative path in operationRef ` +
+            `'${operationRef}'`,
           data,
           log
-        )
+        })
         return
       }
     }
@@ -706,28 +703,24 @@ function linkOpRefToOpId ({
 
           // check if method is a valid method
           if (!(Oas3Tools.OAS_OPERATIONS.includes(linkMethod))) {
-            handleWarning(
-              `Method '${linkMethod}' at the end of relative path ` +
-              `'${linkRelativePathAndMethod}' in operationRef ` +
-              `'${operationRef}' of link object '${linkKey}' in ` +
-              `object '${name}' is not a valid method.`,
-              `Will ignore link.`,
+            handleWarning({
+              typeKey: 'UNRESOLVABLE_LINK',
+              culprit: `Method '${linkMethod}' in operationRef ` +
+                `'${operationRef}' is invalid`,
               data,
               log
-            )
+            })
             return
           }
         // there is no method at the end of the path
         } else {
-          handleWarning(
-            `No  valid method at the end of relative path ` +
-            `'${linkRelativePathAndMethod}' in operationRef ` +
-            `'${operationRef}' of link object '${linkKey}' in object ` +
-            `'${name}'.`,
-            `Will ignore link.`,
+          handleWarning({
+            typeKey: 'UNRESOLVABLE_LINK',
+            culprit: `No valid method targeted by operationRef ` +
+              `'${operationRef}'`,
             data,
             log
-          )
+          })
           return
         }
 
@@ -752,49 +745,45 @@ function linkOpRefToOpId ({
           if (linkedOpId in data.operations) {
             return linkedOpId
           } else {
-            handleWarning(
-              `Could not find operationId '${linkedOpId}' in data to produce ` +
-              `link object '${linkKey}' for object '${name}'.`,
-              `Will ignore link.`,
+            handleWarning({
+              typeKey: 'UNRESOLVABLE_LINK',
+              culprit: `Could not find operationId '${linkedOpId}' in link ` +
+                `'${linkKey}'`,
               data,
               log
-            )
+            })
           }
         // path and method could not be found
         } else {
-          handleWarning(
-            `Could not find path and/or method from operationRef ` +
-            `'${operationRef}' to linked opject '${linkKey}' in object ` +
-            `'${name}'.`,
-            `Will ignore link.`,
+          handleWarning({
+            typeKey: 'UNRESOLVABLE_LINK',
+            culprit: `Could not find path and/or method from operationRef ` +
+              `'${operationRef}' in link '${linkKey}'`,
             data,
             log
-          )
+          })
         }
 
       // Cannot split relative path into path and method sections
       } else {
-        handleWarning(
-          `Could not find path and method sections in relative path ` +
-          `'${linkRelativePathAndMethod}' in operationRef ` +
-          `'${operationRef}' of link object '${linkKey}' in object ` +
-          `'${name}'. There should be at least one '/' that divides ` +
-          `the path from the method.`,
-          `Will ignore link.`,
+        handleWarning({
+          typeKey: 'UNRESOLVABLE_LINK',
+          culprit: `Could not extract path and/or method from operationRef ` +
+            `'${operationRef}' in link '${linkKey}'`,
           data,
           log
-        )
+        })
       }
 
     // Cannot extract relative path from absolute path
     } else {
-      handleWarning(
-        `Could not extract relative path from operationRef '${operationRef}' ` +
-        `of link object '${linkKey}' in object '${name}'.`,
-        `Will ignore link.`,
+      handleWarning({
+        typeKey: 'UNRESOLVABLE_LINK',
+        culprit: `Could not extract relative path from operationRef ` +
+          `'${operationRef}' in link '${linkKey}'`,
         data,
         log
-      )
+      })
     }
   }
 }
@@ -817,12 +806,12 @@ export function getArgs ({
   for (let parameter of parameters) {
     // we need at least a name
     if (typeof parameter.name !== 'string') {
-      handleWarning(
-        `Parameter misses 'name' property: ${JSON.stringify(parameter)}`,
-        `Will ignore parameter.`,
+      handleWarning({
+        typeKey: 'UNNAMED_PARAMETER',
+        culprit: JSON.stringify(parameter),
         data,
         log
-      )
+      })
       continue
     }
 

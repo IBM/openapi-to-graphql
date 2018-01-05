@@ -507,13 +507,13 @@ export function getResStatusCode (
     if (successCodes.length === 1) {
       return successCodes[0]
     } else if (successCodes.length > 1) {
-      handleWarning(
-        `Operation ${method.toUpperCase()} ${path} has more than one success ` +
-        `status code (200 - 299).`,
-        `Will select response for ${successCodes[0]}.`,
+      handleWarning({
+        typeKey: 'MULTIPLE_RESPONSES',
+        culprit: `${method.toUpperCase()} ${path}`,
+        solution: `${successCodes[0]}`,
         data,
         log
-      )
+      })
       return successCodes[0]
     }
   }

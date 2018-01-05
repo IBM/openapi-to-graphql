@@ -47,12 +47,47 @@ async function checkOas (OASList) {
     }
   }
   console.log(JSON.stringify(results, null, 2))
+
+  // print overall numbers:
   let noWarnings = results.successes.filter(s => s.report.warnings.length === 0).length
   console.log(`-------------------\n` +
     `Overall: ${results.overall}\n` +
     `No warnings: ${noWarnings}\n` +
     `Successes: ${results.successes.length}\n` +
     `Errors: ${results.errors.length}`)
+
+  // print breakdown of warnings:
+  console.log(`-------------------`)
+  let allWarnings = []
+  results.successes.forEach(suc => {
+    allWarnings = allWarnings.concat(suc.report.warnings)
+  })
+  let warningDict = groupBy(allWarnings, 'type')
+  for (let key in warningDict) {
+    warningDict[key] = warningDict[key].length
+  }
+  console.log(JSON.stringify(warningDict, null, 2))
+}
+
+/**
+ * Helper util to group objects in an array based on a given property.
+ *
+ * @param  {Array} list
+ * @param  {String} prop Name of property to group by
+ * @return {Object}
+ */
+function groupBy (list, prop) {
+  var groups = {}
+  list.forEach(function (item) {
+    var list = groups[item[prop]]
+
+    if (list) {
+      list.push(item)
+    } else {
+      groups[item[prop]] = [item]
+    }
+  })
+  return groups
 }
 
 /**

@@ -84,13 +84,12 @@ export function preprocessOas (
         path, method, oas, data)
 
       if (!resSchema || typeof resSchema !== 'object') {
-        handleWarning(
-          `Operation '${method.toUpperCase()} ${path}' has no valid response ` +
-          `schema.`,
-          `Will ignore operation.`,
+        handleWarning({
+          typeKey: 'MISSING_RESPONSE_SCHEMA',
+          culprit: `${method.toUpperCase()} ${path}`,
           data,
           log
-        )
+        })
         continue
       }
 
@@ -243,13 +242,12 @@ function getProcessedSecuritySchemes (
             }
             break
           default:
-            handleWarning(
-              `OASgraph currently does not support the HTTP authentication ` +
-              `scheme '${String(protocol.scheme)}'.`,
-              `Will ignore authentication scheme.`,
+            handleWarning({
+              typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
+              culprit: `${String(protocol.scheme)}`,
               data,
               log
-            )
+            })
         }
         break
 
@@ -258,13 +256,12 @@ function getProcessedSecuritySchemes (
         break
 
       default:
-        handleWarning(
-          `OASgraph currently does not support the HTTP authentication ` +
-          `scheme '${String(protocol.scheme)}'.`,
-          `Will ignore authentication scheme.`,
+        handleWarning({
+          typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
+          culprit: `${String(protocol.scheme)}`,
           data,
           log
-        )
+        })
     }
 
     // Add protocol data to the output

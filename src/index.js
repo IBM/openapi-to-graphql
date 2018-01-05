@@ -287,13 +287,12 @@ function loadField ({
 
   // If the operation has no valid type, abort
   if (!field.type || typeof field.type === 'undefined') {
-    handleWarning(
-      `Cannot translate operation '${operation.method.toUpperCase()} ` +
-      `${operation.path}' without Object Type.`,
-      `Will ignore operation.`,
+    handleWarning({
+      typeKey: 'MISSING_GRAPHQL_TYPE',
+      culprit: `${operation.method.toUpperCase()} ${operation.path}`,
       data,
       log
-    )
+    })
     return
   }
 

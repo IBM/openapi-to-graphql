@@ -74,6 +74,6 @@ test('Get resource', () => {
 test('Strict mode throws exception', () => {
   return OasGraph.createGraphQlSchema(oas, {strict: true})
     .catch(e =>
-    expect(e.message).toMatch(`Warning: Cannot add sub operation 'caseCaseAssessments' to 'case' due to name collision.`)
+    expect(e.message).toMatch(`LinkNameCollision - Cannot create link 'caseCaseAssessments' because Object Type already contains field of the same name.`)
   )
 })

@@ -4,8 +4,14 @@
  * Type definition of the options that users can pass to OASGraph.
  */
 
+export type Warning = {
+  type: string,
+  message: string,
+  mitigation: string
+}
+
 export type Report = {
-  warnings: string[]
+  warnings: Warning[]
 }
 
 export type Options = {

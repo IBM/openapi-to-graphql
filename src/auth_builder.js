@@ -87,11 +87,12 @@ const createAndLoadViewer = (
           break
 
         default:
-          handleWarning(
-            `Unsupported scheme '${String(scheme)}' for HTTP authentication.`,
-            `Will ignore this protocol.`,
+          handleWarning({
+            typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
+            culprit: String(scheme),
             data,
-            log)
+            log
+          })
       }
     }
 
