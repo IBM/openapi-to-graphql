@@ -67,6 +67,43 @@ async function checkOas (OASList) {
     warningDict[key] = warningDict[key].length
   }
   console.log(JSON.stringify(warningDict, null, 2))
+  console.log(JSON.stringify(classifyErrors(results.errors), null, 2))
+}
+
+function classifyErrors (errors) {
+  let results = {
+    validation: 0,             // thrown by: Swagger2Openapi
+    invalidEnumValue: 0,       // thrown by: GraphQL
+    invalidFields: 0,          // thrown by: GraphQL
+    duplicateNamesInSchema: 0, // thrown by: GraphQL
+    cannotBeautify: 0,         // thrown by: OASGraph
+    resolveAllOf: 0,           // thrown by: OASGraph
+    itemsPropertyMissing: 0,   // thrown by: OASGraph
+    invalidReference: 0,       // thrown by: OASGraph
+    other: 0
+  }
+  errors.forEach(err => {
+    if (/can not be used as an Enum value/.test(err.error)) {
+      results.invalidEnumValue++
+    } else if (/^Cannot beautify /.test(err.error)) {
+      results.cannotBeautify++
+    } else if (/allOf will overwrite/.test(err.error)) {
+      results.resolveAllOf++
+    } else if (/(Patchable)/.test(err.error)) {
+      results.validation++
+    } else if (/Items property missing in array/.test(err.error)) {
+      results.itemsPropertyMissing++
+    } else if (/Schema must contain unique named types/.test(err.error)) {
+      results.duplicateNamesInSchema++
+    } else if (/must be an object with field names as keys/.test(err.error)) {
+      results.invalidFields++
+    } else if (/Could not resolve reference/.test(err.error)) {
+      results.invalidReference++
+    } else {
+      results.other++
+    }
+  })
+  return results
 }
 
 /**

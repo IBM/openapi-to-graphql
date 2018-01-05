@@ -110,7 +110,7 @@ export function resolveRef (
   if (firstElement in obj) {
     return resolveRef(ref, obj[firstElement], parts)
   } else {
-    throw new Error(`could not resolve reference "${ref}"`)
+    throw new Error(`Could not resolve reference "${ref}"`)
   }
 }
 
