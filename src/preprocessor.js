@@ -308,14 +308,16 @@ export function createOrReuseDataDef (
 
   // Store and beautify the name
   let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
+  let saneInputName = saneName + 'Input'
 
-  // Add the name to the master list
+  // Add the names to the master list
   data.usedOTNames.push(saneName)
+  data.usedOTNames.push(saneInputName)
 
   let def = {
     schema,
     otName: saneName,
-    iotName: saneName + 'Input'
+    iotName: saneInputName
   }
 
   // Add the def to the master list
