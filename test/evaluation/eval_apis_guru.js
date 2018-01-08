@@ -40,7 +40,7 @@ async function checkOas (OASList) {
     console.log(`Process "${name}"...`)
     console.log(` (${oas['x-file-path']})\n`)
     try {
-      let {report} = await OasGraph.createGraphQlSchema(oas, {strict: false})
+      let {report} = await OasGraph.createGraphQlSchema(oas, {strict: true})
       results.successes.push({name, report})
     } catch (error) {
       results.errors.push({name, error: error.message})
@@ -48,16 +48,23 @@ async function checkOas (OASList) {
   }
   console.log(JSON.stringify(results, null, 2))
 
-  // print overall numbers:
-  let noWarnings = results.successes.filter(s => s.report.warnings.length === 0).length
-  console.log(`-------------------\n` +
-    `Overall: ${results.overall}\n` +
-    `No warnings: ${noWarnings}\n` +
-    `Successes: ${results.successes.length}\n` +
-    `Errors: ${results.errors.length}`)
+  // print results:
+  printOverallResults(results)
+  printWarningsBreakdown(results)
+  printErrorBreakdown(results)
+}
 
-  // print breakdown of warnings:
-  console.log(`-------------------`)
+function printOverallResults (results) {
+  let noWarnings = results.successes.filter(s => s.report.warnings.length === 0).length
+  console.log('----------------------')
+  console.log('Overall results:')
+  console.log(`Assessed APIs: ${results.overall}\n` +
+    `Successes: ${results.successes.length}\n` +
+    `  with no warnings: ${noWarnings}\n` +
+    `Errors: ${results.errors.length}`)
+}
+
+function printWarningsBreakdown (results) {
   let allWarnings = []
   results.successes.forEach(suc => {
     allWarnings = allWarnings.concat(suc.report.warnings)
@@ -66,13 +73,14 @@ async function checkOas (OASList) {
   for (let key in warningDict) {
     warningDict[key] = warningDict[key].length
   }
+  console.log('----------------------')
+  console.log('Warnings breakdown:')
   console.log(JSON.stringify(warningDict, null, 2))
-  console.log(JSON.stringify(classifyErrors(results.errors), null, 2))
 }
 
-function classifyErrors (errors) {
-  let results = {
-    validation: 0,             // thrown by: Swagger2Openapi
+function printErrorBreakdown (results) {
+  let errors = {
+    validationFails: 0,             // thrown by: Swagger2Openapi
     invalidEnumValue: 0,       // thrown by: GraphQL
     invalidFields: 0,          // thrown by: GraphQL
     duplicateNamesInSchema: 0, // thrown by: GraphQL
@@ -82,28 +90,31 @@ function classifyErrors (errors) {
     invalidReference: 0,       // thrown by: OASGraph
     other: 0
   }
-  errors.forEach(err => {
+  results.errors.forEach(err => {
     if (/can not be used as an Enum value/.test(err.error)) {
-      results.invalidEnumValue++
+      errors.invalidEnumValue++
     } else if (/^Cannot beautify /.test(err.error)) {
-      results.cannotBeautify++
+      errors.cannotBeautify++
     } else if (/allOf will overwrite/.test(err.error)) {
-      results.resolveAllOf++
+      errors.resolveAllOf++
     } else if (/(Patchable)/.test(err.error)) {
-      results.validation++
+      errors.validationFails++
     } else if (/Items property missing in array/.test(err.error)) {
-      results.itemsPropertyMissing++
+      errors.itemsPropertyMissing++
     } else if (/Schema must contain unique named types/.test(err.error)) {
-      results.duplicateNamesInSchema++
+      errors.duplicateNamesInSchema++
     } else if (/must be an object with field names as keys/.test(err.error)) {
-      results.invalidFields++
+      errors.invalidFields++
     } else if (/Could not resolve reference/.test(err.error)) {
-      results.invalidReference++
+      errors.invalidReference++
     } else {
-      results.other++
+      errors.other++
     }
   })
-  return results
+
+  console.log('----------------------')
+  console.log('Errors breakdown:')
+  console.log(JSON.stringify(errors, null, 2))
 }
 
 /**
