@@ -31,7 +31,10 @@ export function preprocessOas (
   options: Options
 ) : PreprocessingData {
   let data = {
-    usedOTNames: [],
+    usedOTNames: [
+      'query', // used by OASGraph for root-level element
+      'mutation' // used by OASGraph for root-level element
+    ],
     defs: [],
     operations: {},
     saneMap: {},
