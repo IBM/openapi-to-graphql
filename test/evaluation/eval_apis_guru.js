@@ -13,17 +13,22 @@ const YAML = require('js-yaml')
 async function readOas (limit) {
   let OASList = []
   let paths = Glob.sync('tmp/**/@(*.yaml|*.json)')
-  paths.forEach(path => {
+  let index = -1
+
+  while (OASList.length < limit && index < paths.length) {
+    index++
+    let path = paths[index]
     let oas = readFile(path)
-    if (!oas) return
-    if (!isValidOAS(oas)) return
+    if (!oas) continue
+    if (!isValidOAS(oas)) continue
 
     // keep track of path for later logging:
     oas['x-file-path'] = path
 
     OASList.push(oas)
-  })
-  return OASList.slice(0, limit)
+  }
+
+  return OASList
 }
 
 /**
