@@ -37,13 +37,12 @@ async function checkOas (OASList) {
   }
   for (let oas of OASList) {
     let name = oas.info.title
-    console.log(`Process "${name}"...`)
-    console.log(` (${oas['x-file-path']})\n`)
+    console.log(`Process "${name}" (${oas['x-file-path']})...`)
     try {
       let {report} = await OasGraph.createGraphQlSchema(oas, {strict: false})
       results.successes.push({name, report})
     } catch (error) {
-      results.errors.push({name, error: error.message})
+      results.errors.push({name, error: error.message, path: oas['x-file-path']})
     }
   }
   console.log(JSON.stringify(results, null, 2))

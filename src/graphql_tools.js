@@ -20,9 +20,9 @@ import {
 /**
  * Returns empty GraphQLObjectType.
  */
-export function getEmptyObjectType () : GQObjectType {
+export function getEmptyObjectType (name: string) : GQObjectType {
   return new GraphQLObjectType({
-    name: 'placeholder',
+    name: name + 'Placeholder',
     fields: {
       message: {
         type: GraphQLString,

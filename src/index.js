@@ -176,6 +176,7 @@ function translateOpenApiToGraphQL (
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length > 0 ||
       (Array.isArray(operation.subOps) && operation.subOps.length > 0)) {
+        log(`Process operation "${operation.operationId}"...`)
         loadField({
           operation,
           operationId,
@@ -195,6 +196,7 @@ function translateOpenApiToGraphQL (
       let operation = data.operations[operationId]
       if (Object.keys(operation.links).length === 0 &&
         (!Array.isArray(operation.subOps) || operation.subOps.length === 0)) {
+        log(`Process operation "${operation.operationId}"...`)
         loadField({
           operation,
           operationId,
@@ -242,7 +244,7 @@ function translateOpenApiToGraphQL (
         fields: rootQueryFields
       })
     } else {
-      schemaDef.query = GraphQLTools.getEmptyObjectType()
+      schemaDef.query = GraphQLTools.getEmptyObjectType('query')
     }
     if (Object.keys(rootMutationFields).length > 0) {
       schemaDef.mutation = new GraphQLObjectType({
@@ -256,7 +258,8 @@ function translateOpenApiToGraphQL (
     for (let i in data.operations) {
       let operation = data.operations[i]
       if (typeof operation.resDef.ot === 'undefined') {
-        operation.resDef.ot = GraphQLTools.getEmptyObjectType()
+        operation.resDef.ot = GraphQLTools
+          .getEmptyObjectType(operation.resDef.otName)
       }
     }
 
