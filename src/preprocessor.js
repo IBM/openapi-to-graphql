@@ -41,6 +41,10 @@ export function preprocessOas (
     security: {},
     options
   }
+  // store initial stats on OAS:
+  data.options.report.numOps = Oas3Tools.countOperations(oas)
+  data.options.report.numOpsMutation = Oas3Tools.countOperationsMutation(oas)
+  data.options.report.numOpsQuery = Oas3Tools.countOperationsQuery(oas)
 
   // Security schemas
   data.security = getProcessedSecuritySchemes(oas, data)

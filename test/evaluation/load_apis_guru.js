@@ -4,7 +4,7 @@ const Git = require('nodegit')
 const rimraf = require('rimraf')
 
 const REPO_URL = 'https://github.com/APIs-guru/openapi-directory'
-const FOLDER_PATH = './tmp'
+const FOLDER_PATH = 'tmp'
 
 /**
  * Download all OAS from APIs.guru.

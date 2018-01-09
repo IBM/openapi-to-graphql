@@ -11,7 +11,12 @@ export type Warning = {
 }
 
 export type Report = {
-  warnings: Warning[]
+  warnings: Warning[],
+  numOps: number,
+  numOpsQuery: number,
+  numOpsMutation: number,
+  numQueriesCreated: number,
+  numMutationsCreated: number,
 }
 
 export type Options = {

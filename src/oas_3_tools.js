@@ -88,6 +88,67 @@ export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
 }
 
 /**
+ * Counts the number of operations in an OAS.
+ */
+export function countOperations (oas: Oas3): number {
+  let numOps = 0
+  for (let path in oas.paths) {
+    for (let method in oas.paths[path]) {
+      if (isOperation(method)) {
+        numOps++
+      }
+    }
+  }
+  return numOps
+}
+
+/**
+ * Counts the number of operations that translate to queries in an OAS.
+ */
+export function countOperationsQuery (oas: Oas3): number {
+  let numOps = 0
+  for (let path in oas.paths) {
+    for (let method in oas.paths[path]) {
+      if (isOperation(method) && method.toLowerCase() === 'get') {
+        numOps++
+      }
+    }
+  }
+  return numOps
+}
+
+/**
+ * Counts the number of operations that translate to mutations in an OAS.
+ */
+export function countOperationsMutation (oas: Oas3): number {
+  let numOps = 0
+  for (let path in oas.paths) {
+    for (let method in oas.paths[path]) {
+      if (isOperation(method) && method.toLowerCase() !== 'get') {
+        numOps++
+      }
+    }
+  }
+  return numOps
+}
+
+/**
+ * Counts the number of operations with a payload definition in an OAS.
+ */
+export function countOperationsWithPayload (oas: Oas3): number {
+  let numOps = 0
+  for (let path in oas.paths) {
+    for (let method in oas.paths[path]) {
+      if (isOperation(method) &&
+        typeof oas.paths[path][method].requestBody === 'object') {
+        numOps++
+      }
+    }
+  }
+  return numOps
+}
+
+/**
  * Resolves the given reference in the given object.
  */
 export function resolveRef (

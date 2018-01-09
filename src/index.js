@@ -99,7 +99,12 @@ async function createGraphQlSchema (
   options.viewer = options.viewer || true
   options.sendOAuthTokenInQuery = options.sendOAuthTokenInQuery || false
   options.report = {
-    warnings: []
+    warnings: [],
+    numOps: 0,
+    numOpsQuery: 0,
+    numOpsMutation: 0,
+    numQueriesCreated: 0,
+    numMutationsCreated: 0
   }
 
   /**
@@ -211,8 +216,24 @@ function translateOpenApiToGraphQL (
       }
     }
 
-    // create and add viewer object types to the query and mutation object types
-    // if applicable
+    /**
+     * Count created queries / mutations
+     */
+    let numQueriesCreated = Object.keys(queryFields).length
+    for (let key in authQueryFields) {
+      numQueriesCreated += Object.keys(authQueryFields[key]).length
+    }
+    options.report.numQueriesCreated = numQueriesCreated
+
+    let numMutationsCreated = Object.keys(mutationFields).length
+    for (let key in authMutationFields) {
+      numMutationsCreated += Object.keys(authMutationFields[key]).length
+    }
+    options.report.numMutationsCreated = numMutationsCreated
+
+    /**
+     * Organize created queries / mutations into viewer objects.
+     */
     const rootQueryFields = Object.assign({}, queryFields)
     if (Object.keys(authQueryFields).length > 0) {
       const queryViewers = AuthBuilder.createAndLoadViewer(
@@ -235,7 +256,9 @@ function translateOpenApiToGraphQL (
       Object.assign(rootMutationFields, mutationViewers)
     }
 
-    // build up the schema:
+    /**
+     * Build up the schema
+     */
     let schemaDef = {}
     if (Object.keys(rootQueryFields).length > 0) {
       schemaDef.query = new GraphQLObjectType({

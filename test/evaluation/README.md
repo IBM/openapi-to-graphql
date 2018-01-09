@@ -5,7 +5,7 @@ Run:
 ```
 node apis_guru_test.js
 ```
-...to load APIs.guru APIs into `tmp` subfolder in the main directory of OASGraph.
+...to load APIs.guru APIs into `tmp` subfolder in the `test/evaluation` directory.
 
 ## Run evaluation
 Run:
