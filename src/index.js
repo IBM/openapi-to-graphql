@@ -254,7 +254,9 @@ function translateOpenApiToGraphQL (
       })
     }
 
-    // fill in yet undefined Object Types to avoid GraphQLSchema from breaking:
+    // Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
+    // The reason: once creating the schema, the 'fields' thunks will resolve
+    // and if a field references an undefined Object Types, GraphQL will throw.
     for (let i in data.operations) {
       let operation = data.operations[i]
       if (typeof operation.resDef.ot === 'undefined') {
