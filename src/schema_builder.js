@@ -554,7 +554,8 @@ function createFields ({
   }
 
   // create fields for subOperations
-  if (iteration === 0 && operation && typeof operation === 'object' &&
+  if (data.options.addSubOperations && iteration === 0 && operation &&
+    typeof operation === 'object' &&
     Array.isArray(operation.subOps)) {
     for (let subOp of operation.subOps) {
       // here, we know the operation is present
