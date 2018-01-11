@@ -45,6 +45,7 @@
     "nodegit": "^0.20.3",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.1",
+    "simple-statistics": "^5.2.1",
     "yamljs": "^0.3.0"
   }
 }

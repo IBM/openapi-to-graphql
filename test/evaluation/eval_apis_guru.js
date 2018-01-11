@@ -4,6 +4,7 @@ const OasGraph = require('../../lib/index.js')
 const Glob = require('glob')
 const fs = require('fs')
 const YAML = require('js-yaml')
+const ss = require('simple-statistics')
 
 /**
  * Download all OAS from APIs.guru.
@@ -56,6 +57,7 @@ async function checkOas (OASList) {
   printOverallResults(results)
   printWarningsBreakdown(results)
   printErrorBreakdown(results)
+  printStats(results)
 }
 
 function printOverallResults (results) {
@@ -119,6 +121,53 @@ function printErrorBreakdown (results) {
   console.log('----------------------')
   console.log('Errors breakdown:')
   console.log(JSON.stringify(errors, null, 2))
+}
+
+function printStats (results) {
+  let numOps = results.successes.map(succ => succ.report.numOps)
+  console.log(`Number of operations:`)
+  console.log(printSummary(numOps) + '\n')
+
+  let numOpsQuery = results.successes.map(succ => succ.report.numOpsQuery)
+  console.log(`Number of query operations:`)
+  console.log(printSummary(numOpsQuery) + '\n')
+
+  let numOpsMutation = results.successes.map(succ => succ.report.numOpsMutation)
+  console.log(`Number of mutation operations:`)
+  console.log(printSummary(numOpsMutation) + '\n')
+
+  let numQueries = results.successes.map(succ => succ.report.numQueriesCreated)
+  console.log(`Number of queries created:`)
+  console.log(printSummary(numQueries) + '\n')
+
+  let numMutations = results.successes.map(succ => succ.report.numMutationsCreated)
+  console.log(`Number of mutations created:`)
+  console.log(printSummary(numMutations) + '\n')
+
+  let numQueriesSkipped = []
+  numOpsQuery.forEach((numOps, index) => {
+    numQueriesSkipped.push(numOps - numQueries[index])
+  })
+  console.log(`Number of queries skipped:`)
+  console.log(printSummary(numQueriesSkipped) + '\n')
+
+  let numMutationsSkipped = []
+  numOpsMutation.forEach((numOps, index) => {
+    numMutationsSkipped.push(numOps - numMutations[index])
+  })
+  console.log(`Number of mutations skipped:`)
+  console.log(printSummary(numMutationsSkipped) + '\n')
+}
+
+function printSummary (arr) {
+  console.log(`mean: ${ss.mean(arr)}`)
+  console.log(`min:  ${ss.min(arr)}`)
+  console.log(`max:  ${ss.max(arr)}`)
+  console.log(`---`)
+  console.log(`25%:  ${ss.quantile(arr, 0.25)}`)
+  console.log(`50%:  ${ss.quantile(arr, 0.50)}`)
+  console.log(`75%:  ${ss.quantile(arr, 0.75)}`)
+  console.log(`90%:  ${ss.quantile(arr, 0.9)}`)
 }
 
 /**
