@@ -227,10 +227,16 @@ function reuseOrCreateOt ({
   // CASE: query - create or reuse OT
   if (!isMutation) {
     if (def.ot && typeof def.ot !== 'undefined') {
-      log(`reuse  Object Type "${def.otName}"`)
+      log(`reuse  Object Type "${def.otName}"` +
+        (typeof operation === 'object'
+          ? ` (for operation "${operation.operationId}")`
+          : ''))
       return ((def.ot: any): GQObjectType | GQInputObjectType | GraphQLScalarType)
     } else {
-      log(`create Object Type "${def.otName}"`)
+      log(`create Object Type "${def.otName}"` +
+        (typeof operation === 'object'
+          ? ` (for operation "${operation.operationId}")`
+          : ''))
 
       let description = typeof schema.description !== 'undefined'
         ? schema.description : 'No description available.'
@@ -254,10 +260,16 @@ function reuseOrCreateOt ({
   // CASE: mutation - create or reuse IOT
   } else {
     if (typeof def.iot !== 'undefined') {
-      log(`reuse  Input Object Type "${def.iotName}"`)
+      log(`reuse  Input Object Type "${def.iotName}"` +
+        (typeof operation === 'object'
+          ? ` (for operation "${operation.operationId}")`
+          : ''))
       return ((def.iot: any): GraphQLInputObjectType)
     } else {
-      log(`create Input Object Type "${def.iotName}"`)
+      log(`create Input Object Type "${def.iotName}"` +
+        (typeof operation === 'object'
+          ? ` (for operation "${operation.operationId}")`
+          : ''))
       def.iot = new GraphQLInputObjectType({
         name: def.iotName,
         description: schema.description, // might be undefined

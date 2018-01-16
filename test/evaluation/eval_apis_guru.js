@@ -45,7 +45,10 @@ async function checkOas (OASList) {
     let name = oas.info.title
     console.log(`Process "${name}" (${oas['x-file-path']})...`)
     try {
-      let {report} = await OasGraph.createGraphQlSchema(oas, {strict: false})
+      let {report} = await OasGraph.createGraphQlSchema(oas, {
+        strict: false,
+        addSubOperations: false
+      })
       results.successes.push({name, report})
     } catch (error) {
       results.errors.push({name, error: error.message, path: oas['x-file-path']})
@@ -86,7 +89,7 @@ function printWarningsBreakdown (results) {
 
 function printErrorBreakdown (results) {
   let errors = {
-    validationFails: 0,             // thrown by: Swagger2Openapi
+    validationFails: 0,        // thrown by: Swagger2Openapi
     invalidEnumValue: 0,       // thrown by: GraphQL
     invalidFields: 0,          // thrown by: GraphQL
     duplicateNamesInSchema: 0, // thrown by: GraphQL

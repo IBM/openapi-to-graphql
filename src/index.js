@@ -95,7 +95,7 @@ async function createGraphQlSchema (
   // deal with option defaults:
   if (typeof options === 'undefined') options = {}
   options.strict = options.strict || false
-  options.addSubOperations = options.addSubOperations || true
+  options.addSubOperations = options.addSubOperations || false
   options.viewer = options.viewer || true
   options.sendOAuthTokenInQuery = options.sendOAuthTokenInQuery || false
   options.report = {
