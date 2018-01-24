@@ -43,7 +43,7 @@ An example application exposing GitHub's public REST-like API via OASGraph can b
 
 
 ## Usage
-Install this package. Then, simply pass it an OpenAPI Specification 3.0. The library returns a promise that resolves on an object containing the schema:
+Install this package. Make sure to also have installed [`GraphQL.js`](https://github.com/graphql/graphql-js) (using `npm i graphql`), as it is a required peer-dependency. Then, simply pass it an OpenAPI Specification 3.0. The library returns a promise that resolves on an object containing the schema:
 
 ```javascript
 const OASGraph = require('oasgraph') // use real name here

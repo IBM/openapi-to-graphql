@@ -1,6 +1,6 @@
 {
   "name": "oasgraph",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "main": "lib/index.js",
   "scripts": {
@@ -14,19 +14,21 @@
   },
   "author": "Erik Wittern",
   "license": "MIT",
-  "dependencies": {
-    "debug": "^2.6.8",
-    "deep-equal": "^1.0.1",
-    "graphql": "^0.9.6",
-    "jsonpath": "^0.2.11",
-    "request": "^2.81.0",
-    "swagger2openapi": "2.3.3"
-  },
   "standard": {
     "parser": "babel-eslint",
     "plugins": [
       "flowtype"
     ]
+  },
+  "dependencies": {
+    "debug": "^2.6.8",
+    "deep-equal": "^1.0.1",
+    "jsonpath": "^0.2.11",
+    "request": "^2.81.0",
+    "swagger2openapi": "2.3.3"
+  },
+  "peerDependencies": {
+    "graphql": "^0.9.6 || ^0.10.0 || ^0.11.0 || ^0.12.0"
   },
   "devDependencies": {
     "babel-cli": "^6.24.1",
