@@ -21,6 +21,7 @@ import type {
 } from 'graphql'
 
 // Imports:
+import GraphQLJSON from 'graphql-type-json'
 import * as Oas3Tools from './oas_3_tools.js'
 import { getResolver } from './resolver_builder.js'
 import { createOrReuseDataDef } from './preprocessor.js'
@@ -413,6 +414,8 @@ function getScalarType (
       return GraphQLFloat
     case 'boolean':
       return GraphQLBoolean
+    case 'json':
+      return GraphQLJSON
     default:
       handleWarning({
         typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',

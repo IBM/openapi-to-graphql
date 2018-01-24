@@ -343,11 +343,17 @@ export function getSchemaType (schema: SchemaObject): ?string {
 
   // CASE: object
   if (schema.type === 'object') {
+    // CASE: arbitrary JSON
+    if (typeof schema.additionalProperties === 'object') {
+      return 'json'
+    }
+
     // if there are no properties:
     if (typeof schema.properties === 'undefined' ||
       Object.keys(schema.properties).length === 0) {
       return null
     }
+
     return 'object'
   }
   if ('properties' in schema) {

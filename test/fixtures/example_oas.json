@@ -547,9 +547,20 @@
 					"color": {
 						"type": "string",
 						"description": "The color of the car."
-					}
+					},
+          "tags": {
+            "$ref": "#/components/schemas/tags"
+          }
 				}
 			},
+      "tags": {
+        "type": "object",
+        "title": "Tags",
+        "description": "Arbitrary (string) tags describing an entity.",
+        "additionalProperties": {
+          "type": "string"
+        }
+      },
 			"product-with-id": {
 				"type": "object",
 				"description": "A product",

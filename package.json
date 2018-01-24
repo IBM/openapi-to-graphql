@@ -1,6 +1,6 @@
 {
   "name": "oasgraph",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "main": "lib/index.js",
   "scripts": {
@@ -23,6 +23,7 @@
   "dependencies": {
     "debug": "^2.6.8",
     "deep-equal": "^1.0.1",
+    "graphql-type-json": "^0.1.4",
     "jsonpath": "^0.2.11",
     "request": "^2.81.0",
     "swagger2openapi": "2.3.3"

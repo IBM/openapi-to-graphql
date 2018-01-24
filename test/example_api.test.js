@@ -300,6 +300,35 @@ test('Sub operations are properly made available', () => {
   })
 })
 
+test('Arbitrary JSON (e.g., maps) can be returned', () => {
+  let query = `{
+    user (username: "erik") {
+      name
+      car {
+        color
+        model
+        tags
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Erik Wittern',
+          car: {
+            color: 'black',
+            model: 'BMW 7 series',
+            tags: {
+              impression: 'decadent'
+            }
+          }
+        }
+      }
+    })
+  })
+})
+
 test('Define header and query options', () => {
   let options = {
     headers: {

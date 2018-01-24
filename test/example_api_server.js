@@ -211,7 +211,10 @@ app.get('/api/users/:username/car', (req, res) => {
   } else {
     res.send({
       model: 'BMW 7 series',
-      color: 'black'
+      color: 'black',
+      tags: {
+        impression: 'decadent'
+      }
     })
   }
 })
