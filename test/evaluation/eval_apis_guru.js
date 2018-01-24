@@ -61,6 +61,8 @@ async function checkOas (OASList) {
   printWarningsBreakdown(results)
   printErrorBreakdown(results)
   printStats(results)
+  console.log(JSON.stringify(getWarningsDistribution(results), null, 2))
+  console.log(JSON.stringify(warningsPerApi(results), null, 2))
 }
 
 function printOverallResults (results) {
@@ -126,6 +128,49 @@ function printErrorBreakdown (results) {
   console.log(JSON.stringify(errors, null, 2))
 }
 
+function getWarningsDistribution (results) {
+  let dist = {
+    overall: {},
+    MissingResponseSchema: {},
+    InvalidSchemaType: {},
+    MultipleResponses: {},
+    InvalidSchemaTypeScalar: {}
+  }
+
+  results.successes.forEach(suc => {
+    let overall = suc.report.warnings.length
+    if (typeof dist.overall[overall] === 'undefined') dist.overall[overall] = 0
+    dist.overall[overall]++
+
+    let missingResponseSchema = suc.report.warnings.filter(w => w.type === 'MissingResponseSchema').length
+    if (typeof dist.MissingResponseSchema[missingResponseSchema] === 'undefined') dist.MissingResponseSchema[missingResponseSchema] = 0
+    dist.MissingResponseSchema[missingResponseSchema]++
+
+    let invalidSchemaType = suc.report.warnings.filter(w => w.type === 'InvalidSchemaType').length
+    if (typeof dist.InvalidSchemaType[invalidSchemaType] === 'undefined') dist.InvalidSchemaType[invalidSchemaType] = 0
+    dist.InvalidSchemaType[invalidSchemaType]++
+
+    let multipleResponses = suc.report.warnings.filter(w => w.type === 'MultipleResponses').length
+    if (typeof dist.MultipleResponses[multipleResponses] === 'undefined') dist.MultipleResponses[multipleResponses] = 0
+    dist.MultipleResponses[multipleResponses]++
+
+    let invalidSchemaTypeScalar = suc.report.warnings.filter(w => w.type === 'InvalidSchemaTypeScalar').length
+    if (typeof dist.InvalidSchemaTypeScalar[invalidSchemaTypeScalar] === 'undefined') dist.InvalidSchemaTypeScalar[invalidSchemaTypeScalar] = 0
+    dist.InvalidSchemaTypeScalar[invalidSchemaTypeScalar]++
+  })
+
+  // fill up empty values for easier plotting:
+  // for (let i = 0; i < 550; i++) {
+  //   if (typeof dist.overall[i] === 'undefined') dist.overall[i] = 0
+  //   if (typeof dist.MissingResponseSchema[i] === 'undefined') dist.MissingResponseSchema[i] = 0
+  //   if (typeof dist.InvalidSchemaType[i] === 'undefined') dist.InvalidSchemaType[i] = 0
+  //   if (typeof dist.MultipleResponses[i] === 'undefined') dist.MultipleResponses[i] = 0
+  //   if (typeof dist.InvalidSchemaTypeScalar[i] === 'undefined') dist.InvalidSchemaTypeScalar[i] = 0
+  // }
+
+  return dist
+}
+
 function printStats (results) {
   let numOps = results.successes.map(succ => succ.report.numOps)
   console.log(`Number of operations:`)
@@ -171,6 +216,26 @@ function printSummary (arr) {
   console.log(`50%:  ${ss.quantile(arr, 0.50)}`)
   console.log(`75%:  ${ss.quantile(arr, 0.75)}`)
   console.log(`90%:  ${ss.quantile(arr, 0.9)}`)
+}
+
+function warningsPerApi (results) {
+  let apiDict = {}
+  results.successes.forEach(suc => {
+    let name = suc.name
+    while (typeof apiDict[name] !== 'undefined') {
+      name += '_1'
+    }
+    apiDict[name] = {
+      overall: suc.report.warnings.length,
+      MissingResponseSchema: suc.report.warnings.filter(w => w.type === 'MissingResponseSchema').length,
+      InvalidSchemaType: suc.report.warnings.filter(w => w.type === 'InvalidSchemaType').length,
+      MultipleResponses: suc.report.warnings.filter(w => w.type === 'MultipleResponses').length,
+      InvalidSchemaTypeScalar: suc.report.warnings.filter(w => w.type === 'InvalidSchemaTypeScalar').length,
+      numOps: suc.report.numOps,
+      numOpsCreated: suc.report.numQueriesCreated + suc.report.numMutationsCreated
+    }
+  })
+  return apiDict
 }
 
 /**
