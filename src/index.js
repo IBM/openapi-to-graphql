@@ -94,10 +94,20 @@ async function createGraphQlSchema (
 ): Promise<Result> {
   // deal with option defaults:
   if (typeof options === 'undefined') options = {}
-  options.strict = options.strict || false
-  options.addSubOperations = options.addSubOperations || false
-  options.viewer = options.viewer || true
-  options.sendOAuthTokenInQuery = options.sendOAuthTokenInQuery || false
+
+  options.strict = typeof options.strict === 'boolean'
+    ? options.strict
+    : false
+  options.addSubOperations = typeof options.addSubOperations === 'boolean'
+    ? options.addSubOperations
+    : false
+  options.viewer = typeof options.viewer === 'boolean'
+    ? options.viewer
+    : true
+  options.sendOAuthTokenInQuery = typeof options.sendOAuthTokenInQuery === 'boolean'
+    ? options.sendOAuthTokenInQuery
+    : false
+
   options.report = {
     warnings: [],
     numOps: 0,

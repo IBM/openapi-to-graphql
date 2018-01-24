@@ -86,6 +86,29 @@ test('Get project using API key 1', () => {
   })
 })
 
+test('Get project using API key passed as option - viewer is disabled', async () => {
+  let {schema} = await OasGraph.createGraphQlSchema(oas, {
+    viewer: false,
+    headers: {
+      access_token: 'abcdef'
+    }
+  })
+  let query = `{
+    projectWithId (projectId: "1") {
+      projectId
+    }
+  }`
+  return graphql(schema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      'data': {
+        'projectWithId': {
+          'projectId': '1'
+        }
+      }
+    })
+  })
+})
+
 test('Get project using API key 2', () => {
   let query = `{
     viewerApiKey2 (apiKey: "abcdef") {
