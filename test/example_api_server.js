@@ -258,8 +258,8 @@ app.get('/api/products/:id/reviews', (req, res) => {
     })
   } else {
     res.status(200).send([
-      'Great product',
-      'I love it'
+      {text: 'Great product', timestamp: 1502787600000000},
+      {text: 'I love it', timestamp: 1502787400000000}
     ])
   }
 })

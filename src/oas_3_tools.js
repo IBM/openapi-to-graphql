@@ -365,6 +365,11 @@ export function getSchemaType (schema: SchemaObject): ?string {
     return 'array'
   }
 
+  // CASE: 64 bit int - return number, leading to use of GraphQLFloat:
+  if (schema.type === 'integer' && schema.format === 'int64') {
+    return 'number'
+  }
+
   // CASE: a type is present
   if (typeof schema.type === 'string') {
     return schema.type

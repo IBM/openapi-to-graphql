@@ -256,7 +256,16 @@
 								"schema": {
 									"type": "array",
 									"items": {
-										"type": "string"
+										"type": "object",
+                    "properties": {
+                      "text": {
+                        "type": "string"
+                      },
+                      "timestamp": {
+                        "type": "integer",
+                        "format": "int64"
+                      }
+                    }
 									}
 								}
 							}

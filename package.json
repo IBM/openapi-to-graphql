@@ -1,6 +1,6 @@
 {
   "name": "oasgraph",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "main": "lib/index.js",
   "scripts": {

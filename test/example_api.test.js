@@ -77,7 +77,9 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
   let query = `{
     productWithId (productId: "123" productTag: "blah") {
       productName
-      reviews (productTag: "sport")
+      reviews (productTag: "sport") {
+        text
+      }
     }
   }`
   return graphql(createdSchema, query).then(result => {
@@ -85,7 +87,10 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
       data: {
         'productWithId': {
           'productName': 'Super Product',
-          'reviews': ['Great product', 'I love it']
+          'reviews': [
+            {text: 'Great product'},
+            {text: 'I love it'}
+          ]
         }
       }
     })
@@ -94,12 +99,35 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
 
 test('Get response without providing parameter with default value', () => {
   let query = `{
-    productsReviews (id: "100")
+    productsReviews (id: "100") {
+      text
+    }
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        'productsReviews': ['Great product', 'I love it']
+        'productsReviews': [
+          {text: 'Great product'},
+          {text: 'I love it'}
+        ]
+      }
+    })
+  })
+})
+
+test('Get response containing 64 bit integer (using GraphQLFloat)', () => {
+  let query = `{
+    productsReviews (id: "100") {
+      timestamp
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        'productsReviews': [
+          {timestamp: 1502787600000000},
+          {timestamp: 1502787400000000}
+        ]
       }
     })
   })
