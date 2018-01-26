@@ -61,8 +61,8 @@ async function checkOas (OASList) {
   printWarningsBreakdown(results)
   printErrorBreakdown(results)
   printStats(results)
-  console.log(JSON.stringify(getWarningsDistribution(results), null, 2))
-  console.log(JSON.stringify(warningsPerApi(results), null, 2))
+  // console.log(JSON.stringify(getWarningsDistribution(results), null, 2))
+  // console.log(JSON.stringify(warningsPerApi(results), null, 2))
 }
 
 function printOverallResults (results) {

@@ -23,6 +23,7 @@ import type {
 // Imports:
 import GraphQLJSON from 'graphql-type-json'
 import * as Oas3Tools from './oas_3_tools.js'
+import mergeAllOf from 'json-schema-merge-allof'
 import { getResolver } from './resolver_builder.js'
 import { createOrReuseDataDef } from './preprocessor.js'
 import debug from 'debug'
@@ -122,7 +123,7 @@ export function getGraphQLType ({
 } : GetGraphQLParams
 ) : GQObjectType | GQInputObjectType | GraphQLScalarType | GQList<any> | GQEnumType {
   // avoid excessive iterations
-  if (iteration === 20) {
+  if (iteration === 50) {
     throw new Error(`Too many iterations when creating schema ${name}`)
   }
 
@@ -139,7 +140,7 @@ export function getGraphQLType ({
 
   // resolve allOf element in schema if applicable
   if ('allOf' in schema) {
-    schema = Oas3Tools.resolveAllOf(schema, oas)
+    schema = mergeAllOf(schema)
   }
 
   // determine the type of the schema

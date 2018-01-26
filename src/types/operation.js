@@ -16,14 +16,15 @@ import type {
   GraphQLScalarType,
   GraphQLObjectType,
   GraphQLInputObjectType,
-  GraphQLList
+  GraphQLList,
+  GraphQLEnumType
 } from 'graphql'
 
 export type DataDefinition = {
   schema: SchemaObject,
   otName: string,
   iotName: string,
-  ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any>,
+  ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType,
   iot?: GraphQLInputObjectType | GraphQLList<any>
 }
 
