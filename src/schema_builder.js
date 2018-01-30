@@ -385,7 +385,7 @@ function reuseOrCreateEnum ({
     log(`create GraphQLEnumType "${def.otName}"`)
     let values = {}
     enumList.forEach(e => {
-      values[Oas3Tools.beautify(e)] = {
+      values[Oas3Tools.beautify(e, false)] = {
         value: e
       }
     })

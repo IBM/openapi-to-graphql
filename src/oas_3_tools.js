@@ -833,7 +833,10 @@ export function beautifyAndStore (
 /**
  * First sanitizes given string and then also camel-cases it.
  */
-export function beautify (str: string): string {
+export function beautify (
+  str: string,
+  lowercaseFirstChar?: boolean = true
+): string {
   // only apply to strings:
   if (typeof str !== 'string') {
     throw new Error(`Cannot beautify "${str}" of type "${typeof str}"`)
@@ -861,8 +864,10 @@ export function beautify (str: string): string {
   }
 
   // first character should be lowercase
-  sanitized = sanitized.charAt(0).toLowerCase() +
-  sanitized.slice(1, sanitized.length)
+  if (lowercaseFirstChar) {
+    sanitized = sanitized.charAt(0).toLowerCase() +
+    sanitized.slice(1, sanitized.length)
+  }
 
   return sanitized
 }

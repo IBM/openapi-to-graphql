@@ -559,6 +559,15 @@
 					},
           "tags": {
             "$ref": "#/components/schemas/tags"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "SEDAN",
+              "SUV",
+              "MINIVAN",
+              "LIMOSINE"
+            ]
           }
 				}
 			},

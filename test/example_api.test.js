@@ -328,7 +328,7 @@ test('Sub operations are properly made available', () => {
   })
 })
 
-test('Arbitrary JSON (e.g., maps) can be returned', () => {
+test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
   let query = `{
     user (username: "erik") {
       name
@@ -356,6 +356,30 @@ test('Arbitrary JSON (e.g., maps) can be returned', () => {
     })
   })
 })
+
+test('Capitalized enum values can be returned', () => {
+  let query = `{
+    user (username: "erik") {
+      name
+      car {
+        kind
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Erik Wittern',
+          car: {
+            kind: 'LIMOSINE'
+          }
+        }
+      }
+    })
+  })
+})
+
 
 test('Define header and query options', () => {
   let options = {

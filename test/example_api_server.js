@@ -214,7 +214,8 @@ app.get('/api/users/:username/car', (req, res) => {
       color: 'black',
       tags: {
         impression: 'decadent'
-      }
+      },
+      kind: 'LIMOSINE'
     })
   }
 })
