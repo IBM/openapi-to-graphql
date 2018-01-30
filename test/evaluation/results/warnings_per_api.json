@@ -161,6 +161,15 @@
     "numOps": 62,
     "numOpsCreated": 61
   },
+  "AWS CloudFormation": {
+    "overall": 9,
+    "MissingResponseSchema": 4,
+    "InvalidSchemaType": 5,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 41,
+    "numOpsCreated": 37
+  },
   "Amazon CloudFront": {
     "overall": 27,
     "MissingResponseSchema": 27,
@@ -1206,9 +1215,9 @@
     "numOpsCreated": 1
   },
   "APIs.guru": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
@@ -1638,54 +1647,54 @@
     "numOpsCreated": 38
   },
   "AdvisorManagementClient": {
-    "overall": 7,
+    "overall": 4,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 1,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 6
   },
   "AdvisorManagementClient_1": {
-    "overall": 5,
+    "overall": 4,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 1,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 6
   },
   "AdvisorManagementClient_1_1": {
-    "overall": 7,
+    "overall": 6,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 1,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
     "numOpsCreated": 8
   },
   "AzureAnalysisServices": {
-    "overall": 14,
+    "overall": 12,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 8,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 12,
     "numOpsCreated": 8
   },
   "AzureAnalysisServices_1": {
-    "overall": 15,
+    "overall": 13,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 8,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 14,
     "numOpsCreated": 9
   },
   "AzureAnalysisServices_1_1": {
-    "overall": 15,
+    "overall": 13,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 8,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 15,
@@ -1701,9 +1710,9 @@
     "numOpsCreated": 5
   },
   "ApiManagementClient_1": {
-    "overall": 19,
+    "overall": 17,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 10,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 21,
@@ -1728,15 +1737,6 @@
     "numOpsCreated": 3
   },
   "ApiManagementClient_1_1_1_1": {
-    "overall": 7,
-    "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
-    "MultipleResponses": 2,
-    "InvalidSchemaTypeScalar": 0,
-    "numOps": 4,
-    "numOpsCreated": 3
-  },
-  "ApiManagementClient_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 2,
     "InvalidSchemaType": 0,
@@ -1745,7 +1745,7 @@
     "numOps": 4,
     "numOpsCreated": 2
   },
-  "ApiManagementClient_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 1,
     "InvalidSchemaType": 0,
@@ -1754,34 +1754,52 @@
     "numOps": 4,
     "numOpsCreated": 3
   },
+  "ApiManagementClient_1_1_1_1_1_1": {
+    "overall": 3,
+    "MissingResponseSchema": 2,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 1,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 4,
+    "numOpsCreated": 2
+  },
   "ApiManagementClient_1_1_1_1_1_1_1": {
-    "overall": 14,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 2,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 4,
+    "numOpsCreated": 3
+  },
+  "ApiManagementClient_1_1_1_1_1_1_1_1": {
+    "overall": 10,
+    "MissingResponseSchema": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 9,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 12,
     "numOpsCreated": 11
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1": {
-    "overall": 18,
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1": {
+    "overall": 14,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 13,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 14,
     "numOpsCreated": 13
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1": {
-    "overall": 17,
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1": {
+    "overall": 13,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 11,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
     "numOpsCreated": 12
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 1,
     "InvalidSchemaType": 0,
@@ -1790,7 +1808,7 @@
     "numOps": 4,
     "numOpsCreated": 3
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 7,
     "MissingResponseSchema": 4,
     "InvalidSchemaType": 1,
@@ -1799,7 +1817,7 @@
     "numOps": 7,
     "numOpsCreated": 3
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 8,
     "MissingResponseSchema": 2,
     "InvalidSchemaType": 2,
@@ -1808,17 +1826,17 @@
     "numOps": 7,
     "numOpsCreated": 5
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 3,
-    "MissingResponseSchema": 2,
-    "InvalidSchemaType": 0,
-    "MultipleResponses": 1,
-    "InvalidSchemaTypeScalar": 0,
-    "numOps": 4,
-    "numOpsCreated": 2
-  },
   "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 3,
+    "MissingResponseSchema": 2,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 1,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 4,
+    "numOpsCreated": 2
+  },
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+    "overall": 3,
     "MissingResponseSchema": 1,
     "InvalidSchemaType": 0,
     "MultipleResponses": 2,
@@ -1826,25 +1844,25 @@
     "numOps": 4,
     "numOpsCreated": 3
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 4,
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+    "overall": 3,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 1,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 2
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 5,
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 3
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -1853,7 +1871,7 @@
     "numOps": 1,
     "numOpsCreated": 1
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -1862,7 +1880,7 @@
     "numOps": 2,
     "numOpsCreated": 2
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 2,
     "InvalidSchemaType": 0,
@@ -1871,7 +1889,7 @@
     "numOps": 4,
     "numOpsCreated": 2
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 1,
     "InvalidSchemaType": 0,
@@ -1880,7 +1898,7 @@
     "numOps": 4,
     "numOpsCreated": 3
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 16,
     "MissingResponseSchema": 9,
     "InvalidSchemaType": 3,
@@ -1889,16 +1907,16 @@
     "numOps": 14,
     "numOpsCreated": 5
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 20,
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+    "overall": 18,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 6,
     "MultipleResponses": 8,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 15,
     "numOpsCreated": 11
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 2,
     "InvalidSchemaType": 0,
@@ -1907,7 +1925,7 @@
     "numOps": 4,
     "numOpsCreated": 2
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 1,
     "InvalidSchemaType": 0,
@@ -1915,15 +1933,6 @@
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 3
-  },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 0,
-    "MissingResponseSchema": 0,
-    "InvalidSchemaType": 0,
-    "MultipleResponses": 0,
-    "InvalidSchemaTypeScalar": 0,
-    "numOps": 2,
-    "numOpsCreated": 2
   },
   "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 0,
@@ -1940,10 +1949,19 @@
     "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
+    "numOps": 2,
+    "numOpsCreated": 2
+  },
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -1952,7 +1970,7 @@
     "numOps": 8,
     "numOpsCreated": 8
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 5,
     "MissingResponseSchema": 4,
     "InvalidSchemaType": 0,
@@ -1961,7 +1979,7 @@
     "numOps": 6,
     "numOpsCreated": 2
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 5,
     "MissingResponseSchema": 3,
     "InvalidSchemaType": 0,
@@ -1970,7 +1988,7 @@
     "numOps": 6,
     "numOpsCreated": 3
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 9,
     "MissingResponseSchema": 7,
     "InvalidSchemaType": 1,
@@ -1979,7 +1997,7 @@
     "numOps": 13,
     "numOpsCreated": 6
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 11,
     "MissingResponseSchema": 4,
     "InvalidSchemaType": 1,
@@ -1988,7 +2006,7 @@
     "numOps": 10,
     "numOpsCreated": 6
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 5,
     "MissingResponseSchema": 2,
     "InvalidSchemaType": 2,
@@ -1997,25 +2015,25 @@
     "numOps": 9,
     "numOpsCreated": 7
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 6,
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+    "overall": 5,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 8
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 55,
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+    "overall": 54,
     "MissingResponseSchema": 38,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 16,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 84,
     "numOpsCreated": 46
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -2024,7 +2042,7 @@
     "numOps": 2,
     "numOpsCreated": 2
   },
-  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
+  "ApiManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 1,
     "InvalidSchemaType": 0,
@@ -2106,9 +2124,9 @@
     "numOpsCreated": 10
   },
   "BatchAI": {
-    "overall": 21,
+    "overall": 15,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 10,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
@@ -2133,81 +2151,117 @@
     "numOpsCreated": 6
   },
   "CdnManagementClient": {
-    "overall": 22,
+    "overall": 18,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 13,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 25,
     "numOpsCreated": 20
   },
   "CdnManagementClient_1": {
-    "overall": 22,
+    "overall": 18,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 13,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 25,
     "numOpsCreated": 20
   },
   "CdnManagementClient_1_1": {
-    "overall": 25,
+    "overall": 18,
     "MissingResponseSchema": 7,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 11,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 30,
     "numOpsCreated": 23
   },
   "CdnManagementClient_1_1_1": {
-    "overall": 29,
+    "overall": 24,
     "MissingResponseSchema": 7,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 17,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 31,
     "numOpsCreated": 24
   },
   "CognitiveServicesManagementClient": {
-    "overall": 7,
+    "overall": 5,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 7
   },
   "CognitiveServicesManagementClient_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 9
   },
+  "ContainerServiceClient": {
+    "overall": 4,
+    "MissingResponseSchema": 1,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 3,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 4,
+    "numOpsCreated": 3
+  },
+  "ContainerServiceClient_1": {
+    "overall": 4,
+    "MissingResponseSchema": 1,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 3,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 5,
+    "numOpsCreated": 4
+  },
+  "ContainerServiceClient_1_1": {
+    "overall": 4,
+    "MissingResponseSchema": 1,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 3,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 5,
+    "numOpsCreated": 4
+  },
+  "ContainerServiceClient_1_1_1": {
+    "overall": 4,
+    "MissingResponseSchema": 1,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 3,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 5,
+    "numOpsCreated": 4
+  },
   "DiskResourceProviderClient": {
-    "overall": 20,
+    "overall": 16,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 16,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 14,
     "numOpsCreated": 14
   },
   "DiskResourceProviderClient_1": {
-    "overall": 20,
+    "overall": 16,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 16,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 14,
     "numOpsCreated": 14
   },
   "RunCommandsClient": {
-    "overall": 3,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 3,
@@ -2223,78 +2277,87 @@
     "numOpsCreated": 1
   },
   "ComputeManagementClient_1": {
-    "overall": 73,
+    "overall": 52,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 21,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 52,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 54,
     "numOpsCreated": 54
   },
   "ComputeManagementClient_1_1": {
-    "overall": 73,
+    "overall": 52,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 21,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 52,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 54,
     "numOpsCreated": 54
   },
   "ComputeManagementClient_1_1_1": {
-    "overall": 85,
+    "overall": 62,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 23,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 62,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 62,
     "numOpsCreated": 62
   },
   "ComputeManagementClient_1_1_1_1": {
-    "overall": 96,
+    "overall": 72,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 24,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 72,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 72,
     "numOpsCreated": 72
   },
   "ComputeManagementClient_1_1_1_1_1": {
-    "overall": 96,
+    "overall": 72,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 24,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 72,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 71,
     "numOpsCreated": 71
   },
   "ConsumptionManagementClient": {
-    "overall": 2,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
     "numOpsCreated": 2
   },
   "ConsumptionManagementClient_1": {
-    "overall": 3,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 4
   },
   "ConsumptionManagementClient_1_1": {
-    "overall": 5,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
-  "ContainerServiceClient": {
+  "ContainerServiceClient_1_1_1_1": {
+    "overall": 4,
+    "MissingResponseSchema": 1,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 3,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 5,
+    "numOpsCreated": 4
+  },
+  "ContainerServiceClient_1_1_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -2303,226 +2366,226 @@
     "numOps": 1,
     "numOpsCreated": 1
   },
-  "ContainerServiceClient_1": {
-    "overall": 7,
+  "ContainerServiceClient_1_1_1_1_1_1": {
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 7,
     "numOpsCreated": 6
   },
   "Cosmos DB": {
-    "overall": 9,
+    "overall": 7,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 23,
     "numOpsCreated": 19
   },
   "CustomerInsightsManagementClient": {
-    "overall": 99,
+    "overall": 42,
     "MissingResponseSchema": 11,
-    "InvalidSchemaType": 57,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 31,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 58,
     "numOpsCreated": 47
   },
   "CustomerInsightsManagementClient_1": {
-    "overall": 110,
+    "overall": 47,
     "MissingResponseSchema": 13,
-    "InvalidSchemaType": 63,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 34,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 65,
     "numOpsCreated": 52
   },
   "Azure Data Catalog Resource Provider": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "DataLakeAnalyticsAccountManagementClient": {
-    "overall": 10,
+    "overall": 8,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 16,
     "numOpsCreated": 11
   },
   "DataLakeAnalyticsAccountManagementClient_1": {
-    "overall": 15,
+    "overall": 12,
     "MissingResponseSchema": 7,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 5,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 27,
     "numOpsCreated": 20
   },
   "DataLakeStoreAccountManagementClient": {
-    "overall": 9,
+    "overall": 7,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 7
   },
   "DataLakeStoreAccountManagementClient_1": {
-    "overall": 12,
+    "overall": 9,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 5,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
     "numOpsCreated": 13
   },
   "Azure Data Migration Service Resource Provider": {
-    "overall": 22,
+    "overall": 18,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 11,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 23,
     "numOpsCreated": 18
   },
   "DevTestLabsClient": {
-    "overall": 69,
+    "overall": 49,
     "MissingResponseSchema": 15,
-    "InvalidSchemaType": 23,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 31,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 51,
     "numOpsCreated": 36
   },
   "DevTestLabsClient_1": {
-    "overall": 139,
+    "overall": 99,
     "MissingResponseSchema": 32,
-    "InvalidSchemaType": 42,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 65,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 96,
     "numOpsCreated": 64
   },
   "DnsManagementClient": {
-    "overall": 10,
+    "overall": 6,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 8
   },
   "DnsManagementClient_1": {
-    "overall": 12,
+    "overall": 8,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 9
   },
   "DnsManagementClient_1_1": {
-    "overall": 12,
+    "overall": 8,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 8
   },
   "Domain Services Resource Provider": {
-    "overall": 5,
+    "overall": 4,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 6
   },
   "Domain Services Resource Provider_1": {
-    "overall": 5,
+    "overall": 4,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 6
   },
   "EventGridManagementClient": {
-    "overall": 7,
+    "overall": 5,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 25,
     "numOpsCreated": 23
   },
   "EventGridManagementClient_1": {
-    "overall": 7,
+    "overall": 5,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 25,
     "numOpsCreated": 23
   },
   "EventHubManagementClient": {
-    "overall": 16,
+    "overall": 14,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 9,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 27,
     "numOpsCreated": 22
   },
   "EventHubManagementClient_1": {
-    "overall": 21,
+    "overall": 19,
     "MissingResponseSchema": 8,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 11,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 37,
     "numOpsCreated": 29
   },
   "HDInsightManagementClient": {
-    "overall": 4,
+    "overall": 2,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 3
   },
   "HDInsightManagementClient_1": {
-    "overall": 3,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "HDInsightManagementClient_1_1": {
-    "overall": 12,
+    "overall": 6,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 4
   },
   "HDInsightManagementClient_1_1_1": {
-    "overall": 3,
+    "overall": 2,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 1,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
@@ -2547,162 +2610,171 @@
     "numOpsCreated": 1
   },
   "HDInsightManagementClient_1_1_1_1_1_1": {
-    "overall": 5,
+    "overall": 4,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 1,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 3
   },
   "IntuneResourceManagementClient": {
-    "overall": 33,
+    "overall": 20,
     "MissingResponseSchema": 10,
-    "InvalidSchemaType": 13,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 10,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 31,
     "numOpsCreated": 21
   },
   "IntuneResourceManagementClient_1": {
-    "overall": 33,
+    "overall": 20,
     "MissingResponseSchema": 10,
-    "InvalidSchemaType": 13,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 10,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 31,
     "numOpsCreated": 21
   },
   "iotHubClient": {
-    "overall": 16,
+    "overall": 5,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 11,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 19,
     "numOpsCreated": 18
   },
   "iotHubClient_1": {
-    "overall": 16,
+    "overall": 5,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 11,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 19,
     "numOpsCreated": 18
   },
   "iotHubClient_1_1": {
-    "overall": 20,
+    "overall": 9,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 11,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 26,
     "numOpsCreated": 24
   },
   "KeyVaultManagementClient": {
-    "overall": 6,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "KeyVaultManagementClient_1": {
-    "overall": 9,
+    "overall": 5,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 6
   },
   "Azure Location Based Services Resource Provider": {
-    "overall": 7,
+    "overall": 5,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "LogicManagementClient": {
-    "overall": 32,
+    "overall": 14,
     "MissingResponseSchema": 7,
-    "InvalidSchemaType": 19,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 26,
     "numOpsCreated": 19
   },
   "LogicManagementClient_1": {
-    "overall": 54,
+    "overall": 24,
     "MissingResponseSchema": 6,
-    "InvalidSchemaType": 30,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 18,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 26,
     "numOpsCreated": 20
   },
+  "LogicManagementClient_1_1": {
+    "overall": 41,
+    "MissingResponseSchema": 15,
+    "InvalidSchemaType": 2,
+    "MultipleResponses": 24,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 57,
+    "numOpsCreated": 42
+  },
   "Azure ML Commitment Plans Management Client": {
-    "overall": 14,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 11,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 8
   },
   "Azure ML Web Services Management Client": {
-    "overall": 16,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 12,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 5
   },
   "Azure ML Web Services Management Client_1": {
-    "overall": 18,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 12,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 5,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 7,
     "numOpsCreated": 6
   },
   "Machine Learning Workspaces Management Client": {
-    "overall": 5,
+    "overall": 3,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 1,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 6
   },
   "Azure Machine Learning Compute Management Client": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 9,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 8
   },
   "Machine Learning Compute Management Client": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 5,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 8
   },
   "ML Team Account Management Client": {
-    "overall": 18,
+    "overall": 12,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 9,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 14,
@@ -2718,72 +2790,81 @@
     "numOpsCreated": 3
   },
   "MediaServicesManagementClient": {
-    "overall": 5,
+    "overall": 3,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 1,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "Engagement.ManagementClient": {
-    "overall": 23,
+    "overall": 9,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 20,
+    "InvalidSchemaType": 6,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 37,
     "numOpsCreated": 36
   },
   "ManagedServiceIdentityClient": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 5
   },
+  "MySQLManagementClient": {
+    "overall": 18,
+    "MissingResponseSchema": 4,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 14,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 25,
+    "numOpsCreated": 21
+  },
   "NetworkManagementClient": {
-    "overall": 14,
+    "overall": 12,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 5
   },
   "NetworkManagementClient_1": {
-    "overall": 14,
+    "overall": 12,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 5
   },
   "NetworkManagementClient_1_1": {
-    "overall": 15,
+    "overall": 12,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 6
   },
   "NetworkManagementClient_1_1_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
@@ -2898,90 +2979,90 @@
     "numOpsCreated": 1
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 15,
+    "overall": 12,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 9,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
     "numOpsCreated": 14
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 21,
+    "overall": 18,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 15,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 19,
     "numOpsCreated": 16
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 25,
+    "overall": 20,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 15,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 19,
     "numOpsCreated": 16
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 27,
+    "overall": 25,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 21,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 19,
     "numOpsCreated": 16
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 27,
+    "overall": 25,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 21,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 19,
     "numOpsCreated": 16
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 30,
+    "overall": 27,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 23,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 17
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 30,
+    "overall": 27,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 23,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 17
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 30,
+    "overall": 27,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 23,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 17
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 34,
+    "overall": 31,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 27,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 22,
     "numOpsCreated": 19
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 34,
+    "overall": 31,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 27,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 22,
@@ -3006,252 +3087,252 @@
     "numOpsCreated": 1
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 14,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 14,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 14,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 14,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 14,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 14,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 6,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 7
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
@@ -3330,99 +3411,99 @@
     "numOpsCreated": 1
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 24,
+    "overall": 18,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 15,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
     "numOpsCreated": 14
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 30,
+    "overall": 24,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 21,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 17
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 30,
+    "overall": 24,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 21,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 17
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 30,
+    "overall": 24,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 21,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 17
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 31,
+    "overall": 24,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 21,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 22,
     "numOpsCreated": 19
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 35,
+    "overall": 28,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 25,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 23,
     "numOpsCreated": 20
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 35,
+    "overall": 28,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 25,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 25,
     "numOpsCreated": 22
   },
   "NetworkManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 35,
+    "overall": 28,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 25,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 25,
     "numOpsCreated": 22
   },
   "NotificationHubsManagementClient": {
-    "overall": 20,
+    "overall": 13,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 8,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 23,
     "numOpsCreated": 18
   },
   "NotificationHubsManagementClient_1": {
-    "overall": 20,
+    "overall": 11,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 24,
     "numOpsCreated": 20
   },
   "NotificationHubsManagementClient_1_1": {
-    "overall": 20,
+    "overall": 11,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 26,
@@ -3437,91 +3518,100 @@
     "numOps": 14,
     "numOpsCreated": 11
   },
+  "PostgreSQLManagementClient": {
+    "overall": 18,
+    "MissingResponseSchema": 4,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 14,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 25,
+    "numOpsCreated": 21
+  },
   "PowerBIDedicated": {
-    "overall": 10,
+    "overall": 8,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 5,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 7
   },
   "Power BI Embedded Management Client": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
     "numOpsCreated": 9
   },
   "iotDpsClient": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
     "numOpsCreated": 15
   },
   "iotDpsClient_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
     "numOpsCreated": 15
   },
   "RedisManagementClient": {
-    "overall": 15,
+    "overall": 6,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 6
   },
   "RedisManagementClient_1": {
-    "overall": 22,
+    "overall": 16,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 11,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 18,
     "numOpsCreated": 13
   },
   "RedisManagementClient_1_1": {
-    "overall": 25,
+    "overall": 19,
     "MissingResponseSchema": 6,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 13,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 22,
     "numOpsCreated": 16
   },
   "RedisManagementClient_1_1_1": {
-    "overall": 25,
+    "overall": 19,
     "MissingResponseSchema": 6,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 13,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 22,
     "numOpsCreated": 16
   },
   "Relay": {
-    "overall": 18,
+    "overall": 16,
     "MissingResponseSchema": 6,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 10,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 33,
     "numOpsCreated": 27
   },
   "Relay_1": {
-    "overall": 18,
+    "overall": 16,
     "MissingResponseSchema": 6,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 10,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 33,
@@ -3582,18 +3672,18 @@
     "numOpsCreated": 11
   },
   "ManagedApplicationClient": {
-    "overall": 24,
+    "overall": 16,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 12,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 15,
     "numOpsCreated": 11
   },
   "ApplicationClient": {
-    "overall": 28,
+    "overall": 16,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 12,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 12,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 15,
@@ -3672,54 +3762,54 @@
     "numOpsCreated": 4
   },
   "ResourceManagementClient": {
-    "overall": 47,
+    "overall": 40,
     "MissingResponseSchema": 12,
-    "InvalidSchemaType": 16,
+    "InvalidSchemaType": 9,
     "MultipleResponses": 19,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 36,
     "numOpsCreated": 24
   },
   "ResourceManagementClient_1": {
-    "overall": 49,
+    "overall": 42,
     "MissingResponseSchema": 13,
-    "InvalidSchemaType": 16,
+    "InvalidSchemaType": 9,
     "MultipleResponses": 20,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 37,
     "numOpsCreated": 24
   },
   "SearchManagementClient": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "SearchManagementClient_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 8
   },
   "ServerManagement": {
-    "overall": 31,
+    "overall": 26,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 19,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 22,
     "numOpsCreated": 17
   },
   "ServerManagement_1": {
-    "overall": 31,
+    "overall": 26,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 19,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 22,
@@ -3735,18 +3825,36 @@
     "numOpsCreated": 24
   },
   "ServiceBusManagementClient": {
-    "overall": 26,
+    "overall": 18,
+    "MissingResponseSchema": 7,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 11,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 38,
+    "numOpsCreated": 31
+  },
+  "ServiceBusManagementClient_1": {
+    "overall": 16,
+    "MissingResponseSchema": 7,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 9,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 37,
+    "numOpsCreated": 30
+  },
+  "ServiceBusManagementClient_1_1": {
+    "overall": 23,
     "MissingResponseSchema": 11,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 12,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 54,
     "numOpsCreated": 43
   },
   "ServiceFabricManagementClient": {
-    "overall": 18,
+    "overall": 12,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 26,
@@ -3762,9 +3870,9 @@
     "numOpsCreated": 3
   },
   "SqlManagementClient_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
@@ -3843,18 +3951,18 @@
     "numOpsCreated": 2
   },
   "SqlManagementClient_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "SqlManagementClient_1_1_1_1_1_1": {
-    "overall": 12,
+    "overall": 10,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 9,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
@@ -3878,6 +3986,15 @@
     "numOps": 4,
     "numOpsCreated": 4
   },
+  "Azure SQL Database": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 2,
+    "numOpsCreated": 2
+  },
   "SqlManagementClient_1_1_1_1_1_1_1": {
     "overall": 2,
     "MissingResponseSchema": 0,
@@ -3888,13 +4005,22 @@
     "numOpsCreated": 3
   },
   "SqlManagementClient_1_1_1_1_1_1_1_1": {
-    "overall": 10,
+    "overall": 8,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 7,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 5
+  },
+  "Azure SQL Database server firewall rules": {
+    "overall": 4,
+    "MissingResponseSchema": 1,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 3,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 4,
+    "numOpsCreated": 3
   },
   "SqlManagementClient_1_1_1_1_1_1_1_1_1": {
     "overall": 6,
@@ -3905,7 +4031,7 @@
     "numOps": 5,
     "numOpsCreated": 4
   },
-  "Azure SQL Database": {
+  "Azure SQL Database_1": {
     "overall": 2,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -3924,15 +4050,15 @@
     "numOpsCreated": 3
   },
   "SqlManagementClient_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 8,
+    "overall": 6,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 3
   },
-  "Azure SQL Database_1": {
+  "Azure SQL Database_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -3941,7 +4067,7 @@
     "numOps": 4,
     "numOpsCreated": 4
   },
-  "Azure SQL Database_1_1": {
+  "Azure SQL Database_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -3951,15 +4077,15 @@
     "numOpsCreated": 1
   },
   "SqlManagementClient_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
-  "Azure SQL Database_1_1_1": {
+  "Azure SQL Database_1_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -3977,10 +4103,19 @@
     "numOps": 1,
     "numOpsCreated": 0
   },
+  "Azure SQL Database replication links": {
+    "overall": 6,
+    "MissingResponseSchema": 3,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 3,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 5,
+    "numOpsCreated": 2
+  },
   "SqlManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
@@ -3995,7 +4130,7 @@
     "numOps": 4,
     "numOpsCreated": 4
   },
-  "Azure SQL Database_1_1_1_1": {
+  "Azure SQL Database_1_1_1_1_1": {
     "overall": 3,
     "MissingResponseSchema": 1,
     "InvalidSchemaType": 0,
@@ -4022,25 +4157,25 @@
     "numOps": 4,
     "numOpsCreated": 3
   },
-  "Azure SQL Database_1_1_1_1_1": {
-    "overall": 6,
+  "Azure SQL Database_1_1_1_1_1_1": {
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
   "SqlManagementClient_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 4
   },
-  "Azure SQL Database_1_1_1_1_1_1": {
+  "Azure SQL Database_1_1_1_1_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -4049,10 +4184,10 @@
     "numOps": 2,
     "numOpsCreated": 2
   },
-  "Azure SQL Database_1_1_1_1_1_1_1": {
-    "overall": 18,
+  "Azure SQL Database_1_1_1_1_1_1_1_1": {
+    "overall": 14,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 10,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 25,
@@ -4094,7 +4229,7 @@
     "numOps": 8,
     "numOpsCreated": 8
   },
-  "Azure SQL Database_1_1_1_1_1_1_1_1": {
+  "Azure SQL Database_1_1_1_1_1_1_1_1_1": {
     "overall": 0,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 0,
@@ -4131,63 +4266,63 @@
     "numOpsCreated": 3
   },
   "StorageManagementClient": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 8
   },
   "StorageManagement": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 8
   },
   "StorageManagementClient_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 8
   },
   "StorageManagement_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
     "numOpsCreated": 10
   },
   "StorageManagement_1_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
     "numOpsCreated": 10
   },
   "StorageManagement_1_1_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
     "numOpsCreated": 12
   },
   "StorageManagement_1_1_1_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 3,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
@@ -4212,45 +4347,45 @@
     "numOpsCreated": 5
   },
   "TimeSeriesInsightsClient": {
-    "overall": 22,
+    "overall": 16,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 12,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 18,
     "numOpsCreated": 14
   },
   "TimeSeriesInsightsClient_1": {
-    "overall": 22,
+    "overall": 16,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 12,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 18,
     "numOpsCreated": 14
   },
   "Visual Studio Resource Provider Client": {
-    "overall": 18,
+    "overall": 6,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 12,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 14,
     "numOpsCreated": 12
   },
   "Visual Studio Resource Provider Client_1": {
-    "overall": 18,
+    "overall": 4,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 14,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
     "numOpsCreated": 11
   },
   "WebSite Management Client": {
-    "overall": 190,
+    "overall": 112,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 153,
+    "InvalidSchemaType": 75,
     "MultipleResponses": 34,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 279,
@@ -4264,6 +4399,15 @@
     "InvalidSchemaTypeScalar": 0,
     "numOps": 75,
     "numOpsCreated": 67
+  },
+  "BBC Nitro": {
+    "overall": 51,
+    "MissingResponseSchema": 2,
+    "InvalidSchemaType": 49,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 25,
+    "numOpsCreated": 23
   },
   "BBC iPlayer Business Layer": {
     "overall": 5,
@@ -4291,6 +4435,15 @@
     "InvalidSchemaTypeScalar": 0,
     "numOps": 15,
     "numOpsCreated": 15
+  },
+  "BeezUP": {
+    "overall": 284,
+    "MissingResponseSchema": 83,
+    "InvalidSchemaType": 201,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 179,
+    "numOpsCreated": 96
   },
   "Betfair: Exchange Streaming": {
     "overall": 1,
@@ -4320,9 +4473,9 @@
     "numOpsCreated": 0
   },
   "Bitbucket": {
-    "overall": 78,
+    "overall": 80,
     "MissingResponseSchema": 73,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 182,
@@ -4338,9 +4491,9 @@
     "numOpsCreated": 14
   },
   "IBM Containers": {
-    "overall": 18,
+    "overall": 20,
     "MissingResponseSchema": 17,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 46,
@@ -4365,9 +4518,9 @@
     "numOpsCreated": 0
   },
   "Box 2.0": {
-    "overall": 49,
+    "overall": 43,
     "MissingResponseSchema": 23,
-    "InvalidSchemaType": 16,
+    "InvalidSchemaType": 10,
     "MultipleResponses": 10,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 127,
@@ -4383,9 +4536,9 @@
     "numOpsCreated": 1
   },
   "Box 2.0 Uploads": {
-    "overall": 4,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
@@ -4419,13 +4572,22 @@
     "numOpsCreated": 18
   },
   "Bungie.Net": {
-    "overall": 102,
+    "overall": 53,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 102,
+    "InvalidSchemaType": 53,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 94,
     "numOpsCreated": 94
+  },
+  "CallFire": {
+    "overall": 40,
+    "MissingResponseSchema": 35,
+    "InvalidSchemaType": 3,
+    "MultipleResponses": 2,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 111,
+    "numOpsCreated": 76
   },
   "Cambase.io": {
     "overall": 14,
@@ -4518,18 +4680,18 @@
     "numOpsCreated": 0
   },
   "Clever-Cloud": {
-    "overall": 181,
+    "overall": 180,
     "MissingResponseSchema": 176,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 4,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 274,
     "numOpsCreated": 98
   },
   "ClickMeter": {
-    "overall": 7,
+    "overall": 6,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 6,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 108,
@@ -4589,6 +4751,15 @@
     "numOps": 3,
     "numOpsCreated": 0
   },
+  "Data2CRM.API": {
+    "overall": 18,
+    "MissingResponseSchema": 14,
+    "InvalidSchemaType": 4,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 95,
+    "numOpsCreated": 81
+  },
   "Open Skills": {
     "overall": 0,
     "MissingResponseSchema": 0,
@@ -4635,9 +4806,9 @@
     "numOpsCreated": 5
   },
   "Flinkster_API_NG": {
-    "overall": 6,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
@@ -4779,9 +4950,9 @@
     "numOpsCreated": 0
   },
   "Europeana": {
-    "overall": 4,
+    "overall": 3,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
@@ -4797,9 +4968,9 @@
     "numOpsCreated": 35
   },
   "Figshare": {
-    "overall": 75,
+    "overall": 57,
     "MissingResponseSchema": 34,
-    "InvalidSchemaType": 41,
+    "InvalidSchemaType": 23,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 111,
@@ -4813,6 +4984,15 @@
     "InvalidSchemaTypeScalar": 0,
     "numOps": 30,
     "numOpsCreated": 0
+  },
+  "Flat": {
+    "overall": 12,
+    "MissingResponseSchema": 11,
+    "InvalidSchemaType": 1,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 60,
+    "numOpsCreated": 49
   },
   "Freesound": {
     "overall": 0,
@@ -4869,54 +5049,54 @@
     "numOpsCreated": 16
   },
   "GoToWebinar": {
-    "overall": 10,
+    "overall": 8,
     "MissingResponseSchema": 8,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 38,
     "numOpsCreated": 30
   },
   "Sandbox": {
-    "overall": 10,
+    "overall": 3,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 6
   },
   "Getty Images": {
-    "overall": 15,
+    "overall": 10,
     "MissingResponseSchema": 5,
-    "InvalidSchemaType": 10,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 42,
     "numOpsCreated": 37
   },
   "Giphy": {
-    "overall": 0,
+    "overall": 20,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 0,
+    "InvalidSchemaType": 20,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 10
   },
   "Gisgraphy webservices": {
-    "overall": 4,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 6
   },
   "GitHub": {
-    "overall": 80,
+    "overall": 79,
     "MissingResponseSchema": 66,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 4,
     "MultipleResponses": 2,
     "InvalidSchemaTypeScalar": 7,
     "numOps": 226,
@@ -5031,18 +5211,18 @@
     "numOpsCreated": 5
   },
   "Admin Directory": {
-    "overall": 65,
+    "overall": 61,
     "MissingResponseSchema": 28,
-    "InvalidSchemaType": 37,
+    "InvalidSchemaType": 33,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 100,
     "numOpsCreated": 72
   },
   "Admin Reports": {
-    "overall": 4,
+    "overall": 1,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
@@ -5085,9 +5265,9 @@
     "numOpsCreated": 0
   },
   "Google Analytics_1": {
-    "overall": 14,
+    "overall": 10,
     "MissingResponseSchema": 10,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 75,
@@ -5103,9 +5283,9 @@
     "numOpsCreated": 1
   },
   "Android Device Provisioning Partner": {
-    "overall": 10,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 10,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
@@ -5121,9 +5301,9 @@
     "numOpsCreated": 60
   },
   "Android Management": {
-    "overall": 9,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
@@ -5148,54 +5328,54 @@
     "numOpsCreated": 1
   },
   "Google Play Developer_1_1": {
-    "overall": 14,
+    "overall": 10,
     "MissingResponseSchema": 10,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 49,
     "numOpsCreated": 39
   },
   "Google App Engine Admin": {
-    "overall": 17,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 17,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 32,
     "numOpsCreated": 32
   },
   "Google App Engine Admin_1": {
-    "overall": 6,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
     "numOpsCreated": 13
   },
   "Google App Engine Admin_1_1": {
-    "overall": 17,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 17,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 32,
     "numOpsCreated": 32
   },
   "Google App Engine Admin_1_1_1": {
-    "overall": 16,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 16,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
     "numOpsCreated": 17
   },
   "Google App Engine Admin_1_1_1_1": {
-    "overall": 14,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 14,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
@@ -5220,18 +5400,18 @@
     "numOpsCreated": 4
   },
   "BigQuery": {
-    "overall": 14,
+    "overall": 3,
     "MissingResponseSchema": 2,
-    "InvalidSchemaType": 12,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 18
   },
   "BigQuery Data Transfer": {
-    "overall": 8,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
@@ -5265,18 +5445,18 @@
     "numOpsCreated": 40
   },
   "Calendar": {
-    "overall": 18,
+    "overall": 6,
     "MissingResponseSchema": 6,
-    "InvalidSchemaType": 12,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 33,
     "numOpsCreated": 27
   },
   "Google Civic Information": {
-    "overall": 2,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
@@ -5301,18 +5481,18 @@
     "numOpsCreated": 7
   },
   "Google Cloud Container Builder": {
-    "overall": 18,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 18,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 12,
     "numOpsCreated": 12
   },
   "Stackdriver Debugger": {
-    "overall": 8,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
@@ -5328,42 +5508,69 @@
     "numOpsCreated": 6
   },
   "Google Cloud Functions": {
-    "overall": 10,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 10,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 9
   },
   "Google Cloud Functions_1": {
-    "overall": 10,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 10,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 10
   },
   "Google Cloud IoT": {
-    "overall": 6,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 12,
     "numOpsCreated": 12
   },
   "Google Cloud IoT_1": {
-    "overall": 4,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
     "numOpsCreated": 11
   },
   "Google Cloud Key Management Service (KMS)": {
+    "overall": 2,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 2,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 16,
+    "numOpsCreated": 16
+  },
+  "Cloud Monitoring": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 6,
+    "numOpsCreated": 6
+  },
+  "Google Cloud Resource Manager": {
+    "overall": 11,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 11,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 24,
+    "numOpsCreated": 24
+  },
+  "Google Cloud Resource Manager_1": {
     "overall": 6,
     "MissingResponseSchema": 0,
     "InvalidSchemaType": 6,
@@ -5372,64 +5579,37 @@
     "numOps": 16,
     "numOpsCreated": 16
   },
-  "Cloud Monitoring": {
-    "overall": 3,
-    "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
-    "MultipleResponses": 0,
-    "InvalidSchemaTypeScalar": 0,
-    "numOps": 6,
-    "numOpsCreated": 6
-  },
-  "Google Cloud Resource Manager": {
-    "overall": 16,
-    "MissingResponseSchema": 0,
-    "InvalidSchemaType": 16,
-    "MultipleResponses": 0,
-    "InvalidSchemaTypeScalar": 0,
-    "numOps": 24,
-    "numOpsCreated": 24
-  },
-  "Google Cloud Resource Manager_1": {
-    "overall": 8,
-    "MissingResponseSchema": 0,
-    "InvalidSchemaType": 8,
-    "MultipleResponses": 0,
-    "InvalidSchemaTypeScalar": 0,
-    "numOps": 16,
-    "numOpsCreated": 16
-  },
   "Google Cloud Resource Manager_1_1": {
-    "overall": 5,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 10,
     "numOpsCreated": 10
   },
   "Cloud Tasks": {
-    "overall": 14,
+    "overall": 8,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 14,
+    "InvalidSchemaType": 8,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 18,
     "numOpsCreated": 18
   },
   "Stackdriver Trace": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
     "numOpsCreated": 2
   },
   "Stackdriver Trace_1": {
-    "overall": 5,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
@@ -5472,27 +5652,27 @@
     "numOpsCreated": 16
   },
   "Compute Engine": {
-    "overall": 54,
+    "overall": 3,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 51,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 451,
     "numOpsCreated": 448
   },
   "Compute Engine_1": {
-    "overall": 44,
+    "overall": 3,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 41,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 368,
     "numOpsCreated": 365
   },
   "Compute Engine_1_1": {
-    "overall": 36,
+    "overall": 3,
     "MissingResponseSchema": 3,
-    "InvalidSchemaType": 33,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 290,
@@ -5508,18 +5688,18 @@
     "numOpsCreated": 11
   },
   "Google Container Engine": {
-    "overall": 12,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 12,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 30,
     "numOpsCreated": 30
   },
   "Google Container Engine_1": {
-    "overall": 7,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 54,
@@ -5544,81 +5724,81 @@
     "numOpsCreated": 17
   },
   "CustomSearch": {
-    "overall": 2,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
     "numOpsCreated": 2
   },
   "Google Dataflow": {
-    "overall": 64,
+    "overall": 18,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 64,
+    "InvalidSchemaType": 18,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 29,
     "numOpsCreated": 29
   },
   "Google Cloud Dataproc": {
-    "overall": 40,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 40,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
     "numOpsCreated": 13
   },
   "Google Cloud Dataproc_1": {
-    "overall": 39,
+    "overall": 4,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 39,
+    "InvalidSchemaType": 4,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 12,
     "numOpsCreated": 12
   },
   "Google Cloud Dataproc_1_1": {
-    "overall": 41,
+    "overall": 6,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 41,
+    "InvalidSchemaType": 6,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
     "numOpsCreated": 13
   },
   "Google Cloud Dataproc_1_1_1": {
-    "overall": 48,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 48,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 20
   },
   "Google Cloud Datastore": {
-    "overall": 11,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 11,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
     "numOpsCreated": 11
   },
   "Google Cloud Datastore_1": {
-    "overall": 5,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
     "numOpsCreated": 2
   },
   "Google Cloud Datastore_1_1": {
-    "overall": 6,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 7,
@@ -5679,18 +5859,18 @@
     "numOpsCreated": 168
   },
   "APIs Discovery Service": {
-    "overall": 5,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
     "numOpsCreated": 2
   },
   "DLP": {
-    "overall": 12,
+    "overall": 9,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 12,
+    "InvalidSchemaType": 9,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
@@ -5733,27 +5913,27 @@
     "numOpsCreated": 7
   },
   "DoubleClick Search": {
-    "overall": 4,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 8
   },
   "Drive": {
-    "overall": 22,
+    "overall": 14,
     "MissingResponseSchema": 14,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 61,
     "numOpsCreated": 47
   },
   "Drive_1": {
-    "overall": 18,
+    "overall": 9,
     "MissingResponseSchema": 9,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 33,
@@ -5769,9 +5949,9 @@
     "numOpsCreated": 3
   },
   "Firebase Remote Config": {
-    "overall": 2,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,
@@ -5841,18 +6021,18 @@
     "numOpsCreated": 5
   },
   "Genomics": {
-    "overall": 32,
+    "overall": 12,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 32,
+    "InvalidSchemaType": 12,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 48,
     "numOpsCreated": 48
   },
   "Genomics_1": {
-    "overall": 14,
+    "overall": 4,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 14,
+    "InvalidSchemaType": 4,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
@@ -5895,9 +6075,9 @@
     "numOpsCreated": 18
   },
   "Google Identity Toolkit": {
-    "overall": 2,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
@@ -5913,18 +6093,18 @@
     "numOpsCreated": 1
   },
   "Google Cloud Natural Language": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 6
   },
   "Google Cloud Natural Language_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
@@ -5940,18 +6120,18 @@
     "numOpsCreated": 5
   },
   "Stackdriver Logging": {
-    "overall": 16,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 16,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 19,
     "numOpsCreated": 19
   },
   "Stackdriver Logging_1": {
-    "overall": 15,
+    "overall": 4,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 15,
+    "InvalidSchemaType": 4,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 15,
@@ -5976,36 +6156,36 @@
     "numOpsCreated": 18
   },
   "Google Cloud Machine Learning Engine": {
-    "overall": 16,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 16,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
     "numOpsCreated": 17
   },
   "Google Cloud Machine Learning Engine_1": {
-    "overall": 11,
+    "overall": 4,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 11,
+    "InvalidSchemaType": 4,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 16,
     "numOpsCreated": 16
   },
   "Stackdriver Monitoring": {
-    "overall": 14,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 14,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 15,
     "numOpsCreated": 15
   },
   "Google OAuth2": {
-    "overall": 2,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
@@ -6021,63 +6201,63 @@
     "numOpsCreated": 4
   },
   "Google Cloud OS Login": {
-    "overall": 2,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 4
   },
   "Google Cloud OS Login_1": {
-    "overall": 2,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 4
   },
   "Google Cloud OS Login_1_1": {
-    "overall": 2,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 4
   },
   "PageSpeed Insights": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "PageSpeed Insights_1": {
-    "overall": 2,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "Google Partners": {
-    "overall": 2,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 15,
     "numOpsCreated": 15
   },
   "Google People": {
-    "overall": 3,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
@@ -6138,54 +6318,54 @@
     "numOpsCreated": 5
   },
   "Prediction_1": {
-    "overall": 9,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 5
   },
   "Prediction_1_1": {
-    "overall": 9,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 5
   },
   "Prediction_1_1_1": {
-    "overall": 9,
+    "overall": 4,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 8,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 7
   },
   "Prediction_1_1_1_1": {
-    "overall": 7,
+    "overall": 3,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 7
   },
   "Google Proximity Beacon": {
-    "overall": 7,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
     "numOpsCreated": 17
   },
   "Google Cloud Pub/Sub": {
-    "overall": 11,
+    "overall": 7,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 11,
+    "InvalidSchemaType": 7,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
@@ -6201,9 +6381,9 @@
     "numOpsCreated": 15
   },
   "Google Cloud Pub/Sub_1_1": {
-    "overall": 9,
+    "overall": 5,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 5,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 16,
@@ -6264,27 +6444,27 @@
     "numOpsCreated": 8
   },
   "Google Compute Engine Instance Groups": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
     "numOpsCreated": 11
   },
   "Google Cloud Runtime Configuration": {
-    "overall": 6,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 3,
     "numOpsCreated": 3
   },
   "Google Cloud Runtime Configuration_1": {
-    "overall": 5,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
@@ -6300,9 +6480,9 @@
     "numOpsCreated": 7
   },
   "Google Apps Script": {
-    "overall": 3,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
@@ -6318,45 +6498,45 @@
     "numOpsCreated": 1
   },
   "Service Consumer Management": {
-    "overall": 6,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 8,
     "numOpsCreated": 8
   },
   "Google Service Control": {
-    "overall": 10,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 10,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 6
   },
   "Google Service Management": {
-    "overall": 18,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 18,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 21,
     "numOpsCreated": 21
   },
   "Google Service User": {
-    "overall": 9,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
     "numOpsCreated": 4
   },
   "Google Sheets": {
-    "overall": 9,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 17,
@@ -6372,9 +6552,9 @@
     "numOpsCreated": 5
   },
   "Google Slides": {
-    "overall": 3,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
@@ -6390,9 +6570,9 @@
     "numOpsCreated": 7
   },
   "Cloud Spanner": {
-    "overall": 26,
+    "overall": 13,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 26,
+    "InvalidSchemaType": 13,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 22,
@@ -6408,18 +6588,18 @@
     "numOpsCreated": 6
   },
   "Google Cloud Speech": {
-    "overall": 6,
+    "overall": 3,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
     "numOpsCreated": 6
   },
   "Google Cloud Speech_1": {
-    "overall": 5,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 6,
@@ -6435,54 +6615,54 @@
     "numOpsCreated": 23
   },
   "Cloud SQL Administration_1": {
-    "overall": 2,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 39,
     "numOpsCreated": 39
   },
   "Cloud Storage": {
-    "overall": 17,
+    "overall": 9,
     "MissingResponseSchema": 7,
-    "InvalidSchemaType": 10,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 42,
     "numOpsCreated": 35
   },
   "Cloud Storage_1": {
-    "overall": 6,
+    "overall": 4,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 16
   },
   "Cloud Storage_1_1": {
-    "overall": 11,
+    "overall": 7,
     "MissingResponseSchema": 6,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 29,
     "numOpsCreated": 23
   },
   "Google Storage Transfer": {
-    "overall": 9,
+    "overall": 6,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 6,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 9
   },
   "Street View Publish": {
-    "overall": 3,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
@@ -6561,18 +6741,18 @@
     "numOpsCreated": 22
   },
   "Cloud TPU": {
-    "overall": 7,
+    "overall": 2,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 7,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
     "numOpsCreated": 9
   },
   "Stackdriver Trace_1_1": {
-    "overall": 5,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 4,
@@ -6606,36 +6786,36 @@
     "numOpsCreated": 18
   },
   "Cloud Video Intelligence": {
-    "overall": 3,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "Google Cloud Vision": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "Google Cloud Vision_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
     "numOpsCreated": 1
   },
   "Google Fonts Developer": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 1,
@@ -6649,6 +6829,15 @@
     "InvalidSchemaTypeScalar": 0,
     "numOps": 13,
     "numOpsCreated": 8
+  },
+  "YouTube Data": {
+    "overall": 39,
+    "MissingResponseSchema": 19,
+    "InvalidSchemaType": 20,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 72,
+    "numOpsCreated": 53
   },
   "YouTube Analytics": {
     "overall": 3,
@@ -6822,9 +7011,9 @@
     "numOpsCreated": 3
   },
   "Infermedica": {
-    "overall": 3,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
@@ -6894,9 +7083,9 @@
     "numOpsCreated": 2
   },
   "LaunchDarkly": {
-    "overall": 14,
+    "overall": 13,
     "MissingResponseSchema": 10,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 3,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 27,
@@ -6921,9 +7110,9 @@
     "numOpsCreated": 4
   },
   "Lyft": {
-    "overall": 4,
+    "overall": 18,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 0,
+    "InvalidSchemaType": 14,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 16,
@@ -6966,9 +7155,9 @@
     "numOpsCreated": 16
   },
   "Rat Genome Database": {
-    "overall": 27,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 27,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 56,
@@ -6982,6 +7171,69 @@
     "InvalidSchemaTypeScalar": 0,
     "numOps": 5,
     "numOpsCreated": 5
+  },
+  "Custom Search": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 1,
+    "numOpsCreated": 1
+  },
+  "Entity Search": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 1,
+    "numOpsCreated": 1
+  },
+  "Image Search": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 3,
+    "numOpsCreated": 3
+  },
+  "News Search": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 3,
+    "numOpsCreated": 3
+  },
+  "Spell Check": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 1,
+    "numOpsCreated": 1
+  },
+  "Video Search": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 3,
+    "numOpsCreated": 3
+  },
+  "Web Search": {
+    "overall": 0,
+    "MissingResponseSchema": 0,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 1,
+    "numOpsCreated": 1
   },
   "Moon by Ai Weiwei & Olafur Eliasson": {
     "overall": 2,
@@ -7047,18 +7299,18 @@
     "numOpsCreated": 5
   },
   "Netatmo": {
-    "overall": 6,
+    "overall": 1,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 6,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 20,
     "numOpsCreated": 20
   },
   "NeutrinoAPI": {
-    "overall": 3,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 3,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 26,
@@ -7072,6 +7324,15 @@
     "InvalidSchemaTypeScalar": 0,
     "numOps": 14,
     "numOpsCreated": 14
+  },
+  "NPR One API Reference": {
+    "overall": 29,
+    "MissingResponseSchema": 2,
+    "InvalidSchemaType": 22,
+    "MultipleResponses": 2,
+    "InvalidSchemaTypeScalar": 3,
+    "numOps": 23,
+    "numOpsCreated": 21
   },
   "High Performance Building Database": {
     "overall": 2,
@@ -7272,9 +7533,9 @@
     "numOpsCreated": 0
   },
   "OSF APIv2 Documentation": {
-    "overall": 23,
+    "overall": 22,
     "MissingResponseSchema": 18,
-    "InvalidSchemaType": 5,
+    "InvalidSchemaType": 4,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 103,
@@ -7324,6 +7585,15 @@
     "InvalidSchemaTypeScalar": 0,
     "numOps": 18,
     "numOpsCreated": 9
+  },
+  "PayRun.IO": {
+    "overall": 146,
+    "MissingResponseSchema": 146,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 248,
+    "numOpsCreated": 102
   },
   "Peel Tune-in API": {
     "overall": 5,
@@ -7380,9 +7650,9 @@
     "numOpsCreated": 10
   },
   "Request Baskets": {
-    "overall": 10,
+    "overall": 8,
     "MissingResponseSchema": 4,
-    "InvalidSchemaType": 2,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 4,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 9,
@@ -7443,9 +7713,9 @@
     "numOpsCreated": 0
   },
   "Runscope": {
-    "overall": 24,
+    "overall": 23,
     "MissingResponseSchema": 15,
-    "InvalidSchemaType": 9,
+    "InvalidSchemaType": 8,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 29,
@@ -7506,9 +7776,9 @@
     "numOpsCreated": 0
   },
   "SlideRoom API V2": {
-    "overall": 4,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 11,
@@ -7596,9 +7866,9 @@
     "numOpsCreated": 192
   },
   "Swagger Generator": {
-    "overall": 5,
+    "overall": 2,
     "MissingResponseSchema": 1,
-    "InvalidSchemaType": 4,
+    "InvalidSchemaType": 1,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 7,
@@ -7946,6 +8216,15 @@
     "numOps": 72,
     "numOpsCreated": 27
   },
+  "GraphRbacManagementClient": {
+    "overall": 7,
+    "MissingResponseSchema": 7,
+    "InvalidSchemaType": 0,
+    "MultipleResponses": 0,
+    "InvalidSchemaTypeScalar": 0,
+    "numOps": 33,
+    "numOpsCreated": 26
+  },
   "Winning Email": {
     "overall": 2,
     "MissingResponseSchema": 0,
@@ -8028,9 +8307,9 @@
     "numOpsCreated": 0
   },
   "Accounting": {
-    "overall": 19,
+    "overall": 20,
     "MissingResponseSchema": 18,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 2,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 151,
@@ -8082,9 +8361,9 @@
     "numOpsCreated": 4
   },
   "APIs.guru_1": {
-    "overall": 1,
+    "overall": 0,
     "MissingResponseSchema": 0,
-    "InvalidSchemaType": 1,
+    "InvalidSchemaType": 0,
     "MultipleResponses": 0,
     "InvalidSchemaTypeScalar": 0,
     "numOps": 2,

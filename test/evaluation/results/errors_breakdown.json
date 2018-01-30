@@ -1,10 +1,10 @@
 {
   "validationFails": 6,
-  "invalidEnumValue": 11,
-  "invalidFields": 3,
+  "invalidEnumValue": 0,
+  "invalidFields": 0,
   "duplicateNamesInSchema": 0,
-  "cannotBeautify": 21,
-  "resolveAllOf": 12,
+  "cannotBeautify": 16,
+  "resolveAllOf": 0,
   "itemsPropertyMissing": 0,
   "invalidReference": 7,
   "other": 0

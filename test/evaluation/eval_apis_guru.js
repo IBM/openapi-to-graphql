@@ -54,14 +54,14 @@ async function checkOas (OASList) {
       results.errors.push({name, error: error.message, path: oas['x-file-path']})
     }
   }
-  console.log(JSON.stringify(results, null, 2))
+  // console.log(JSON.stringify(results, null, 2))
 
   // print results:
-  printOverallResults(results)
-  printWarningsBreakdown(results)
-  printErrorBreakdown(results)
-  printStats(results)
-  // console.log(JSON.stringify(getWarningsDistribution(results), null, 2))
+  // printOverallResults(results)
+  // printWarningsBreakdown(results)
+  // printErrorBreakdown(results)
+  // printStats(results)
+  console.log(JSON.stringify(getWarningsDistribution(results), null, 2))
   // console.log(JSON.stringify(warningsPerApi(results), null, 2))
 }
 
@@ -160,13 +160,13 @@ function getWarningsDistribution (results) {
   })
 
   // fill up empty values for easier plotting:
-  // for (let i = 0; i < 550; i++) {
-  //   if (typeof dist.overall[i] === 'undefined') dist.overall[i] = 0
-  //   if (typeof dist.MissingResponseSchema[i] === 'undefined') dist.MissingResponseSchema[i] = 0
-  //   if (typeof dist.InvalidSchemaType[i] === 'undefined') dist.InvalidSchemaType[i] = 0
-  //   if (typeof dist.MultipleResponses[i] === 'undefined') dist.MultipleResponses[i] = 0
-  //   if (typeof dist.InvalidSchemaTypeScalar[i] === 'undefined') dist.InvalidSchemaTypeScalar[i] = 0
-  // }
+  for (let i = 0; i < 550; i++) {
+    if (typeof dist.overall[i] === 'undefined') dist.overall[i] = 0
+    if (typeof dist.MissingResponseSchema[i] === 'undefined') dist.MissingResponseSchema[i] = 0
+    if (typeof dist.InvalidSchemaType[i] === 'undefined') dist.InvalidSchemaType[i] = 0
+    if (typeof dist.MultipleResponses[i] === 'undefined') dist.MultipleResponses[i] = 0
+    if (typeof dist.InvalidSchemaTypeScalar[i] === 'undefined') dist.InvalidSchemaTypeScalar[i] = 0
+  }
 
   return dist
 }
