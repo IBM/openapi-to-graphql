@@ -1,4 +1,4 @@
-<img src="docs/logo.png" alt="OASGraph logo" width="600">
+<img src="docs/logo.png" alt="OASGraph logo" width="250">
 
 # OASGraph
 
