@@ -322,7 +322,7 @@
 					"in": "path",
 					"required": true,
 					"schema": {
-						"type": "string"
+						"type": "integer"
 					}
 				}],
 				"responses": {
@@ -617,13 +617,17 @@
 				"description": "A patent",
 				"properties": {
 					"project-id": {
-						"type": "string",
+						"type": "integer",
 						"description": "The id of the project"
 					},
 					"lead-id": {
 						"type": "string",
 						"description": "The id of the lead"
-					}
+					},
+          "active": {
+            "type": "boolean",
+            "description": "Whether the project is active"
+          }
 				}
 			}
 		},

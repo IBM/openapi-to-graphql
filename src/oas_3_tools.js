@@ -238,7 +238,7 @@ export function sanitizeObjKeys (
   exceptions: string[] = []
 ): ?Object | Array<any> {
   const cleanKeys = (obj: ?Object | Array<any>): ?Object | Array<any> => {
-    if (!obj) {
+    if (obj === null || typeof obj === 'undefined') {
       return null
     } else if (Array.isArray(obj)) {
       return obj.map(cleanKeys)

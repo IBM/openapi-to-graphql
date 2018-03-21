@@ -380,7 +380,6 @@ test('Capitalized enum values can be returned', () => {
   })
 })
 
-
 test('Define header and query options', () => {
   let options = {
     headers: {

@@ -68,17 +68,19 @@ test('Get patent using API key', () => {
 test('Get project using API key 1', () => {
   let query = `{
     viewerApiKey (apiKey: "abcdef") {
-      projectWithId (projectId: "1") {
+      projectWithId (projectId: 1) {
+        active
         projectId
       }
     }
   }`
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
-      'data': {
-        'viewerApiKey': {
-          'projectWithId': {
-            'projectId': '1'
+      data: {
+        viewerApiKey: {
+          projectWithId: {
+            active: true,
+            projectId: 1
           }
         }
       }
@@ -94,15 +96,15 @@ test('Get project using API key passed as option - viewer is disabled', async ()
     }
   })
   let query = `{
-    projectWithId (projectId: "1") {
+    projectWithId (projectId: 1) {
       projectId
     }
   }`
   return graphql(schema, query, null, {}).then(result => {
     expect(result).toEqual({
-      'data': {
-        'projectWithId': {
-          'projectId': '1'
+      data: {
+        projectWithId: {
+          projectId: 1
         }
       }
     })
@@ -112,17 +114,17 @@ test('Get project using API key passed as option - viewer is disabled', async ()
 test('Get project using API key 2', () => {
   let query = `{
     viewerApiKey2 (apiKey: "abcdef") {
-      projectWithId (projectId: "1") {
+      projectWithId (projectId: 1) {
         projectId
       }
     }
   }`
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
-      'data': {
-        'viewerApiKey2': {
-          'projectWithId': {
-            'projectId': '1'
+      data: {
+        viewerApiKey2: {
+          projectWithId: {
+            projectId: 1
           }
         }
       }
@@ -134,7 +136,7 @@ test('Post project using API key 1', () => {
   let query = `mutation {
     mutationViewerApiKey (apiKey: "abcdef") {
       postProjectWithId (projectWithIdInput: {
-        projectId: "123"
+        projectId: 123
         leadId: "erik"
       }) {
         projectLead {
@@ -145,11 +147,11 @@ test('Post project using API key 1', () => {
   }`
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
-      'data': {
-        'mutationViewerApiKey': {
-          'postProjectWithId': {
-            'projectLead': {
-              'name': 'Erik Wittern'
+      data: {
+        mutationViewerApiKey: {
+          postProjectWithId: {
+            projectLead: {
+              name: 'Erik Wittern'
             }
           }
         }
@@ -162,7 +164,7 @@ test('Post project using API key 2', () => {
   let query = `mutation {
     mutationViewerApiKey2 (apiKey: "abcdef") {
       postProjectWithId (projectWithIdInput: {
-        projectId: "123"
+        projectId: 123
         leadId: "erik"
       }) {
         projectLead {
@@ -173,11 +175,11 @@ test('Post project using API key 2', () => {
   }`
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
-      'data': {
-        'mutationViewerApiKey2': {
-          'postProjectWithId': {
-            'projectLead': {
-              'name': 'Erik Wittern'
+      data: {
+        mutationViewerApiKey2: {
+          postProjectWithId: {
+            projectLead: {
+              name: 'Erik Wittern'
             }
           }
         }

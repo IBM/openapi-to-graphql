@@ -115,11 +115,13 @@ const Patents = {
 
 const Projects = {
   'OASGraph': {
-    projectId: '1',
+    projectId: 1,
+    active: true,
     leadId: 'erik'
   },
   'API Harmony': {
-    projectId: '2',
+    projectId: 2,
+    active: false,
     leadId: 'jim'
   }
 }
@@ -316,7 +318,7 @@ app.get('/api/projects/:id', authMiddleware, (req, res) => {
   console.log(req.method, req.path)
   let p
   for (let project in Projects) {
-    if (Projects[project].projectId === req.params.id) {
+    if (Projects[project].projectId === Number(req.params.id)) {
       p = Projects[project]
     }
   }
