@@ -4,11 +4,11 @@
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "main": "lib/index.js",
   "scripts": {
-    "test": "jest",
+    "test": "npm run build && jest",
     "api": "nodemon test/example_api_server.js",
     "dev": "tsc -w",
     "start_dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
-    "build": "tsc src/index.ts",
+    "build": "tsc",
     "flow": "flow",
     "guru-load": "node test/apis_guru/load_apis_guru.js",
     "guru-test": "DEBUG=preprocessing,translation node test/apis_guru/apis_guru_test.js"
