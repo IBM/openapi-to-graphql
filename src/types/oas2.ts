@@ -1,5 +1,3 @@
-/* @flow */
-
 /**
  * Type definitions for the OpenAPI specification 2.0 (Swagger).
  *
@@ -9,5 +7,5 @@
 
 export type Oas2 = {
   swagger: string,
-  [string]: any
+  [key: string]: any
 }

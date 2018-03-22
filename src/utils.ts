@@ -1,16 +1,12 @@
-/* @flow */
-
-'use strict'
-
-import type {
+import {
   PreprocessingData
-} from './types/preprocessing_data.js'
-import type {
+} from './types/preprocessing_data'
+import {
   Warning
-} from './types/options.js'
+} from './types/options'
 
 export const WarningTypes : {
-  [string]: (culprit: string, solution: string) => Warning
+  [key: string]: (culprit: string, solution: string) => Warning
 } = {
   /**
    * Authentication
@@ -107,11 +103,11 @@ export function handleWarning ({
   data,
   log
 } : {
-  typeKey: $Keys<typeof WarningTypes>, // eslint-disable-line
+  typeKey: string, // eslint-disable-line
   culprit: string,
   solution?: string,
   data: PreprocessingData,
-  log: ?Function
+  log?: Function
 }) {
   let warning = WarningTypes[typeKey](culprit, solution)
 

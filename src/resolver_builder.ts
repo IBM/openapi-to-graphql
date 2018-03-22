@@ -1,21 +1,17 @@
-/* @flow */
-
-'use strict'
-
 /**
  * Functions to create resolve functions.
  */
 
 // Type imports:
-import type { Oas3 } from './types/oas3.js'
-import type {Operation} from './types/operation.js'
-import type {PreprocessingData} from './types/preprocessing_data.js'
+import { Oas3, SchemaObject } from './types/oas3'
+import {Operation} from './types/operation'
+import {PreprocessingData} from './types/preprocessing_data'
 
 // Imports:
-import request from 'request'
-import * as Oas3Tools from './oas_3_tools.js'
-import querystring from 'querystring'
-import jp from 'jsonpath'
+import * as request from 'request'
+import * as Oas3Tools from './oas_3_tools'
+import * as querystring from 'querystring'
+import * as jp from 'jsonpath'
 import debug from 'debug'
 
 // Type definitions & exports:
@@ -24,9 +20,9 @@ export type ResolveFunction =
 
 type GetResolverParams = {
   operation: Operation,
-  argsFromLink?: {[string] : string},
+  argsFromLink?: {[key: string] : string},
   argsFromParent?: string[],
-  payloadName?: ?string,
+  payloadName?: string,
   data: PreprocessingData,
   oas: Oas3
 }
@@ -35,9 +31,9 @@ type RequestOptions = {
   method: string,
   url: string,
   json: true,
-  headers: {[string] : string},
-  qs: {[string] : string},
-  body?: ?(Object | Array<any> | string)
+  headers: {[key: string] : string},
+  qs: {[key: string] : string},
+  body?: (Object | Array<any> | string)
 }
 
 type AuthReqAndProtcolName = {
@@ -46,8 +42,8 @@ type AuthReqAndProtcolName = {
 }
 
 type AuthOptions = {
-  authHeaders: {[string] : string},
-  authQs: {[string] : string}
+  authHeaders: {[key: string] : string},
+  authQs: {[key: string] : string}
 }
 
 const log = debug('http')
@@ -68,10 +64,10 @@ export function getResolver ({
   let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
   // return resolve function:
-  return (root, args, ctx = {}) => {
+  return (root: any, args, ctx = {}) => {
     // fetch possibly existing _oasgraph
     // NOTE: _oasgraph is an object used to pass security information
-    let _oasgraph = {}
+    let _oasgraph: any = {}
     if (root && typeof root === 'object' &&
       typeof root._oasgraph === 'object') {
       _oasgraph = root._oasgraph
@@ -133,8 +129,9 @@ export function getResolver ({
         if (schema && schema.$ref && typeof schema.$ref === 'string') {
           schema = Oas3Tools.resolveRef(schema.$ref, oas)
         }
-        if (schema && schema.default && typeof schema.default !== 'undefined') {
-          args[paramName] = schema.default
+        if (schema && (schema as SchemaObject).default
+          && typeof (schema as SchemaObject).default !== 'undefined') {
+          args[paramName] = (schema as SchemaObject).default
         }
       }
     })
@@ -222,7 +219,7 @@ export function getResolver ({
         } else {
           log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
           // deal with the fact that the server might send unsanitized data
-          let saneData = Oas3Tools.sanitizeObjKeys(body)
+          let saneData: any = Oas3Tools.sanitizeObjKeys(body)
 
           // pass on _oasgraph to subsequent resolvers
           if (saneData &&
@@ -245,7 +242,7 @@ export function getResolver ({
 function createOAuthQS (
   data: PreprocessingData,
   ctx: Object
-) : {[string] : string} {
+) : {[key: string] : string} {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -272,7 +269,7 @@ function createOAuthQS (
 function createOAuthHeader (
   data: PreprocessingData,
   ctx: Object
-) : {[string] : string} {
+) : {[key: string] : string} {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -301,7 +298,7 @@ function createOAuthHeader (
  */
 function getAuthOptions (
   operation: Operation,
-  _oasgraph: Object,
+  _oasgraph: any,
   data: PreprocessingData
 ) : AuthOptions {
   let authHeaders = {}

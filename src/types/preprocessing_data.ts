@@ -1,12 +1,10 @@
-/* @flow */
-
 /**
  * Type definitions for the data created during preprocessing.
  */
 
-import type { Operation, DataDefinition } from './operation.js'
-import type { Options } from './options.js'
-import type { SecuritySchemeObject, SchemaObject } from './oas3.js'
+import { Operation, DataDefinition } from './operation'
+import { Options } from './options'
+import { SecuritySchemeObject, SchemaObject } from './oas3'
 
 export type ProcessedSecurityScheme = {
   rawName: string,
@@ -17,7 +15,7 @@ export type ProcessedSecurityScheme = {
    * NOTE: Structure depends on the type of the protocol (basic, API key...)
    * NOTE: Mainly used for the AnyAuth viewers
    */
-  parameters: {[string]: string},
+  parameters: {[key: string]: string},
 
   /**
    * JSON schema to create the viewer for this security scheme from.
@@ -29,7 +27,7 @@ export type PreprocessingData = {
   /**
    * List of Operation objects
    */
-  operations: {[string] : Operation},
+  operations: {[key: string] : Operation},
 
   /**
    * List of all the used object names to avoid collision
@@ -47,12 +45,12 @@ export type PreprocessingData = {
    * NOTE: Keys are beautified
    * NOTE: Does not contain OAuth 2.0-related security schemes
    */
-  security: {[string]: ProcessedSecurityScheme},
+  security: {[key: string]: ProcessedSecurityScheme},
 
   /**
    * Mapping between beautified strings and their original ones
    */
-  saneMap: {[string] : string},
+  saneMap: {[key: string] : string},
 
   /**
    * Options passed to OASGraph by the user

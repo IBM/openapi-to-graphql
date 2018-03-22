@@ -1,9 +1,6 @@
-/* @flow */
-
 /**
  * Type definition of the options that users can pass to OASGraph.
  */
-
 export type Warning = {
   type: string,
   message: string,
@@ -29,12 +26,12 @@ export type Options = {
   /**
    * Custom headers to send with every request made by a resolve function.
    */
-  headers?: {[string] : string},
+  headers?: {[key: string] : string},
 
   /**
    * Custom query parameters to send with every reqeust by a resolve function.
    */
-  qs?: {[string] : string},
+  qs?: {[key: string] : string},
 
   /**
    * Determines whether OASGraph should create viewers that allow users to pass

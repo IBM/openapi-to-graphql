@@ -1,5 +1,3 @@
-/* @flow */
-
 /**
  * Type definitions for the OpenAPI Specification 3.
  */
@@ -9,7 +7,23 @@ type ExternalDocumentationObject = {
   url: string
 }
 
-export type SchemaObject = Object // TODO: extend?
+export type SchemaObject = {
+  $ref?: string
+  title?: string
+  type: 'string' | 'number' | 'object' | 'array' | 'boolean' | 'integer'
+  format?: string
+  nullable?: boolean
+  description?: string
+  properties?: {
+    [key: string]: SchemaObject
+  }
+  required?: string[]
+  default?: any
+  additionalProperties?: SchemaObject
+  items?: SchemaObject | SchemaObject[]
+  additionalItems?: boolean | string[]
+  enum?: string[]
+}
 
 export type ReferenceObject = {
   '$ref': string
@@ -34,7 +48,7 @@ type HeaderObject = {
 type EncodingObject = {
   contentType?: string,
   headers?: {
-    [string]: HeaderObject | ReferenceObject
+    [key: string]: HeaderObject | ReferenceObject
   },
   style?: string,
   explode?: boolean,
@@ -45,10 +59,10 @@ export type MediaTypeObject = {
   schema?: SchemaObject | ReferenceObject,
   example?: any,
   examples?: {
-    [string]: ExampleObject | ReferenceObject
+    [key: string]: ExampleObject | ReferenceObject
   },
   encoding?: {
-    [string]: EncodingObject
+    [key: string]: EncodingObject
   }
 }
 
@@ -65,15 +79,15 @@ export type ParameterObject = {
   schema?: SchemaObject | ReferenceObject,
   example?: any,
   examples?: {
-    [string]: ExampleObject | ReferenceObject
+    [key: string]: ExampleObject | ReferenceObject
   },
   content?: {
-    [string]: MediaTypeObject
+    [key: string]: MediaTypeObject
   }
 }
 
 export type MediaTypesObject = {
-  [string]: MediaTypeObject
+  [key: string]: MediaTypeObject
 }
 
 export type ServerObject = {
@@ -85,7 +99,7 @@ export type ServerObject = {
 export type RequestBodyObject = {
   description?: string,
   content: {
-    [string]: MediaTypeObject
+    [key: string]: MediaTypeObject
   },
   required?: boolean
 }
@@ -94,7 +108,7 @@ export type LinkObject = {
   operationRef?: string,
   operationId?: string,
   parameters?: {
-    [string]: any
+    [key: string]: any
   },
   requestBody?: any,
   description?: string,
@@ -102,24 +116,24 @@ export type LinkObject = {
 }
 
 export type LinksObject = {
-  [string]: LinkObject | ReferenceObject
+  [key: string]: LinkObject | ReferenceObject
 }
 
 export type ResponseObject = {
   description: string,
   headers?: {
-    [string]: HeaderObject | ReferenceObject
+    [key: string]: HeaderObject | ReferenceObject
   },
   content?: MediaTypesObject,
   links?: LinksObject
 }
 
 export type ResponsesObject = {
-  [string]: ResponseObject | ReferenceObject
+  [key: string]: ResponseObject | ReferenceObject
 }
 
 export type SecurityRequirementObject = {
-  [string]: string[]
+  [key: string]: string[]
 }
 
 export type OperationObject = {
@@ -140,14 +154,14 @@ export type OperationObject = {
 export type PathItemObject = {
   '$ref'?: string,
   summary?: string,
-  description?: string,
-  [string]: OperationObject,
+  description: string
+  [key: string]: any,
   servers?: ServerObject[],
-  parameters?: Array<ParameterObject | ReferenceObject>
+  parameters?: [ParameterObject | ReferenceObject]
 }
 
 type PathsObject = {
-  [string]: PathItemObject
+  [key: string]: PathItemObject
 }
 
 type OAuthFlowObject = {
@@ -155,7 +169,7 @@ type OAuthFlowObject = {
   tokenUrl?: string, // optional, beacause applies only to certain flows
   refreshUrl?: string, // optional, beacause applies only to certain flows
   scopes?: { // optional, beacause applies only to certain flows
-    [string]: string
+    [key: string]: string
   }
 }
 
@@ -167,7 +181,7 @@ type OAuthFlowsObject = {
 }
 
 export type SecuritySchemeObject = {
-  type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect',
+  type: 'apiKey' | 'basicAuth' | 'http' | 'oauth2' | 'openIdConnect',
   description?: string,
   name?: string, // optional, because applies only to apiKey
   in?: string, // optional, because applies only to apiKey
@@ -178,30 +192,30 @@ export type SecuritySchemeObject = {
 }
 
 export type SecuritySchemesObject = {
-  [string]: SecuritySchemeObject | ReferenceObject
+  [key: string]: SecuritySchemeObject | ReferenceObject
 }
 
 type ComponentsObject = {
   schemas?: {
-    [string]: SchemaObject | ReferenceObject
+    [key: string]: SchemaObject | ReferenceObject
   },
   responses?: ResponsesObject,
   parameters?: {
-    [string]: ParameterObject | ReferenceObject
+    [key: string]: ParameterObject | ReferenceObject
   },
   examples?: {
-    [string]: ExampleObject | ReferenceObject
+    [key: string]: ExampleObject | ReferenceObject
   },
   requestBodies?: {
-    [string]: RequestBodyObject | ReferenceObject
+    [key: string]: RequestBodyObject | ReferenceObject
   },
   headers?: {
-    [string]: HeaderObject | ReferenceObject
+    [key: string]: HeaderObject | ReferenceObject
   },
   securitySchemes?: SecuritySchemesObject,
   links?: LinksObject,
   callbacks?: {
-    [string]: Object | ReferenceObject
+    [key: string]: Object | ReferenceObject
   }
 }
 

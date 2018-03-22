@@ -1,18 +1,16 @@
-/* @flow */
-
 /**
  * Type definitions for the objects created during preprocessing for every
  * operation in the OAS.
  */
 
-import type {
+import {
   LinkObject,
   ParameterObject,
   ServerObject,
   SchemaObject
-} from './oas3.js'
+} from './oas3'
 
-import type {
+import {
   GraphQLScalarType,
   GraphQLObjectType,
   GraphQLInputObjectType,
@@ -52,7 +50,7 @@ export type Operation = {
   /**
    * Information about the request payload (if any)
    */
-  reqDef: ?DataDefinition,
+  reqDef?: DataDefinition,
 
   /**
    * Determines wheter request payload is required for the request
@@ -68,7 +66,7 @@ export type Operation = {
    * Links of the operation
    */
   links: {
-    [string]: LinkObject
+    [key: string]: LinkObject
   },
 
   /**

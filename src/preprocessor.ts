@@ -1,24 +1,20 @@
-/* @flow */
-
-'use strict'
-
 // Type imports:
-import type { Oas3, SchemaObject } from './types/oas3.js'
-import type { Options } from './types/options.js'
-import type { Operation, DataDefinition } from './types/operation.js'
-import type { SchemaNames } from './oas_3_tools.js'
-import type {
+import { Oas3, SchemaObject } from './types/oas3'
+import { Options } from './types/options'
+import { Operation, DataDefinition } from './types/operation'
+import { SchemaNames } from './oas_3_tools'
+import {
   PreprocessingData,
   ProcessedSecurityScheme
-} from './types/preprocessing_data.js'
+} from './types/preprocessing_data'
 
 // Type definitions & exports:
 
 // Imports:
-import * as Oas3Tools from './oas_3_tools.js'
-import deepEqual from 'deep-equal'
+import * as Oas3Tools from './oas_3_tools'
+import * as deepEqual from 'deep-equal'
 import debug from 'debug'
-import { handleWarning } from './utils.js'
+import { handleWarning } from './utils'
 
 const log = debug('preprocessing')
 
@@ -74,7 +70,7 @@ export function preprocessOas (
 
       // Fill in possibly missing operationId
       if (typeof operationId === 'undefined') {
-        operationId = ((Oas3Tools.beautify(`${method}:${path}`) : any) : string)
+        operationId = ((Oas3Tools.beautify(`${method}:${path}`) as any) as string)
       }
 
       // Request schema
@@ -83,7 +79,7 @@ export function preprocessOas (
 
       let reqDef
       if (reqSchema && typeof reqSchema !== 'undefined') {
-        reqDef = createOrReuseDataDef(reqSchema, reqSchemaNames, data)
+        reqDef = createOrReuseDataDef(data, (reqSchema as SchemaObject), reqSchemaNames)
       }
 
       // Response schema
@@ -100,7 +96,7 @@ export function preprocessOas (
         continue
       }
 
-      let resDef = createOrReuseDataDef(resSchema, resSchemaNames, data)
+      let resDef = createOrReuseDataDef(data, (resSchema as SchemaObject), resSchemaNames)
 
       // Links
       let links = Oas3Tools.getEndpointLinks(
@@ -193,7 +189,7 @@ export function preprocessOas (
 function getProcessedSecuritySchemes (
   oas: Oas3,
   data: PreprocessingData
-) : {[string]: ProcessedSecurityScheme} {
+) : {[key: string]: ProcessedSecurityScheme} {
   let result = {}
   let security = Oas3Tools.getSecuritySchemes(oas)
 
@@ -289,14 +285,11 @@ function getProcessedSecuritySchemes (
  * (= String to use as the name for Input Object Types). Eventually, data
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
- *
- * NOTE: The data definition will contain an ot GraphQLObjectType and/or an
- * iot GraphQLInputObjectType down the pipeline
  */
 export function createOrReuseDataDef (
+  data: PreprocessingData,
   schema?: SchemaObject,
-  names?: SchemaNames,
-  data: PreprocessingData
+  names?: SchemaNames
 ) : DataDefinition {
   // Do a basic validation check
   if (!schema || typeof schema === 'undefined') {
@@ -311,7 +304,7 @@ export function createOrReuseDataDef (
   }
 
   // Else, define a new name, store the def, and return it
-  let name = getSchemaName(names, data.usedOTNames)
+  let name = getSchemaName(data.usedOTNames, names)
 
   // Store and beautify the name
   let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
@@ -358,8 +351,8 @@ function getSchemaIndex (
  * considering not reusing existing names.
  */
 function getSchemaName (
-  names?: SchemaNames,
-  usedNames: string[]
+  usedNames: string[],
+  names?: SchemaNames
 ) : string {
   if (!names || typeof names === 'undefined') {
     throw new Error(`Cannot create data definition without name(s).`)
@@ -422,7 +415,7 @@ function getSchemaName (
  */
 function getSubOps (
   operation: Operation,
-  operations: {[string]: Operation}
+  operations: {[key: string]: Operation}
 ) : Operation[] {
   let subOps = []
   let hasPathParams = /\{.*\}/g.test(operation.path)

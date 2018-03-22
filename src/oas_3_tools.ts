@@ -1,15 +1,11 @@
-/* @flow */
-
-'use strict'
-
 /**
  * Utility functions around the OpenAPI Specification 3.
  */
 
 // Type imports:
-import type {Oas2} from './types/oas2.js'
-import type {Operation} from './types/operation.js'
-import type {
+import {Oas2} from './types/oas2'
+import {Operation} from './types/operation'
+import {
   Oas3,
   ServerObject,
   ParameterObject,
@@ -26,13 +22,13 @@ import type {
   SecuritySchemeObject,
   SecurityRequirementObject
 } from './types/oas3.js'
-import type { PreprocessingData } from './types/preprocessing_data.js'
+import { PreprocessingData } from './types/preprocessing_data'
 
 // Imports:
-import Swagger2OpenAPI from 'swagger2openapi'
-import OASValidator from 'swagger2openapi/validate.js'
+import * as Swagger2OpenAPI from 'swagger2openapi'
+import * as OASValidator from 'swagger2openapi/validate'
 import debug from 'debug'
-import { handleWarning } from './utils.js'
+import { handleWarning } from './utils'
 
 // Type definitions & exports:
 export type SchemaNames = {
@@ -68,19 +64,21 @@ export const SUCCESS_STATUS_RX = /2[0-9]{2}/
  */
 export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
   // CASE: translate
-  if (typeof spec.swagger === 'string' && spec.swagger === '2.0') {
+  if (typeof (spec as Oas2).swagger === 'string'
+    && (spec as Oas2).swagger === '2.0') {
     logPre(`Received OpenAPI Specification 2.0 - going to translate...`)
     let result : {openapi: Oas3} = await Swagger2OpenAPI.convertObj(spec, {})
-    return (result.openapi: Oas3)
+    return (result.openapi as Oas3)
   // CASE: validate
-  } else if (typeof spec.openapi === 'string' && /^3/.test(spec.openapi)) {
+  } else if (typeof (spec as Oas3).openapi === 'string'
+    && /^3/.test((spec as Oas3).openapi)) {
     logPre(`Received OpenAPI Specification 3.0.x - going to validate...`)
     let valid = OASValidator.validateSync(spec, {})
     if (!valid) {
       throw new Error(`Validation of OpenAPI Specification failed.`)
     }
     logPre(`OpenAPI Specification is validated`)
-    return (spec: Oas3)
+    return (spec as Oas3)
   } else {
     throw new Error(`Invalid specification provided`)
   }
@@ -236,8 +234,8 @@ function buildUrl (server: ServerObject): string {
 export function sanitizeObjKeys (
   obj: Object | Array<any>,
   exceptions: string[] = []
-): ?Object | Array<any> {
-  const cleanKeys = (obj: ?Object | Array<any>): ?Object | Array<any> => {
+): Object | Array<any> {
+  const cleanKeys = (obj: Object | Array<any>): Object | Array<any> => {
     if (obj === null || typeof obj === 'undefined') {
       return null
     } else if (Array.isArray(obj)) {
@@ -269,7 +267,7 @@ export function sanitizeObjKeys (
 export function desanitizeObjKeys (
   obj: Object | Array<any>,
   mapping: Object = {}
-): ?Object | Array<any> {
+): Object | Array<any> {
   const replaceKeys = (obj) => {
     if (Array.isArray(obj)) {
       return obj.map(replaceKeys)
@@ -303,14 +301,14 @@ export function instantiatePathAndGetQuery (
   args: Object // NOTE: argument keys are sanitized!
 ): {
   path: string,
-  query: Object
+  query: {[key: string]: string}
 } {
   let query = {}
 
   // case: nothing to do
   if (Array.isArray(parameters)) {
     // iterate parameters:
-    for (let param: ParameterObject of parameters) {
+    for (let param of parameters) {
       let sanitizedParamName = beautify(param.name)
 
       // path parameters:
@@ -334,7 +332,7 @@ export function instantiatePathAndGetQuery (
  * Returns the "type" of the given JSON schema. Makes best guesses if the type
  * is not explicitly defined.
  */
-export function getSchemaType (schema: SchemaObject): ?string {
+export function getSchemaType (schema: SchemaObject): string | null {
   // CASE: enum
   if (Array.isArray(schema.enum)) {
     return 'enum'
@@ -410,26 +408,26 @@ export function getResSchema (
   endpoint: OperationObject,
   statusCode: string,
   oas: Oas3
-) : ?SchemaObject {
+) : SchemaObject | null {
   if (typeof endpoint.responses === 'object') {
     let responses: ResponsesObject = endpoint.responses
     if (typeof responses[statusCode] === 'object') {
       let response: ResponseObject | ReferenceObject = responses[statusCode]
 
       // make sure we have a ResponseObject:
-      if (typeof response.$ref === 'string') {
-        response = (resolveRef(response.$ref, oas) : ResponseObject)
+      if (typeof (response as ReferenceObject).$ref === 'string') {
+        response = (resolveRef((response as ReferenceObject).$ref, oas) as ResponseObject)
       } else {
-        response = ((response: any): ResponseObject)
+        response = ((response as any) as ResponseObject)
       }
 
       if (response.content && typeof response.content !== 'undefined') {
         let content: MediaTypesObject = response.content
-        for (let contentType: string in content) {
+        for (let contentType in content) {
           let mediaTypeObject = content[contentType]
           if (JSON_CONTENT_TYPES.includes(contentType) &&
             typeof mediaTypeObject.schema === 'object') {
-            return mediaTypeObject.schema
+            return (mediaTypeObject.schema as SchemaObject)
           }
         }
       }
@@ -445,23 +443,23 @@ export function getResSchema (
 export function getReqSchema (
   endpoint: OperationObject,
   oas: Oas3
-) : ?SchemaObject {
+) : SchemaObject | null {
   if (typeof endpoint.requestBody === 'object') {
     let requestBody: RequestBodyObject | ReferenceObject = endpoint.requestBody
 
     // make sure we have a RequestBodyObject:
-    if (typeof requestBody.$ref === 'string') {
-      requestBody = (resolveRef(requestBody.$ref, oas) : RequestBodyObject)
+    if (typeof (requestBody as ReferenceObject).$ref === 'string') {
+      requestBody = (resolveRef((requestBody as ReferenceObject).$ref, oas) as RequestBodyObject)
     } else {
-      requestBody = ((requestBody: any): RequestBodyObject)
+      requestBody = ((requestBody as any) as RequestBodyObject)
     }
 
     if (typeof requestBody.content === 'object') {
       let content = requestBody.content
-      for (let contentType: string in content) {
+      for (let contentType in content) {
         if (JSON_CONTENT_TYPES.includes(contentType) &&
           typeof content[contentType].schema === 'object') {
-          return content[contentType].schema
+          return (content[contentType].schema as SchemaObject)
         }
       }
     }
@@ -481,8 +479,8 @@ export function getReqSchemaAndNames (
 ) : ReqSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let reqRequired = false
-  let reqSchemaNames = {}
-  let reqSchema: ?SchemaObject = getReqSchema(endpoint, oas)
+  let reqSchemaNames: any = {}
+  let reqSchema: SchemaObject = getReqSchema(endpoint, oas)
 
   if (reqSchema) {
     let requestBody = endpoint.requestBody
@@ -490,11 +488,11 @@ export function getReqSchemaAndNames (
     // determine if request body is required:
     if (typeof requestBody === 'object') {
       // resolve reference if needed:
-      if (typeof requestBody.$ref === 'string') {
+      if (typeof (requestBody as ReferenceObject).$ref === 'string') {
         requestBody = resolveRef(requestBody['$ref'], oas)
       }
-      if (typeof requestBody.required === 'boolean') {
-        reqRequired = requestBody.required
+      if (typeof (requestBody as RequestBodyObject).required === 'boolean') {
+        reqRequired = (requestBody as RequestBodyObject).required
       }
     }
 
@@ -531,7 +529,7 @@ export function getResSchemaAndNames (
   data: PreprocessingData
 ) : ResSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
-  let resSchemaNames = {}
+  let resSchemaNames: any = {}
   let statusCode = getResStatusCode(path, method, oas, data)
   if (!statusCode) {
     return {}
@@ -567,7 +565,7 @@ export function getResStatusCode (
   method: string,
   oas: Oas3,
   data: PreprocessingData
-) : ?string {
+) : string | void {
   let endpoint: OperationObject = oas.paths[path][method]
 
   if (typeof endpoint.responses === 'object') {
@@ -599,7 +597,7 @@ export function getEndpointLinks (
   method: string,
   oas: Oas3,
   data: PreprocessingData
-) : {[string]: LinkObject} {
+) : {[key: string]: LinkObject} {
   let links = {}
   let endpoint: OperationObject = oas.paths[path][method]
   let statusCode = getResStatusCode(path, method, oas, data)
@@ -611,12 +609,12 @@ export function getEndpointLinks (
     if (typeof responses[statusCode] === 'object') {
       let response: ResponseObject | ReferenceObject = responses[statusCode]
 
-      if (typeof response.$ref === 'string') {
-        response = (resolveRef(response.$ref, oas) : ResponseObject)
+      if (typeof (response as ReferenceObject).$ref === 'string') {
+        response = (resolveRef((response as ReferenceObject).$ref, oas) as ResponseObject)
       }
 
       // here, we can be ceratain we have a ResponseObject:
-      response = ((response: any): ResponseObject)
+      response = ((response as any) as ResponseObject)
 
       if (typeof response.links === 'object') {
         let epLinks: LinksObject = response.links
@@ -624,10 +622,10 @@ export function getEndpointLinks (
           let link: LinkObject | ReferenceObject = epLinks[linkKey]
 
           // make sure we have LinkObjects:
-          if (typeof link.$ref === 'string') {
+          if (typeof (link as ReferenceObject).$ref === 'string') {
             link = resolveRef(link['$ref'], oas)
           } else {
-            link = ((link: any): LinkObject)
+            link = ((link as any) as LinkObject)
           }
           links[linkKey] = link
         }
@@ -661,12 +659,12 @@ export function getParameters (
   // first, consider parameters in Path Item Object:
   if (Array.isArray(pathParams)) {
     let pathItemParameters: ParameterObject[] = pathParams.map(p => {
-      if (typeof p.$ref === 'string') {
+      if (typeof (p as ReferenceObject).$ref === 'string') {
         // here we know we have a parameter object:
-        return (resolveRef(p['$ref'], oas) : ParameterObject)
+        return (resolveRef(p['$ref'], oas) as ParameterObject)
       } else {
         // here we know we have a parameter object:
-        return ((p: any): ParameterObject)
+        return ((p as any) as ParameterObject)
       }
     })
     parameters = parameters.concat(pathItemParameters)
@@ -679,12 +677,12 @@ export function getParameters (
 
   if (Array.isArray(opObjectParameters)) {
     let opParameters: ParameterObject[] = opObjectParameters.map(p => {
-      if (typeof p.$ref === 'string') {
+      if (typeof (p as ReferenceObject).$ref === 'string') {
         // here we know we have a parameter object:
-        return (resolveRef(p['$ref'], oas) : ParameterObject)
+        return (resolveRef(p['$ref'], oas) as ParameterObject)
       } else {
         // here we know we have a parameter object:
-        return ((p: any): ParameterObject)
+        return ((p as any) as ParameterObject)
       }
     })
     parameters = parameters.concat(opParameters)
@@ -739,22 +737,22 @@ export function getServers (
  */
 export function getSecuritySchemes (
   oas: Oas3
-) : {[string]: SecuritySchemeObject} {
+) : {[key: string]: SecuritySchemeObject} {
   // collect all security schemes:
-  let securitySchemes: {[string]: SecuritySchemeObject} = {}
+  let securitySchemes: {[key: string]: SecuritySchemeObject} = {}
   if (typeof oas.components === 'object' &&
   typeof oas.components.securitySchemes === 'object') {
     for (let schemeKey in oas.components.securitySchemes) {
       let obj = oas.components.securitySchemes[schemeKey]
 
       // ensure we have actual SecuritySchemeObject:
-      if (typeof obj.$ref === 'string') {
+      if (typeof (obj as ReferenceObject).$ref === 'string') {
         // result of resolution will be SecuritySchemeObject:
         securitySchemes[schemeKey] =
-          (resolveRef(obj.$ref, oas): SecuritySchemeObject)
+          (resolveRef((obj as ReferenceObject).$ref, oas) as SecuritySchemeObject)
       } else {
         // we already have a SecuritySchemeObject:
-        securitySchemes[schemeKey] = ((obj: any): SecuritySchemeObject)
+        securitySchemes[schemeKey] = ((obj as any) as SecuritySchemeObject)
       }
     }
   }
@@ -768,16 +766,16 @@ export function getSecuritySchemes (
 export function getSecurityRequirements (
   path: string,
   method: string,
-  securitySchemes: {[string]: SecuritySchemeObject},
+  securitySchemes: {[key: string]: SecuritySchemeObject},
   oas: Oas3
 ) : string[] {
   let results: string[] = []
 
   // first, consider global requirements:
-  let globalSecurity: ?SecurityRequirementObject[] = oas.security
+  let globalSecurity: SecurityRequirementObject[] = oas.security
   if (globalSecurity && typeof globalSecurity !== 'undefined') {
-    for (let secReq: SecurityRequirementObject of globalSecurity) {
-      for (let schemaKey: string in secReq) {
+    for (let secReq of globalSecurity) {
+      for (let schemaKey in secReq) {
         if (securitySchemes[schemaKey] &&
           typeof securitySchemes[schemaKey] === 'object' &&
           securitySchemes[schemaKey].type !== 'oauth2') {
@@ -789,10 +787,10 @@ export function getSecurityRequirements (
 
   // local:
   let operation: OperationObject = oas.paths[path][method]
-  let localSecurity: ?SecurityRequirementObject[] = operation.security
+  let localSecurity: SecurityRequirementObject[] = operation.security
   if (localSecurity && typeof localSecurity !== 'undefined') {
-    for (let secReq: SecurityRequirementObject of localSecurity) {
-      for (let schemaKey: string in secReq) {
+    for (let secReq of localSecurity) {
+      for (let schemaKey in secReq) {
         if (securitySchemes[schemaKey] &&
           typeof securitySchemes[schemaKey] === 'object' &&
           securitySchemes[schemaKey].type !== 'oauth2') {
@@ -812,7 +810,7 @@ export function getSecurityRequirements (
  */
 export function beautifyAndStore (
   str: string,
-  mapping: {[string]: string}
+  mapping: {[key: string]: string}
 ) : string {
   if (!(typeof mapping === 'object')) {
     throw new Error(`No/invalid mapping passed to beautifyAndStore`)
@@ -835,7 +833,7 @@ export function beautifyAndStore (
  */
 export function beautify (
   str: string,
-  lowercaseFirstChar?: boolean = true
+  lowercaseFirstChar: boolean = true
 ): string {
   // only apply to strings:
   if (typeof str !== 'string') {

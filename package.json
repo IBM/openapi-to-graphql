@@ -4,22 +4,17 @@
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "main": "lib/index.js",
   "scripts": {
-    "test": "npm run build && jest",
+    "test": "jest",
     "api": "nodemon test/example_api_server.js",
-    "dev": "DEBUG=preprocessing,translation,http nodemon --inspect test/example_gql_server.js",
-    "build": "babel src/ -d lib/",
+    "dev": "tsc -w",
+    "start_dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
+    "build": "tsc src/index.ts",
     "flow": "flow",
     "guru-load": "node test/apis_guru/load_apis_guru.js",
     "guru-test": "DEBUG=preprocessing,translation node test/apis_guru/apis_guru_test.js"
   },
   "author": "Erik Wittern",
   "license": "MIT",
-  "standard": {
-    "parser": "babel-eslint",
-    "plugins": [
-      "flowtype"
-    ]
-  },
   "dependencies": {
     "debug": "^2.6.8",
     "deep-equal": "^1.0.1",
@@ -33,15 +28,11 @@
     "graphql": "^0.9.6 || ^0.10.0 || ^0.11.0 || ^0.12.0"
   },
   "devDependencies": {
-    "babel-cli": "^6.24.1",
-    "babel-eslint": "^7.2.3",
-    "babel-preset-es2015": "^6.24.1",
-    "babel-preset-flow": "^6.23.0",
+    "@types/graphql": "^0.12.5",
+    "@types/node": "^9.4.7",
     "body-parser": "^1.17.2",
-    "eslint-plugin-flowtype": "^2.35.0",
     "express": "^4.15.2",
     "express-graphql": "^0.6.4",
-    "flow-bin": "^0.59.0",
     "fs": "0.0.1-security",
     "glob": "^7.1.2",
     "jest": "^20.0.4",
@@ -50,6 +41,7 @@
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.1",
     "simple-statistics": "^5.2.1",
+    "typescript": "^2.7.2",
     "yamljs": "^0.3.0"
   }
 }

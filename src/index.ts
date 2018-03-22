@@ -1,7 +1,3 @@
-/* @flow */
-
-'use strict'
-
 /**
  * Defines the functions exposed by OASGraph.
  *
@@ -30,14 +26,14 @@
  */
 
 // Type imports:
-import type { Options, Report } from './types/options.js'
-import type { Oas3 } from './types/oas3.js'
-import type { Oas2 } from './types/oas2.js'
-import type { Args } from './schema_builder.js'
-import type { Operation } from './types/operation.js'
-import type { ResolveFunction } from './resolver_builder.js'
-import type { PreprocessingData } from './types/preprocessing_data.js'
-import type {
+import { Options, Report } from './types/options'
+import { Oas3 } from './types/oas3'
+import { Oas2 } from './types/oas2'
+import { Args } from './schema_builder'
+import { Operation } from './types/operation'
+import { ResolveFunction } from './resolver_builder'
+import { PreprocessingData } from './types/preprocessing_data'
+import {
   GraphQLObjectType as GQObjectType,
   GraphQLInputObjectType as GQInputObjectType,
   GraphQLScalarType,
@@ -46,14 +42,14 @@ import type {
 } from 'graphql'
 
 // Imports:
-import { getGraphQLType, getArgs } from './schema_builder.js'
-import { getResolver } from './resolver_builder.js'
-import * as GraphQLTools from './graphql_tools.js'
-import { preprocessOas } from './preprocessor.js'
-import * as Oas3Tools from './oas_3_tools.js'
-import AuthBuilder from './auth_builder.js'
+import { getGraphQLType, getArgs } from './schema_builder'
+import { getResolver } from './resolver_builder'
+import * as GraphQLTools from './graphql_tools'
+import { preprocessOas } from './preprocessor'
+import * as Oas3Tools from './oas_3_tools'
+import {createAndLoadViewer} from './auth_builder'
 import debug from 'debug'
-import { handleWarning } from './utils.js'
+import { handleWarning } from './utils'
 import {
   GraphQLSchema,
   GraphQLObjectType
@@ -93,6 +89,7 @@ async function createGraphQlSchema (
   options: Options
 ): Promise<Result> {
   // deal with option defaults:
+  // @ts-ignore
   if (typeof options === 'undefined') options = {}
 
   options.strict = typeof options.strict === 'boolean'
@@ -246,7 +243,7 @@ function translateOpenApiToGraphQL (
      */
     const rootQueryFields = Object.assign({}, queryFields)
     if (Object.keys(authQueryFields).length > 0) {
-      const queryViewers = AuthBuilder.createAndLoadViewer(
+      const queryViewers = createAndLoadViewer(
         authQueryFields,
         data,
         oas,
@@ -257,7 +254,7 @@ function translateOpenApiToGraphQL (
 
     const rootMutationFields = Object.assign({}, mutationFields)
     if (Object.keys(authMutationFields).length > 0) {
-      const mutationViewers = AuthBuilder.createAndLoadViewer(
+      const mutationViewers = createAndLoadViewer(
         authMutationFields,
         data,
         oas,
@@ -271,15 +268,18 @@ function translateOpenApiToGraphQL (
      */
     let schemaDef = {}
     if (Object.keys(rootQueryFields).length > 0) {
+      // @ts-ignore
       schemaDef.query = new GraphQLObjectType({
         name: 'query',
         description: 'The start of any query',
         fields: rootQueryFields
       })
     } else {
+      // @ts-ignore
       schemaDef.query = GraphQLTools.getEmptyObjectType('query')
     }
     if (Object.keys(rootMutationFields).length > 0) {
+      // @ts-ignore
       schemaDef.mutation = new GraphQLObjectType({
         name: 'mutation',
         description: 'The start of any mutation',
@@ -298,6 +298,7 @@ function translateOpenApiToGraphQL (
       }
     }
 
+    // @ts-ignore
     let schema = new GraphQLSchema(schemaDef)
 
     resolve(schema)
@@ -426,6 +427,7 @@ function getFieldForOperation (
   }
 }
 
+// @ts-ignore
 module.exports = {
   createGraphQlSchema
 }

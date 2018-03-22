@@ -1,12 +1,8 @@
-/* @flow */
-
-'use strict'
-
 /**
  * Utilities related to GraphQL.
  */
 
-import type {
+import {
   GraphQLObjectType as GQObjectType,
   GraphQLInputObjectType as GQInputObjectType
 } from 'graphql'
