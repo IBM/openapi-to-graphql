@@ -91,4 +91,15 @@ export type Operation = {
    * List of operations which are nested based on their path.
    */
   subOps?: Operation[]
+
+  /**
+   * Whether this operation should be placed in an authentication viewer\
+   * (cannot be true if "viewer" option passed to OASGraph is false).
+   */
+  inViewer: boolean
+
+  /**
+   * Whether this operation is a mutation (or a query).
+   */
+  isMutation: boolean
 }

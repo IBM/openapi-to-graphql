@@ -10,8 +10,8 @@
     "start_dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
     "build": "tsc",
     "flow": "flow",
-    "guru-load": "node test/apis_guru/load_apis_guru.js",
-    "guru-test": "DEBUG=preprocessing,translation node test/apis_guru/apis_guru_test.js"
+    "guru-load": "node test/evaluation/load_apis_guru.js",
+    "guru-test": "DEBUG=preprocessing,translation node test/evaluation/eval_apis_guru.js"
   },
   "author": "Erik Wittern",
   "license": "MIT",

@@ -115,6 +115,12 @@ export function preprocessOas (
       // servers
       let servers = Oas3Tools.getServers(path, method, oas)
 
+      // whether to place this operation into an authentication viewer
+      let inViewer = securityRequirements.length > 0 &&
+        data.options.viewer !== false
+
+      let isMutation = method.toLowerCase() !== 'get'
+
       // Store determined information for operation
       let operation: Operation = {
         operationId,
@@ -127,7 +133,9 @@ export function preprocessOas (
         links,
         parameters,
         securityRequirements,
-        servers
+        servers,
+        inViewer,
+        isMutation
       }
       data.operations[operationId] = operation
     }

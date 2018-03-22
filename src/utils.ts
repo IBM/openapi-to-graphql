@@ -18,14 +18,6 @@ export const WarningTypes : {
       mitigation: `Ignore operation`
     }
   },
-  // THIS SHOULD NEVER HAPPEN!!!
-  MISSING_GRAPHQL_TYPE: (culprit: string, solution: string) => {
-    return {
-      type: 'MissingGraphQLType',
-      message: `Operation '${culprit}' misses Object Type.`,
-      mitigation: `Ignore operation`
-    }
-  },
   MULTIPLE_RESPONSES: (culprit: string, solution: string) => {
     return {
       type: 'MultipleResponses',

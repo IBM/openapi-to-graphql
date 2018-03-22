@@ -38,7 +38,8 @@ import {
   GraphQLInputObjectType as GQInputObjectType,
   GraphQLScalarType,
   GraphQLList,
-  GraphQLEnumType
+  GraphQLEnumType,
+  GraphQLObjectTypeConfig
 } from 'graphql'
 
 // Imports:
@@ -54,9 +55,10 @@ import {
   GraphQLSchema,
   GraphQLObjectType
 } from 'graphql'
+import { GraphQLSchemaConfig } from 'graphql/type/schema';
 
 // Type definitions & exports:
-type Viewer = {
+type Field = {
   type: GQObjectType | GQInputObjectType | GraphQLScalarType |
     GraphQLList<any> | GraphQLEnumType,
   resolve: ResolveFunction,
@@ -84,7 +86,7 @@ const log = debug('translation')
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-async function createGraphQlSchema (
+export async function createGraphQlSchema (
   spec: Oas3 | Oas2,
   options: Options
 ): Promise<Result> {
@@ -120,17 +122,17 @@ async function createGraphQlSchema (
    * translate the spec into a GraphQL schema
    */
   let oas = await Oas3Tools.getValidOAS3(spec)
-  let schema = await translateOpenApiToGraphQL(oas, options)
+  let {schema, report} = await translateOpenApiToGraphQL(oas, options)
   return {
     schema,
-    report: options.report
+    report
   }
 }
 
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL (
+async function translateOpenApiToGraphQL (
   oas: Oas3,
   {
     strict,
@@ -142,244 +144,159 @@ function translateOpenApiToGraphQL (
     sendOAuthTokenInQuery,
     report
   } : Options
-): Promise<GraphQLSchema> {
-  return new Promise((resolve, reject) => {
-    let options = {
-      headers,
-      qs,
-      viewer,
-      tokenJSONpath,
-      strict,
-      addSubOperations,
-      sendOAuthTokenInQuery,
-      report
-    }
-    log(`Options: ${JSON.stringify(options)}`)
+): Promise<{ schema: GraphQLSchema, report: Report}> {
+  let options = {
+    headers,
+    qs,
+    viewer,
+    tokenJSONpath,
+    strict,
+    addSubOperations,
+    sendOAuthTokenInQuery,
+    report
+  }
+  log(`Options: ${JSON.stringify(options)}`)
 
-    /**
-     * Extract information from the OAS and put it inside a data structure that
-     * is easier for OASGraph to use
-     */
-    let data = preprocessOas(oas, options)
+  /**
+   * Extract information from the OAS and put it inside a data structure that
+   * is easier for OASGraph to use
+   */
+  let data = preprocessOas(oas, options)
 
-    // holds unauthenticated query fields
-    let queryFields = {}
+  // holds unauthenticated query fields
+  let queryFields = {}
 
-    // holds unauthenticated mutation fields
-    let mutationFields = {}
+  // holds unauthenticated mutation fields
+  let mutationFields = {}
 
-    // holds authenticated query fields
-    let authQueryFields = {}
+  // holds authenticated query fields
+  let authQueryFields = {}
 
-    // holds authenticated mutation fields
-    let authMutationFields = {}
+  // holds authenticated mutation fields
+  let authMutationFields = {}
 
-    /**
-     * Translate every endpoint to GraphQL schemes.
-     *
-     * Do this first for endpoints that DO contain links OR that DO contain sub
-     * operation, so that built up GraphQL object types that are reused contain
-     * these links
-     *
-     * This necessitates a second iteration, though, for the endpoints that DO
-     * NOT have links.
-     */
-    for (let operationId in data.operations) {
-      let operation = data.operations[operationId]
-      if (Object.keys(operation.links).length > 0 ||
-      (Array.isArray(operation.subOps) && operation.subOps.length > 0)) {
-        log(`Process operation "${operation.operationId}"...`)
-        loadField({
-          operation,
-          operationId,
-          queryFields,
-          mutationFields,
-          authQueryFields,
-          authMutationFields,
-          data,
-          oas,
-          options
+  /**
+   * Translate every endpoint to GraphQL schemes.
+   */
+  Object.entries(data.operations)
+    // Start with endpoints that DO contain links OR that DO contain sub 
+    // operations, so that built-up GraphQL object types contain these links
+    // when they are re-used.
+    .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
+    .forEach(([operationId, operation]) => {
+      log(`Process operation "${operationId}"...`)
+      let field = getFieldForOperation(operation, data, oas)
+      if (!operation.isMutation) {
+        let name = operation.resDef.otName    
+        if (operation.inViewer) {
+          for (let securityRequirement of operation.securityRequirements) {
+            if (typeof authQueryFields[securityRequirement] !== 'object') {
+              authQueryFields[securityRequirement] = {}
+            }
+            // Avoid overwriting fields that return the same data:
+            if (name in authQueryFields[securityRequirement])
+              name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+            authQueryFields[securityRequirement][name] = field
+          }
+        } else {
+          // Avoid overwriting fields that return the same data:
+          if (name in queryFields)
+            name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+          queryFields[name] = field
+        }    
+      } else {
+        // Use operationId to avoid problems differentiating operations with the
+        // same path but differnet methods
+        let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+        if (operation.inViewer) {
+          for (let securityRequirement of operation.securityRequirements) {
+            if (typeof authMutationFields[securityRequirement] !== 'object')
+              authMutationFields[securityRequirement] = {}
+            authMutationFields[securityRequirement][saneName] = field
+          }
+        } else {
+          mutationFields[saneName] = field
+        }
+      }
+    })
+
+  /**
+   * Count created queries / mutations
+   */
+  let numQueriesCreated = Object.keys(queryFields).length
+  for (let key in authQueryFields)
+    numQueriesCreated += Object.keys(authQueryFields[key]).length
+  options.report.numQueriesCreated = numQueriesCreated
+
+  let numMutationsCreated = Object.keys(mutationFields).length
+  for (let key in authMutationFields)
+    numMutationsCreated += Object.keys(authMutationFields[key]).length
+  options.report.numMutationsCreated = numMutationsCreated
+
+  /**
+   * Organize created queries / mutations into viewer objects.
+   */
+  if (Object.keys(authQueryFields).length > 0)
+    Object.assign(queryFields, createAndLoadViewer(
+      authQueryFields,
+      data,
+      oas,
+      false
+    ))
+
+  if (Object.keys(authMutationFields).length > 0)
+    Object.assign(mutationFields, createAndLoadViewer(
+      authMutationFields,
+      data,
+      oas,
+      true
+    ))
+
+  /**
+   * Build up the schema
+   */
+  let schemaConfig: GraphQLSchemaConfig = {
+    query: Object.keys(queryFields).length > 0
+      ? new GraphQLObjectType({
+          name: 'query',
+          description: 'The start of any query',
+          fields: queryFields
         })
-      }
-    }
-
-    // ...and again for endpoints without links
-    for (let operationId in data.operations) {
-      let operation = data.operations[operationId]
-      if (Object.keys(operation.links).length === 0 &&
-        (!Array.isArray(operation.subOps) || operation.subOps.length === 0)) {
-        log(`Process operation "${operation.operationId}"...`)
-        loadField({
-          operation,
-          operationId,
-          queryFields,
-          mutationFields,
-          authQueryFields,
-          authMutationFields,
-          data,
-          oas,
-          options
+      : GraphQLTools.getEmptyObjectType('query'),
+    mutation: Object.keys(mutationFields).length > 0
+      ? new GraphQLObjectType({
+          name: 'mutation',
+          description: 'The start of any mutation',
+          fields: mutationFields
         })
-      }
-    }
+      : null
+  }
 
-    /**
-     * Count created queries / mutations
-     */
-    let numQueriesCreated = Object.keys(queryFields).length
-    for (let key in authQueryFields) {
-      numQueriesCreated += Object.keys(authQueryFields[key]).length
+  // Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
+  // The reason: once creating the schema, the 'fields' thunks will resolve
+  // and if a field references an undefined Object Types, GraphQL will throw.
+  Object.entries(data.operations).forEach(([opId, operation]) => {
+    if (typeof operation.resDef.ot === 'undefined') {
+      operation.resDef.ot = GraphQLTools
+        .getEmptyObjectType(operation.resDef.otName)
     }
-    options.report.numQueriesCreated = numQueriesCreated
-
-    let numMutationsCreated = Object.keys(mutationFields).length
-    for (let key in authMutationFields) {
-      numMutationsCreated += Object.keys(authMutationFields[key]).length
-    }
-    options.report.numMutationsCreated = numMutationsCreated
-
-    /**
-     * Organize created queries / mutations into viewer objects.
-     */
-    const rootQueryFields = Object.assign({}, queryFields)
-    if (Object.keys(authQueryFields).length > 0) {
-      const queryViewers = createAndLoadViewer(
-        authQueryFields,
-        data,
-        oas,
-        false
-      )
-      Object.assign(rootQueryFields, queryViewers)
-    }
-
-    const rootMutationFields = Object.assign({}, mutationFields)
-    if (Object.keys(authMutationFields).length > 0) {
-      const mutationViewers = createAndLoadViewer(
-        authMutationFields,
-        data,
-        oas,
-        true
-      )
-      Object.assign(rootMutationFields, mutationViewers)
-    }
-
-    /**
-     * Build up the schema
-     */
-    let schemaDef = {}
-    if (Object.keys(rootQueryFields).length > 0) {
-      // @ts-ignore
-      schemaDef.query = new GraphQLObjectType({
-        name: 'query',
-        description: 'The start of any query',
-        fields: rootQueryFields
-      })
-    } else {
-      // @ts-ignore
-      schemaDef.query = GraphQLTools.getEmptyObjectType('query')
-    }
-    if (Object.keys(rootMutationFields).length > 0) {
-      // @ts-ignore
-      schemaDef.mutation = new GraphQLObjectType({
-        name: 'mutation',
-        description: 'The start of any mutation',
-        fields: rootMutationFields
-      })
-    }
-
-    // Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
-    // The reason: once creating the schema, the 'fields' thunks will resolve
-    // and if a field references an undefined Object Types, GraphQL will throw.
-    for (let i in data.operations) {
-      let operation = data.operations[i]
-      if (typeof operation.resDef.ot === 'undefined') {
-        operation.resDef.ot = GraphQLTools
-          .getEmptyObjectType(operation.resDef.otName)
-      }
-    }
-
-    // @ts-ignore
-    let schema = new GraphQLSchema(schemaDef)
-
-    resolve(schema)
   })
+
+  let schema = new GraphQLSchema(schemaConfig)
+
+  return {schema, report: options.report}
 }
 
 /**
- * Generates a field for the given operation and stores it in the given field
- * objects (depending on whether the operation is a mutation, and on its
- * authentication requirements).
+ * Helper function for sorting operations based on them having links or sub-
+ * operations.
  */
-function loadField ({
-  operation,
-  operationId,
-  queryFields,
-  mutationFields,
-  authQueryFields,
-  authMutationFields,
-  data,
-  oas,
-  options
-} : LoadFieldsParams) {
-  // Get the fields for an operation
-  let field = getFieldForOperation(operation, data, oas)
-
-  // If the operation has no valid type, abort
-  if (!field.type || typeof field.type === 'undefined') {
-    handleWarning({
-      typeKey: 'MISSING_GRAPHQL_TYPE',
-      culprit: `${operation.method.toUpperCase()} ${operation.path}`,
-      data,
-      log
-    })
-    return
-  }
-
-  // Determine if the operation is authenticated
-  let isAuthenticated = operation.securityRequirements.length > 0 &&
-    data.options.viewer !== false
-
-  // CASE: query
-  if (operation.method.toLowerCase() === 'get') {
-    // Use name of the response data schema as field name:
-    let name = operation.resDef.otName
-
-    if (isAuthenticated) {
-      for (let securityRequirement of operation.securityRequirements) {
-        if (typeof authQueryFields[securityRequirement] !== 'object') {
-          authQueryFields[securityRequirement] = {}
-        }
-        // Avoid overwriting fields that return the same data:
-        if (name in authQueryFields[securityRequirement]) {
-          name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-        }
-        authQueryFields[securityRequirement][name] = field
-      }
-    } else {
-      // Avoid overwriting fields that return the same data:
-      if (name in queryFields) {
-        name = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-      }
-      queryFields[name] = field
-    }
-
-  // CASE: mutation
-  } else {
-    // Use operationId to avoid problems differentiating operations with the
-    // same path but differnet methods
-    let saneName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
-
-    if (isAuthenticated) {
-      for (let securityRequirement of operation.securityRequirements) {
-        if (typeof authMutationFields[securityRequirement] !== 'object') {
-          authMutationFields[securityRequirement] = {}
-        }
-        authMutationFields[securityRequirement][saneName] = field
-      }
-    } else {
-      mutationFields[saneName] = field
-    }
-  }
+function sortByHasLinksOrSubOps (op1: Operation, op2: Operation) : number {
+  const hasOp1 = Object.keys(op1.links).length > 0 ||
+    (Array.isArray(op1.subOps) && op1.subOps.length > 0)
+  const hasOp2 = Object.keys(op2.links).length > 0 ||
+    (Array.isArray(op2.subOps) && op2.subOps.length > 0)
+  return (hasOp1 === hasOp2) ? 0 : hasOp1 ? -1 : 1 // hasOp1 = true => -1 = first
 }
 
 /**
@@ -389,7 +306,7 @@ function getFieldForOperation (
   operation: Operation,
   data: PreprocessingData,
   oas: Oas3
-) : Viewer {
+) : Field {
   // create OT returned by operation:
   let type = getGraphQLType({
     name: operation.resDef.otName,
@@ -425,9 +342,4 @@ function getFieldForOperation (
     args,
     description: operation.description
   }
-}
-
-// @ts-ignore
-module.exports = {
-  createGraphQlSchema
 }
