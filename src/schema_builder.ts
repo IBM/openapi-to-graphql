@@ -5,7 +5,8 @@
 // Type imports:
 import { PreprocessingData } from './types/preprocessing_data'
 import { Operation, DataDefinition } from './types/operation'
-import { Oas3, SchemaObject, ParameterObject } from './types/oas3'
+import { Oas3, SchemaObject, ParameterObject, ReferenceObject } from './types/oas3'
+import { GraphQLType, Args, Field } from './types/graphql'
 import {
   GraphQLObjectType as GQObjectType,
   GraphQLScalarType,
@@ -37,9 +38,9 @@ import {
 } from 'graphql'
 
 // Type definitions & exports:
-type GetGraphQLParams = {
+type GetGraphQLTypeParams = {
   name: string,              // name of type to create NOTE: ignored for scalars
-  schema: SchemaObject,
+  schema: SchemaObject | ReferenceObject,
   operation?: Operation,
   data: PreprocessingData,   // data produced by preprocessing
   oas: Oas3,                 // input OAS 3
@@ -47,19 +48,10 @@ type GetGraphQLParams = {
   isMutation?: boolean       // whether to create an Input Type
 }
 
-type Arg = {
-  type: any,
-  description?: string
-}
-
-export type Args = {
-  [key: string]: Arg
-}
-
 type GetArgsParams = {
   parameters: ParameterObject[],
-  reqSchema?: SchemaObject,
-  reqSchemaName?: string,
+  payloadSchema?: SchemaObject,
+  payloadSchemaName?: string,
   data: PreprocessingData,
   oas: Oas3,
   operation?: Operation
@@ -101,8 +93,6 @@ type CreateFieldsParams = {
   isMutation: boolean
 }
 
-type FieldsType = Thunk<GraphQLFieldConfigMap<Object, Object>>
-
 const log = debug('translation')
 
 /**
@@ -116,31 +106,32 @@ export function getGraphQLType ({
   oas,
   iteration = 0,
   isMutation = false
-} : GetGraphQLParams
-) : GQObjectType | GQInputObjectType | GraphQLScalarType | GQList<any> | GQEnumType {
+} : GetGraphQLTypeParams
+) : GraphQLType {
   // avoid excessive iterations
-  if (iteration === 50) {
+  if (iteration === 50)
     throw new Error(`Too many iterations when creating schema ${name}`)
-  }
 
   // no valid schema name
-  if (!name || typeof name !== 'string') {
+  if (!name || typeof name !== 'string')
     throw new Error(`Invalid schema name provided`)
-  }
 
   // some error checking
-  if (!schema || typeof schema !== 'object') {
+  if (!schema || typeof schema !== 'object')
     throw new Error(`Invalid schema for ${name} provided of type ` +
       `"${typeof schema}"`)
-  }
+
+  // resolve references
+  if (typeof schema.$ref === 'string')
+    schema = Oas3Tools.resolveRef(schema.$ref, oas)
+  // from hereon, we know schema is a SchemaObject!
 
   // resolve allOf element in schema if applicable
-  if ('allOf' in schema) {
+  if ('allOf' in schema)
     schema = mergeAllOf(schema)
-  }
 
   // determine the type of the schema
-  let type = Oas3Tools.getSchemaType(schema)
+  let type = Oas3Tools.getSchemaType(schema as SchemaObject)
 
   // CASE: no known type
   if (!type) {
@@ -156,7 +147,7 @@ export function getGraphQLType ({
   } else if (type === 'object') {
     return reuseOrCreateOt({
       name,
-      schema,
+      schema: schema as SchemaObject,
       operation,
       data,
       oas,
@@ -168,7 +159,7 @@ export function getGraphQLType ({
   } else if (type === 'array') {
     return reuseOrCreateList({
       name,
-      schema,
+      schema: schema as SchemaObject,
       operation,
       data,
       oas,
@@ -181,7 +172,7 @@ export function getGraphQLType ({
     return reuseOrCreateEnum({
       name,
       data,
-      schema
+      schema: schema as SchemaObject
     })
 
   // CASE: scalar - return scalar
@@ -213,13 +204,7 @@ function reuseOrCreateOt ({
   oas,
   iteration,
   isMutation
-} : ReuseOrCreateOtParams) : GQObjectType | GQInputObjectType | GraphQLScalarType {
-  // some validation
-  if (typeof schema === 'undefined') {
-    throw new Error(`No schema passed to reuseOrCreateOt for name '${name}'.`)
-  }
-
-  // fetch or create data definition
+} : ReuseOrCreateOtParams) : GraphQLType {
   let def: DataDefinition = createOrReuseDataDef(data, schema, {fromRef: name})
 
   // CASE: query - create or reuse OT
@@ -236,9 +221,7 @@ function reuseOrCreateOt ({
           ? ` (for operation "${operation.operationId}")`
           : ''))
 
-      // @ts-ignore
       let description = typeof schema.description !== 'undefined'
-        // @ts-ignore
         ? schema.description : 'No description available.'
       // @ts-ignore
       def.ot = new GraphQLObjectType({
@@ -277,9 +260,7 @@ function reuseOrCreateOt ({
         name: def.iotName,
         // @ts-ignore
         description: schema.description, // might be undefined
-        // $FlowFixMe: this is a valid thunk being returned
         fields: () => {
-          // $FlowFixMe
           return createFields({
             name: def.iotName,
             schema,
@@ -291,7 +272,6 @@ function reuseOrCreateOt ({
           })
         }
       })
-      // @ts-ignore
       return def.iot
     }
   }
@@ -443,8 +423,8 @@ function createFields ({
   oas,
   iteration,
   isMutation
-} : CreateFieldsParams) : FieldsType {
-  let fields = {}
+} : CreateFieldsParams) : {[key: string]: Field} {
+  let fields: {[key: string]: Field} = {}
 
   // resolve reference if applicable
   if ('$ref' in schema) {
@@ -552,7 +532,7 @@ function createFields ({
          * use the reference here
          * OT will be built up some other time
          */
-        let resObjectType = linkedOp.resDef.ot
+        let resObjectType = linkedOp.responseDefinition.ot
 
         // finally, add the object type to the fields (using sanitized field name)
         let saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap)
@@ -580,8 +560,8 @@ function createFields ({
     for (let subOp of operation.subOps) {
       // here, we know the operation is present
       operation = ((operation as any) as Operation)
-      let fieldName = subOp.resDef.otName
-      let otName = operation.resDef.otName
+      let fieldName = subOp.responseDefinition.otName
+      let otName = operation.responseDefinition.otName
 
       // check for collision with existing field name:
       if (typeof fields[fieldName] !== 'undefined') {
@@ -622,10 +602,10 @@ function createFields ({
       })
 
       fields[fieldName] = {
-        type: subOp.resDef.ot,
+        type: subOp.responseDefinition.ot,
         resolve: subOpResolver,
         args,
-        description: subOp.resDef.schema.description
+        description: subOp.responseDefinition.schema.description
       }
     }
   }
@@ -815,8 +795,8 @@ function linkOpRefToOpId ({
  */
 export function getArgs ({
   parameters,
-  reqSchema,
-  reqSchemaName,
+  payloadSchema,
+  payloadSchemaName,
   data,
   oas,
   operation
@@ -888,11 +868,11 @@ export function getArgs ({
   }
 
   // handle request schema (if present):
-  if (typeof reqSchemaName === 'string' &&
-    reqSchema && typeof reqSchema === 'object') {
+  if (typeof payloadSchemaName === 'string' &&
+    payloadSchema && typeof payloadSchema === 'object') {
     let reqObjectType = getGraphQLType({
-      name: reqSchemaName,
-      schema: reqSchema,
+      name: payloadSchemaName,
+      schema: payloadSchema,
       data,
       operation,
       oas,
@@ -900,16 +880,16 @@ export function getArgs ({
     })
 
     // sanitize the argument name
-    let saneName = Oas3Tools.beautify(reqSchemaName)
+    let saneName = Oas3Tools.beautify(payloadSchemaName)
     let reqRequired = false
     if (operation && typeof operation === 'object' &&
-      typeof operation.reqRequired === 'boolean') {
-      reqRequired = operation.reqRequired
+      typeof operation.payloadRequired === 'boolean') {
+      reqRequired = operation.payloadRequired
     }
     args[saneName] = {
       type: reqRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
-      description: typeof reqSchema.description === 'undefined'
-        ? 'No description available.' : reqSchema.description
+      description: typeof payloadSchema.description === 'undefined'
+        ? 'No description available.' : payloadSchema.description
     }
   }
   return args

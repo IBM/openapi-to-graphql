@@ -6,8 +6,7 @@
 // Type imports:
 import { Oas3 } from './types/oas3'
 import { GraphQLObjectType as GQObjectType } from 'graphql'
-import { ResolveFunction } from './resolver_builder'
-import { Args } from './schema_builder'
+import { Args, ResolveFunction } from './types/graphql'
 import {
   PreprocessingData,
   ProcessedSecurityScheme

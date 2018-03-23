@@ -37,15 +37,15 @@ export type SchemaNames = {
   fromRef?: string
 }
 
-export type ReqSchemaAndNames = {
-  reqSchema?: SchemaObject | ReferenceObject,
-  reqSchemaNames?: SchemaNames,
-  reqRequired: boolean
+export type PayloadSchemaAndNames = {
+  payloadSchema?: SchemaObject | ReferenceObject,
+  payloadSchemaNames?: SchemaNames,
+  payloadRequired: boolean
 }
 
-export type ResSchemaAndNames = {
-  resSchema?: SchemaObject | ReferenceObject,
-  resSchemaNames?: SchemaNames
+export type ResponseSchemaAndNames = {
+  responseSchema?: SchemaObject | ReferenceObject,
+  responseSchemaNames?: SchemaNames
 }
 
 const logHttp = debug('http')
@@ -472,17 +472,17 @@ export function getReqSchema (
  * dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
  */
-export function getReqSchemaAndNames (
+export function getPayloadSchemaAndNames (
   path: string,
   method: string,
   oas: Oas3
-) : ReqSchemaAndNames {
+) : PayloadSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
-  let reqRequired = false
-  let reqSchemaNames: any = {}
-  let reqSchema: SchemaObject = getReqSchema(endpoint, oas)
+  let payloadRequired = false
+  let payloadSchemaNames: any = {}
+  let payloadSchema: SchemaObject = getReqSchema(endpoint, oas)
 
-  if (reqSchema) {
+  if (payloadSchema) {
     let requestBody = endpoint.requestBody
 
     // determine if request body is required:
@@ -492,28 +492,28 @@ export function getReqSchemaAndNames (
         requestBody = resolveRef(requestBody['$ref'], oas)
       }
       if (typeof (requestBody as RequestBodyObject).required === 'boolean') {
-        reqRequired = (requestBody as RequestBodyObject).required
+        payloadRequired = (requestBody as RequestBodyObject).required
       }
     }
 
-    reqSchemaNames.fromPath = inferResourceNameFromPath(path)
+    payloadSchemaNames.fromPath = inferResourceNameFromPath(path)
 
-    if ('$ref' in reqSchema) {
-      reqSchemaNames.fromRef = reqSchema['$ref'].split('/').pop()
-      reqSchema = resolveRef(reqSchema['$ref'], oas)
+    if ('$ref' in payloadSchema) {
+      payloadSchemaNames.fromRef = payloadSchema['$ref'].split('/').pop()
+      payloadSchema = resolveRef(payloadSchema['$ref'], oas)
     }
-    if ('title' in reqSchema) {
-      reqSchemaNames.fromSchema = reqSchema.title
+    if ('title' in payloadSchema) {
+      payloadSchemaNames.fromSchema = payloadSchema.title
     }
 
     return {
-      reqSchema,
-      reqSchemaNames,
-      reqRequired
+      payloadSchema,
+      payloadSchemaNames,
+      payloadRequired
     }
   }
   return {
-    reqRequired: false
+    payloadRequired: false
   }
 }
 
@@ -527,29 +527,29 @@ export function getResSchemaAndNames (
   method: string,
   oas: Oas3,
   data: PreprocessingData
-) : ResSchemaAndNames {
+) : ResponseSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
-  let resSchemaNames: any = {}
+  let responseSchemaNames: any = {}
   let statusCode = getResStatusCode(path, method, oas, data)
   if (!statusCode) {
     return {}
   }
-  let resSchema = getResSchema(endpoint, statusCode, oas)
+  let responseSchema = getResSchema(endpoint, statusCode, oas)
 
-  if (resSchema) {
-    resSchemaNames.fromPath = inferResourceNameFromPath(path)
+  if (responseSchema) {
+    responseSchemaNames.fromPath = inferResourceNameFromPath(path)
 
-    if ('$ref' in resSchema) {
-      resSchemaNames.fromRef = resSchema['$ref'].split('/').pop()
-      resSchema = resolveRef(resSchema['$ref'], oas)
+    if ('$ref' in responseSchema) {
+      responseSchemaNames.fromRef = responseSchema['$ref'].split('/').pop()
+      responseSchema = resolveRef(responseSchema['$ref'], oas)
     }
-    if ('title' in resSchema) {
-      resSchemaNames.fromSchema = resSchema.title
+    if ('title' in responseSchema) {
+      responseSchemaNames.fromSchema = responseSchema.title
     }
 
     return {
-      resSchema,
-      resSchemaNames
+      responseSchema,
+      responseSchemaNames
     }
   } else {
     return {}

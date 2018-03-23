@@ -74,19 +74,19 @@ export function preprocessOas (
       }
 
       // Request schema
-      let {reqSchema, reqSchemaNames, reqRequired} =
-        Oas3Tools.getReqSchemaAndNames(path, method, oas)
+      let {payloadSchema, payloadSchemaNames, payloadRequired} =
+        Oas3Tools.getPayloadSchemaAndNames(path, method, oas)
 
-      let reqDef
-      if (reqSchema && typeof reqSchema !== 'undefined') {
-        reqDef = createOrReuseDataDef(data, (reqSchema as SchemaObject), reqSchemaNames)
+      let payloadDefinition
+      if (payloadSchema && typeof payloadSchema !== 'undefined') {
+        payloadDefinition = createOrReuseDataDef(data, (payloadSchema as SchemaObject), payloadSchemaNames)
       }
 
       // Response schema
-      let {resSchema, resSchemaNames} = Oas3Tools.getResSchemaAndNames(
+      let {responseSchema, responseSchemaNames} = Oas3Tools.getResSchemaAndNames(
         path, method, oas, data)
 
-      if (!resSchema || typeof resSchema !== 'object') {
+      if (!responseSchema || typeof responseSchema !== 'object') {
         handleWarning({
           typeKey: 'MISSING_RESPONSE_SCHEMA',
           culprit: `${method.toUpperCase()} ${path}`,
@@ -96,7 +96,11 @@ export function preprocessOas (
         continue
       }
 
-      let resDef = createOrReuseDataDef(data, (resSchema as SchemaObject), resSchemaNames)
+      let responseDefinition = createOrReuseDataDef(
+        data,
+        (responseSchema as SchemaObject),
+        responseSchemaNames
+      )
 
       // Links
       let links = Oas3Tools.getEndpointLinks(
@@ -127,9 +131,9 @@ export function preprocessOas (
         description,
         path,
         method: method.toLowerCase(),
-        reqDef,
-        reqRequired,
-        resDef,
+        payloadDefinition,
+        payloadRequired,
+        responseDefinition,
         links,
         parameters,
         securityRequirements,

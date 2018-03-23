@@ -4,8 +4,9 @@
 
 // Type imports:
 import { Oas3, SchemaObject } from './types/oas3'
-import {Operation} from './types/operation'
-import {PreprocessingData} from './types/preprocessing_data'
+import { Operation } from './types/operation'
+import { ResolveFunction } from './types/graphql'
+import { PreprocessingData } from './types/preprocessing_data'
 
 // Imports:
 import * as request from 'request'
@@ -15,9 +16,6 @@ import * as jp from 'jsonpath'
 import debug from 'debug'
 
 // Type definitions & exports:
-export type ResolveFunction =
-  (root: Object, args: Object, ctx: Object) => Promise<any> | any
-
 type GetResolverParams = {
   operation: Operation,
   argsFromLink?: {[key: string] : string},

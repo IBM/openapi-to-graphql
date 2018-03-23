@@ -50,17 +50,17 @@ export type Operation = {
   /**
    * Information about the request payload (if any)
    */
-  reqDef?: DataDefinition,
+  payloadDefinition?: DataDefinition,
 
   /**
    * Determines wheter request payload is required for the request
    */
-  reqRequired: boolean,
+  payloadRequired: boolean,
 
   /**
    * Information about the response payload
    */
-  resDef: DataDefinition,
+  responseDefinition: DataDefinition,
 
   /**
    * Links of the operation
