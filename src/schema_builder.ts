@@ -239,7 +239,6 @@ function reuseOrCreateOt ({
           })
         }
       })
-      // @ts-ignore
       return def.ot
     }
   // CASE: mutation - create or reuse IOT
@@ -258,7 +257,6 @@ function reuseOrCreateOt ({
       // @ts-ignore
       def.iot = new GraphQLInputObjectType({
         name: def.iotName,
-        // @ts-ignore
         description: schema.description, // might be undefined
         fields: () => {
           return createFields({
