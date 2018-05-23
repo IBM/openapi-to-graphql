@@ -39,6 +39,34 @@
 	],
 	"paths": {
 		"/users": {
+			"get": {
+				"operationId": "getUsers",
+				"description": "Return a list of users.",
+				"parameters": [{
+					"name": "limit",
+					"in": "query",
+					"required": true,
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Limit of the number of users to return."
+				}],
+				"responses": {
+					"200": {
+						"description": "A list of users.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/user"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
 			"post": {
 				"operationId": "postUser",
 				"description": "Create a new user in the system.",

@@ -198,6 +198,16 @@ const authMiddleware = (req, res, next) => {
   }
 }
 
+app.get('/api/users', (req, res) => {
+  console.log(req.method, req.path)
+  const limit = req.query.limit
+  if (typeof limit === 'string') {
+    res.send(Object.values(Users).slice(0, Number(limit)))
+  } else {
+    res.send(Object.values(Users))
+  }
+})
+
 app.get('/api/users/:username', (req, res) => {
   console.log(req.method, req.path)
   res.send(Users[req.params.username])
