@@ -13,7 +13,7 @@ export type Report = {
   numOpsQuery: number,
   numOpsMutation: number,
   numQueriesCreated: number,
-  numMutationsCreated: number,
+  numMutationsCreated: number
 }
 
 export type Options = {
@@ -26,12 +26,12 @@ export type Options = {
   /**
    * Custom headers to send with every request made by a resolve function.
    */
-  headers?: {[key: string] : string},
+  headers?: {[key: string]: string},
 
   /**
    * Custom query parameters to send with every reqeust by a resolve function.
    */
-  qs?: {[key: string] : string},
+  qs?: {[key: string]: string},
 
   /**
    * Determines whether OASGraph should create viewers that allow users to pass

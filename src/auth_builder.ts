@@ -5,7 +5,11 @@
 
 // Type imports:
 import { Oas3 } from './types/oas3'
-import { GraphQLObjectType as GQObjectType } from 'graphql'
+import {
+  GraphQLObjectType as GQObjectType,
+  GraphQLString,
+  GraphQLObjectType,
+  GraphQLNonNull} from 'graphql'
 import { Args, ResolveFunction } from './types/graphql'
 import {
   PreprocessingData,
@@ -13,15 +17,10 @@ import {
 } from './types/preprocessing_data.js'
 
 // Imports:
-import {getGraphQLType} from './schema_builder'
+import { getGraphQLType } from './schema_builder'
 import * as Oas3Tools from './oas_3_tools'
 import debug from 'debug'
 import { handleWarning } from './utils'
-import {
-  GraphQLString,
-  GraphQLObjectType,
-  GraphQLNonNull
-} from 'graphql'
 
 // Type definitions & exports:
 type Viewer = {
@@ -44,7 +43,7 @@ export function createAndLoadViewer (
     data: PreprocessingData,
     oas: Oas3,
     isMutation: boolean = false
-) : {[key: string]: Viewer} {
+): {[key: string]: Viewer} {
   let results = {}
   /**
    * Object that contains all previously defined viewer object names.
@@ -139,7 +138,7 @@ const getViewerOT = (
   type: string,
   queryFields: Object,
   data: PreprocessingData
-) : Viewer => {
+): Viewer => {
   let scheme: ProcessedSecurityScheme = data.security[protocolName]
 
   // resolve function:
@@ -166,7 +165,7 @@ const getViewerOT = (
   let args = {}
   if (typeof scheme === 'object') {
     for (let parameterName in scheme.parameters) {
-      args[parameterName] = {type: new GraphQLNonNull(GraphQLString)}
+      args[parameterName] = { type: new GraphQLNonNull(GraphQLString) }
     }
   }
 
@@ -192,7 +191,7 @@ const getViewerAnyAuthOT = (
   queryFields: Object,
   data: PreprocessingData,
   oas: Oas3
-) : Viewer => {
+): Viewer => {
   let args = {}
   for (let protocolName in data.security) {
     // create input object types for the viewer arguments
@@ -206,7 +205,7 @@ const getViewerAnyAuthOT = (
       oas,
       isMutation: true
     })
-    args[Oas3Tools.beautify(protocolName)] = {type}
+    args[Oas3Tools.beautify(protocolName)] = { type }
   }
 
   // pass object containing security information to fields
@@ -231,4 +230,3 @@ const getViewerAnyAuthOT = (
       `authentication mechanisms`
   }
 }
-

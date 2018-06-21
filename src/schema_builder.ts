@@ -11,21 +11,7 @@ import {
   GraphQLObjectType as GQObjectType,
   GraphQLScalarType,
   GraphQLInputObjectType as GQInputObjectType,
-  GraphQLList as GQList,
   GraphQLEnumType as GQEnumType,
-  Thunk,
-  GraphQLFieldConfigMap
-} from 'graphql'
-
-// Imports:
-import * as GraphQLJSON from 'graphql-type-json'
-import * as Oas3Tools from './oas_3_tools'
-import * as mergeAllOf from 'json-schema-merge-allof'
-import { getResolver } from './resolver_builder'
-import { createOrReuseDataDef } from './preprocessor'
-import debug from 'debug'
-import { handleWarning } from './utils'
-import {
   GraphQLObjectType,
   GraphQLString,
   GraphQLInt,
@@ -36,6 +22,15 @@ import {
   GraphQLInputObjectType,
   GraphQLEnumType
 } from 'graphql'
+
+// Imports:
+import * as GraphQLJSON from 'graphql-type-json'
+import * as Oas3Tools from './oas_3_tools'
+import * as mergeAllOf from 'json-schema-merge-allof'
+import { getResolver } from './resolver_builder'
+import { createOrReuseDataDef } from './preprocessor'
+import debug from 'debug'
+import { handleWarning } from './utils'
 
 // Type definitions & exports:
 type GetGraphQLTypeParams = {
@@ -106,29 +101,33 @@ export function getGraphQLType ({
   oas,
   iteration = 0,
   isMutation = false
-} : GetGraphQLTypeParams
-) : GraphQLType {
+}: GetGraphQLTypeParams
+): GraphQLType {
   // avoid excessive iterations
-  if (iteration === 50)
+  if (iteration === 50) {
     throw new Error(`Too many iterations when creating schema ${name}`)
+  }
 
   // no valid schema name
-  if (!name || typeof name !== 'string')
+  if (!name || typeof name !== 'string') {
     throw new Error(`Invalid schema name provided`)
+  }
 
   // some error checking
-  if (!schema || typeof schema !== 'object')
+  if (!schema || typeof schema !== 'object') {
     throw new Error(`Invalid schema for ${name} provided of type ` +
       `"${typeof schema}"`)
+  }
 
-  // resolve references
-  if (typeof schema.$ref === 'string')
+  // resolve references - from hereon, we know schema is a SchemaObject!
+  if (typeof schema.$ref === 'string') {
     schema = Oas3Tools.resolveRef(schema.$ref, oas)
-  // from hereon, we know schema is a SchemaObject!
+  }
 
   // resolve allOf element in schema if applicable
-  if ('allOf' in schema)
+  if ('allOf' in schema) {
     schema = mergeAllOf(schema)
+  }
 
   // determine the type of the schema
   let type = Oas3Tools.getSchemaType(schema as SchemaObject)
@@ -204,8 +203,8 @@ function reuseOrCreateOt ({
   oas,
   iteration,
   isMutation
-} : ReuseOrCreateOtParams) : GraphQLType {
-  let def: DataDefinition = createOrReuseDataDef(data, schema, {fromRef: name})
+}: ReuseOrCreateOtParams): GraphQLType {
+  let def: DataDefinition = createOrReuseDataDef(data, schema, { fromRef: name })
 
   // CASE: query - create or reuse OT
   if (!isMutation) {
@@ -286,7 +285,7 @@ function reuseOrCreateList ({
   oas,
   iteration,
   isMutation
-}: ReuseOrCreateListParams) : GraphQLList<any> {
+}: ReuseOrCreateListParams): GraphQLList<any> {
   // minimal error-checking
   if (!('items' in schema)) {
     throw new Error(`Items property missing in array schema definition of ` +
@@ -294,7 +293,7 @@ function reuseOrCreateList ({
   }
 
   let def = createOrReuseDataDef(
-    data, schema, {fromRef: `${name}List`})
+    data, schema, { fromRef: `${name}List` })
 
   // try to reuse existing Object Type
   if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
@@ -356,9 +355,9 @@ function reuseOrCreateEnum ({
   name,
   data,
   schema
-} : ReuseOrCreateEnum) : GQEnumType {
+}: ReuseOrCreateEnum): GQEnumType {
   // try to reuse existing Enum Type
-  let def = createOrReuseDataDef(data, schema, {fromRef: name})
+  let def = createOrReuseDataDef(data, schema, { fromRef: name })
 
   if (def.ot && typeof def.ot !== 'undefined') {
     log(`reuse  GraphQLEnumType "${def.otName}"`)
@@ -387,7 +386,7 @@ function reuseOrCreateEnum ({
 function getScalarType (
   type: string,
   data: PreprocessingData
-) : GraphQLScalarType {
+): GraphQLScalarType {
   switch (type) {
     case 'string':
       return GraphQLString
@@ -421,7 +420,7 @@ function createFields ({
   oas,
   iteration,
   isMutation
-} : CreateFieldsParams) : {[key: string]: Field} {
+}: CreateFieldsParams): {[key: string]: Field} {
   let fields: {[key: string]: Field} = {}
 
   // resolve reference if applicable
@@ -625,7 +624,7 @@ function linkOpRefToOpId ({
   name,
   data,
   oas
-}) : string {
+}): string {
   let linkedOpId
 
   if (typeof operation.links[linkKey].operationRef === 'string') {
@@ -798,7 +797,7 @@ export function getArgs ({
   data,
   oas,
   operation
-} : GetArgsParams) : Args {
+}: GetArgsParams): Args {
   let args = {}
 
   // handle params:

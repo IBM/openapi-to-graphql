@@ -27,7 +27,7 @@ export type PreprocessingData = {
   /**
    * List of Operation objects
    */
-  operations: {[key: string] : Operation},
+  operations: {[key: string]: Operation},
 
   /**
    * List of all the used object names to avoid collision
@@ -50,7 +50,7 @@ export type PreprocessingData = {
   /**
    * Mapping between beautified strings and their original ones
    */
-  saneMap: {[key: string] : string},
+  saneMap: {[key: string]: string},
 
   /**
    * Options passed to OASGraph by the user

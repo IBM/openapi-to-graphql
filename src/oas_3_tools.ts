@@ -3,8 +3,8 @@
  */
 
 // Type imports:
-import {Oas2} from './types/oas2'
-import {Operation} from './types/operation'
+import { Oas2 } from './types/oas2'
+import { Operation } from './types/operation'
 import {
   Oas3,
   ServerObject,
@@ -67,7 +67,7 @@ export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
   if (typeof (spec as Oas2).swagger === 'string'
     && (spec as Oas2).swagger === '2.0') {
     logPre(`Received OpenAPI Specification 2.0 - going to translate...`)
-    let result : {openapi: Oas3} = await Swagger2OpenAPI.convertObj(spec, {})
+    let result: {openapi: Oas3} = await Swagger2OpenAPI.convertObj(spec, {})
     return (result.openapi as Oas3)
   // CASE: validate
   } else if (typeof (spec as Oas3).openapi === 'string'
@@ -325,7 +325,7 @@ export function instantiatePathAndGetQuery (
     }
   }
 
-  return {path, query}
+  return { path, query }
 }
 
 /**
@@ -408,7 +408,7 @@ export function getResSchema (
   endpoint: OperationObject,
   statusCode: string,
   oas: Oas3
-) : SchemaObject | null {
+): SchemaObject | null {
   if (typeof endpoint.responses === 'object') {
     let responses: ResponsesObject = endpoint.responses
     if (typeof responses[statusCode] === 'object') {
@@ -443,7 +443,7 @@ export function getResSchema (
 export function getReqSchema (
   endpoint: OperationObject,
   oas: Oas3
-) : SchemaObject | null {
+): SchemaObject | null {
   if (typeof endpoint.requestBody === 'object') {
     let requestBody: RequestBodyObject | ReferenceObject = endpoint.requestBody
 
@@ -476,7 +476,7 @@ export function getPayloadSchemaAndNames (
   path: string,
   method: string,
   oas: Oas3
-) : PayloadSchemaAndNames {
+): PayloadSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let payloadRequired = false
   let payloadSchemaNames: any = {}
@@ -527,7 +527,7 @@ export function getResSchemaAndNames (
   method: string,
   oas: Oas3,
   data: PreprocessingData
-) : ResponseSchemaAndNames {
+): ResponseSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let responseSchemaNames: any = {}
   let statusCode = getResStatusCode(path, method, oas, data)
@@ -565,7 +565,7 @@ export function getResStatusCode (
   method: string,
   oas: Oas3,
   data: PreprocessingData
-) : string | void {
+): string | void {
   let endpoint: OperationObject = oas.paths[path][method]
 
   if (typeof endpoint.responses === 'object') {
@@ -597,7 +597,7 @@ export function getEndpointLinks (
   method: string,
   oas: Oas3,
   data: PreprocessingData
-) : {[key: string]: LinkObject} {
+): {[key: string]: LinkObject} {
   let links = {}
   let endpoint: OperationObject = oas.paths[path][method]
   let statusCode = getResStatusCode(path, method, oas, data)
@@ -643,7 +643,7 @@ export function getParameters (
   path: string,
   method: string,
   oas: Oas3
-) : ParameterObject[] {
+): ParameterObject[] {
   let parameters = []
 
   if (!isOperation(method)) {
@@ -701,7 +701,7 @@ export function getServers (
   path: string,
   method: string,
   oas: Oas3
-) : ServerObject[] {
+): ServerObject[] {
   let servers = []
   // global server definitions:
   if (Array.isArray(oas.servers) && oas.servers.length > 0) {
@@ -737,7 +737,7 @@ export function getServers (
  */
 export function getSecuritySchemes (
   oas: Oas3
-) : {[key: string]: SecuritySchemeObject} {
+): {[key: string]: SecuritySchemeObject} {
   // collect all security schemes:
   let securitySchemes: {[key: string]: SecuritySchemeObject} = {}
   if (typeof oas.components === 'object' &&
@@ -768,7 +768,7 @@ export function getSecurityRequirements (
   method: string,
   securitySchemes: {[key: string]: SecuritySchemeObject},
   oas: Oas3
-) : string[] {
+): string[] {
   let results: string[] = []
 
   // first, consider global requirements:
@@ -811,7 +811,7 @@ export function getSecurityRequirements (
 export function beautifyAndStore (
   str: string,
   mapping: {[key: string]: string}
-) : string {
+): string {
   if (!(typeof mapping === 'object')) {
     throw new Error(`No/invalid mapping passed to beautifyAndStore`)
   }
@@ -874,7 +874,7 @@ export function beautify (
  * Sanitizes the given string so that it can be used as the name for a GraphQL
  * Object Type.
  */
-function sanitize (str: string) : string {
+function sanitize (str: string): string {
   let clean = str.replace(/[^_a-zA-Z0-9]/g, '_')
   return clean
 }
@@ -882,7 +882,7 @@ function sanitize (str: string) : string {
 /**
  * Stringifies and possibly trims the given string to the provided length.
  */
-export function trim (str: string, length: number) : string {
+export function trim (str: string, length: number): string {
   if (typeof str !== 'string') {
     str = JSON.stringify(str)
   }
@@ -898,6 +898,6 @@ export function trim (str: string, length: number) : string {
  * Determines if the given "method" is indeed an operation. Alternatively, the
  * method could point to other types of information (e.g., parameters, servers).
  */
-export function isOperation (method: string) : boolean {
+export function isOperation (method: string): boolean {
   return OAS_OPERATIONS.includes(method.toLowerCase())
 }

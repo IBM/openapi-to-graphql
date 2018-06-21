@@ -5,7 +5,7 @@ import {
   Warning
 } from './types/options'
 
-export const WarningTypes : {
+export const WarningTypes: {
   [key: string]: (culprit: string, solution: string) => Warning
 } = {
   /**
@@ -94,7 +94,7 @@ export function handleWarning ({
   solution = '',
   data,
   log
-} : {
+}: {
   typeKey: string, // eslint-disable-line
   culprit: string,
   solution?: string,

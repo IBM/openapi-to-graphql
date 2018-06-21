@@ -29,16 +29,12 @@
 import { Options, Report } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, ResolveFunction, Field } from './types/graphql'
+import { Args, Field } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
 import {
-  GraphQLObjectType as GQObjectType,
-  GraphQLInputObjectType as GQInputObjectType,
-  GraphQLScalarType,
-  GraphQLList,
-  GraphQLEnumType,
-  GraphQLObjectTypeConfig
+  GraphQLSchema,
+  GraphQLObjectType
 } from 'graphql'
 
 // Imports:
@@ -47,14 +43,9 @@ import { getResolver } from './resolver_builder'
 import * as GraphQLTools from './graphql_tools'
 import { preprocessOas } from './preprocessor'
 import * as Oas3Tools from './oas_3_tools'
-import {createAndLoadViewer} from './auth_builder'
+import { createAndLoadViewer } from './auth_builder'
 import debug from 'debug'
-import { handleWarning } from './utils'
-import {
-  GraphQLSchema,
-  GraphQLObjectType
-} from 'graphql'
-import { GraphQLSchemaConfig } from 'graphql/type/schema';
+import { GraphQLSchemaConfig } from 'graphql/type/schema'
 
 // Type definitions & exports:
 type LoadFieldsParams = {
@@ -114,7 +105,7 @@ export async function createGraphQlSchema (
    * translate the spec into a GraphQL schema
    */
   let oas = await Oas3Tools.getValidOAS3(spec)
-  let {schema, report} = await translateOpenApiToGraphQL(oas, options)
+  let { schema, report } = await translateOpenApiToGraphQL(oas, options)
   return {
     schema,
     report
@@ -135,7 +126,7 @@ async function translateOpenApiToGraphQL (
     addSubOperations,
     sendOAuthTokenInQuery,
     report
-  } : Options
+  }: Options
 ): Promise<{ schema: GraphQLSchema, report: Report}> {
   let options = {
     headers,
@@ -164,7 +155,7 @@ async function translateOpenApiToGraphQL (
   let authQueryFields = {}
   let authMutationFields = {}
   Object.entries(data.operations)
-    // Start with endpoints that DO contain links OR that DO contain sub 
+    // Start with endpoints that DO contain links OR that DO contain sub
     // operations, so that built-up GraphQL object types contain these links
     // when they are re-used.
     .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
@@ -172,31 +163,34 @@ async function translateOpenApiToGraphQL (
       log(`Process operation "${operationId}"...`)
       let field = getFieldForOperation(operation, data, oas)
       if (!operation.isMutation) {
-        let fieldName = operation.responseDefinition.otName    
+        let fieldName = operation.responseDefinition.otName
         if (operation.inViewer) {
           for (let securityRequirement of operation.securityRequirements) {
             if (typeof authQueryFields[securityRequirement] !== 'object') {
               authQueryFields[securityRequirement] = {}
             }
             // Avoid overwriting fields that return the same data:
-            if (fieldName in authQueryFields[securityRequirement])
+            if (fieldName in authQueryFields[securityRequirement]) {
               fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+            }
             authQueryFields[securityRequirement][fieldName] = field
           }
         } else {
           // Avoid overwriting fields that return the same data:
-          if (fieldName in queryFields)
+          if (fieldName in queryFields) {
             fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+          }
           queryFields[fieldName] = field
-        }    
+        }
       } else {
         // Use operationId to avoid problems differentiating operations with the
         // same path but differnet methods
         let saneFieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
         if (operation.inViewer) {
           for (let securityRequirement of operation.securityRequirements) {
-            if (typeof authMutationFields[securityRequirement] !== 'object')
+            if (typeof authMutationFields[securityRequirement] !== 'object') {
               authMutationFields[securityRequirement] = {}
+            }
             authMutationFields[securityRequirement][saneFieldName] = field
           }
         } else {
@@ -208,13 +202,13 @@ async function translateOpenApiToGraphQL (
   /**
    * Count created queries / mutations
    */
-  options.report.numQueriesCreated = 
+  options.report.numQueriesCreated =
     Object.keys(queryFields).length +
     Object.keys(authQueryFields).reduce((sum, key) => {
       return sum + Object.keys(authQueryFields[key]).length
     }, 0)
 
-  options.report.numMutationsCreated = 
+  options.report.numMutationsCreated =
     Object.keys(mutationFields).length +
     Object.keys(authMutationFields).reduce((sum, key) => {
       return sum + Object.keys(authMutationFields[key]).length
@@ -223,21 +217,23 @@ async function translateOpenApiToGraphQL (
   /**
    * Organize created queries / mutations into viewer objects.
    */
-  if (Object.keys(authQueryFields).length > 0)
+  if (Object.keys(authQueryFields).length > 0) {
     Object.assign(queryFields, createAndLoadViewer(
       authQueryFields,
       data,
       oas,
       false
     ))
+  }
 
-  if (Object.keys(authMutationFields).length > 0)
+  if (Object.keys(authMutationFields).length > 0) {
     Object.assign(mutationFields, createAndLoadViewer(
       authMutationFields,
       data,
       oas,
       true
     ))
+  }
 
   /**
    * Build up the schema
@@ -245,17 +241,17 @@ async function translateOpenApiToGraphQL (
   const schemaConfig: GraphQLSchemaConfig = {
     query: Object.keys(queryFields).length > 0
       ? new GraphQLObjectType({
-          name: 'query',
-          description: 'The start of any query',
-          fields: queryFields
-        })
+        name: 'query',
+        description: 'The start of any query',
+        fields: queryFields
+      })
       : GraphQLTools.getEmptyObjectType('query'),
     mutation: Object.keys(mutationFields).length > 0
       ? new GraphQLObjectType({
-          name: 'mutation',
-          description: 'The start of any mutation',
-          fields: mutationFields
-        })
+        name: 'mutation',
+        description: 'The start of any mutation',
+        fields: mutationFields
+      })
       : null
   }
 
@@ -271,14 +267,14 @@ async function translateOpenApiToGraphQL (
 
   const schema = new GraphQLSchema(schemaConfig)
 
-  return {schema, report: options.report}
+  return { schema, report: options.report }
 }
 
 /**
  * Helper function for sorting operations based on them having links or sub-
  * operations.
  */
-function sortByHasLinksOrSubOps (op1: Operation, op2: Operation) : number {
+function sortByHasLinksOrSubOps (op1: Operation, op2: Operation): number {
   const hasOp1 = Object.keys(op1.links).length > 0 ||
     (Array.isArray(op1.subOps) && op1.subOps.length > 0)
   const hasOp2 = Object.keys(op2.links).length > 0 ||
@@ -293,7 +289,7 @@ function getFieldForOperation (
   operation: Operation,
   data: PreprocessingData,
   oas: Oas3
-) : Field {
+): Field {
   // create GraphQL Type for response:
   let type = getGraphQLType({
     name: operation.responseDefinition.otName,

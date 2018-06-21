@@ -18,7 +18,7 @@ import debug from 'debug'
 // Type definitions & exports:
 type GetResolverParams = {
   operation: Operation,
-  argsFromLink?: {[key: string] : string},
+  argsFromLink?: {[key: string]: string},
   argsFromParent?: string[],
   payloadName?: string,
   data: PreprocessingData,
@@ -29,8 +29,8 @@ type RequestOptions = {
   method: string,
   url: string,
   json: true,
-  headers: {[key: string] : string},
-  qs: {[key: string] : string},
+  headers: {[key: string]: string},
+  qs: {[key: string]: string},
   body?: (Object | Array<any> | string)
 }
 
@@ -40,8 +40,8 @@ type AuthReqAndProtcolName = {
 }
 
 type AuthOptions = {
-  authHeaders: {[key: string] : string},
-  authQs: {[key: string] : string}
+  authHeaders: {[key: string]: string},
+  authQs: {[key: string]: string}
 }
 
 const log = debug('http')
@@ -57,7 +57,7 @@ export function getResolver ({
   payloadName,
   data,
   oas
-} : GetResolverParams) : ResolveFunction {
+}: GetResolverParams): ResolveFunction {
   // determine the appropriate URL:
   let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
 
@@ -138,7 +138,7 @@ export function getResolver ({
     _oasgraph.usedParams = Object.assign(_oasgraph.usedParams, args)
 
     // build URL (i.e., fill in path parameters):
-    let {path, query} = Oas3Tools.instantiatePathAndGetQuery(
+    let { path, query } = Oas3Tools.instantiatePathAndGetQuery(
       operation.path,
       operation.parameters,
       args)
@@ -187,7 +187,7 @@ export function getResolver ({
     }
 
     // get authentication headers and query parameters
-    let {authHeaders, authQs} = getAuthOptions(operation, _oasgraph, data)
+    let { authHeaders, authQs } = getAuthOptions(operation, _oasgraph, data)
 
     // ...and pass them to the options
     Object.assign(options.headers, authHeaders)
@@ -240,7 +240,7 @@ export function getResolver ({
 function createOAuthQS (
   data: PreprocessingData,
   ctx: Object
-) : {[key: string] : string} {
+): {[key: string]: string} {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -267,7 +267,7 @@ function createOAuthQS (
 function createOAuthHeader (
   data: PreprocessingData,
   ctx: Object
-) : {[key: string] : string} {
+): {[key: string]: string} {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -298,18 +298,18 @@ function getAuthOptions (
   operation: Operation,
   _oasgraph: any,
   data: PreprocessingData
-) : AuthOptions {
+): AuthOptions {
   let authHeaders = {}
   let authQs = {}
 
   // determine if authentication is required, and which protocol (if any) we
   // can use
-  let {authRequired, securityRequirement} = getAuthReqAndProtcolName(
+  let { authRequired, securityRequirement } = getAuthReqAndProtcolName(
     operation, _oasgraph, data)
 
   // possibly, we don't need to do anything:
   if (!authRequired) {
-    return {authHeaders, authQs}
+    return { authHeaders, authQs }
   }
 
   // if authentication is required, but we can't fulfill the protocol, throw:
@@ -362,7 +362,7 @@ function getAuthOptions (
     }
   }
 
-  return {authHeaders, authQs}
+  return { authHeaders, authQs }
 }
 
 /**
@@ -374,7 +374,7 @@ function getAuthReqAndProtcolName (
   operation: Operation,
   _oasgraph,
   data: PreprocessingData
-) : AuthReqAndProtcolName {
+): AuthReqAndProtcolName {
   let authRequired = false
   if (Array.isArray(operation.securityRequirements) &&
     operation.securityRequirements.length > 0) {

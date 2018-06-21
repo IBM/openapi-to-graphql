@@ -2,7 +2,6 @@
 import { Oas3, SchemaObject } from './types/oas3'
 import { Options } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
-import { SchemaNames } from './oas_3_tools'
 import {
   PreprocessingData,
   ProcessedSecurityScheme
@@ -25,7 +24,7 @@ const log = debug('preprocessing')
 export function preprocessOas (
   oas: Oas3,
   options: Options
-) : PreprocessingData {
+): PreprocessingData {
   let data = {
     usedOTNames: [
       'query', // used by OASGraph for root-level element
@@ -74,7 +73,7 @@ export function preprocessOas (
       }
 
       // Request schema
-      let {payloadSchema, payloadSchemaNames, payloadRequired} =
+      let { payloadSchema, payloadSchemaNames, payloadRequired } =
         Oas3Tools.getPayloadSchemaAndNames(path, method, oas)
 
       let payloadDefinition
@@ -83,7 +82,7 @@ export function preprocessOas (
       }
 
       // Response schema
-      let {responseSchema, responseSchemaNames} = Oas3Tools.getResSchemaAndNames(
+      let { responseSchema, responseSchemaNames } = Oas3Tools.getResSchemaAndNames(
         path, method, oas, data)
 
       if (!responseSchema || typeof responseSchema !== 'object') {
@@ -201,7 +200,7 @@ export function preprocessOas (
 function getProcessedSecuritySchemes (
   oas: Oas3,
   data: PreprocessingData
-) : {[key: string]: ProcessedSecurityScheme} {
+): {[key: string]: ProcessedSecurityScheme} {
   let result = {}
   let security = Oas3Tools.getSecuritySchemes(oas)
 
@@ -301,8 +300,8 @@ function getProcessedSecuritySchemes (
 export function createOrReuseDataDef (
   data: PreprocessingData,
   schema?: SchemaObject,
-  names?: SchemaNames
-) : DataDefinition {
+  names?: Oas3Tools.SchemaNames
+): DataDefinition {
   // Do a basic validation check
   if (!schema || typeof schema === 'undefined') {
     throw new Error(`Cannot create data definition for invalid schema ` +
@@ -346,7 +345,7 @@ export function createOrReuseDataDef (
 function getSchemaIndex (
   schema: SchemaObject,
   dataDefs: DataDefinition[]
-) : number {
+): number {
   let index = -1
   for (let def of dataDefs) {
     index++
@@ -364,8 +363,8 @@ function getSchemaIndex (
  */
 function getSchemaName (
   usedNames: string[],
-  names?: SchemaNames
-) : string {
+  names?: Oas3Tools.SchemaNames
+): string {
   if (!names || typeof names === 'undefined') {
     throw new Error(`Cannot create data definition without name(s).`)
   }
@@ -428,7 +427,7 @@ function getSchemaName (
 function getSubOps (
   operation: Operation,
   operations: {[key: string]: Operation}
-) : Operation[] {
+): Operation[] {
   let subOps = []
   let hasPathParams = /\{.*\}/g.test(operation.path)
   if (!hasPathParams) return subOps
