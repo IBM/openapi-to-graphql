@@ -1,6 +1,7 @@
 'use strict'
 
-const Git = require('nodegit')
+const git = require('isomorphic-git')
+const fs = require('fs')
 const rimraf = require('rimraf')
 
 const REPO_URL = 'https://github.com/APIs-guru/openapi-directory'
@@ -12,15 +13,12 @@ const FOLDER_PATH = 'tmp'
  * @return {Promise} Resolves on array of OAS
  */
 const downloadOas = () => {
-  return new Promise((resolve, reject) => {
-    Git.Clone(REPO_URL, FOLDER_PATH)
-      .then(repo => {
-        return repo.getCurrentBranch()
-      })
-      .then(branch => {
-        resolve()
-      })
-      .catch(reject)
+  return git.clone({
+    fs: fs,
+    dir: FOLDER_PATH,
+    url: REPO_URL,
+    singleBranch: true,
+    depth: 1
   })
 }
 
