@@ -27,7 +27,7 @@
     "graphql-type-json": "^0.1.4",
     "json-schema-merge-allof": "^0.6.0",
     "jsonpath": "^0.2.11",
-    "request": "^2.81.0",
+    "request": "^2.88.0",
     "swagger2openapi": "2.3.3"
   },
   "peerDependencies": {
@@ -35,22 +35,23 @@
   },
   "devDependencies": {
     "@types/graphql": "^0.12.5",
-    "@types/node": "^9.4.7",
-    "body-parser": "^1.17.2",
+    "@types/node": "^9.6.27",
+    "body-parser": "^1.18.3",
     "express": "^4.15.2",
     "express-graphql": "^0.6.4",
     "fs": "0.0.1-security",
     "glob": "^7.1.2",
     "isomorphic-git": "^0.27.0",
     "jest": "^20.0.4",
-    "js-yaml": "^3.8.4",
+    "js-yaml": "^3.12.0",
+    "nodemon": "^1.18.3",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.1",
     "simple-statistics": "^5.2.1",
     "standard": "^11.0.1",
-    "tslint": "^5.10.0",
-    "tslint-config-standard": "^7.0.0",
-    "typescript": "^2.7.2",
+    "tslint": "^5.11.0",
+    "tslint-config-standard": "^7.1.0",
+    "typescript": "^2.9.2",
     "yamljs": "^0.3.0"
   }
 }
