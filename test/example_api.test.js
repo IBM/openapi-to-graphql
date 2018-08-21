@@ -77,7 +77,7 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
   let query = `{
     productWithId (productId: "123" productTag: "blah") {
       productName
-      reviews (productTag: "sport") {
+      reviews {
         text
       }
     }
@@ -88,6 +88,30 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
         'productWithId': {
           'productName': 'Super Product',
           'reviews': [
+            {text: 'Great product'},
+            {text: 'I love it'}
+          ]
+        }
+      }
+    })
+  })
+})
+
+test('Get nested resource via link operationRef', () => {
+  let query = `{
+    productWithId (productId: "123" productTag: "blah") {
+      productName
+      reviewsWithOperationRef {
+        text
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        'productWithId': {
+          'productName': 'Super Product',
+          'reviewsWithOperationRef': [
             {text: 'Great product'},
             {text: 'I love it'}
           ]

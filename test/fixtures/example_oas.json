@@ -246,6 +246,9 @@
 						"links": {
 							"reviews": {
 								"$ref": "#/components/links/Reviews"
+							},
+							"reviewsWithOperationRef": {
+								"$ref": "#/components/links/ReviewsWithOperationRef"
 							}
 						}
 					}
@@ -692,7 +695,14 @@
 				"operationId": "getProductReviews",
 				"parameters": {
 					"id": "$request.path.product-id",
-					"produdct-tag": "request.query.product-tag"
+					"product-tag": "$request.query.product-tag"
+				}
+			},
+			"ReviewsWithOperationRef": {
+				"operationRef": "#/paths/~1products~1{id}~1reviews/get",
+				"parameters": {
+					"id": "$request.path.product-id",
+					"product-tag": "$request.query.product-tag"
 				}
 			}
 		},
