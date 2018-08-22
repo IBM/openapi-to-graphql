@@ -699,6 +699,7 @@
 				}
 			},
 			"ReviewsWithOperationRef": {
+				"$ref" : "ThisIsHereAndFormattedThisWayBecauseOfAnIssueWithADependency",
 				"operationRef": "#/paths/~1products~1{id}~1reviews/get",
 				"parameters": {
 					"id": "$request.path.product-id",

@@ -21,37 +21,38 @@
     ]
   },
   "dependencies": {
-    "debug": "^2.6.8",
+    "debug": "^3.1.0",
     "deep-equal": "^1.0.1",
-    "graphql": "^0.12.3",
-    "graphql-type-json": "^0.1.4",
+    "graphql": "^0.13.2",
+    "graphql-type-json": "^0.2.1",
     "json-schema-merge-allof": "^0.6.0",
-    "jsonpath": "^0.2.11",
+    "jsonpath": "^1.0.0",
+    "oas-validator": "^1.1.7",
     "request": "^2.88.0",
-    "swagger2openapi": "2.3.3"
+    "swagger2openapi": "^3.2.8",
+    "typescript": "^3.0.1",
+    "yamljs": "^0.3.0"
   },
   "peerDependencies": {
     "graphql": "^0.9.6 || ^0.10.0 || ^0.11.0 || ^0.12.0"
   },
   "devDependencies": {
-    "@types/graphql": "^0.12.5",
-    "@types/node": "^9.6.27",
+    "@types/graphql": "^0.13.4",
+    "@types/node": "^10.7.1",
     "body-parser": "^1.18.3",
     "express": "^4.15.2",
     "express-graphql": "^0.6.4",
     "fs": "0.0.1-security",
     "glob": "^7.1.2",
-    "isomorphic-git": "^0.27.0",
-    "jest": "^20.0.4",
+    "isomorphic-git": "^0.31.1",
+    "jest": "^23.5.0",
     "js-yaml": "^3.12.0",
     "nodemon": "^1.18.3",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.1",
-    "simple-statistics": "^5.2.1",
+    "simple-statistics": "^6.1.0",
     "standard": "^11.0.1",
     "tslint": "^5.11.0",
-    "tslint-config-standard": "^7.1.0",
-    "typescript": "^2.9.2",
-    "yamljs": "^0.3.0"
+    "tslint-config-standard": "^7.1.0"
   }
 }

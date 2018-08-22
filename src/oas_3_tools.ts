@@ -26,7 +26,7 @@ import { PreprocessingData } from './types/preprocessing_data'
 
 // Imports:
 import * as Swagger2OpenAPI from 'swagger2openapi'
-import * as OASValidator from 'swagger2openapi/validate'
+import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning } from './utils'
 
