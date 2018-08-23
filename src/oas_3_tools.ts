@@ -26,7 +26,7 @@ import { PreprocessingData } from './types/preprocessing_data'
 
 // Imports:
 import * as Swagger2OpenAPI from 'swagger2openapi'
-import * as OASValidator from 'swagger2openapi/validate'
+import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning } from './utils'
 
@@ -56,7 +56,7 @@ const log = debug('translation')
 // OAS constants
 export const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
 export const JSON_CONTENT_TYPES = ['application/json', '*/*']
-export const SUCCESS_STATUS_RX = /2[0-9]{2}/
+export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
 
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
