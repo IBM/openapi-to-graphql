@@ -39,6 +39,18 @@ test('Get resource (incl. enum)', () => {
   })
 })
 
+test('Get resource (incl. enum) with status code: 2XX', () => {
+  let query = `{
+    getUserByUsernameWith2XX (username: "erik") {
+      name
+      status
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({data: {getUserByUsernameWith2XX: {name: 'Erik Wittern', status: 'staff'}}})
+  })
+})
+
 test('Get resource 2', () => {
   let query = `{
     company (id: "ibm") {

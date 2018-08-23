@@ -213,6 +213,11 @@ app.get('/api/users/:username', (req, res) => {
   res.send(Users[req.params.username])
 })
 
+app.get('/api/usersWith2XX/:username', (req, res) => {
+  console.log(req.method, req.path)
+  res.send(Users[req.params.username])
+})
+
 app.get('/api/users/:username/car', (req, res) => {
   console.log(req.method, req.path)
   if (typeof req.params.username !== 'string' ||
