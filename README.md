@@ -102,7 +102,7 @@ The following options can be set:
 
 * `viewer` (type: `boolean`, default: `true`): The viewer object types (i.e. QueryViewer and MutationViewer) are artificial constructs that allow a user to pass authentication credentials to OASGraph. Unfortunately, they are bulky and do not provide an accurate representation of the API. Depending on the API, it may be possible to send all your credentials through the header option, so if you would like to authenticate without the OASGraph-generated viewer object types, you can set the viewer option to false.
 
-* `tokenJSONpath` (type: `string`, default: `undefined`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](https://github.ibm.com/apiharmony/oasgraph#authorization).
+* `tokenJSONpath` (type: `string`, default: `undefined`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](./oasgraph#authorization).
 
 * <a name="options-addsuboperations"></a> `addSubOperations` (type: `boolean`, default: `false`): When true, OASGraph will nest `GET` operations based on their path hierarchy in the given OAS. E.g., when the OAS contains two paths `/users/{id}` and `/users/{id}/friends`, OASGraph will make `friends` queryable from within `user`. Note: This may cause problems when resolving GraphQL types in certain contexts, where the required variables are not available.
 
@@ -167,7 +167,7 @@ OASGraph further provides `anyAuth` viewers (for queries and mutations), which a
 ## Authorization
 OASGraph now supports OAuth 2.0!
 
-Because OASGraph is a library, it cannot make the callbacks that OAuth requires by itself. Instead, the user must take care of the callback. After the user has obtained the OAuth token from the callback, simply pass the token, specifically the path of the token, to OASGraph through the `tokenJSONpath` [option](https://github.ibm.com/apiharmony/oasgraph#options).
+Because OASGraph is a library, it cannot make the callbacks that OAuth requires by itself. Instead, the user must take care of the callback. After the user has obtained the OAuth token from the callback, simply pass the token, specifically the path of the token, to OASGraph through the `tokenJSONpath` [option](./oasgraph#options).
 
 To see an example of how this would work, click [here](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)!
 
@@ -226,4 +226,4 @@ OASGraph is written in [TypeScript](http://www.typescriptlang.org/). All source 
 * [StackOverflow discussion](https://stackoverflow.com/questions/38339442/json-schema-to-graphql-schema-converters) points to the above projects.
 
 ## License
-[MIT](https://github.ibm.com/apiharmony/oasgraph/blob/master/LICENSE.md)
+[MIT](./LICENSE.md)
