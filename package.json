@@ -2,23 +2,24 @@
   "name": "oasgraph",
   "version": "0.6.0",
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
-  "main": "lib/index.js",
-  "scripts": {
-    "test": "npm run build && jest",
-    "api": "nodemon test/example_api_server.js",
-    "dev": "tsc -w",
-    "start_dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
-    "build": "tsc",
-    "flow": "flow",
-    "guru-load": "node test/evaluation/load_apis_guru.js",
-    "guru-test": "DEBUG=preprocessing,translation node test/evaluation/eval_apis_guru.js"
-  },
+  "copyright.owner": "IBM Corp.",
   "author": "Erik Wittern",
   "license": "MIT",
   "standard": {
     "ignore": [
       "*.js"
     ]
+  },
+  "main": "lib/index.js",
+  "scripts": {
+    "api": "nodemon test/example_api_server.js",
+    "dev": "tsc -w",
+    "start_dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
+    "build": "tsc",
+    "flow": "flow",
+    "guru-load": "node test/evaluation/load_apis_guru.js",
+    "guru-test": "DEBUG=preprocessing,translation node test/evaluation/eval_apis_guru.js",
+    "test": "npm run build && jest"
   },
   "dependencies": {
     "debug": "^3.1.0",
