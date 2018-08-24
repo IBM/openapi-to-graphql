@@ -224,3 +224,6 @@ OASGraph is written in [TypeScript](http://www.typescriptlang.org/). All source 
 * [json-to-graphql](https://github.com/aweary/json-to-graphql) turns given JSON objects / arrays into a GraphQL schema. `resolve` functions need to be provided by the user.
 
 * [StackOverflow discussion](https://stackoverflow.com/questions/38339442/json-schema-to-graphql-schema-converters) points to the above projects.
+
+## License
+[MIT](https://github.ibm.com/apiharmony/oasgraph/blob/master/LICENSE.md)

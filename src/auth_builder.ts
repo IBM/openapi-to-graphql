@@ -1,3 +1,8 @@
+// Copyright IBM Corp. 2018. All Rights Reserved.
+// Node module: oasgraph
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
 /**
  * Functions to create viewers that allow users to pass credentials to resolve
  * functions used by OASGraph.

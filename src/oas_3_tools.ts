@@ -1,3 +1,8 @@
+// Copyright IBM Corp. 2018. All Rights Reserved.
+// Node module: oasgraph
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
 /**
  * Utility functions around the OpenAPI Specification 3.
  */
