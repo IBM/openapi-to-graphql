@@ -78,8 +78,8 @@ export function preprocessOas (
       }
 
       // Request schema
-      let { payloadSchema, payloadSchemaNames, payloadRequired } =
-        Oas3Tools.getPayloadSchemaAndNames(path, method, oas)
+      let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } =
+        Oas3Tools.getRequestSchemaAndNames(path, method, oas)
 
       let payloadDefinition
       if (payloadSchema && typeof payloadSchema !== 'undefined') {
@@ -87,7 +87,7 @@ export function preprocessOas (
       }
 
       // Response schema
-      let { responseSchema, responseSchemaNames } = Oas3Tools.getResSchemaAndNames(
+      let { responseSchema, responseSchemaNames } = Oas3Tools.getResponseSchemaAndNames(
         path, method, oas, data)
 
       if (!responseSchema || typeof responseSchema !== 'object') {
@@ -135,6 +135,7 @@ export function preprocessOas (
         description,
         path,
         method: method.toLowerCase(),
+        payloadContentType,
         payloadDefinition,
         payloadRequired,
         responseDefinition,

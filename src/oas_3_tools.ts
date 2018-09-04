@@ -42,7 +42,8 @@ export type SchemaNames = {
   fromRef?: string
 }
 
-export type PayloadSchemaAndNames = {
+export type RequestSchemaAndNames = {
+  payloadContentType?: string,
   payloadSchema?: SchemaObject | ReferenceObject,
   payloadSchemaNames?: SchemaNames,
   payloadRequired: boolean
@@ -60,7 +61,6 @@ const log = debug('translation')
 
 // OAS constants
 export const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
-export const JSON_CONTENT_TYPES = ['application/json', '*/*']
 export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
 
 /**
@@ -409,11 +409,11 @@ export function inferResourceNameFromPath (path: string): string {
  * Returns JSON-compatible schema produced by the given endpoint - or null if it
  * does not exist.
  */
-export function getResSchema (
+export function getResponseSchema (
   endpoint: OperationObject,
   statusCode: string,
   oas: Oas3
-): SchemaObject | null {
+): { responseContentType: string, responseSchema: SchemaObject } | null {
   if (typeof endpoint.responses === 'object') {
     let responses: ResponsesObject = endpoint.responses
     if (typeof responses[statusCode] === 'object') {
@@ -427,28 +427,33 @@ export function getResSchema (
       }
 
       if (response.content && typeof response.content !== 'undefined') {
-        let content: MediaTypesObject = response.content
-        for (let contentType in content) {
-          let mediaTypeObject = content[contentType]
-          if (JSON_CONTENT_TYPES.includes(contentType) &&
-            typeof mediaTypeObject.schema === 'object') {
-            return (mediaTypeObject.schema as SchemaObject)
+        let content : MediaTypesObject = response.content
+
+        // Prioritizes content-type JSON
+        if (Object.keys(content).includes('application/json')) {
+          return { responseContentType: 'application/json', responseSchema: content['application/json'].schema as SchemaObject }
+        } else {
+
+          // Picks a random content type
+          for (let contentType in content) {
+            return { responseContentType: contentType, responseSchema: content[contentType].schema as SchemaObject }
+            }
           }
         }
       }
     }
+    return { responseContentType: null, responseSchema: null }
   }
-  return null
-}
+
 
 /**
  * Returns JSON-compatible schema required by the given endpoint - or null if it
  * does not exist.
  */
-export function getReqSchema (
+export function getRequestSchema (
   endpoint: OperationObject,
   oas: Oas3
-): SchemaObject | null {
+): { payloadContentType: string, payloadSchema: SchemaObject } | null {
   if (typeof endpoint.requestBody === 'object') {
     let requestBody: RequestBodyObject | ReferenceObject = endpoint.requestBody
 
@@ -460,32 +465,38 @@ export function getReqSchema (
     }
 
     if (typeof requestBody.content === 'object') {
-      let content = requestBody.content
-      for (let contentType in content) {
-        if (JSON_CONTENT_TYPES.includes(contentType) &&
-          typeof content[contentType].schema === 'object') {
-          return (content[contentType].schema as SchemaObject)
+      let content : MediaTypesObject = requestBody.content
+
+      // Prioritizes content-type JSON
+      if (Object.keys(content).includes('application/json')) {
+        return { payloadContentType: 'application/json', payloadSchema: content['application/json'].schema as SchemaObject }
+      } else {
+
+        // Picks a random content type
+        for (let contentType in content) {
+          return { payloadContentType: contentType, payloadSchema: content[contentType].schema as SchemaObject }
+          }
         }
       }
     }
+    return { payloadContentType: null, payloadSchema: null }
   }
-  return null
-}
+
 
 /**
  * Returns the request schema (if any) for endpoint at given path and method, a
  * dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
  */
-export function getPayloadSchemaAndNames (
+export function getRequestSchemaAndNames (
   path: string,
   method: string,
   oas: Oas3
-): PayloadSchemaAndNames {
+): RequestSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let payloadRequired = false
   let payloadSchemaNames: any = {}
-  let payloadSchema: SchemaObject = getReqSchema(endpoint, oas)
+  let { payloadContentType, payloadSchema } = getRequestSchema(endpoint, oas)
 
   if (payloadSchema) {
     let requestBody = endpoint.requestBody
@@ -511,7 +522,27 @@ export function getPayloadSchemaAndNames (
       payloadSchemaNames.fromSchema = payloadSchema.title
     }
 
+    // if request body content-type is not application/json, do not parse.
+    // interpret the request body as a string
+    if (payloadContentType !== 'application/json') {
+      let saneContentTypeName: string = ''
+      let terms = payloadContentType.split('/')
+      for (let index in terms) {
+        saneContentTypeName += terms[index].charAt(0).toUpperCase() + terms[index].slice(1)
+      }
+
+      for (let key in payloadSchemaNames) {
+        payloadSchemaNames[key] = saneContentTypeName
+      }
+
+      payloadSchema = {
+        description: payloadContentType + ' request placeholder object',
+        type: 'string'
+      }
+    }
+
     return {
+      payloadContentType,
       payloadSchema,
       payloadSchemaNames,
       payloadRequired
@@ -527,7 +558,7 @@ export function getPayloadSchemaAndNames (
  * the given status code, and a dictionary of names from different sources (if
  * available).
  */
-export function getResSchemaAndNames (
+export function getResponseSchemaAndNames (
   path: string,
   method: string,
   oas: Oas3,
@@ -535,11 +566,11 @@ export function getResSchemaAndNames (
 ): ResponseSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let responseSchemaNames: any = {}
-  let statusCode = getResStatusCode(path, method, oas, data)
+  let statusCode = getResponseStatusCode(path, method, oas, data)
   if (!statusCode) {
     return {}
   }
-  let responseSchema = getResSchema(endpoint, statusCode, oas)
+  let { responseContentType, responseSchema } = getResponseSchema(endpoint, statusCode, oas)
 
   if (responseSchema) {
     responseSchemaNames.fromPath = inferResourceNameFromPath(path)
@@ -550,6 +581,20 @@ export function getResSchemaAndNames (
     }
     if ('title' in responseSchema) {
       responseSchemaNames.fromSchema = responseSchema.title
+    }
+
+    // if request body content-type is not application/json, do not parse.
+    // interpret the request body as a string
+    if (responseContentType !== 'application/json') {
+      responseSchemaNames = {
+        fromPath: "placeholder"
+      }
+
+      responseSchema = {
+        description: 'Placeholder object to access non-application/json ' +
+        'response bodies',
+        type: 'string'
+      }
     }
 
     return {
@@ -565,7 +610,7 @@ export function getResSchemaAndNames (
  * Returns the success status code for the operation at the given path and
  * method (or null).
  */
-export function getResStatusCode (
+export function getResponseStatusCode (
   path: string,
   method: string,
   oas: Oas3,
@@ -605,7 +650,7 @@ export function getEndpointLinks (
 ): {[key: string]: LinkObject} {
   let links = {}
   let endpoint: OperationObject = oas.paths[path][method]
-  let statusCode = getResStatusCode(path, method, oas, data)
+  let statusCode = getResponseStatusCode(path, method, oas, data)
   if (!statusCode) {
     return links
   }

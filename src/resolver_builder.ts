@@ -33,7 +33,6 @@ type GetResolverParams = {
 type RequestOptions = {
   method: string,
   url: string,
-  json: true,
   headers: {[key: string]: string},
   qs: {[key: string]: string},
   body?: (Object | Array<any> | string)
@@ -107,7 +106,7 @@ export function getResolver ({
           _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
       // CASE: link OASGraph currently does not support
       } else {
-        log(`Warnung: could not process link parameter ${paramName} with ` +
+        log(`Warning: could not process link parameter ${paramName} with ` +
           `value ${value}`)
       }
     }
@@ -151,8 +150,9 @@ export function getResolver ({
     let options: RequestOptions = {
       method: operation.method,
       url: url,
-      json: true,
-      headers: {},
+      headers: {
+        'Content-Type': operation.payloadContentType
+      },
       qs: query
     }
 
@@ -167,7 +167,7 @@ export function getResolver ({
         // we need to desanitize the payload so the API understands it:
         let rawPayload = Oas3Tools.desanitizeObjKeys(
           args[sanePayloadName], data.saneMap)
-        options.body = rawPayload
+        options.body = JSON.stringify(rawPayload)
       }
     }
 
@@ -221,7 +221,21 @@ export function getResolver ({
           reject(new Error(`${response.statusCode} - ${JSON.stringify(body)}`))
         } else {
           log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
+
+          if (response.headers['content-type']) {
+            // if the response body is type JSON, then parse it
+            //
+            // content-type may not be necessarily 'application/json'
+            // it can be 'application/json; charset=utf-8' for example
+            if (response.headers['content-type'].includes('application/json')) {
+              body = JSON.parse(body)
+            }
+          } else {
+            log('Warning: response does not have a Content-Type property')
+          }
+
           // deal with the fact that the server might send unsanitized data
+          // let saneData: any = Oas3Tools.sanitizeObjKeys(body)
           let saneData: any = Oas3Tools.sanitizeObjKeys(body)
 
           // pass on _oasgraph to subsequent resolvers

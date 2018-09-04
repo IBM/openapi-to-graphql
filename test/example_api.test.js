@@ -34,31 +34,19 @@ beforeAll(() => {
 
 test('Get resource (incl. enum)', () => {
   let query = `{
-    user (username: "erik") {
+    user (username: "arlene") {
       name
       status
     }
   }`
   return graphql(createdSchema, query).then(result => {
-    expect(result).toEqual({data: {user: {name: 'Erik Wittern', status: 'staff'}}})
-  })
-})
-
-test('Get resource (incl. enum) with status code: 2XX', () => {
-  let query = `{
-    getUserByUsernameWith2XX (username: "erik") {
-      name
-      status
-    }
-  }`
-  return graphql(createdSchema, query).then(result => {
-    expect(result).toEqual({data: {getUserByUsernameWith2XX: {name: 'Erik Wittern', status: 'staff'}}})
+    expect(result).toEqual({data: {user: {name: 'Arlene L McMahon', status: 'staff'}}})
   })
 })
 
 test('Get resource 2', () => {
   let query = `{
-    company (id: "ibm") {
+    company (id: "binsol") {
       legalForm
     }
   }`
@@ -67,9 +55,21 @@ test('Get resource 2', () => {
   })
 })
 
+test('Get resource with status code: 2XX', () => {
+  let query = `{
+    papers {
+      name
+      published
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({data: {papers: [{name: "Deliciousness of apples", published: true}, {name: "How much coffee is too much coffee?", published: false}, {name: "How many tennis balls can fit into the average building?", published: true}]}})
+  })
+})
+
 test('Get nested resource via link $response.body#/...', () => {
   let query = `{
-    user (username: "erik") {
+    user (username: "arlene") {
       name
       employerCompany {
         legalForm
@@ -80,7 +80,7 @@ test('Get nested resource via link $response.body#/...', () => {
     expect(result).toEqual({
       data: {
         user: {
-          name: 'Erik Wittern',
+          name: 'Arlene L McMahon',
           employerCompany: {
             legalForm: 'public'
           }
@@ -176,7 +176,7 @@ test('Get response containing 64 bit integer (using GraphQLFloat)', () => {
 
 test('Get array of strings', () => {
   let query = `{
-    user (username: "erik") {
+    user (username: "arlene") {
       hobbies
     }
   }`
@@ -184,7 +184,7 @@ test('Get array of strings', () => {
     expect(result).toEqual({
       data: {
         user: {
-          hobbies: ['lion dancing', 'doing CEO stuff']
+          hobbies: ['tap dancing', 'bowling']
         }
       }
     })
@@ -193,7 +193,7 @@ test('Get array of strings', () => {
 
 test('Get array of objects', () => {
   let query = `{
-    company (id: "ibm") {
+    company (id: "binsol") {
       offices{
         street
       }
@@ -204,10 +204,10 @@ test('Get array of objects', () => {
       data: {
         company: {
           offices: [{
-            street: '122 Some Street'
+            street: '122 Elk Rd Little'
           },
           {
-            street: '124 Some Street'
+            street: '124 Elk Rd Little'
           }]
         }
       }
@@ -217,7 +217,7 @@ test('Get array of objects', () => {
 
 test('Get single resource', () => {
   let query = `{
-    user(username: "erik"){
+    user(username: "arlene"){
       name
       address{
         street
@@ -228,9 +228,9 @@ test('Get single resource', () => {
     expect(result).toEqual({
       data: {
         user: {
-          name: 'Erik Wittern',
+          name: 'Arlene L McMahon',
           address: {
-            street: '270 East 10th Street'
+            street: '4656 Cherry Camp Road'
           }
         }
       }
@@ -246,7 +246,7 @@ test('Post resource', () => {
         street: "Home streeet 1"
         city: "Hamburg"
       }
-      employerId: "ibm"
+      employerId: "binsol"
       hobbies: "soccer"
     }) {
       name
@@ -271,7 +271,7 @@ test('Post resource and get nested resource back', () => {
         street: "Home streeet 1"
         city: "Hamburg"
       }
-      employerId: "ibm"
+      employerId: "binsol"
       hobbies: "soccer"
     }) {
       name
@@ -289,10 +289,21 @@ test('Post resource and get nested resource back', () => {
           name: 'Mr. New Guy',
           employerCompany: {
             ceoUser: {
-              name: 'Ginni Rometti'
+              name: 'John C Barnes'
             }
           }
         }
+      }
+    })
+  })
+})
+
+test('Post resource with non-application/json content-type request and response bodies', () => {
+  let query = `mutation{postPaper(textPlainInput: "happy")}`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        postPaper: "You sent the paper idea: \"happy\""
       }
     })
   })
@@ -346,7 +357,7 @@ test('Request data is correctly de-sanitized to be sent', () => {
 
 test('Sub operations are properly made available', () => {
   let query = `{
-    user (username: "erik") {
+    user (username: "arlene") {
       name
       car {
         color
@@ -358,7 +369,7 @@ test('Sub operations are properly made available', () => {
     expect(result).toEqual({
       data: {
         user: {
-          name: 'Erik Wittern',
+          name: 'Arlene L McMahon',
           car: {
             color: 'black',
             model: 'BMW 7 series'
@@ -371,7 +382,7 @@ test('Sub operations are properly made available', () => {
 
 test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
   let query = `{
-    user (username: "erik") {
+    user (username: "arlene") {
       name
       car {
         color
@@ -384,7 +395,7 @@ test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
     expect(result).toEqual({
       data: {
         user: {
-          name: 'Erik Wittern',
+          name: 'Arlene L McMahon',
           car: {
             color: 'black',
             model: 'BMW 7 series',
@@ -400,7 +411,7 @@ test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
 
 test('Capitalized enum values can be returned', () => {
   let query = `{
-    user (username: "erik") {
+    user (username: "arlene") {
       name
       car {
         kind
@@ -411,7 +422,7 @@ test('Capitalized enum values can be returned', () => {
     expect(result).toEqual({
       data: {
         user: {
-          name: 'Erik Wittern',
+          name: 'Arlene L McMahon',
           car: {
             kind: 'LIMOSINE'
           }
@@ -451,7 +462,7 @@ test('Define header and query options', () => {
 
 test('Resolve allOf', () => {
   let query = `{
-    user (username: "erik") {
+    user (username: "arlene") {
       name
       nomenclature {
         suborder
@@ -465,7 +476,7 @@ test('Resolve allOf', () => {
     expect(result).toEqual({
       data: {
         user: {
-          name: 'Erik Wittern',
+          name: 'Arlene L McMahon',
           nomenclature: {
             suborder: 'Haplorhini',
             family: 'Hominidae',
