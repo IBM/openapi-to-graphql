@@ -126,38 +126,6 @@
 				}
 			}
 		},
-		"/usersWith2XX/{username}": {
-			"get": {
-				"operationId": "getUserByUsernameWith2XX",
-				"description": "Returns a user from the system.",
-				"parameters": [{
-					"name": "username",
-					"in": "path",
-					"required": true,
-					"schema": {
-						"type": "string"
-					},
-					"description": "Identifier of a user."
-				}],
-				"responses": {
-					"2XX": {
-						"description": "A user represents a natural person.",
-						"content": {
-							"application/json": {
-								"schema": {
-									"$ref": "#/components/schemas/user"
-								}
-							}
-						},
-						"links": {
-							"employerCompany": {
-								"$ref": "#/components/links/EmployerCompany"
-							}
-						}
-					}
-				}
-			}
-		},
 		"/users/{username}/car": {
 			"get": {
 				"operationId": "getUserCar",
@@ -210,6 +178,53 @@
 						"links": {
 							"ceoUser": {
 								"$ref": "#/components/links/CeoUser"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/papers": {
+			"get": {
+				"operationId": "getPapers",
+				"description": "Return a list of papers. Endpoint to test 2XX status code.",
+				"responses": {
+					"2XX": {
+						"description": "A list of papers.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "array",
+									"items": {
+										"$ref": "#/components/schemas/paper"
+									}
+								}
+							}
+						}
+					}
+				}
+			},
+			"post": {
+				"operationId": "postPaper",
+				"description": "Create a new paper in the system. Endpoint to test non-application/json request and response bodies.",
+				"requestBody": {
+					"content": {
+						"text/plain": {
+							"schema": {
+								"type": "string"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"201": {
+						"description": "The posted paper.",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string"
+								}
 							}
 						}
 					}
@@ -482,6 +497,36 @@
 					}
 				}
 			},
+			"post": {
+				"description": "Endpoint to test placeholder objects to wrap response objects.",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "object",
+								"properties": {
+									"hello": {
+										"type": "string"
+									}
+								}
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Status message.",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			},
 			"parameters": [
 				{
 					"$ref": "#/components/parameters/GlobalQuery"
@@ -634,29 +679,17 @@
           }
 				}
 			},
-      "tags": {
-        "type": "object",
-        "title": "Tags",
-        "description": "Arbitrary (string) tags describing an entity.",
-        "additionalProperties": {
-          "type": "string"
-        }
-      },
-			"product-with-id": {
+			"paper": {
+				"description": "A research paper",
 				"type": "object",
-				"description": "A product",
 				"properties": {
-					"product-name": {
-						"type": "string",
-						"description": "The name of the product"
+					"name": {
+						"description": "The name of the paper",
+						"type": "string"
 					},
-					"product-id": {
-						"type": "string",
-						"description": "The id of the product"
-					},
-					"product-tag": {
-						"type": "string",
-						"description": "A tag associated with the product"
+					"published": {
+						"description": "Whether the paper is published",
+						"type": "boolean"
 					}
 				}
 			},
@@ -675,6 +708,24 @@
 				},
 				"required": ["patent-name", "patent-id"]
 			},
+			"product-with-id": {
+				"type": "object",
+				"description": "A product",
+				"properties": {
+					"product-name": {
+						"type": "string",
+						"description": "The name of the product"
+					},
+					"product-id": {
+						"type": "string",
+						"description": "The id of the product"
+					},
+					"product-tag": {
+						"type": "string",
+						"description": "A tag associated with the product"
+					}
+				}
+			},
 			"project-with-id": {
 				"type": "object",
 				"description": "A patent",
@@ -692,7 +743,15 @@
             "description": "Whether the project is active"
           }
 				}
-			}
+			},
+			"tags": {
+        "type": "object",
+        "title": "Tags",
+        "description": "Arbitrary (string) tags describing an entity.",
+        "additionalProperties": {
+          "type": "string"
+        }
+      }
 		},
 		"links": {
 			"EmployerCompany": {

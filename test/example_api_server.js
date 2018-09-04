@@ -9,6 +9,7 @@ const express = require('express')
 const app = express()
 
 const bodyParser = require('body-parser')
+app.use(bodyParser.text())
 app.use(bodyParser.json())
 
 const Users = {
@@ -154,6 +155,21 @@ const Auth = {
   }
 }
 
+const Papers = {
+  apples: {
+    name: 'Deliciousness of apples',
+    published: true
+  },
+  coffee: {
+    name: 'How much coffee is too much coffee?',
+    published: false
+  },
+  tennis: {
+    name: 'How many tennis balls can fit into the average building?',
+    published: true
+  }
+}
+
 const authMiddleware = (req, res, next) => {
   if (req.headers.authorization) {
     let encoded = req.headers.authorization.split(' ')[1]
@@ -287,6 +303,25 @@ app.get('/api/products/:id/reviews', (req, res) => {
   }
 })
 
+app.get('/api/papers', (req, res) => {
+  console.log(req.method, req.path)
+  res.send(Object.values(Papers))
+})
+
+app.post('/api/papers', (req, res) => {
+  console.log(req.method, req.path)
+
+  let contentType = req.headers['content-type'];
+  if (!contentType.includes('text/plain')) {
+    res.status(400).send({
+      message: 'wrong content-type, expected \'text/plain\' but received ' + contentType
+    })
+  } else {
+    res.set('Content-Type', 'text/plain').status(201).send('You sent the paper idea: "' + JSON.parse(req.body) + '"')
+  }
+})
+
+
 app.post('/api/products', (req, res) => {
   console.log(req.method, req.path)
   let product = req.body
@@ -310,6 +345,17 @@ app.get('/api/status', (req, res) => {
     })
   } else {
     res.send('Ok.')
+  }
+})
+
+app.post('/api/status', (req, res) => {
+  console.log(req.method, req.path, req.query, req.headers)
+  if ('hello' in req.body && req.body['hello'] === 'world'){
+    res.status(201).send('success')
+  } else {
+    res.status(400).send({
+      message: 'wrong data, try \'hello\': \'world\''
+    })
   }
 })
 

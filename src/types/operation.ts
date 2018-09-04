@@ -53,6 +53,11 @@ export type Operation = {
   method: string,
 
   /**
+   * Content-type of the request payload
+   */
+  payloadContentType?: string,
+
+  /**
    * Information about the request payload (if any)
    */
   payloadDefinition?: DataDefinition,

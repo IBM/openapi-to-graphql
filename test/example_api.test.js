@@ -44,18 +44,6 @@ test('Get resource (incl. enum)', () => {
   })
 })
 
-test('Get resource (incl. enum) with status code: 2XX', () => {
-  let query = `{
-    getUserByUsernameWith2XX (username: "erik") {
-      name
-      status
-    }
-  }`
-  return graphql(createdSchema, query).then(result => {
-    expect(result).toEqual({data: {getUserByUsernameWith2XX: {name: 'Erik Wittern', status: 'staff'}}})
-  })
-})
-
 test('Get resource 2', () => {
   let query = `{
     company (id: "ibm") {
@@ -64,6 +52,18 @@ test('Get resource 2', () => {
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({data: {company: {legalForm: 'public'}}})
+  })
+})
+
+test('Get resource with status code: 2XX', () => {
+  let query = `{
+    papers {
+      name
+      published
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({data: {papers: [{name: "Deliciousness of apples", published: true}, {name: "How much coffee is too much coffee?", published: false}, {name: "How many tennis balls can fit into the average building?", published: true}]}})
   })
 })
 
@@ -293,6 +293,17 @@ test('Post resource and get nested resource back', () => {
             }
           }
         }
+      }
+    })
+  })
+})
+
+test('Post resource with non-application/json content-type request and response bodies', () => {
+  let query = `mutation{postPaper(textPlainInput: "happy")}`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        postPaper: "You sent the paper idea: \"happy\""
       }
     })
   })
