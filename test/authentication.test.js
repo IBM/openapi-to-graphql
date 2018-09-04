@@ -30,7 +30,7 @@ beforeAll(() => {
 
 test('Get patent using basic auth', () => {
   let query = `{
-    viewerBasicAuth (username: "erik123", password: "password123") {
+    viewerBasicAuth (username: "arlene123", password: "password123") {
       patentWithId (patentId: "100") {
         patentId
       }
@@ -142,7 +142,7 @@ test('Post project using API key 1', () => {
     mutationViewerApiKey (apiKey: "abcdef") {
       postProjectWithId (projectWithIdInput: {
         projectId: 123
-        leadId: "erik"
+        leadId: "arlene"
       }) {
         projectLead {
           name
@@ -156,7 +156,7 @@ test('Post project using API key 1', () => {
         mutationViewerApiKey: {
           postProjectWithId: {
             projectLead: {
-              name: 'Erik Wittern'
+              name: 'Arlene L McMahon'
             }
           }
         }
@@ -170,7 +170,7 @@ test('Post project using API key 2', () => {
     mutationViewerApiKey2 (apiKey: "abcdef") {
       postProjectWithId (projectWithIdInput: {
         projectId: 123
-        leadId: "erik"
+        leadId: "arlene"
       }) {
         projectLead {
           name
@@ -184,7 +184,7 @@ test('Post project using API key 2', () => {
         mutationViewerApiKey2: {
           postProjectWithId: {
             projectLead: {
-              name: 'Erik Wittern'
+              name: 'Arlene L McMahon'
             }
           }
         }

@@ -13,14 +13,14 @@ app.use(bodyParser.text())
 app.use(bodyParser.json())
 
 const Users = {
-  erik: {
-    name: 'Erik Wittern',
+  arlene: {
+    name: 'Arlene L McMahon',
     address: {
-      street: '270 East 10th Street',
-      city: 'New York City'
+      street: '4656 Cherry Camp Road',
+      city: 'Elk Grove Village'
     },
-    employerId: 'ibm',
-    hobbies: ['lion dancing', 'doing CEO stuff'],
+    employerId: 'binsol',
+    hobbies: ['tap dancing', 'bowling'],
     status: 'staff',
     nomenclature: {
       suborder: 'Haplorhini',
@@ -29,14 +29,14 @@ const Users = {
       species: 'sapiens'
     }
   },
-  jim: {
-    name: 'Jim Laredo',
+  will: {
+    name: 'William B Ropp',
     address: {
-      street: '6 Dogwood',
-      city: 'Katonah'
+      street: '3180 Little Acres Lane',
+      city: 'Macomb'
     },
-    employerId: 'ibm',
-    hobbies: ['lion dancing', 'baseball'],
+    employerId: 'binsol',
+    hobbies: ['tap dancing', 'baseball'],
     status: 'staff',
     nomenclature: {
       suborder: 'Haplorhini',
@@ -45,13 +45,13 @@ const Users = {
       species: 'sapiens'
     }
   },
-  ginni: {
-    name: 'Ginni Rometti',
+  johnny: {
+    name: 'John C Barnes',
     address: {
-      street: '345 Business Street',
-      city: 'Armonk'
+      street: '372 Elk Rd Little',
+      city: 'Tucson'
     },
-    employerId: 'ibm',
+    employerId: 'binsol',
     hobbies: ['chess', 'tennis'],
     status: 'staff',
     nomenclature: {
@@ -61,14 +61,14 @@ const Users = {
       species: 'sapiens'
     }
   },
-  bill: {
-    name: 'Bill Gates',
+  heather: {
+    name: 'Heather J Tate',
     address: {
-      street: '123 Some Street',
-      city: 'Redmond'
+      street: '3636 Poplar Chase Lane',
+      city: 'Post Falls'
     },
-    employerId: 'microsoft',
-    hobbies: ['making money', 'making more money'],
+    employerId: 'ccc',
+    hobbies: ['making money', 'counting money'],
     status: 'alumni',
     nomenclature: {
       suborder: 'Haplorhini',
@@ -80,30 +80,30 @@ const Users = {
 }
 
 const Companies = {
-  ibm: {
-    id: 'ibm',
-    name: 'International Business Machines Corporation',
+  'binsol': {
+    id: 'binsol',
+    name: 'Binary Solutions',
     legalForm: 'public',
-    ceoUsername: 'ginni',
+    ceoUsername: 'johnny',
     offices: [{
-      street: '122 Some Street',
-      city: 'Redmond'
+      street: '122 Elk Rd Little',
+      city: 'Tucson'
     }, {
-      street: '124 Some Street',
-      city: 'Redmond'
+      street: '124 Elk Rd Little',
+      city: 'Tucson'
     }]
   },
-  microsoft: {
-    id: 'microsoft',
-    name: 'Microsoft',
+  ccc: {
+    id: 'ccc',
+    name: 'Cool Computers Company',
     legalForm: 'public',
-    ceoUsername: 'bill',
+    ceoUsername: 'heather',
     offices: [{
-      street: '300 Some Street',
-      city: 'Redmond'
+      street: '300 Elk Rd Little',
+      city: 'Tucson'
     }, {
-      street: '301 Some Street',
-      city: 'Redmond'
+      street: '301 Elk Rd Little',
+      city: 'Tucson'
     }]
   }
 }
@@ -113,44 +113,44 @@ const Products = {
 }
 
 const Patents = {
-  'Windows': {
+  'CCC OSv1': {
     patentId: '100',
-    inventorId: 'bill'
+    inventorId: 'heather'
   }
 }
 
 const Projects = {
-  'OASGraph': {
+  'Peace Among Companies': {
     projectId: 1,
     active: true,
-    leadId: 'erik'
+    leadId: 'arlene'
   },
-  'API Harmony': {
+  'Operation: Control CCC': {
     projectId: 2,
     active: false,
-    leadId: 'jim'
+    leadId: 'will'
   }
 }
 
 const Auth = {
-  erik: {
-    username: 'erik123',
+  arlene: {
+    username: 'arlene123',
     password: 'password123',
     accessToken: 'abcdef'
   },
-  jim: {
+  will: {
     username: 'catloverxoxo',
     password: 'IActuallyPreferDogs',
     accessToken: '123456'
   },
-  ginni: {
-    username: 'ginni',
+  johnny: {
+    username: 'johnny',
     password: 'password',
     accessToken: 'xyz'
   },
-  bill: {
-    username: 'windowsrulez',
-    password: 'stevejobsisabully',
+  heather: {
+    username: 'cccrulez',
+    password: 'johnnyisabully',
     accessToken: 'ijk'
   }
 }
