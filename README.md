@@ -1,7 +1,3 @@
-<p align="center">
-  <img src="docs/logo.png" alt="OASGraph logo" width="250">
-</p>
-
 # OASGraph
 
 Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
