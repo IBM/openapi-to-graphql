@@ -84,6 +84,13 @@ OASGraph.createGraphQlSchema(oas)
   })
 ```
 
+***
+
+Alternatively, use the CLI tool.
+
+```
+Usage: oasgraph <OAS JSON file path>
+```
 
 ## Options
 OASGraph allows to define an optional `options` object:
