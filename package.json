@@ -1,6 +1,6 @@
 {
   "name": "oasgraph",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "copyright.owner": "IBM Corp.",
   "author": "Erik Wittern",
@@ -55,5 +55,8 @@
     "standard": "^12.0.1",
     "tslint": "^5.11.0",
     "tslint-config-standard": "^7.1.0"
+  },
+  "bin": {
+    "oasgraph": "./cli.js"
   }
 }
