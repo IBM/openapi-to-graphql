@@ -4,7 +4,7 @@
 
 [![Video demo](../docs/video.svg)](https://www.youtube.com/watch?v=_u7artgCqAw&feature=youtu.be)
 
-## Write up
+## Do it yourself
 
 ### Start API server
 
