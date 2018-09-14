@@ -334,6 +334,11 @@ app.get('/api/products/:id', (req, res) => {
 
 app.get('/api/products/:id/reviews', (req, res) => {
   console.log(req.method, req.path, req.params, req.query)
+  console.log(typeof req.params.id === 'undefined')
+  console.log(req.params.id === 'undefined')
+  console.log(typeof req.query['product-tag'] === 'undefined')
+  console.log(req.query['product-tag'] === 'undefined')
+
   if (typeof req.params.id === 'undefined' ||
     req.params.id === 'undefined' ||
     typeof req.query['product-tag'] === 'undefined' ||

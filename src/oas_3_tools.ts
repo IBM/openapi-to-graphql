@@ -317,38 +317,41 @@ export function instantiatePathAndGetQuery (
   if (Array.isArray(parameters)) {
     // iterate parameters:
     for (let param of parameters) {
+
       let sanitizedParamName = beautify(param.name)
+      if (sanitizedParamName && sanitizedParamName in args) {
+        switch (param.in) {
+          // path parameters
+          case 'path':
+            path = path.replace(`{${param.name}}`, args[sanitizedParamName])
+            break
 
-      // path parameters:
-      if (param.in === 'path') {
-        path = path.replace(`{${param.name}}`, args[sanitizedParamName])
+          // query parameters
+          case 'query':
+            query[param.name] = args[sanitizedParamName]
+            break
 
-      // query parameters:
-      } else if ((param.in === 'query') &&
-        sanitizedParamName &&
-        sanitizedParamName in args) {
-        query[param.name] = args[sanitizedParamName]
+          // header parameters
+          case 'header':
+            headers[param.name] = args[sanitizedParamName]
+            break
 
-      // header parameters:
-      } else if (param.in === 'header' &&
-        sanitizedParamName &&
-        sanitizedParamName in args) {
-        headers[param.name] = args[sanitizedParamName]
+          // cookie parameters
+          case 'cookie':
+            if (!('cookie' in headers)) {
+              headers['cookie'] = ''
+            }
 
-      // cookie parameters:
-    } else if (param.in === 'cookie' &&
-        sanitizedParamName &&
-        sanitizedParamName in args) {
+            headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `
+            break
 
-        if (!('cookie' in headers)) {
-          headers['cookie'] = ''
+          default:
+            logHttp(`Warning: The parameter location ${param.in} in the ` +
+              `parameter ${param.name} of operation ${path} is not supported`)
         }
-
-        headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `
-
       } else {
-        logHttp(`Warning: The parameter location ${param.in} in the` +
-          `parameter ${param.name} of operation ${path} is not supported`)
+        logHttp(`Warning: The parameter ${param.name} of operation ${path} ` +
+          `could not be found`)
       }
     }
   }
