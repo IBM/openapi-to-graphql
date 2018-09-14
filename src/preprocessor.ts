@@ -87,7 +87,7 @@ export function preprocessOas (
       }
 
       // Response schema
-      let { responseSchema, responseSchemaNames } = Oas3Tools.getResponseSchemaAndNames(
+      let { responseContentType, responseSchema, responseSchemaNames } = Oas3Tools.getResponseSchemaAndNames(
         path, method, oas, data)
 
       if (!responseSchema || typeof responseSchema !== 'object') {
@@ -138,6 +138,7 @@ export function preprocessOas (
         payloadContentType,
         payloadDefinition,
         payloadRequired,
+        responseContentType,
         responseDefinition,
         links,
         parameters,
@@ -355,6 +356,7 @@ function getSchemaIndex (
   let index = -1
   for (let def of dataDefs) {
     index++
+
     if (deepEqual(schema, def.schema)) {
       return index
     }

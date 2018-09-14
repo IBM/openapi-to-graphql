@@ -68,6 +68,11 @@ export type Operation = {
   payloadRequired: boolean,
 
   /**
+   * Content-type of the request payload
+   */
+  responseContentType?: string,
+
+  /**
    * Information about the response payload
    */
   responseDefinition: DataDefinition,

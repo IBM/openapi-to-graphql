@@ -50,6 +50,7 @@ export type RequestSchemaAndNames = {
 }
 
 export type ResponseSchemaAndNames = {
+  responseContentType?: string,
   responseSchema?: SchemaObject | ReferenceObject,
   responseSchemaNames?: SchemaNames
 }
@@ -306,9 +307,11 @@ export function instantiatePathAndGetQuery (
   args: Object // NOTE: argument keys are sanitized!
 ): {
   path: string,
-  query: {[key: string]: string}
+  query: {[key: string]: string},
+  headers: {[key: string]: string}
 } {
   let query = {}
+  let headers = {}
 
   // case: nothing to do
   if (Array.isArray(parameters)) {
@@ -319,18 +322,38 @@ export function instantiatePathAndGetQuery (
       // path parameters:
       if (param.in === 'path') {
         path = path.replace(`{${param.name}}`, args[sanitizedParamName])
-      }
 
       // query parameters:
-      if (param.in === 'query' &&
+      } else if ((param.in === 'query') &&
         sanitizedParamName &&
         sanitizedParamName in args) {
         query[param.name] = args[sanitizedParamName]
+
+      // header parameters:
+      } else if (param.in === 'header' &&
+        sanitizedParamName &&
+        sanitizedParamName in args) {
+        headers[param.name] = args[sanitizedParamName]
+
+      // cookie parameters:
+    } else if (param.in === 'cookie' &&
+        sanitizedParamName &&
+        sanitizedParamName in args) {
+
+        if (!('cookie' in headers)) {
+          headers['cookie'] = ''
+        }
+
+        headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `
+
+      } else {
+        logHttp(`Warning: The parameter location ${param.in} in the` +
+          `parameter ${param.name} of operation ${path} is not supported`)
       }
     }
   }
 
-  return { path, query }
+  return { path, query, headers }
 }
 
 /**
@@ -404,47 +427,6 @@ export function inferResourceNameFromPath (path: string): string {
 
   return name
 }
-
-/**
- * Returns JSON-compatible schema produced by the given endpoint - or null if it
- * does not exist.
- */
-export function getResponseSchema (
-  endpoint: OperationObject,
-  statusCode: string,
-  oas: Oas3
-): { responseContentType: string, responseSchema: SchemaObject } | null {
-  if (typeof endpoint.responses === 'object') {
-    let responses: ResponsesObject = endpoint.responses
-    if (typeof responses[statusCode] === 'object') {
-      let response: ResponseObject | ReferenceObject = responses[statusCode]
-
-      // make sure we have a ResponseObject:
-      if (typeof (response as ReferenceObject).$ref === 'string') {
-        response = (resolveRef((response as ReferenceObject).$ref, oas) as ResponseObject)
-      } else {
-        response = ((response as any) as ResponseObject)
-      }
-
-      if (response.content && typeof response.content !== 'undefined') {
-        let content : MediaTypesObject = response.content
-
-        // Prioritizes content-type JSON
-        if (Object.keys(content).includes('application/json')) {
-          return { responseContentType: 'application/json', responseSchema: content['application/json'].schema as SchemaObject }
-        } else {
-
-          // Picks a random content type
-          for (let contentType in content) {
-            return { responseContentType: contentType, responseSchema: content[contentType].schema as SchemaObject }
-            }
-          }
-        }
-      }
-    }
-    return { responseContentType: null, responseSchema: null }
-  }
-
 
 /**
  * Returns JSON-compatible schema required by the given endpoint - or null if it
@@ -535,8 +517,14 @@ export function getRequestSchemaAndNames (
         payloadSchemaNames[key] = saneContentTypeName
       }
 
+      let description = payloadContentType + ' request placeholder object'
+
+      if ('description' in payloadSchema && typeof(payloadSchema['description']) === 'string') {
+        description += `\n\nOriginal top level description: ${payloadSchema['description']}`
+      }
+
       payloadSchema = {
-        description: payloadContentType + ' request placeholder object',
+        description: description,
         type: 'string'
       }
     }
@@ -552,6 +540,46 @@ export function getRequestSchemaAndNames (
     payloadRequired: false
   }
 }
+
+/**
+ * Returns JSON-compatible schema produced by the given endpoint - or null if it
+ * does not exist.
+ */
+export function getResponseSchema (
+  endpoint: OperationObject,
+  statusCode: string,
+  oas: Oas3
+): { responseContentType: string, responseSchema: SchemaObject } | null {
+  if (typeof endpoint.responses === 'object') {
+    let responses: ResponsesObject = endpoint.responses
+    if (typeof responses[statusCode] === 'object') {
+      let response: ResponseObject | ReferenceObject = responses[statusCode]
+
+      // make sure we have a ResponseObject:
+      if (typeof (response as ReferenceObject).$ref === 'string') {
+        response = (resolveRef((response as ReferenceObject).$ref, oas) as ResponseObject)
+      } else {
+        response = ((response as any) as ResponseObject)
+      }
+
+      if (response.content && typeof response.content !== 'undefined') {
+        let content : MediaTypesObject = response.content
+
+        // Prioritizes content-type JSON
+        if (Object.keys(content).includes('application/json')) {
+          return { responseContentType: 'application/json', responseSchema: content['application/json'].schema as SchemaObject }
+        } else {
+
+          // Picks a random content type
+          for (let contentType in content) {
+            return { responseContentType: contentType, responseSchema: content[contentType].schema as SchemaObject }
+            }
+          }
+        }
+      }
+    }
+    return { responseContentType: null, responseSchema: null }
+  }
 
 /**
  * Returns the response schema for endpoint at given path and method and with
@@ -586,18 +614,21 @@ export function getResponseSchemaAndNames (
     // if request body content-type is not application/json, do not parse.
     // interpret the request body as a string
     if (responseContentType !== 'application/json') {
-      responseSchemaNames = {
-        fromPath: "placeholder"
+      let description = 'Placeholder object to access non-application/json ' +
+      'response bodies'
+
+      if ('description' in responseSchema && typeof(responseSchema['description']) === 'string') {
+        description += `\n\nOriginal top level description: ${responseSchema['description']}`
       }
 
       responseSchema = {
-        description: 'Placeholder object to access non-application/json ' +
-        'response bodies',
+        description: description,
         type: 'string'
       }
     }
 
     return {
+      responseContentType,
       responseSchema,
       responseSchemaNames
     }

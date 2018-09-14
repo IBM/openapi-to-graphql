@@ -156,6 +156,53 @@ test('Get response without providing parameter with default value', () => {
   })
 })
 
+test('Get response with header parameters', () => {
+  let query = `{
+    snack(snackType: chips, snackSize: small)
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        "snack": "Here is a small chips"
+      }
+    })
+  })
+})
+
+// Content-type and accept headers should not change because they are linked
+// to GraphQL object types with static schemas
+test('Get JSON response even with non-JSON accept header', () => {
+  let query = `{
+    office (id: 2) {
+      employerId
+      roomNumber,
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        "office": {
+          "employerId": "binsol",
+          "roomNumber": 102
+        }
+      }
+    })
+  })
+})
+
+test('Get response with cookies', () => {
+  let query = `{
+    cookie (cookieType:chocolateChip, cookieSize:megaSized)
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        "cookie": "Thanks for your cookie preferences: \"cookie_type=chocolate chip; cookie_size=mega-sized; \""
+      }
+    })
+  })
+})
+
 test('Get response containing 64 bit integer (using GraphQLFloat)', () => {
   let query = `{
     productsReviews (id: "100") {

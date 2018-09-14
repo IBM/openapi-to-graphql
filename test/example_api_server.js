@@ -108,6 +108,29 @@ const Companies = {
   }
 }
 
+const Offices = [
+  {
+    'employeeId': 'arlene',
+    'room number': 100,
+    'employerId': 'binsol'
+  },
+  {
+    'employeeId': 'will',
+    'room number': 101,
+    'employerId': 'binsol'
+  },
+  {
+    'employeeId': 'johnny',
+    'room number': 102,
+    'employerId': 'binsol'
+  },
+  {
+    'employeeId': 'heather',
+    'room number': 100,
+    'employerId': 'ccc'
+  }
+]
+
 const Products = {
   'product-name': 'Super Product'
 }
@@ -234,11 +257,6 @@ app.get('/api/users/:username', (req, res) => {
   res.send(Users[req.params.username])
 })
 
-app.get('/api/usersWith2XX/:username', (req, res) => {
-  console.log(req.method, req.path)
-  res.send(Users[req.params.username])
-})
-
 app.get('/api/users/:username/car', (req, res) => {
   console.log(req.method, req.path)
   if (typeof req.params.username !== 'string' ||
@@ -277,6 +295,34 @@ app.post('/api/users', (req, res) => {
 app.get('/api/companies/:id', (req, res) => {
   console.log(req.method, req.path)
   res.send(Companies[req.params.id])
+})
+
+app.get('/api/cookie', (req, res) => {
+  console.log(req.method, req.path, req.query, req.headers)
+  if ('cookie' in req.headers) {
+    res.status(200).send(`Thanks for your cookie preferences: "${req.headers.cookie}"`)
+  } else {
+    res.status(400).send('Need Cookie header parameter')
+  }
+})
+
+app.get('/api/offices/:id', (req, res) => {
+  console.log(req.method, req.path)
+
+  let accept = req.headers['accept'];
+  if (accept.includes('text/plain')) {
+    res.set('Content-Type', 'text/plain').status(201).send('You asked for text!')
+  } else if (accept.includes('application/json')) {
+    if (req.params.id >= 0 && req.params.id < Offices.length) {
+      res.status(201).send(Offices[req.params.id])
+    } else {
+      res.status(404).send({
+        message: 'Cannot find office'
+      })
+    }
+  } else {
+    res.set('Content-Type', 'text/plain').status(201).send('Please try with an accept parameter!')
+  }
 })
 
 app.get('/api/products/:id', (req, res) => {
@@ -322,54 +368,6 @@ app.post('/api/papers', (req, res) => {
 })
 
 
-app.post('/api/products', (req, res) => {
-  console.log(req.method, req.path)
-  let product = req.body
-  if (!('product-name' in product) ||
-    !('product-id' in product) ||
-    !('product-tag' in product)) {
-    res.status(400).send({
-      message: 'wrong data'
-    })
-  } else {
-    res.status(201).send(product)
-  }
-})
-
-app.get('/api/status', (req, res) => {
-  console.log(req.method, req.path, req.query, req.headers)
-  if (typeof req.query.limit === 'undefined' ||
-    typeof req.get('exampleHeader') === 'undefined') {
-    res.status(400).send({
-      message: 'wrong request'
-    })
-  } else {
-    res.send('Ok.')
-  }
-})
-
-app.post('/api/status', (req, res) => {
-  console.log(req.method, req.path, req.query, req.headers)
-  if ('hello' in req.body && req.body['hello'] === 'world'){
-    res.status(201).send('success')
-  } else {
-    res.status(400).send({
-      message: 'wrong data, try \'hello\': \'world\''
-    })
-  }
-})
-
-app.get('/api/secure', (req, res) => {
-  console.log(req.method, req.path, req.query, req.headers)
-  if (req.get('authorization') !== 'Bearer abcdef') {
-    res.status(401).send({
-      message: 'missing authorization header'
-    })
-  } else {
-    res.send('A secure message.')
-  }
-})
-
 app.get('/api/patents/:id', authMiddleware, (req, res) => {
   console.log(req.method, req.path)
   for (let patent in Patents) {
@@ -405,6 +403,63 @@ app.post('/api/projects', authMiddleware, (req, res) => {
     })
   } else {
     res.status(201).send(project)
+  }
+})
+
+app.post('/api/products', (req, res) => {
+  console.log(req.method, req.path)
+  let product = req.body
+  if (!('product-name' in product) ||
+    !('product-id' in product) ||
+    !('product-tag' in product)) {
+    res.status(400).send({
+      message: 'wrong data'
+    })
+  } else {
+    res.status(201).send(product)
+  }
+})
+
+app.get('/api/snack', (req, res) => {
+  console.log(req.method, req.path, req.query, req.headers)
+  if ('snack_type' in req.headers && 'snack_size' in req.headers) {
+    res.status(200).send(`Here is a ${req.headers.snack_size} ${req.headers.snack_type}`)
+  } else {
+    res.status(400).send('Need snack_type and snack_size header parameters')
+  }
+})
+
+app.get('/api/status', (req, res) => {
+  console.log(req.method, req.path, req.query, req.headers)
+  if (typeof req.query.limit === 'undefined' ||
+    typeof req.get('exampleHeader') === 'undefined') {
+    res.status(400).send({
+      message: 'wrong request'
+    })
+  } else {
+    res.send('Ok.')
+  }
+})
+
+app.post('/api/status', (req, res) => {
+  console.log(req.method, req.path, req.query, req.headers)
+  if ('hello' in req.body && req.body['hello'] === 'world'){
+    res.status(201).send('success')
+  } else {
+    res.status(400).send({
+      message: 'wrong data, try \'hello\': \'world\''
+    })
+  }
+})
+
+app.get('/api/secure', (req, res) => {
+  console.log(req.method, req.path, req.query, req.headers)
+  if (req.get('authorization') !== 'Bearer abcdef') {
+    res.status(401).send({
+      message: 'missing authorization header'
+    })
+  } else {
+    res.send('A secure message.')
   }
 })
 

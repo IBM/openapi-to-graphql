@@ -52,7 +52,7 @@
 					"description": "Limit of the number of users to return."
 				}],
 				"responses": {
-					"2XX": {
+					"202": {
 						"description": "A list of users.",
 						"content": {
 							"application/json": {
@@ -178,6 +178,104 @@
 						"links": {
 							"ceoUser": {
 								"$ref": "#/components/links/CeoUser"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/cookie": {
+			"get": {
+				"operationId": "getCookie",
+				"description": "Used to test cookies.",
+				"parameters": [{
+					"name": "cookie_type",
+					"in": "cookie",
+					"required": true,
+					"schema": {
+						"type": "string",
+						"enum": [
+              "chocolate chip",
+							"oatmeal raisin",
+							"sugar"
+            ]
+					}
+				},
+				{
+					"name": "cookie_size",
+					"in": "cookie",
+					"required": true,
+					"schema": {
+						"type": "string",
+						"enum": [
+							"bite-sized",
+							"regular",
+							"mega-sized"
+						]
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "You got a cookie!",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/offices/{id}": {
+			"get": {
+				"operationId": "getOffice",
+				"description": "Return an office.",
+				"parameters": [{
+					"name": "id",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "integer"
+					},
+					"description": "Office ID"
+				},
+				{
+          "name": "accept",
+          "in": "header",
+          "description": "Describes the format of the return values. By default, the return type is `text/plain` and the return value is the two-letter language code for the identified language, for example, `en` for English or `es` for Spanish. To retrieve a JSON object that contains a ranking of identified languages with confidence scores, set the accept header parameter to `application/json`.",
+          "required": false,
+          "schema": {
+            "type": "string",
+            "enum": [
+              "application/json",
+              "text/plain"
+            ],
+            "default": "text/plain"
+          }
+        }],
+				"responses": {
+					"200": {
+						"description": "An office.",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/office"
+								}
+							},
+							"text/plain": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						},
+						"links": {
+							"owner": {
+								"$ref": "#/components/links/Employee"
+							},
+							"company": {
+								"$ref": "#/components/links/EmployerCompany"
 							}
 						}
 					}
@@ -471,6 +569,49 @@
 				]
 			}
 		},
+		"/snack": {
+			"get": {
+				"operationId": "getSnack",
+				"description": "Endpoint to test sending of headers.",
+				"parameters": [{
+					"name": "snack_type",
+					"in": "header",
+					"required": true,
+					"schema": {
+						"type": "string",
+						"enum": [
+              "chips",
+              "soda"
+            ]
+					}
+				},
+				{
+					"name": "snack_size",
+					"in": "header",
+					"required": true,
+					"schema": {
+						"type": "string",
+						"enum": [
+              "large",
+              "small"
+            ]
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "Status message.",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string",
+									"description": "What snack is offered."
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/status": {
 			"get": {
 				"operationId": "get-Status",
@@ -487,7 +628,7 @@
 					"200": {
 						"description": "Status message.",
 						"content": {
-							"application/json": {
+							"text/plain": {
 								"schema": {
 									"type": "string",
 									"description": "What the status is."
@@ -679,6 +820,24 @@
           }
 				}
 			},
+			"office": {
+				"description": "An office",
+				"type": "object",
+				"properties": {
+					"employeeId": {
+						"description": "The owner ID of the office",
+						"type": "string"
+					},
+					"room number": {
+						"description": "The room number of the office",
+						"type": "integer"
+					},
+					"employerId": {
+						"type": "string",
+						"description": "The identifier of the company a user works for"
+					}
+				}
+			},
 			"paper": {
 				"description": "A research paper",
 				"type": "object",
@@ -754,6 +913,13 @@
       }
 		},
 		"links": {
+			"Employee": {
+				"operationId": "getUserByUsername",
+				"parameters": {
+					"username": "$response.body#/employeeId"
+				},
+        "description": "Allows to fetch the user who invented a product."
+			},
 			"EmployerCompany": {
         "operationId": "getCompanyById",
 				"parameters": {
