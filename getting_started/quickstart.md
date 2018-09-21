@@ -2,7 +2,7 @@
 
 ## Video demo
 
-[![Video demo](../docs/video.svg)](https://www.youtube.com/watch?v=_u7artgCqAw&feature=youtu.be)
+[![Video demo](https://i9.ytimg.com/vi/_u7artgCqAw/sddefault.jpg?sqp=CMCFlN0F&rs=AOn4CLAdVpvBiqEMJDYGkWY1TbuRCTQd9Q&time=1537541032962)](https://www.youtube.com/watch?v=_u7artgCqAw&feature=youtu.be)
 
 ## Do it yourself
 
@@ -20,7 +20,7 @@ Or boot up whichever backend that supports your API.
 
 ### Save the OAS
 
-In your Loopback application, go [here](http://localhost:3000/openapi.json).
+In your Loopback application, go to [http://localhost:3000/openapi.json](http://localhost:3000/openapi.json) to access the OAS.
 
 ***
 
@@ -55,4 +55,4 @@ npm link
 oasgraph [OAS path]
 ```
 
-To see your GraphQL server, go [here](http://localhost:3001/graphql).
+To see your GraphQL server in action, go to [http://localhost:3001/graphql](http://localhost:3001/graphql).
