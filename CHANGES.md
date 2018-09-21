@@ -1,3 +1,12 @@
+2018-09-21, Version 0.9.2
+=========================
+
+ * Changed back to absolute links, added image for sanitation, reworded parts of the quick start guide (Alan Cha)
+
+
+2018-09-19, Version 0.9.1
+=========================
+
 
 
 2018-09-14, Version 0.9.0
