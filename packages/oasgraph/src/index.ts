@@ -52,6 +52,8 @@ import { createAndLoadViewer } from './auth_builder'
 import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
 
+import * as fs from 'fs'
+
 // Type definitions & exports:
 type LoadFieldsParams = {
   operation: Operation,
@@ -265,6 +267,7 @@ async function translateOpenApiToGraphQL (
   // and if a field references an undefined Object Types, GraphQL will throw.
   Object.entries(data.operations).forEach(([opId, operation]) => {
     if (typeof operation.responseDefinition.ot === 'undefined') {
+
       operation.responseDefinition.ot = GraphQLTools
         .getEmptyObjectType(operation.responseDefinition.otName)
     }
@@ -297,7 +300,7 @@ function getFieldForOperation (
 ): Field {
   // create GraphQL Type for response:
   let type = getGraphQLType({
-    name: operation.responseDefinition.otName,
+    name: operation.responseDefinition.preferredName,
     schema: operation.responseDefinition.schema,
     data,
     operation,

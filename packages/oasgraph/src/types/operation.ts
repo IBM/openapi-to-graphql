@@ -25,6 +25,7 @@ import {
 
 export type DataDefinition = {
   schema: SchemaObject,
+  preferredName: string,
   otName: string,
   iotName: string,
   ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType,

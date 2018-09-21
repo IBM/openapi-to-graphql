@@ -346,11 +346,11 @@ export function instantiatePathAndGetQuery (
             break
 
           default:
-            logHttp(`Warning: The parameter location ${param.in} in the ` +
-              `parameter ${param.name} of operation ${path} is not supported`)
+            logHttp(`Warning: The parameter location "${param.in}" in the ` +
+              `parameter "${param.name}" of operation "${path}" is not supported`)
         }
       } else {
-        logHttp(`Warning: The parameter ${param.name} of operation ${path} ` +
+        logHttp(`Warning: The parameter "${param.name}" of operation "${path}" ` +
           `could not be found`)
       }
     }
@@ -516,8 +516,8 @@ export function getRequestSchemaAndNames (
         saneContentTypeName += terms[index].charAt(0).toUpperCase() + terms[index].slice(1)
       }
 
-      for (let key in payloadSchemaNames) {
-        payloadSchemaNames[key] = saneContentTypeName
+      payloadSchemaNames = {
+        fromPath: saneContentTypeName
       }
 
       let description = payloadContentType + ' request placeholder object'

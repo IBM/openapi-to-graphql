@@ -245,6 +245,7 @@ function reuseOrCreateOt ({
           })
         }
       })
+
       return def.ot
     }
   // CASE: mutation - create or reuse IOT
@@ -277,6 +278,7 @@ function reuseOrCreateOt ({
           })
         }
       })
+
       return def.iot
     }
   }
@@ -300,8 +302,7 @@ function reuseOrCreateList ({
       `'${name}'.`)
   }
 
-  let def = createOrReuseDataDef(
-    data, schema, { fromRef: `${name}List` })
+  let def = createOrReuseDataDef(data, schema, { fromRef: `${name}` })
 
   // try to reuse existing Object Type
   if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
@@ -881,8 +882,9 @@ export function getArgs ({
   // handle request schema (if present):
   if (typeof payloadSchemaName === 'string' &&
     payloadSchema && typeof payloadSchema === 'object') {
+
     let reqObjectType = getGraphQLType({
-      name: payloadSchemaName,
+      name: operation.payloadDefinition.preferredName,
       schema: payloadSchema,
       data,
       operation,

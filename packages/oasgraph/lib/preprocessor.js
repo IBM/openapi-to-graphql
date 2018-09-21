@@ -257,8 +257,9 @@ function createOrReuseDataDef(data, schema, names) {
         throw new Error(`Cannot create data definition for invalid schema ` +
             `"${String(schema)}"`);
     }
+    let preferredName = getPreferredName(data.usedOTNames, names);
     // Determine the index of possible existing data definition
-    let index = getSchemaIndex(schema, data.defs);
+    let index = getSchemaIndex(preferredName, schema, data.defs);
     if (index !== -1) {
         return data.defs[index];
     }
@@ -272,6 +273,7 @@ function createOrReuseDataDef(data, schema, names) {
     data.usedOTNames.push(saneInputName);
     let def = {
         schema,
+        preferredName: preferredName,
         otName: saneName,
         iotName: saneInputName
     };
@@ -282,19 +284,56 @@ function createOrReuseDataDef(data, schema, names) {
 exports.createOrReuseDataDef = createOrReuseDataDef;
 /**
  * Returns the index of the data definition object in the given list that
- * contains the same schema as the given one. Returns -1 if that schema could
- * not be found.
+ * contains the same schema and preferred name as the given one. Returns -1 if
+ * that schema could not be found.
  */
-function getSchemaIndex(schema, dataDefs) {
+function getSchemaIndex(preferredName, schema, dataDefs) {
     let index = -1;
     for (let def of dataDefs) {
         index++;
-        if (deepEqual(schema, def.schema)) {
+        if (def.preferredName === preferredName && deepEqual(schema, def.schema)) {
             return index;
         }
     }
     // If the schema could not be found in the master list
     return -1;
+}
+/**
+ * Determines the preferred name to use for schema regardless of name collisions.
+ *
+ * In other words, determines the ideal name for a schema.
+ *
+ * Similar to getSchemaName() except it does not check if the name has already
+ * been taken.
+ */
+function getPreferredName(usedNames, names) {
+    let schemaName;
+    // CASE: name from reference
+    if (typeof names.fromRef === 'string') {
+        schemaName = names.fromRef;
+        // CASE: name from schema (i.e., "title" property in schema)
+    }
+    else if (typeof names.fromSchema === 'string') {
+        schemaName = names.fromSchema;
+        // CASE: name from path
+    }
+    else if (typeof names.fromPath === 'string') {
+        schemaName = names.fromPath;
+    }
+    else {
+        let tempName = 'RandomName';
+        let appendix = 2;
+        /**
+         * GraphQL Objects cannot share the name so if the name already exists in
+         * the master list append an incremental number until the name does not
+         * exist anymore.
+         */
+        while (usedNames.includes(`${tempName}${appendix}`)) {
+            appendix++;
+        }
+        schemaName = `${tempName}${appendix}`;
+    }
+    return Oas3Tools.beautify(schemaName);
 }
 /**
  * Determines name to use for schema from previously determined schemaNames and

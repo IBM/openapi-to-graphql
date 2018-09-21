@@ -278,12 +278,12 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
                         headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `;
                         break;
                     default:
-                        logHttp(`Warning: The parameter location ${param.in} in the ` +
-                            `parameter ${param.name} of operation ${path} is not supported`);
+                        logHttp(`Warning: The parameter location "${param.in}" in the ` +
+                            `parameter "${param.name}" of operation "${path}" is not supported`);
                 }
             }
             else {
-                logHttp(`Warning: The parameter ${param.name} of operation ${path} ` +
+                logHttp(`Warning: The parameter "${param.name}" of operation "${path}" ` +
                     `could not be found`);
             }
         }
@@ -424,9 +424,9 @@ function getRequestSchemaAndNames(path, method, oas) {
             for (let index in terms) {
                 saneContentTypeName += terms[index].charAt(0).toUpperCase() + terms[index].slice(1);
             }
-            for (let key in payloadSchemaNames) {
-                payloadSchemaNames[key] = saneContentTypeName;
-            }
+            payloadSchemaNames = {
+                fromPath: saneContentTypeName
+            };
             let description = payloadContentType + ' request placeholder object';
             if ('description' in payloadSchema && typeof (payloadSchema['description']) === 'string') {
                 description += `\n\nOriginal top level description: ${payloadSchema['description']}`;
