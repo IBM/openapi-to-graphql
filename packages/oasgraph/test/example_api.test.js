@@ -214,6 +214,21 @@ test('Get response with cookies', () => {
   })
 })
 
+test('Ensure good naming for operations with duplicated schemas', () => {
+  let query = `query {
+    cleanDesks
+    dirtyDesks
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        "cleanDesks": "5 clean desks",
+        "dirtyDesks": "5 dirty desks"
+      }
+    })
+  })
+})
+
 test('Get response containing 64 bit integer (using GraphQLFloat)', () => {
   let query = `{
     productsReviews (id: "100") {

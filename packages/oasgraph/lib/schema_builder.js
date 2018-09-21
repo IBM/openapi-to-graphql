@@ -185,7 +185,7 @@ function reuseOrCreateList({ name, operation, schema, data, oas, iteration, isMu
         throw new Error(`Items property missing in array schema definition of ` +
             `'${name}'.`);
     }
-    let def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: `${name}List` });
+    let def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: `${name}` });
     // try to reuse existing Object Type
     if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
         log(`reuse  GraphQLList "${def.otName}"`);
@@ -687,7 +687,7 @@ function getArgs({ parameters, payloadSchema, payloadSchemaName, data, oas, oper
     if (typeof payloadSchemaName === 'string' &&
         payloadSchema && typeof payloadSchema === 'object') {
         let reqObjectType = getGraphQLType({
-            name: payloadSchemaName,
+            name: operation.payloadDefinition.preferredName,
             schema: payloadSchema,
             data,
             operation,

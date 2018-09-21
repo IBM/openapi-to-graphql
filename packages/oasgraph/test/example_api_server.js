@@ -312,6 +312,16 @@ function startServer (PORT) {
     }
   })
 
+  app.get('/api/cleanDesks', (req, res) => {
+    console.log(req.method, req.path)
+    res.send('5 clean desks')
+  })
+
+  app.get('/api/dirtyDesks', (req, res) => {
+    console.log(req.method, req.path)
+    res.send('5 dirty desks')
+  })
+
   app.get('/api/offices/:id', (req, res) => {
     console.log(req.method, req.path)
 

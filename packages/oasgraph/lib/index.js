@@ -212,7 +212,7 @@ function sortByHasLinksOrSubOps(op1, op2) {
 function getFieldForOperation(operation, data, oas) {
     // create GraphQL Type for response:
     let type = schema_builder_1.getGraphQLType({
-        name: operation.responseDefinition.otName,
+        name: operation.responseDefinition.preferredName,
         schema: operation.responseDefinition.schema,
         data,
         operation,

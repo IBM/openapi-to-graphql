@@ -220,6 +220,45 @@
 						"content": {
 							"text/plain": {
 								"schema": {
+									"description": "Used to test generation of object types with matching schema.",
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/cleanDesks": {
+			"get": {
+				"operationId": "getNumberOfCleanDesks",
+				"description": "Used to test generation of object types with matching schema.",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Number of clean desks.",
+						"content": {
+							"text/plain": {
+								"schema": {
+									"type": "string"
+								}
+							}
+						}
+					}
+				}
+			}
+		},
+		"/dirtyDesks": {
+			"get": {
+				"operationId": "getNumberOfDirtyDesks",
+				"description": "Used to test generation of object types with matching schema.",
+				"parameters": [],
+				"responses": {
+					"200": {
+						"description": "Number of dirty desks.",
+						"content": {
+							"text/plain": {
+								"schema": {
 									"type": "string"
 								}
 							}
