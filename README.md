@@ -1,3 +1,7 @@
+![GitHub last commit](https://img.shields.io/github/last-commit/strongloop/oasgraph.svg)
+![Libraries.io for GitHub](https://img.shields.io/librariesio/github/strongloop/oasgraph.svg?longCache=true&style=flat)
+[![npm](https://img.shields.io/npm/v/oasgraph.svg?longCache=true&style=flat)](https://www.npmjs.com/package/oasgraph)
+
 # OASGraph
 
 Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
@@ -6,6 +10,8 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 
 An example application exposing GitHub's public REST-like API via OASGraph can be found [here](https://oasgraph-github.mybluemix.net/) ([source code](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)).
+
+Our research paper, "Generating GraphQL-Wrappers for REST(-like) APIs", describes the challenges of building OASGraph and evaluates it against 959 publicly available OAS (and successful creating GraphQL interfaces for 89.5% of those OAS). It can be found [here](https://arxiv.org/abs/1809.08319).
 
 ## Characteristics
 
