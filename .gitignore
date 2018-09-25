@@ -38,3 +38,6 @@ jspm_packages
 
 # temp files:
 tmp
+
+# OS configuration
+*.DS_Store
