@@ -1,6 +1,6 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/strongloop/oasgraph.svg)
 ![Libraries.io for GitHub](https://img.shields.io/librariesio/github/strongloop/oasgraph.svg?longCache=true&style=flat)
-[![npm](https://img.shields.io/npm/v/oasgraph.svg?longCache=true&style=flat)](https://www.npmjs.com/package/oasgraph)
+[![npm](https://img.shields.io/npm/v/oasgraph.svg?longCache=true&style=flat)](https://www.npmjs.com/package/oasgraph) [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # OASGraph
 
