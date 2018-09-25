@@ -11,6 +11,8 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 An example application exposing GitHub's public REST-like API via OASGraph can be found [here](https://oasgraph-github.mybluemix.net/) ([source code](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)).
 
+Our research paper, "Generating GraphQL-Wrappers for REST(-like) APIs", describes the challenges of building OASGraph and evaluates it against 959 publicly available OAS (and successful creating GraphQL interfaces for 89.5% of those OAS). It can be found [here](https://arxiv.org/abs/1809.08319).
+
 ## Characteristics
 
 * **Data-centric**
