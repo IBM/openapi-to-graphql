@@ -51,9 +51,9 @@
     "graphql-type-json": "^0.2.1",
     "json-schema-merge-allof": "^0.6.0",
     "jsonpath": "^1.0.0",
-    "oas-validator": "^1.1.7",
+    "oas-validator": "^1.1.9",
     "request": "^2.88.0",
-    "swagger2openapi": "^3.2.8",
+    "swagger2openapi": "^3.2.10",
     "typescript": "^3.0.3",
     "yamljs": "^0.3.0"
   },
@@ -61,8 +61,8 @@
     "graphql": "^0.9.6 || ^0.10.0 || ^0.11.0 || ^0.12.0"
   },
   "devDependencies": {
-    "@types/graphql": "^14.0.0",
-    "@types/node": "^10.10.1",
+    "@types/graphql": "^14.0.1",
+    "@types/node": "^10.11.0",
     "body-parser": "^1.18.3",
     "express": "^4.15.2",
     "express-graphql": "^0.6.4",
@@ -74,7 +74,7 @@
     "nodemon": "^1.18.4",
     "pre-commit": "^1.2.2",
     "rimraf": "^2.6.1",
-    "simple-statistics": "^6.1.0",
+    "simple-statistics": "^6.1.1",
     "standard": "^12.0.1",
     "tslint": "^5.11.0",
     "tslint-config-standard": "^8.0.1"
