@@ -1,5 +1,7 @@
-2018-09-21, Version 0.9.2
+2018-09-25, Version 0.9.3
 =========================
+
+ * Added reference to research paper and badges (Alan Cha)
 
  * Changed back to absolute links, added image for sanitation, reworded parts of the quick start guide (Alan Cha)
 
