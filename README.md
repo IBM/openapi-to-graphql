@@ -1,5 +1,5 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/strongloop/oasgraph.svg)
-![Libraries.io for GitHub](https://img.shields.io/librariesio/github/strongloop/oasgraph.svg?longCache=true&style=flat)
+![David](https://img.shields.io/david/strongloop/oasgraph.svg)
 [![npm](https://img.shields.io/npm/v/oasgraph.svg?longCache=true&style=flat)](https://www.npmjs.com/package/oasgraph)
 [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
@@ -97,11 +97,7 @@ Alternatively, use the CLI tool.
 Usage: oasgraph <OAS JSON file path>
 ```
 
-To create the CLI tool, run:
-
-```
-npm link
-```
+Please note that the CLI tool is mainly used for quick testing and does not offer all the features that `createGraphQlSchema(oas, options)` does.
 
 ## Options
 OASGraph allows to define an optional `options` object:
