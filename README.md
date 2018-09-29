@@ -9,10 +9,13 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/translation.png" alt="Overview of translation" width="600">
 
-
 An example application exposing GitHub's public REST-like API via OASGraph can be found [here](https://oasgraph-github.mybluemix.net/) ([source code](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)).
 
-Our research paper, "Generating GraphQL-Wrappers for REST(-like) APIs", describes the challenges of building OASGraph and evaluates it against 959 publicly available OAS (and successful creating GraphQL interfaces for 89.5% of those OAS). It can be found [here](https://arxiv.org/abs/1809.08319).
+## Getting started
+
+* [Quickstart guide](./docs/tutorials/quickstart.md): Learn how to quickly spin up GraphQL wrappers using the OASGraph CLI.
+* [Library tutorial](./docs/tutorials/watson.md): Learn how to use OASGraph as a library, and how to improve the resulting GraphQL wrappers using OAS `link` definitions.
+* [LoopBack tutorial](./docs/tutorials/loopback_tutorial.md): Learn how to use OASGraph to create GraphQL wrappers for APIs created with LoopBack 4.
 
 ## Characteristics
 
@@ -95,6 +98,11 @@ Alternatively, use the CLI tool.
 
 ```
 Usage: oasgraph <OAS JSON file path>
+```
+
+To create the CLI tool, run:
+```
+npm link
 ```
 
 Please note that the CLI tool is mainly used for quick testing and does not offer all the features that `createGraphQlSchema(oas, options)` does.
@@ -198,9 +206,10 @@ Then, run tests:
 npm test
 ```
 
+### Research
+Our research paper, "Generating GraphQL-Wrappers for REST(-like) APIs", can be found [here](https://arxiv.org/abs/1809.08319). The paper describes the challenges of building OASGraph and an experiment in which we evaluated OASGraph against 959 publicly available OAS, provided by [APIs.guru](https://apis.guru/), and successfully created GraphQL interfaces for 89.5% of them.
 
-### APIs.guru
-OASGraph can be applied to all OAS contained in [APIs.guru OpenAPI repository](https://github.com/APIs-guru/openapi-directory). Load APIs.guru specifications into the `/tmp` folder:
+To run the experiment, load APIs.guru specifications, found [here](https://github.com/APIs-guru/openapi-directory), into the `/tmp` folder:
 
 ```bash
 npm run guru-load
