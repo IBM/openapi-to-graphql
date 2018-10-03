@@ -92,7 +92,7 @@ Try to run a simple query like the following:
 GraphQL query
 ```
 query{
-  person(id: 1){
+  person(id: 15){
     name
   }
 }
@@ -103,7 +103,7 @@ Expected output
 {
   "data": {
     "person": {
-      "name": "Albert"
+      "name": "Daron"
     }
   }
 }

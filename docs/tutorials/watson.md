@@ -3,6 +3,11 @@
 OASGraph is a library that automatically creates GraphQL wrappers for existing REST(-like) APIs, relying on the Swagger or OpenAPI specifications of these APIs. To exemplify what OASGraph can do, let's create a GraphQL wrapper for the [IBM Watson Language Translator API](https://www.ibm.com/watson/services/language-translator/). The Language Translator API uses machine learning capabilities to detect the language of given texts, and to translate texts to any of a number of supported languages.
 
 
+## Video demo
+
+[![OASGraph](../conveyor_belt.png)](https://www.youtube.com/watch?v=2GkJ5J6yuKY "Click here to watch!")
+
+
 ## Creating a simple wrapper
 
 To create a GraphQL wrapper around the API, we use the Swagger specification of the Language Translator API available [here](https://watson-api-explorer.ng.bluemix.net/listings/language-translator-v2.json). From this specification, OASGraph creates a GraphQL schema, consisting of the API's data types and their relations. OASGraph also creates so-called resolve functions, which interact with the Language Translator API to resolve GraphQL queries. The schema created by OASGraph can be exposed using web application frameworks like [Express.js](https://expressjs.com/) via the [express-graphql](https://github.com/graphql/express-graphql) middleware.
