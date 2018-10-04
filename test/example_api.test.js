@@ -7,29 +7,40 @@
 
 /* globals beforeAll, test, expect */
 
-/**
- * Precondition: run `node test/example_api_server.js`
- */
-
 const OasGraph = require('../lib/index.js')
 const {
   graphql,
   parse,
   validate
 } = require('graphql')
+const {startServer, stopServer} = require('./example_api_server')
 
-/**
- * Set up the schema first
- */
 let createdSchema
 let oas = require('./fixtures/example_oas.json')
+const PORT = 3002
+// update PORT for this test case:
+oas.servers[0].variables.port.default = String(PORT)
+
+/**
+ * Set up the schema first and run example API server
+ */
 beforeAll(() => {
-  return OasGraph.createGraphQlSchema(oas, {
-    addSubOperations: true
-  })
+  return Promise.all([
+    OasGraph.createGraphQlSchema(oas, {
+      addSubOperations: true
+    })
     .then(({schema, report}) => {
       createdSchema = schema
-    })
+    }),
+    startServer(PORT)
+  ])
+})
+
+/**
+ * Shut down API server
+ */
+afterAll(() => {
+  return stopServer()
 })
 
 test('Get resource (incl. enum)', () => {

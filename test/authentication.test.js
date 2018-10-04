@@ -7,25 +7,37 @@
 
 /* globals beforeAll, test, expect */
 
-/**
- * Precondition: run `node test/example_api_server.js`
- */
-
 const OasGraph = require('../lib/index.js')
 const {
   graphql
 } = require('graphql')
 
-/**
- * Set up the schema first
- */
 let oas = require('./fixtures/example_oas.json')
+const PORT = 3003
+// update PORT for this test case:
+oas.servers[0].variables.port.default = String(PORT)
+const {startServer, stopServer} = require('./example_api_server')
+
 let createdSchema
+
+/**
+ * Set up the schema first and run example API server
+ */
 beforeAll(() => {
-  return OasGraph.createGraphQlSchema(oas)
+  return Promise.all([
+    OasGraph.createGraphQlSchema(oas)
     .then(({schema}) => {
       createdSchema = schema
-    })
+    }),
+    startServer(PORT)
+  ])
+})
+
+/**
+ * Shut down API server
+ */
+afterAll(() => {
+  return stopServer()
 })
 
 test('Get patent using basic auth', () => {

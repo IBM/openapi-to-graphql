@@ -194,17 +194,13 @@ Because OASGraph is a library, it cannot make the callbacks that OAuth requires 
 To see an example of how this would work, click [here](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)!
 
 ## Testing
-To test OASGraph, first make sure the example API server is running:
-
-```bash
-npm run api
-```
-
-Then, run tests:
+To test OASGraph, run:
 
 ```bash
 npm test
 ```
+
+This command will temporarily start and later shut down an example REST(-like) API.
 
 ### Research
 Our research paper, "Generating GraphQL-Wrappers for REST(-like) APIs", can be found [here](https://arxiv.org/abs/1809.08319). The paper describes the challenges of building OASGraph and an experiment in which we evaluated OASGraph against 959 publicly available OAS, provided by [APIs.guru](https://apis.guru/), and successfully created GraphQL interfaces for 89.5% of them.
