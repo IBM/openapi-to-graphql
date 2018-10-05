@@ -1,7 +1,8 @@
-![GitHub last commit](https://img.shields.io/github/last-commit/strongloop/oasgraph.svg)
-![David](https://img.shields.io/david/strongloop/oasgraph.svg)
-[![npm](https://img.shields.io/npm/v/oasgraph.svg?longCache=true&style=flat)](https://www.npmjs.com/package/oasgraph)
-[![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![GitHub last commit](https://img.shields.io/github/last-commit/strongloop/oasgraph.svg?style=flat)
+![Travis (.org)](https://img.shields.io/travis/strongloop/oasgraph.svg?style=flat)
+![David](https://img.shields.io/david/strongloop/oasgraph.svg?style=flat)
+[![npm](https://img.shields.io/npm/v/oasgraph.svg?style=flat)](https://www.npmjs.com/package/oasgraph)
+[![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # OASGraph
 
