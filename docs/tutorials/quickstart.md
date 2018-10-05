@@ -53,3 +53,11 @@ You can specify a local file containing the OAS specification or a remote url su
 ```sh
 oasgraph <OAS JSON file path or remote url> [port number]
 ```
+
+### Export a GraphQL schema
+
+OASgraph can also generate and save the GraphQL schema to the local file `schema.graphql`, which you can use later to inspect or change its content in the editor of your choice. Please note that the following command will not start the GraphQL server.
+
+```sh
+oasgraph <OAS JSON file path or remote url> --save
+```
