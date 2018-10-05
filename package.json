@@ -7,6 +7,9 @@
   "contributors": [
     "Alan Cha"
   ],
+  "engines": {
+    "node": ">=8"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/strongloop/oasgraph.git"
@@ -72,7 +75,6 @@
     "jest": "^23.6.0",
     "js-yaml": "^3.12.0",
     "nodemon": "^1.18.4",
-    "pre-commit": "^1.2.2",
     "rimraf": "^2.6.1",
     "simple-statistics": "^6.1.1",
     "standard": "^12.0.1",
