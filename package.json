@@ -1,6 +1,6 @@
 {
   "name": "oasgraph",
-  "version": "0.9.3",
+  "version": "0.10.0",
   "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
   "copyright.owner": "IBM Corp.",
   "author": "Erik Wittern",

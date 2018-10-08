@@ -1,5 +1,39 @@
-2018-09-25, Version 0.9.3
-=========================
+2018-10-08, Version 0.10.0
+==========================
+
+ * Peer dependency mistake (Alan Cha)
+
+ * Fixed some problems with the documentation (Alan Cha)
+
+ * feat(doc) update new features (Mario Estrada)
+
+ * Set up Travis CI (Alan Cha)
+
+ * Added tutorial video (Alan Cha)
+
+ * feat(cli) add option to save schema (Mario Estrada)
+
+ * Programmatically run example API during tests to address #39 (Erik Wittern)
+
+ * refactor(cli) add support for remote spec file (Mario Estrada)
+
+ * Added new tutorials (Alan Cha)
+
+ * Reverted CLI integration (Alan Cha)
+
+ * Revert "add travis" (Alan Cha)
+
+ * Revert "use node 8 and above for jenkins" (Alan Cha)
+
+ * use node 8 and above for jenkins (Diana Lau)
+
+ * add travis (Diana Lau)
+
+ * Removed linking from and change badge in the README (Alan Cha)
+
+ * Integrated CLI tool into the main entry point file (Alan Cha)
+
+ * Modified .gitignore and updated dependencies, fixed #28 (Alan Cha)
 
  * Added reference to research paper and badges (Alan Cha)
 
