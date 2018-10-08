@@ -2,7 +2,7 @@
 
 The purpose of this tutorial is to show how easy it is to use OASGraph.
 
-With just a single command line instruction, `oasgraph [path]`, you can get a GraphQL server running.
+With just a single command line instruction, `oasgraph <OAS JSON file path or remote url>`, you can get a GraphQL server running.
 
 Please note that while the CLI tool will satisfy most needs, it does not offer the flexibility or functionality of OASGraph's intended usage, as an integrated library. See the [README.md](../../README.md) for more information.
 
@@ -34,30 +34,21 @@ OASGraph relies on the OpenAPI Specification (OAS) of an existing API to create 
 
 If you are using LoopBack, you can simply copy the URL location of the web-hosted OAS, which is usually http://127.0.0.1:3000/openapi.json.
 
-# in the LoopBack project folder:
-
 ```sh
+# in the LoopBack project folder:
 npm start
 ```
 
 ***
 
-If you want to generate a GraphQL interface for another API, make sure that API is running and proceed in the same way.
+If you want to generate a GraphQL interface for another API, make sure that API is running and proceed in the same way or save the OAS.
 
 ### Start GraphQL server
 
 Once OASGraph is installed and the OAS is obtained, you can create and start the GraphQL server. The created GraphQL server is then accessible by default at [http://127.0.0.1:3001/graphql](http://127.0.0.1:3001/graphql).
 
-You can specify a local file containing the OAS specification or a remote url such as `http://127.0.0.1:3000/openapi.json` and an optional port number, this way you can have multiple GraphQL servers for testing in the same machine.
+You can specify a local file containing the OAS specification or a remote url such as `http://127.0.0.1:3000/openapi.json`. Additionally, you can specify an optional port number so you can have multiple GraphQL servers for testing in the same machine.
 
 ```sh
 oasgraph <OAS JSON file path or remote url> [port number]
-```
-
-### Export a GraphQL schema
-
-OASgraph can also generate and save the GraphQL schema to the local file `schema.graphql`, which you can use later to inspect or change its content in the editor of your choice. Please note that the following command will not start the GraphQL server.
-
-```sh
-oasgraph <OAS JSON file path or remote url> --save
 ```
