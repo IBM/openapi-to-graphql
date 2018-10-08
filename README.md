@@ -12,11 +12,13 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 An example application exposing GitHub's public REST-like API via OASGraph can be found [here](https://oasgraph-github.mybluemix.net/) ([source code](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)).
 
+
 ## Getting started
 
 * [Quickstart guide](./docs/tutorials/quickstart.md): Learn how to quickly spin up GraphQL wrappers using the OASGraph CLI.
 * [Library tutorial](./docs/tutorials/watson.md): Learn how to use OASGraph as a library, and how to improve the resulting GraphQL wrappers using OAS `link` definitions.
 * [LoopBack tutorial](./docs/tutorials/loopback_tutorial.md): Learn how to use OASGraph to create GraphQL wrappers for APIs created with LoopBack 4.
+
 
 ## Characteristics
 
@@ -95,18 +97,29 @@ OASGraph.createGraphQlSchema(oas)
 
 ***
 
-Alternatively, use the CLI tool.
+Alternatively, use the CLI tool, which will run OASGraph on a specified OAS and start a server to host the GraphQL interface.
 
-```
-Usage: oasgraph <OAS JSON file path>
+You can specify a local file containing the OAS specification or a remote url such as `http://127.0.0.1:3000/openapi.json`. Additionally, you can specify an optional port number so you can have multiple GraphQL servers for testing in the same machine.
+
+```sh
+oasgraph <OAS JSON file path or remote url> [port number]
 ```
 
 To create the CLI tool, run:
-```
+```sh
 npm link
 ```
 
 Please note that the CLI tool is mainly used for quick testing and does not offer all the features that `createGraphQlSchema(oas, options)` does.
+
+***
+
+OASgraph can also generate and save the GraphQL schema to the local file `schema.graphql`, which you can use later to inspect or change its content. Please note that the following command will not start the GraphQL server.
+
+```sh
+oasgraph <OAS JSON file path or remote url> --save
+```
+
 
 ## Options
 OASGraph allows to define an optional `options` object:
@@ -187,12 +200,14 @@ OASGraph further provides `anyAuth` viewers (for queries and mutations), which a
 }
 ```
 
+
 ## Authorization
 OASGraph now supports OAuth 2.0!
 
 Because OASGraph is a library, it cannot make the callbacks that OAuth requires by itself. Instead, the user must take care of the callback. After the user has obtained the OAuth token from the callback, simply pass the token, specifically the path of the token, to OASGraph through the `tokenJSONpath` [option](./README.md#options).
 
 To see an example of how this would work, click [here](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)!
+
 
 ## Testing
 To test OASGraph, run:
@@ -203,7 +218,8 @@ npm test
 
 This command will temporarily start and later shut down an example REST(-like) API.
 
-### Research
+
+## Research
 Our research paper, "Generating GraphQL-Wrappers for REST(-like) APIs", can be found [here](https://arxiv.org/abs/1809.08319). The paper describes the challenges of building OASGraph and an experiment in which we evaluated OASGraph against 959 publicly available OAS, provided by [APIs.guru](https://apis.guru/), and successfully created GraphQL interfaces for 89.5% of them.
 
 To run the experiment, load APIs.guru specifications, found [here](https://github.com/APIs-guru/openapi-directory), into the `/tmp` folder:
@@ -244,6 +260,7 @@ OASGraph is written in [TypeScript](http://www.typescriptlang.org/). All source 
 * [json-to-graphql](https://github.com/aweary/json-to-graphql) turns given JSON objects / arrays into a GraphQL schema. `resolve` functions need to be provided by the user.
 
 * [StackOverflow discussion](https://stackoverflow.com/questions/38339442/json-schema-to-graphql-schema-converters) points to the above projects.
+
 
 ## License
 [MIT](./LICENSE.md)
