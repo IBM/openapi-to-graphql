@@ -40,7 +40,7 @@ for (var i=3; i<=process.argv.length-1; i++) {
 
 // check if the file exists 
 if (fs.existsSync(path.resolve(filePath))) {
-  let oas = JSON.stringify(require(path.resolve(filePath)))
+  let oas = require(path.resolve(filePath))
   startGraphQLServer(oas, portNumber)
     
 } else { // falls back to a remote location
