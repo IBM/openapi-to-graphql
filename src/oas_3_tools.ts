@@ -61,7 +61,7 @@ const logPre = debug('preprocessing')
 const log = debug('translation')
 
 // OAS constants
-export const OAS_OPERATIONS = ['get', 'put', 'post', 'delete', 'options', 'head', 'path', 'trace']
+export const OAS_OPERATIONS = ['get', 'put', 'post', 'patch', 'delete', 'options', 'head']
 export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
 
 /**
