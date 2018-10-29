@@ -25,7 +25,9 @@ import {
   GraphQLNonNull,
   GraphQLList,
   GraphQLInputObjectType,
-  GraphQLEnumType
+  GraphQLEnumType,
+  GraphQLFieldConfigMap,
+  GraphQLOutputType
 } from 'graphql'
 
 // Imports:
@@ -262,6 +264,7 @@ function reuseOrCreateOt ({
       def.iot = new GraphQLInputObjectType({
         name: def.iotName,
         description: schema.description, // might be undefined
+        // @ts-ignore
         fields: () => {
           return createFields({
             name: def.iotName,
@@ -425,8 +428,8 @@ function createFields ({
   oas,
   iteration,
   isMutation
-}: CreateFieldsParams): {[key: string]: Field} {
-  let fields: {[key: string]: Field} = {}
+}: CreateFieldsParams): GraphQLFieldConfigMap<any, any> {
+  let fields: GraphQLFieldConfigMap<any, any> = {}
 
   // resolve reference if applicable
   if ('$ref' in schema) {
@@ -464,7 +467,7 @@ function createFields ({
     if (objectType) {
       let sanePropName = Oas3Tools.beautifyAndStore(propertyKey, data.saneMap)
       fields[sanePropName] = {
-        type: reqMutationProp ? new GraphQLNonNull(objectType) : objectType,
+        type: reqMutationProp ? new GraphQLNonNull(objectType) : objectType as GraphQLOutputType,
         description: propSchema.description // might be undefined
       }
     }
