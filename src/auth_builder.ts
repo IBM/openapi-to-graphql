@@ -14,7 +14,8 @@ import {
   GraphQLObjectType as GQObjectType,
   GraphQLString,
   GraphQLObjectType,
-  GraphQLNonNull} from 'graphql'
+  GraphQLNonNull,
+  GraphQLFieldConfigMap} from 'graphql'
 import { Args, ResolveFunction } from './types/graphql'
 import {
   PreprocessingData,
@@ -141,7 +142,7 @@ const getViewerOT = (
   name: string,
   protocolName: string,
   type: string,
-  queryFields: Object,
+  queryFields: GraphQLFieldConfigMap<any, any>,
   data: PreprocessingData
 ): Viewer => {
   let scheme: ProcessedSecurityScheme = data.security[protocolName]
@@ -179,7 +180,7 @@ const getViewerOT = (
     type: new GraphQLObjectType({
       name: name,
       description: `A viewer for the security protocol: "${scheme.rawName}"`,
-      fields: queryFields
+      fields: () => queryFields
     }),
     resolve,
     args,
@@ -193,7 +194,7 @@ const getViewerOT = (
  */
 const getViewerAnyAuthOT = (
   name: string,
-  queryFields: Object,
+  queryFields: GraphQLFieldConfigMap<any, any>,
   data: PreprocessingData,
   oas: Oas3
 ): Viewer => {
@@ -227,7 +228,7 @@ const getViewerAnyAuthOT = (
     type: new GraphQLObjectType({
       name: name,
       description: 'Warning: Not every request will work with this viewer type',
-      fields: queryFields
+      fields: () => queryFields
     }),
     resolve,
     args,
