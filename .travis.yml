@@ -8,6 +8,11 @@ os:
   - linux
   - osx
 
+install:
+  - npm install
+  - npm i -g typescript jest
+  - lerna bootstrap --no-ci
+
 script: npm run test
 
 branches:

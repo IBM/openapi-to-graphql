@@ -5,17 +5,17 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-const express = require('express')
-const graphqlHTTP = require('express-graphql')
-const OasGraph = require('./lib/index.js')
-const path = require('path')
-const request = require('request')
-const graphql = require('graphql')
-const fs = require('fs')
+import * as express from 'express'
+import * as graphqlHTTP from 'express-graphql'
+import { createGraphQlSchema } from 'oasgraph'
+import * as path from 'path'
+import * as request from 'request'
+import * as fs from 'fs'
+import { printSchema } from 'graphql'
 
 const app = express()
 
-const outputFileName = 'schema.graphql';
+const outputFileName = 'schema.graphql'
 
 if (process.argv.length <= 2) {
   const usage = 'oasgraph <OAS JSON file path or remote url> [port number|--save]'
@@ -26,15 +26,15 @@ if (process.argv.length <= 2) {
 let filePath = process.argv[2]
 
 // default values if only the url or local file is specified
-let portNumber = 3001
+let portNumber : number | string = 3001
 let saveSchema = false
 
 for (var i=3; i<=process.argv.length-1; i++) {
-   if (isNaN(process.argv[i]) && process.argv[i] === '--save') {
+   if (isNaN(Number(process.argv[i])) && process.argv[i] === '--save') {
      saveSchema = true
    } else {
      // it is safe now if user intentionally provides more arguments
-     portNumber = isNaN(process.argv[i]) ? portNumber : process.argv[i]
+     portNumber = isNaN(Number(process.argv[i])) ? portNumber : process.argv[i]
    } 
 }
 
@@ -81,7 +81,7 @@ function getRemoteFileSpec (uri) {
  */
 function startGraphQLServer(oas, thePort) {
   // Create GraphQL interface
-  OasGraph.createGraphQlSchema(oas) 
+  createGraphQlSchema(oas) 
      .then(({schema, report}) => {
       console.log(JSON.stringify(report, null, 2))
 
@@ -111,8 +111,8 @@ function startGraphQLServer(oas, thePort) {
  * @param {createGraphQlSchema} schema 
  */
 function writeSchema(schema){
-  fs.writeFile(outputFileName, graphql.printSchema(schema), (err) => {
+  fs.writeFile(outputFileName, printSchema(schema), (err) => {
     if (err) throw err
     console.log(`OASGraph successfully saved your schema at ${outputFileName}`)
-  });
+  })
 }

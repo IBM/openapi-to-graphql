@@ -8,7 +8,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const request = require("request");
 const Oas3Tools = require("./oas_3_tools");
 const querystring = require("querystring");
-const jp = require("jsonpath");
+const JSONPath = require("jsonpath-plus");
 const debug_1 = require("debug");
 const log = debug_1.default('http');
 /**
@@ -40,7 +40,7 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
             }
             // CASE: parameter in body
             if (/body#/.test(value)) {
-                let tokens = jp.query(root, value.split('body#/')[1]);
+                let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root });
                 if (Array.isArray(tokens) && tokens.length > 0) {
                     args[paramNameWithoutLocation] = tokens[0];
                 }
@@ -99,13 +99,13 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
         // cannot be easily changed
         //
         // NOTE: This may cause the use to encounter unexpected changes
-        headers['content-type'] = typeof (operation.payloadContentType) !== "undefined" ? operation.payloadContentType : "application/json";
-        headers['accept'] = typeof (operation.responseContentType) !== "undefined" ? operation.responseContentType : "application/json";
+        headers['content-type'] = typeof (operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json';
+        headers['accept'] = typeof (operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json';
         let options = {
             method: operation.method,
             url: url,
             headers: headers,
-            qs: query,
+            qs: query
         };
         /**
          * Determine possible payload
@@ -207,7 +207,7 @@ function createOAuthQS(data, ctx) {
     }
     // extract token:
     let tokenJSONpath = data.options.tokenJSONpath;
-    let tokens = jp.query(ctx, tokenJSONpath);
+    let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx });
     if (Array.isArray(tokens) && tokens.length > 0) {
         let token = tokens[0];
         return {
@@ -230,7 +230,7 @@ function createOAuthHeader(data, ctx) {
     }
     // extract token
     let tokenJSONpath = data.options.tokenJSONpath;
-    let tokens = jp.query(ctx, tokenJSONpath);
+    let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx });
     if (Array.isArray(tokens) && tokens.length > 0) {
         let token = tokens[0];
         return {

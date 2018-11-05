@@ -10,14 +10,45 @@ Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
 
 <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/translation.png" alt="Overview of translation" width="600">
 
-An example application exposing GitHub's public REST-like API via OASGraph can be found [here](https://oasgraph-github.mybluemix.net/) ([source code](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)).
-
 
 ## Getting started
+OASGraph can be used in multiple ways.
 
-* [Quickstart guide](./docs/tutorials/quickstart.md): Learn how to quickly spin up GraphQL wrappers using the OASGraph CLI.
+
+### CLI
+The Command Line Interface (CLI) provides a convenient way to start a GraphQL server wrapping an API for a given OpenAPI Specification:
+
+1. Install the OASGraph CLI using:
+    ```bash
+    npm i -g oasgraph-cli
+    ```
+2. Then, run the OASGraph command and point it to an OpenAPI Specification:
+    ```bash
+    oasgraph <OAS JSON file path or remote url> [port number]
+    ```
+
+
+### Library
+You can alternatively use OASGraph as a library in your application.
+
+1. Install OASGraph as a dependency:
+    ```bash
+    npm i oasgraph
+    ```
+2. Require OASGraph and use one of its functions:
+    ```javascript
+    import { createGraphQlSchema } from 'oasgraph'
+    const { schema, report } = createGraphQlSchema(oas)
+    ```
+
+
+### Tutorials
+
+Here are some guides to further help you get started:
+
+* [CLI + Loopback tutorial](./docs/tutorials/cli_loopback.md): Learn how to quickly spin up GraphQL wrappers using the OASGraph CLI.
 * [Library tutorial](./docs/tutorials/watson.md): Learn how to use OASGraph as a library, and how to improve the resulting GraphQL wrappers using OAS `link` definitions.
-* [LoopBack tutorial](./docs/tutorials/loopback_tutorial.md): Learn how to use OASGraph to create GraphQL wrappers for APIs created with LoopBack 4.
+* [LoopBack tutorial](./docs/tutorials/loopback.md): Learn how to use OASGraph to create GraphQL wrappers for APIs created with LoopBack 4.
 
 
 ## Characteristics
@@ -95,33 +126,8 @@ OASGraph.createGraphQlSchema(oas)
   })
 ```
 
-***
 
-Alternatively, use the CLI tool, which will run OASGraph on a specified OAS and start a server to host the GraphQL interface.
-
-You can specify a local file containing the OAS specification or a remote url such as `http://127.0.0.1:3000/openapi.json`. Additionally, you can specify an optional port number so you can have multiple GraphQL servers for testing in the same machine.
-
-```sh
-oasgraph <OAS JSON file path or remote url> [port number]
-```
-
-To create the CLI tool, run:
-```sh
-npm link
-```
-
-Please note that the CLI tool is mainly used for quick testing and does not offer all the features that `createGraphQlSchema(oas, options)` does.
-
-***
-
-OASgraph can also generate and save the GraphQL schema to the local file `schema.graphql`, which you can use later to inspect or change its content. Please note that the following command will not start the GraphQL server.
-
-```sh
-oasgraph <OAS JSON file path or remote url> --save
-```
-
-
-## Options
+### Options
 OASGraph allows to define an optional `options` object:
 
 ```javascript
@@ -202,8 +208,6 @@ OASGraph further provides `anyAuth` viewers (for queries and mutations), which a
 
 
 ## Authorization
-OASGraph now supports OAuth 2.0!
-
 Because OASGraph is a library, it cannot make the callbacks that OAuth requires by itself. Instead, the user must take care of the callback. After the user has obtained the OAuth token from the callback, simply pass the token, specifically the path of the token, to OASGraph through the `tokenJSONpath` [option](./README.md#options).
 
 To see an example of how this would work, click [here](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)!
@@ -250,7 +254,9 @@ The following logging levels are supported:
 
 
 ## Development
-OASGraph is written in [TypeScript](http://www.typescriptlang.org/). All source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
+OASGraph uses the [Lerna](https://github.com/lerna/lerna) monorepo management system. After cloning the entire monorepo repository, you can install Lerna with the command `npm install` and then install the dependencies for all of the packages with `lerna bootstrap`.
+
+OASGraph is written in [TypeScript](http://www.typescriptlang.org/). Within each of OASGraph's packages, all source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
 
 
 ## Similar projects

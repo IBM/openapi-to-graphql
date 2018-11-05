@@ -1,87 +1,14 @@
 {
-  "name": "oasgraph",
-  "version": "0.10.1",
-  "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
-  "copyright.owner": "IBM Corp.",
-  "author": "Erik Wittern",
-  "contributors": [
-    "Alan Cha"
-  ],
-  "engines": {
-    "node": ">=8"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/strongloop/oasgraph.git"
-  },
-  "homepage": "https://github.com/strongloop/oasgraph/blob/master/README.md",
-  "keywords": [
-    "ibm",
-    "strongloop",
-    "loopback",
-    "oas",
-    "openapi specification",
-    "graphql",
-    "translation",
-    "wrap",
-    "create",
-    "rest",
-    "restful",
-    "api",
-    "apiharmony"
-  ],
-  "license": "MIT",
-  "standard": {
-    "ignore": [
-      "*.js"
-    ]
-  },
-  "main": "lib/index.js",
+  "name": "oasgraph-root",
+  "private": true,
   "scripts": {
-    "api": "nodemon test/example_api_server.js",
-    "dev": "tsc -w",
-    "start_dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
-    "build": "tsc",
-    "flow": "flow",
-    "guru-load": "node test/evaluation/load_apis_guru.js",
-    "guru-test": "DEBUG=preprocessing,translation node test/evaluation/eval_apis_guru.js",
-    "test": "npm run build && jest"
-  },
-  "dependencies": {
-    "debug": "^4.1.0",
-    "deep-equal": "^1.0.1",
-    "graphql": "^14.0.2",
-    "graphql-type-json": "^0.2.1",
-    "json-schema-merge-allof": "^0.6.0",
-    "jsonpath": "^1.0.0",
-    "oas-validator": "^1.1.12",
-    "request": "^2.88.0",
-    "swagger2openapi": "^3.2.13",
-    "yamljs": "^0.3.0"
-  },
-  "peerDependencies": {
-    "graphql": "^0.9.6 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0"
+    "test": "cd packages/oasgraph/ && npm test"
   },
   "devDependencies": {
-    "@types/graphql": "^14.0.3",
-    "@types/node": "^10.12.0",
-    "body-parser": "^1.18.3",
-    "express": "^4.16.4",
-    "express-graphql": "^0.7.1",
-    "fs": "0.0.1-security",
-    "glob": "^7.1.3",
-    "isomorphic-git": "^0.37.3",
-    "jest": "^23.6.0",
-    "js-yaml": "^3.12.0",
-    "nodemon": "^1.18.5",
-    "rimraf": "^2.6.1",
-    "simple-statistics": "^6.1.1",
-    "standard": "^12.0.1",
-    "tslint": "^5.11.0",
-    "tslint-config-standard": "^8.0.1",
-    "typescript": "^3.1.3"
+    "graphql": "^14.0.2",
+    "lerna": "^3.4.3"
   },
-  "bin": {
-    "oasgraph": "./cli.js"
+  "engines": {
+    "node": ">=8"
   }
 }
