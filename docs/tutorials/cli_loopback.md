@@ -1,6 +1,6 @@
 # OASGraph Quickstart tutorial
 
-The purpose of this tutorial is to show how easy it is to use OASGraph.
+The purpose of this tutorial is to show how easy it is to use OASGraph CLI in combination with LoopBack.
 
 With just a single command line instruction, `oasgraph <OAS JSON file path or remote url>`, you can get a GraphQL server running.
 
@@ -20,19 +20,17 @@ To install Node.js, click [here](https://nodejs.org/en/download/).
 
 ### Install OASGraph
 
-OASGraph can be used either as a library, or via its Command Line Interface (CLI). To install OASGraph, clone the repository and link the library (for the CLI commands to work) using the indicated steps.
+OASGraph can be used either as a library, or via its Command Line Interface (CLI). To install the CLI tool, run the following command.
 
 ```sh
-git clone git@github.com:strongloop/oasgraph.git
-cd oasgraph
-npm link
+npm i -g oasgraph-cli
 ```
 
 ### Save or locate the OAS
 
 OASGraph relies on the OpenAPI Specification (OAS) of an existing API to create a GraphQL interface around that API. OASGraph can also retrieve a web-hosted OAS.
 
-If you are using LoopBack, you can simply copy the URL location of the web-hosted OAS, which is usually http://127.0.0.1:3000/openapi.json.
+If you are using LoopBack, you can simply copy the URL location of the web-hosted OAS, which should be located at http://127.0.0.1:3000/openapi.json after starting the API.
 
 ```sh
 # in the LoopBack project folder:

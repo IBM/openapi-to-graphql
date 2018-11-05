@@ -17,7 +17,7 @@ import { PreprocessingData } from './types/preprocessing_data'
 import * as request from 'request'
 import * as Oas3Tools from './oas_3_tools'
 import * as querystring from 'querystring'
-import * as jp from 'jsonpath'
+import * as JSONPath from 'jsonpath-plus'
 import debug from 'debug'
 
 // Type definitions & exports:
@@ -90,7 +90,7 @@ export function getResolver ({
 
       // CASE: parameter in body
       if (/body#/.test(value)) {
-        let tokens = jp.query(root, value.split('body#/')[1])
+        let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root })
         if (Array.isArray(tokens) && tokens.length > 0) {
           args[paramNameWithoutLocation] = tokens[0]
         } else {
@@ -153,14 +153,14 @@ export function getResolver ({
     // cannot be easily changed
     //
     // NOTE: This may cause the use to encounter unexpected changes
-    headers['content-type'] = typeof(operation.payloadContentType) !== "undefined" ? operation.payloadContentType : "application/json"
-    headers['accept'] = typeof(operation.responseContentType) !== "undefined" ? operation.responseContentType : "application/json"
+    headers['content-type'] = typeof(operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json'
+    headers['accept'] = typeof(operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json'
 
     let options: RequestOptions = {
       method: operation.method,
       url: url,
       headers: headers,
-      qs: query,
+      qs: query
     }
 
     /**
@@ -273,7 +273,7 @@ function createOAuthQS (
 
   // extract token:
   let tokenJSONpath = data.options.tokenJSONpath
-  let tokens = jp.query(ctx, tokenJSONpath)
+  let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
   if (Array.isArray(tokens) && tokens.length > 0) {
     let token = tokens[0]
     return {
@@ -300,7 +300,7 @@ function createOAuthHeader (
 
   // extract token
   let tokenJSONpath = data.options.tokenJSONpath
-  let tokens = jp.query(ctx, tokenJSONpath)
+  let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
   if (Array.isArray(tokens) && tokens.length > 0) {
     let token = tokens[0]
     return {
