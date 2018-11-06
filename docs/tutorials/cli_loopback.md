@@ -8,7 +8,7 @@ Please note that while the CLI tool will satisfy most needs, it does not offer t
 
 ## Video demo
 
-[![OASGraph](../conveyor_belt.png)](https://www.youtube.com/watch?v=_u7artgCqAw&feature=youtu.be "Click here to watch!")
+[![OASGraph](../conveyor_belt.png)](https://www.youtube.com/watch?v=KXUTmM6y-LM "Click here to watch!")
 
 ## Do it yourself
 
