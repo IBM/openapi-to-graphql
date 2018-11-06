@@ -5,7 +5,7 @@ OASGraph is a library that automatically creates GraphQL wrappers for existing R
 
 ## Video demo
 
-[![OASGraph](../conveyor_belt.png)](https://www.youtube.com/watch?v=2GkJ5J6yuKY "Click here to watch!")
+[![OASGraph](../conveyor_belt.png)](https://www.youtube.com/watch?v=87ryTWc85BM "Click here to watch!")
 
 
 ## Creating a simple wrapper
