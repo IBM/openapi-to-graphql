@@ -6,7 +6,9 @@
 # OASGraph CLI
 Command line interface (CLI) for turning APIs described by [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/) interfaces.
 
-To use OASGraph as a library, refer to the [`oasgraph`](../oasgraph) package.
+<img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/translation.png" alt="Overview of translation" width="600">
+
+_Note: To use OASGraph as a library, refer to the [`oasgraph`](https://github.com/strongloop/oasgraph/tree/master/packages/oasgraph) package._
 
 
 ## Installation
