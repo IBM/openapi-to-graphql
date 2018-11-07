@@ -1,11 +1,11 @@
 {
   "name": "oasgraph",
   "version": "0.11.0",
-  "description": "Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
+  "description": "Generates a GraphQL schema for a given OpenAPI Specification (OAS)",
   "copyright.owner": "IBM Corp.",
-  "author": "Erik Wittern",
   "contributors": [
-    "Alan Cha"
+    "Alan Cha",
+    "Erik Wittern"
   ],
   "engines": {
     "node": ">=8"

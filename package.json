@@ -10,5 +10,9 @@
   },
   "engines": {
     "node": ">=8"
-  }
+  },
+  "contributors": [
+    "Alan Cha",
+    "Erik Wittern"
+  ]
 }
