@@ -6,7 +6,9 @@
 # OASGraph
 Generates a [GraphQL schema](https://graphql.org/learn/schema/) for a given [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification).
 
-To use OASGraph via the command line, refer to the [`oasgraph-cli`](../oasgraph-cli) package.
+<img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/translation.png" alt="Overview of translation" width="600">
+
+_Note: To use OASGraph via the command line, refer to the [`oasgraph-cli`](https://github.com/strongloop/oasgraph/tree/master/packages/oasgraph-cli) package._
 
 
 ## Installation
