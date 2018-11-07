@@ -1,17 +1,16 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/strongloop/oasgraph.svg?style=flat)
 ![Travis (.org)](https://img.shields.io/travis/strongloop/oasgraph.svg?style=flat)
-[![npm](https://img.shields.io/npm/v/oasgraph.svg?style=flat)](https://www.npmjs.com/package/oasgraph)
 [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-# OASGraph
 
-Turns APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
+# OASGraph
+Translate APIs described by [OpenAPI Specifications (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/).
 
 <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/translation.png" alt="Overview of translation" width="600">
 
 
 ## Getting started
-OASGraph can be used in multiple ways.
+OASGraph can be used in two ways:
 
 
 ### CLI
@@ -26,23 +25,27 @@ The Command Line Interface (CLI) provides a convenient way to start a GraphQL se
     oasgraph <OAS JSON file path or remote url> [port number]
     ```
 
+For further details, refer to the [`oasgraph-cli` documentation](./packages/oasgraph-cli).
+
 
 ### Library
-You can alternatively use OASGraph as a library in your application.
+Use OASGraph as a library in your application to generate GraphQL schemas.
 
 1. Install OASGraph as a dependency:
     ```bash
     npm i oasgraph
     ```
-2. Require OASGraph and use one of its functions:
+2. Require OASGraph and use the `createGraphQlSchema` function:
     ```javascript
-    import { createGraphQlSchema } from 'oasgraph'
-    const { schema, report } = createGraphQlSchema(oas)
+    const { createGraphQlSchema } = require('oasgraph')
+    // load or construct OAS (const oas = ...)
+    const { schema, report } = await createGraphQlSchema(oas)
     ```
 
+For further details, refer to the [`oasgraph` documentation](./packages/oasgraph).
 
-### Tutorials
 
+## Tutorials
 Here are some guides to further help you get started:
 
 * [CLI + Loopback tutorial](./docs/tutorials/cli_loopback.md): Learn how to quickly spin up GraphQL wrappers using the OASGraph CLI.
@@ -58,7 +61,7 @@ Here are some guides to further help you get started:
   <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/data-centric.png" alt="Example of data-centric design" width="600">
 
 * **Nested data**
-  [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.md#linksObject) defined in the OAS are used to compose data definitions. Furthermore, hierarchical path structures can be used to nest data via the [`addSubOperations`](#options-addsuboperations) option.
+  [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.md#linksObject) defined in the OAS are used to compose data definitions. Furthermore, hierarchical path structures can be used to nest data via the [`addSubOperations`](./packages/oasgraph/README.md#options-addsuboperations) option.
 
   <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/links.png" alt="Example of links resolution" width="600">
 
@@ -87,145 +90,16 @@ Here are some guides to further help you get started:
 * **Swagger and OpenAPI 3 support** OASGraph can handle both Swagger (OpenAPI specification 2.0) as well as OpenAPI specification 3.
 
 
-## Usage
-Install this package. Make sure to also have installed [`GraphQL.js`](https://github.com/graphql/graphql-js) (using `npm i graphql`), as it is a required peer-dependency. Then, simply pass it an OpenAPI Specification 3.0. The library returns a promise that resolves on an object containing the schema:
+## Development
+OASGraph uses the [Lerna](https://github.com/lerna/lerna) monorepo management system. After cloning the entire monorepo repository, you can install Lerna with the command `npm install` and then install the dependencies for all of the packages with `lerna bootstrap`.
 
-```javascript
-const OASGraph = require('oasgraph') // use real name here
-
-let oas = require('./fixtures/example_oas.json') // or other means of obtaining the OAS
-
-OASGraph.createGraphQlSchema(oas)
-  .then(({schema}) => {
-    // do something with the schema
-  })
-  .catch(err => {
-    // handle errors when creating the schema
-  })
-```
-
-You can then use the generated schema, for example to be served using [Express.js](http://expressjs.com/):
-
-```javascript
-const express = require('express')
-const graphqlHTTP = require('express-graphql')
-const OASGraph = require('oasgraph') // use real name here
-const app = express()
-
-OASGraph.createGraphQlSchema(oas)
-  .then(({schema}) => {
-    app.use('/graphql', graphqlHTTP({
-      schema,
-      graphiql: true
-    }))
-    app.listen(3001)
-  })
-  .catch(err => {
-    // handle errors when creating the schema
-  })
-```
-
-
-### Options
-OASGraph allows to define an optional `options` object:
-
-```javascript
-OASGraph.createGraphQLSchema(oas, options)
-```
-
-The following options can be set:
-
-* `strict` (type: `boolean`, default: `false`): OASGraph generally tries to produce a working GraphQL interface for a given OAS. If OASGraph cannot fully translate a given OAS (e.g., because data schema definitions are incomplete or there are name collusions that cannot be resolved), OASGraph will per default degrade gracefully and produce a partly working GraphQL interface. OASGraph will log warnings (given logging is enabled). If OASGraph operates in `strict` mode, however, it will throw if it cannot create a GraphQL interface matching the given OAS perfectly.
-
-* `headers` (type: `object`, default: `{}`): Headers to be sent in every request. Parameters defined in the OpenAPI Specification to set these headers will be ignored by OASGraph.
-
-* `qs` (type: `object`, default: `{}`): Query parameters to be sent in every request. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OASGraph.
-
-* `viewer` (type: `boolean`, default: `true`): The viewer object types (i.e. QueryViewer and MutationViewer) are artificial constructs that allow a user to pass authentication credentials to OASGraph. Unfortunately, they are bulky and do not provide an accurate representation of the API. Depending on the API, it may be possible to send all your credentials through the header option, so if you would like to authenticate without the OASGraph-generated viewer object types, you can set the viewer option to false.
-
-* `tokenJSONpath` (type: `string`, default: `undefined`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](./README.md#authorization).
-
-* <a name="options-addsuboperations"></a> `addSubOperations` (type: `boolean`, default: `false`): When true, OASGraph will nest `GET` operations based on their path hierarchy in the given OAS. E.g., when the OAS contains two paths `/users/{id}` and `/users/{id}/friends`, OASGraph will make `friends` queryable from within `user`. Note: This may cause problems when resolving GraphQL types in certain contexts, where the required variables are not available.
-
-Consider this example of passing options:
-
-```javascript
-OASGraph.createGraphQLSchema(oas, {
-  headers: {
-    authorization: 'asfl3032lkj2' // send authorization header in every request
-    'x-origin': 'GraphQL' // send header to identify requests made via GraphQL
-  },
-  qs: {
-    limit: 30 // send limit query string in every request
-  },
-  addSubOperations: false
-})
-```
-
-
-## Authentication
-Per default, OASGraph will wrap API requests that need authentication in corresponding `viewers`, which allow the user to pass required credentials. OASGraph currently supports viewers for basic authentication and API keys. For example, a query using an API key viewer is:
-
-```javascript
-{
-  viewerApiKey (apiKey: "api_key_here") {
-    ...  // query for authenticated data here
-  }
-}
-```
-
-OASGraph uses dedicated viewers for mutations. For example, a mutation using a basic authentication viewer is:
-
-```javascript
-mutation {
-  mutationViewerBasic (username: "user", password: "secret") {
-    ...  // mutate authenticated data here
-  }
-}
-```
-
-OASGraph further provides `anyAuth` viewers (for queries and mutations), which allow the user to simultaneously provide information for multiple authentication mechanisms. AnyAuth viewers allow OASGraph to resolve nested queries and mutations that encompass API requests with different authentication mechanisms. For example, consider the following query:
-
-```javascript
-{
-  viewerAnyAuth (
-    exampleApiKeyProtocol: {apiKey: "a1p2i3k4e5y"}
-    exampleBasicProtocol: {
-      username: "erik"
-      password: "secret"
-    }
-  ) {
-    patentWithId (patentId: "test") {  // requires "exampleApiKeyProtocol"
-      patentId
-      inventor {                       // requires "exampleBasicProtocol"
-        name
-      }
-    }
-  }
-}
-```
-
-
-## Authorization
-Because OASGraph is a library, it cannot make the callbacks that OAuth requires by itself. Instead, the user must take care of the callback. After the user has obtained the OAuth token from the callback, simply pass the token, specifically the path of the token, to OASGraph through the `tokenJSONpath` [option](./README.md#options).
-
-To see an example of how this would work, click [here](https://github.ibm.com/apiharmony/oasgraph-oauth-github-example)!
-
-
-## Testing
-To test OASGraph, run:
-
-```bash
-npm test
-```
-
-This command will temporarily start and later shut down an example REST(-like) API.
+OASGraph is written in [TypeScript](http://www.typescriptlang.org/). Within each of OASGraph's packages, all source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
 
 
 ## Research
 Our research paper, "Generating GraphQL-Wrappers for REST(-like) APIs", can be found [here](https://arxiv.org/abs/1809.08319). The paper describes the challenges of building OASGraph and an experiment in which we evaluated OASGraph against 959 publicly available OAS, provided by [APIs.guru](https://apis.guru/), and successfully created GraphQL interfaces for 89.5% of them.
 
-To run the experiment, load APIs.guru specifications, found [here](https://github.com/APIs-guru/openapi-directory), into the `/tmp` folder:
+To run the experiment, in the [`oasgraph` package](./packages/oasgraph), load APIs.guru specifications, found [here](https://github.com/APIs-guru/openapi-directory), into the `/tmp` folder:
 
 ```bash
 npm run guru-load
@@ -236,26 +110,6 @@ Then, run tests:
 ```bash
 npm run guru-test <number of APIs to test at most>
 ```
-
-
-## Logging
-OASGraph provides multiple levels of logging, which can be controlled by a `DEBUG` environment variable. You can enable these levels using:
-
-```bash
-DEBUG=level_1,level_2 node app-using-oasgraph.js
-```
-
-The following logging levels are supported:
-
-* `preprocessing`: Logs information about preprocessing the OAS to GraphQL.
-* `translation`: Logs information about translating an OAS to GraphQL.
-* `http`: Logs information about the HTTP requests made to the API.
-
-
-## Development
-OASGraph uses the [Lerna](https://github.com/lerna/lerna) monorepo management system. After cloning the entire monorepo repository, you can install Lerna with the command `npm install` and then install the dependencies for all of the packages with `lerna bootstrap`.
-
-OASGraph is written in [TypeScript](http://www.typescriptlang.org/). Within each of OASGraph's packages, all source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
 
 
 ## Similar projects

@@ -1,7 +1,7 @@
 {
   "name": "oasgraph-cli",
   "version": "0.1.0",
-  "description": "CLI for turning APIs described by OpenAPI specifications (OAS) into GraphQL interfaces",
+  "description": "CLI for turning APIs described by OpenAPI Specifications (OAS) into GraphQL interfaces",
   "copyright.owner": "IBM Corp.",
   "contributors": [
     "Alan Cha",

@@ -1,6 +1,13 @@
-# OASGraph CLI
+![Travis (.org)](https://img.shields.io/travis/strongloop/oasgraph.svg?style=flat)
+[![npm](https://img.shields.io/npm/v/oasgraph-cli.svg?style=flat)](https://www.npmjs.com/package/oasgraph-cli)
+[![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Command line interface (CLI) for turning APIs described by OpenAPI specifications (OAS) into GraphQL interfaces.
+
+# OASGraph CLI
+Command line interface (CLI) for turning APIs described by [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/) interfaces.
+
+To use OASGraph as a library, refer to the [`oasgraph`](../oasgraph) package.
+
 
 ## Installation
 
@@ -33,7 +40,6 @@ OASgraph can also generate and save the GraphQL schema to the local file `schema
 oasgraph <OAS JSON file path or remote url> --save
 ```
 
-For the full documentation, see the [root of this monorepo](https://github.com/strongloop/oasgraph/).
 
 ## License
 [MIT](./LICENSE.md)
