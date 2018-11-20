@@ -69,6 +69,8 @@ export function preprocessOas (
         description = 'No description available.'
       }
 
+      description += `\n\nEquivalent to ${method.toUpperCase()} ${path}`
+
       // Hold on to the operationId
       let operationId = endpoint.operationId
 
