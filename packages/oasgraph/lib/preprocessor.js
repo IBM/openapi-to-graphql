@@ -50,6 +50,7 @@ function preprocessOas(oas, options) {
             if (typeof description !== 'string') {
                 description = 'No description available.';
             }
+            description += `\n\nEquivalent to ${method.toUpperCase()} ${path}`;
             // Hold on to the operationId
             let operationId = endpoint.operationId;
             // Fill in possibly missing operationId
@@ -273,7 +274,7 @@ function createOrReuseDataDef(data, schema, names) {
     data.usedOTNames.push(saneInputName);
     let def = {
         schema,
-        preferredName: preferredName,
+        preferredName,
         otName: saneName,
         iotName: saneInputName
     };
