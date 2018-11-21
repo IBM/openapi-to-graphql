@@ -1,10 +1,5 @@
 #!/usr/bin/env node
 
-// Copyright IBM Corp. 2017,2018. All Rights Reserved.
-// Node module: oasgraph
-// This file is licensed under the MIT License.
-// License text available at https://opensource.org/licenses/MIT
-
 import * as express from 'express'
 import * as graphqlHTTP from 'express-graphql'
 import { createGraphQlSchema } from 'oasgraph'
@@ -13,29 +8,36 @@ import * as request from 'request'
 import * as fs from 'fs'
 import { printSchema } from 'graphql'
 
+var program = require('commander')
+
 const app = express()
 
-const outputFileName = 'schema.graphql'
+let filePath
+let portNumber: number | string = 3001
 
-if (process.argv.length <= 2) {
-  const usage = 'oasgraph <OAS JSON file path or remote url> [port number|--save]'
-  console.log('Usage: ' + usage)
-  process.exit(-1)
+program
+  .version(require('../package.json').version)
+  .usage('<OAS JSON file path or remote url> [options]')
+  .arguments('<path>')
+  .option('-p, --port <port>', 'select the port where the server will start', parseInt)
+  .option('-s, --strict', 'throw an error if OASGraph cannot run without compensating for errors or missing data in the OAS')
+  .option('-a, --addSubOperations', 'nest operations based on path hierarchy')
+  .option('-f, --fillEmptyResponses', 'create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them')
+  .option('--no-viewer', 'do not create GraphQL viewer objects for passing authentication credentials')
+  .option('--save <file path>', 'save schema to path and do not start server')
+  .action(function (path) {
+     filePath = path
+  })
+  .parse(process.argv)
+
+if (typeof filePath === 'undefined') {
+   console.error('No path provided')
+   console.error('Please refer to the help manual (oasgraph -h) for more information')
+   process.exit(1);
 }
 
-let filePath = process.argv[2]
-
-// default values if only the url or local file is specified
-let portNumber : number | string = 3001
-let saveSchema = false
-
-for (var i=3; i<=process.argv.length-1; i++) {
-   if (isNaN(Number(process.argv[i])) && process.argv[i] === '--save') {
-     saveSchema = true
-   } else {
-     // it is safe now if user intentionally provides more arguments
-     portNumber = isNaN(Number(process.argv[i])) ? portNumber : process.argv[i]
-   } 
+if (program.port) {
+  portNumber = program.port
 }
 
 // check if the file exists 
@@ -43,14 +45,15 @@ if (fs.existsSync(path.resolve(filePath))) {
   let oas = require(path.resolve(filePath))
   startGraphQLServer(oas, portNumber)
     
-} else { // falls back to a remote location
+} else { 
+  // falls back to a remote location
   if (filePath.match(/^https?/g)) {
     getRemoteFileSpec(filePath).then(remoteContent=> {
     startGraphQLServer(remoteContent, portNumber)
   })
   } else {
-    console.log(`OASGraph reading local file error. file ${filePath} does not exist.`)
-    } 
+    console.error(`OASGraph reading local file error. File ${filePath} does not exist.`)
+  }
 }
 
 /**
@@ -77,16 +80,21 @@ function getRemoteFileSpec (uri) {
 /**
  * generates a GraphQL schema and starts the GraphQL server on the specified port 
  * @param {Object} oas the OAS specification file
- * @param {number} thePort the port number to listen on on this server
+ * @param {number} port the port number to listen on on this server
  */
-function startGraphQLServer(oas, thePort) {
+function startGraphQLServer(oas, port) {
   // Create GraphQL interface
-  createGraphQlSchema(oas) 
+  createGraphQlSchema(oas, {
+    strict: program.strict,
+    viewer: program.viewer,
+    addSubOperations: program.addSubOperations,
+    fillEmptyResponses: program.fillEmptyResponses
+  }) 
      .then(({schema, report}) => {
       console.log(JSON.stringify(report, null, 2))
 
       // save local file if required 
-      if (saveSchema) {
+      if (program.save) {
         writeSchema(schema);
       } else {
         // mounting graphql endpoint using the middleware express-graphql
@@ -96,8 +104,8 @@ function startGraphQLServer(oas, thePort) {
         }))
 
         // initiating the server on the port specified by user or the default one
-        app.listen(thePort, () => {
-          console.log(`GraphQL accessible at: http://localhost:${thePort}/graphql`)
+        app.listen(port, () => {
+          console.log(`GraphQL accessible at: http://localhost:${port}/graphql`)
         })
       }
     })
@@ -111,8 +119,8 @@ function startGraphQLServer(oas, thePort) {
  * @param {createGraphQlSchema} schema 
  */
 function writeSchema(schema){
-  fs.writeFile(outputFileName, printSchema(schema), (err) => {
+  fs.writeFile(program.save, printSchema(schema), (err) => {
     if (err) throw err
-    console.log(`OASGraph successfully saved your schema at ${outputFileName}`)
+    console.log(`OASGraph successfully saved your schema at ${program.save}`)
   })
 }

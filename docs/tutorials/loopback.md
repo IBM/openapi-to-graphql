@@ -64,9 +64,7 @@ Then change the server url to match the following. Otherwise, the GraphQL interf
 To install OASGraph, clone the repository and link the library (for the CLI commands to work) using the indicated steps.
 
 ```
-git clone git@github.com:strongloop/oasgraph.git
-cd oasgraph
-npm link
+npm i -g oasgraph
 ```
 
 Please note that OASGraph can be used either as a library, or via its Command Line Interface (CLI). In this case, we will be using the CLI tool, which will start a server in addition to creating the GraphQL interface.
@@ -76,7 +74,7 @@ Please note that OASGraph can be used either as a library, or via its Command Li
 Start the GraphQL server by running the following command.
 
 ```
-oasgraph [path to saved OAS]
+oasgraph <OAS JSON file path or remote url>
 ```
 
 The created GraphQL server is then accessible at [http://127.0.0.1:3001/graphql](http://127.0.0.1:3001/graphql).
@@ -182,7 +180,7 @@ Open the Family Tree API OAS and add the *links* and the *operationId* "getPerso
 After you have saved your changes to the OAS, restart the GraphQL server.
 
 ```
-oasgraph [path to saved OAS]
+oasgraph <OAS JSON file path or remote url> 
 ```
 
 ### Try complex queries

@@ -529,7 +529,7 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
          * response. GraphQL does not support that kind of functionality so by
          * default, these operations will be ignored.
          *
-         * However, if the following condition is true, than OASGraph will inject
+         * However, if the following condition is true, then OASGraph will inject
          * a placeholder response schema.
          */
         if (statusCode === '204' && options.fillEmptyResponses) {
