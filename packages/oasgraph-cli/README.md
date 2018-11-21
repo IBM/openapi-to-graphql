@@ -19,28 +19,48 @@ npm i -g oasgraph-cli
 
 
 ## Usage
-The basic usage of the CLI takes the specified OAS, create a GraphQL interface for it, and start a server to host the GraphQL interface.
 
-You can specify a local file containing the OAS specification or a remote url such as `http://127.0.0.1:3000/openapi.json`. Additionally, you can specify an optional port number so you can have multiple GraphQL servers for testing in the same machine.
+```
+Usage: oasgraph <OAS JSON file path or remote url> [options]
 
-```sh
-oasgraph <OAS JSON file path or remote url> [port number]
+Options:
+  -V, --version             output the version number
+  -p, --port <port>         select the port where the server will start
+  -s, --strict              throw an error if OASGraph cannot run without compensating for errors or missing data in the OAS
+  -a, --addSubOperations    nest operations based on path hierarchy
+  -f, --fillEmptyResponses  create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them
+  --no-viewer               do not create GraphQL viewer objects for passing authentication credentials
+  --save <file path>        save schema to path and do not start server
+  -h, --help                output usage information
 ```
 
-To create the CLI tool, run:
-```sh
-npm link
-```
+The basic usage of the CLI takes the specified OAS, creates a GraphQL interface for it, and starts a server to host the GraphQL interface.
 
-Please note that the CLI tool is mainly used for quick testing and does not offer all the features that `createGraphQlSchema(oas, options)` does.
+```sh
+oasgraph oas.json
+```
 
 ***
 
-OASgraph can also generate and save the GraphQL schema to the local file `schema.graphql`, which you can use later to inspect or change its content. Please note that the following command will not start the GraphQL server.
+You can specify the OAS by pointing to either a local file or a remote url such as `http://127.0.0.1:3000/openapi.json`. Additionally, you can specify a port number so you can have multiple GraphQL servers running on the same machine.
 
 ```sh
-oasgraph <OAS JSON file path or remote url> --save
+oasgraph http://127.0.0.1:3000/openapi.json -p 3001
 ```
+
+***
+
+OASgraph can also save a GraphQL schema to a local file, which you can use to inspect or change its content. Please note that the following command will not start the GraphQL server.
+
+```sh
+oasgraph oas.json --save schema.graphql
+```
+
+***
+
+To learn more about the other options, please refer [here](https://github.com/strongloop/oasgraph/tree/master/packages/oasgraph#options).
+
+Please note that the CLI tool is mainly used for quick testing and does not offer all the features that [`createGraphQlSchema(oas, options)`](https://github.com/strongloop/oasgraph/tree/master/packages/oasgraph#usage) does.
 
 
 ## License

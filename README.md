@@ -22,7 +22,7 @@ The Command Line Interface (CLI) provides a convenient way to start a GraphQL se
     ```
 2. Then, run the OASGraph command and point it to an OpenAPI Specification:
     ```bash
-    oasgraph <OAS JSON file path or remote url> [port number]
+    oasgraph <OAS JSON file path or remote url> [options]
     ```
 
 For further details, refer to the [`oasgraph-cli` documentation](./packages/oasgraph-cli).
@@ -33,7 +33,7 @@ Use OASGraph as a library in your application to generate GraphQL schemas.
 
 1. Install OASGraph as a dependency:
     ```bash
-    npm i oasgraph
+    npm i -s oasgraph
     ```
 2. Require OASGraph and use the `createGraphQlSchema` function:
     ```javascript

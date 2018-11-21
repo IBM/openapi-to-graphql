@@ -45,8 +45,8 @@ If you want to generate a GraphQL interface for another API, make sure that API 
 
 Once OASGraph is installed and the OAS is obtained, you can create and start the GraphQL server. The created GraphQL server is then accessible by default at [http://127.0.0.1:3001/graphql](http://127.0.0.1:3001/graphql).
 
-You can specify a local file containing the OAS specification or a remote url such as `http://127.0.0.1:3000/openapi.json`. Additionally, you can specify an optional port number so you can have multiple GraphQL servers for testing in the same machine.
+You can specify a local file containing the OAS specification or a remote url such as `http://127.0.0.1:3000/openapi.json`. 
 
 ```sh
-oasgraph <OAS JSON file path or remote url> [port number]
+oasgraph <OAS JSON file path or remote url> 
 ```
