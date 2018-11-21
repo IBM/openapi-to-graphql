@@ -27,7 +27,8 @@ oas.servers[0].variables.port.default = String(PORT)
 beforeAll(() => {
   return Promise.all([
     OasGraph.createGraphQlSchema(oas, {
-      addSubOperations: true
+      addSubOperations: true,
+      fillEmptyResponses: true
     })
     .then(({schema, report}) => {
       createdSchema = schema
@@ -75,6 +76,19 @@ test('Get resource with status code: 2XX', () => {
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({data: {papers: [{name: "Deliciousness of apples", published: true}, {name: "How much coffee is too much coffee?", published: false}, {name: "How many tennis balls can fit into the average building?", published: true}]}})
+  })
+})
+
+test('Get resource with no response schema and status code: 204 and fillEmptyResponses', () => {
+  let query = `{
+    bonuses
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        "bonuses": ""
+      }
+    })
   })
 })
 

@@ -66,4 +66,14 @@ export type Options = {
    * Holds information about the GraphQL schema generation process
    */
   report: Report
+
+  /**
+   * Under certain circumstances (such as response code 204), some RESTful 
+   * operations should not return any data. However, GraphQL objects must have 
+   * a data structure. Normally, these operations would be ignored but for the 
+   * sake of completeness, the following option will give these operations a
+   * placeholder data structure. Even though the data structure will not have
+   * any practical use, at least the operations will show up in the schema. 
+   */
+  fillEmptyResponses: boolean
 }

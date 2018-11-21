@@ -322,6 +322,11 @@ function startServer (PORT) {
     res.send('5 dirty desks')
   })
 
+  app.get('/api/bonuses', (req, res) => {
+    console.log(req.method, req.path)
+    res.status(204).send()
+  })
+
   app.get('/api/offices/:id', (req, res) => {
     console.log(req.method, req.path)
 

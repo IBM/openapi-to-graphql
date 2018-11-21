@@ -43,6 +43,9 @@ function createGraphQlSchema(spec, options) {
         options.sendOAuthTokenInQuery = typeof options.sendOAuthTokenInQuery === 'boolean'
             ? options.sendOAuthTokenInQuery
             : false;
+        options.fillEmptyResponses = typeof options.fillEmptyResponses === 'boolean'
+            ? options.fillEmptyResponses
+            : false;
         options.report = {
             warnings: [],
             numOps: 0,
@@ -68,7 +71,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, report }) {
+function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, report, fillEmptyResponses }) {
     return __awaiter(this, void 0, void 0, function* () {
         let options = {
             headers,
@@ -78,7 +81,8 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
             strict,
             addSubOperations,
             sendOAuthTokenInQuery,
-            report
+            report,
+            fillEmptyResponses
         };
         log(`Options: ${JSON.stringify(options)}`);
         /**

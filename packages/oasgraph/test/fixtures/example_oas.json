@@ -267,6 +267,18 @@
 				}
 			}
 		},
+		"/bonuses": {
+			"get": {
+				"operationId": "getBonuses",
+				"description": "Used to test empty responses",
+				"parameters": [],
+				"responses": {
+					"204": {
+						"description": "Used to test empty responses"
+					}
+				}
+			}
+		},
 		"/offices/{id}": {
 			"get": {
 				"operationId": "getOffice",

@@ -487,7 +487,7 @@ exports.getResponseSchema = getResponseSchema;
  * the given status code, and a dictionary of names from different sources (if
  * available).
  */
-function getResponseSchemaAndNames(path, method, oas, data) {
+function getResponseSchemaAndNames(path, method, oas, data, options) {
     let endpoint = oas.paths[path][method];
     let responseSchemaNames = {};
     let statusCode = getResponseStatusCode(path, method, oas, data);
@@ -524,6 +524,26 @@ function getResponseSchemaAndNames(path, method, oas, data) {
         };
     }
     else {
+        /**
+         * 204 is a special case in which a successful call does not return a
+         * response. GraphQL does not support that kind of functionality so by
+         * default, these operations will be ignored.
+         *
+         * However, if the following condition is true, than OASGraph will inject
+         * a placeholder response schema.
+         */
+        if (statusCode === '204' && options.fillEmptyResponses) {
+            return {
+                responseSchemaNames: {
+                    fromPath: inferResourceNameFromPath(path),
+                },
+                responseContentType: 'application/json',
+                responseSchema: {
+                    description: 'Placeholder object to support operations with no response schema',
+                    type: 'string'
+                }
+            };
+        }
         return {};
     }
 }
