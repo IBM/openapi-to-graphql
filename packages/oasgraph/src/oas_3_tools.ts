@@ -28,6 +28,7 @@ import {
   SecurityRequirementObject
 } from './types/oas3.js'
 import { PreprocessingData } from './types/preprocessing_data'
+import { Options } from './types/options'
 
 // Imports:
 import * as Swagger2OpenAPI from 'swagger2openapi'
@@ -593,7 +594,8 @@ export function getResponseSchemaAndNames (
   path: string,
   method: string,
   oas: Oas3,
-  data: PreprocessingData
+  data: PreprocessingData,
+  options: Options
 ): ResponseSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let responseSchemaNames: any = {}
@@ -636,6 +638,28 @@ export function getResponseSchemaAndNames (
       responseSchemaNames
     }
   } else {
+
+    /**
+     * 204 is a special case in which a successful call does not return a 
+     * response. GraphQL does not support that kind of functionality so by
+     * default, these operations will be ignored.
+     * 
+     * However, if the following condition is true, than OASGraph will inject
+     * a placeholder response schema. 
+     */
+    if (statusCode === '204' && options.fillEmptyResponses) {
+      return {
+        responseSchemaNames: {
+          fromPath: inferResourceNameFromPath(path),
+        }, 
+        responseContentType: 'application/json',
+        responseSchema: {
+          description: 'Placeholder object to support operations with no response schema',
+          type: 'string'
+        }
+      }
+    }
+
     return {}
   }
 }

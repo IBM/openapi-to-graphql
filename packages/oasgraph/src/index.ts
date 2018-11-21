@@ -96,6 +96,9 @@ export async function createGraphQlSchema (
   options.sendOAuthTokenInQuery = typeof options.sendOAuthTokenInQuery === 'boolean'
     ? options.sendOAuthTokenInQuery
     : false
+  options.fillEmptyResponses = typeof options.fillEmptyResponses === 'boolean'
+    ? options.fillEmptyResponses
+    : false
 
   options.report = {
     warnings: [],
@@ -132,7 +135,8 @@ async function translateOpenApiToGraphQL (
     tokenJSONpath,
     addSubOperations,
     sendOAuthTokenInQuery,
-    report
+    report,
+    fillEmptyResponses
   }: Options
 ): Promise<{ schema: GraphQLSchema, report: Report}> {
   let options = {
@@ -143,7 +147,8 @@ async function translateOpenApiToGraphQL (
     strict,
     addSubOperations,
     sendOAuthTokenInQuery,
-    report
+    report,
+    fillEmptyResponses
   }
   log(`Options: ${JSON.stringify(options)}`)
 

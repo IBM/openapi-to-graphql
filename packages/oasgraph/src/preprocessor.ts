@@ -90,7 +90,7 @@ export function preprocessOas (
 
       // Response schema
       let { responseContentType, responseSchema, responseSchemaNames } = Oas3Tools.getResponseSchemaAndNames(
-        path, method, oas, data)
+        path, method, oas, data, options)
 
       if (!responseSchema || typeof responseSchema !== 'object') {
         handleWarning({

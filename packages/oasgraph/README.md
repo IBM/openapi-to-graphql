@@ -77,6 +77,8 @@ The options object can contain the following properties:
 
 * <a name="options-addsuboperations"></a> `addSubOperations` (type: `boolean`, default: `false`): When true, OASGraph will nest `GET` operations based on their path hierarchy in the given OAS. E.g., when the OAS contains two paths `/users/{id}` and `/users/{id}/friends`, OASGraph will make `friends` queryable from within `user`. Note: This may cause problems when resolving GraphQL types in certain contexts, where the required variables are not available.
 
+* `fillEmptyResponses` (type: `boolean`, default: `false`): OASGraph, by default, will only wrap operations that have a [response schema](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md#responsesObject) and operations that do not have a response schema will be ignored. The reason is that all GraphQL objects must have a data structure and in these cases, where the OAS does not define a response schema, the data structure cannot be safely assumed. As a result, it is recommended that the OAS should be modified to include a response schema. However, under certain circumstances, some operations should _not in fact_ have a response schema. One circumstance is HTTP status code 204, in which no content should be returned. The option `fillEmptyResponses` will allow OASGraph to wrap these operations by assigning these operations a nullable data structure. Although this data structure is meaningless, the operation will appear in the schema. 
+
 Consider this example of passing options:
 
 ```javascript
@@ -91,7 +93,6 @@ OASGraph.createGraphQLSchema(oas, {
   addSubOperations: false
 })
 ```
-
 
 
 ## Authentication

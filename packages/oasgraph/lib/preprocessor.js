@@ -64,7 +64,7 @@ function preprocessOas(oas, options) {
                 payloadDefinition = createOrReuseDataDef(data, payloadSchema, payloadSchemaNames);
             }
             // Response schema
-            let { responseContentType, responseSchema, responseSchemaNames } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data);
+            let { responseContentType, responseSchema, responseSchemaNames } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options);
             if (!responseSchema || typeof responseSchema !== 'object') {
                 utils_1.handleWarning({
                     typeKey: 'MISSING_RESPONSE_SCHEMA',
