@@ -6,6 +6,7 @@ import { createGraphQlSchema } from 'oasgraph'
 import * as path from 'path'
 import * as request from 'request'
 import * as fs from 'fs'
+import * as yaml from 'js-yaml'
 import { printSchema } from 'graphql'
 
 var program = require('commander')
@@ -42,9 +43,13 @@ if (program.port) {
 
 // check if the file exists 
 if (fs.existsSync(path.resolve(filePath))) {
-  let oas = require(path.resolve(filePath))
-  startGraphQLServer(oas, portNumber)
-    
+  try {
+    let oas = readFile(path.resolve(filePath))
+    startGraphQLServer(oas, portNumber)
+  } catch (e) {
+    console.error(e)
+  }
+  
 } else { 
   // falls back to a remote location
   if (filePath.match(/^https?/g)) {
@@ -53,6 +58,27 @@ if (fs.existsSync(path.resolve(filePath))) {
   })
   } else {
     console.error(`OASGraph reading local file error. File ${filePath} does not exist.`)
+  }
+}
+
+/**
+* Returns content of read JSON/YAML file.
+*
+* @param  {String} path Path to file to read
+* @return {Object}      Content of read file
+*/
+function readFile (path) {
+  try {
+    let doc
+    if (/json$/.test(path)) {
+      doc = JSON.parse(fs.readFileSync(path, 'utf8'))
+    } else if (/yaml$|yml$/.test(path)) {
+      doc = yaml.safeLoad(fs.readFileSync(path, 'utf8'))
+    }
+    return doc
+  } catch (e) {
+    console.error('Error: failed to parse YAML/JSON: ' + e)
+    return null
   }
 }
 
