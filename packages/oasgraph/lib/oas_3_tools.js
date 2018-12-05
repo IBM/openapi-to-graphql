@@ -593,7 +593,7 @@ function getEndpointLinks(path, method, oas, data) {
             if (typeof response.$ref === 'string') {
                 response = resolveRef(response.$ref, oas);
             }
-            // here, we can be ceratain we have a ResponseObject:
+            // here, we can be certain we have a ResponseObject:
             response = response;
             if (typeof response.links === 'object') {
                 let epLinks = response.links;

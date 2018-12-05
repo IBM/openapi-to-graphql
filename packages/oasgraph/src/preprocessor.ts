@@ -65,6 +65,7 @@ export function preprocessOas (
         typeof endpoint.summary === 'string') {
         description = endpoint.summary
       }
+      
       if (typeof description !== 'string') {
         description = 'No description available.'
       }

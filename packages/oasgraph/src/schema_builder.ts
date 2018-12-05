@@ -261,10 +261,13 @@ function reuseOrCreateOt ({
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
+
+      let description = typeof schema.description !== 'undefined'
+        ? schema.description : 'No description available.'
       // @ts-ignore
       def.iot = new GraphQLInputObjectType({
         name: def.iotName,
-        description: schema.description, // might be undefined
+        description: schema.description, 
         // @ts-ignore
         fields: () => {
           return createFields({
@@ -500,7 +503,6 @@ function createFields ({
 
       // linkedOpId may not be initialized because operationRef may lead to an
       // operation object that does not have an operationId
-
       if (typeof linkedOpId === 'string' && linkedOpId in data.operations) {
         let linkedOp = data.operations[linkedOpId]
 
@@ -540,13 +542,21 @@ function createFields ({
          */
         let resObjectType = linkedOp.responseDefinition.ot
 
+        let description = operation.links[linkKey].description
+
+        if (typeof description !== 'string') {
+          description = 'No description available.'
+        }
+  
+        description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`
+
         // finally, add the object type to the fields (using sanitized field name)
         let saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap)
         fields[saneLinkKey] = {
           type: resObjectType,
           resolve: linkResolver,
           args,
-          description: operation.links[linkKey].description // may be undefined
+          description
         }
       } else {
         handleWarning({
