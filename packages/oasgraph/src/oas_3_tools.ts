@@ -721,7 +721,7 @@ export function getEndpointLinks (
         response = (resolveRef((response as ReferenceObject).$ref, oas) as ResponseObject)
       }
 
-      // here, we can be ceratain we have a ResponseObject:
+      // here, we can be certain we have a ResponseObject:
       response = ((response as any) as ResponseObject)
 
       if (typeof response.links === 'object') {

@@ -155,6 +155,8 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
+            let description = typeof schema.description !== 'undefined'
+                ? schema.description : 'No description available.';
             // @ts-ignore
             def.iot = new graphql_1.GraphQLInputObjectType({
                 name: def.iotName,
@@ -386,13 +388,18 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                  * OT will be built up some other time
                  */
                 let resObjectType = linkedOp.responseDefinition.ot;
+                let description = operation.links[linkKey].description;
+                if (typeof description !== 'string') {
+                    description = 'No description available.';
+                }
+                description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
                 // finally, add the object type to the fields (using sanitized field name)
                 let saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap);
                 fields[saneLinkKey] = {
                     type: resObjectType,
                     resolve: linkResolver,
                     args,
-                    description: operation.links[linkKey].description // may be undefined
+                    description
                 };
             }
             else {
