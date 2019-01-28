@@ -21,6 +21,14 @@ export type Report = {
   numMutationsCreated: number
 }
 
+export enum Schemes {
+  HTTP = "http",
+  HTTPS = "https",
+  WS = "ws",
+  WSS = "wss",
+}
+
+
 export type Options = {
   /**
    * Adhere to the OAS as closely as possible. If set to true, any deviation
@@ -76,4 +84,11 @@ export type Options = {
    * any practical use, at least the operations will show up in the schema. 
    */
   fillEmptyResponses: boolean
+
+  /**
+   * Specifies the prefered server's transport scheme to use in case a choice can be made.
+   * Possible values are "http", "https", "ws" or "wss".
+   * By default, the first encountered server will be used.
+   */
+  preferedScheme?: Schemes
 }
