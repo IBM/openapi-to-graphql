@@ -167,7 +167,7 @@ function getPreferedServer(servers, preferedScheme) {
         let preferedServer = servers[0];
         if (preferedScheme) {
             // get all servers that match the preferedScheme option
-            let preferedServers = servers.filter(server => server.url && server.url.startsWith(preferedScheme));
+            let preferedServers = servers.filter(server => server.url && server.url.startsWith(`${preferedScheme}:`));
             if (preferedServers.length > 0) {
                 preferedServer = preferedServers[0];
                 if (preferedServers.length > 1)
