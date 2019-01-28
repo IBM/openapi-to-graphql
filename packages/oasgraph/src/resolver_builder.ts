@@ -12,6 +12,7 @@ import { Oas3, SchemaObject } from './types/oas3'
 import { Operation } from './types/operation'
 import { ResolveFunction } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
+import { Schemes } from './types/options'
 
 // Imports:
 import * as request from 'request'
@@ -27,7 +28,8 @@ type GetResolverParams = {
   argsFromParent?: string[],
   payloadName?: string,
   data: PreprocessingData,
-  oas: Oas3
+  oas: Oas3,
+  preferedScheme?: Schemes
 }
 
 type RequestOptions = {
@@ -60,10 +62,11 @@ export function getResolver ({
   argsFromParent = [],
   payloadName,
   data,
-  oas
+  oas,
+  preferedScheme
 }: GetResolverParams): ResolveFunction {
   // determine the appropriate URL:
-  let baseUrl = Oas3Tools.getBaseUrl(oas, operation)
+  let baseUrl = Oas3Tools.getBaseUrl(oas, operation, preferedScheme)
 
   // return resolve function:
   return (root: any, args, ctx = {}) => {

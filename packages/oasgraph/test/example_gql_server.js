@@ -10,17 +10,18 @@ const graphqlHTTP = require('express-graphql')
 const app = express()
 const OasGraph = require('../lib/index.js')
 
-let oas = require('./fixtures/example_oas.json')
+// let oas = require('./fixtures/example_oas.json')
 // let oas = require('./fixtures/github_oas.json')
 // let oas = require('./fixtures/instagram.json')
 // let oas = require('./fixtures/government_social_work_api.json')
+let oas = require('./fixtures/weather_underground_api.json')
 
 // const yamljs = require('yamljs')
 // const fs = require('fs')
 // // requires Box API from API Guru
 // let oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
-OasGraph.createGraphQlSchema(oas, {strict: true, fillEmptyResponses: true})
+OasGraph.createGraphQlSchema(oas, {strict: true, fillEmptyResponses: true, preferedScheme: "https"})
   .then(({schema, report}) => {
     console.log(JSON.stringify(report, null, 2))
     app.use('/graphql', graphqlHTTP({
