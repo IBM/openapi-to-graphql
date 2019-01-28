@@ -71,7 +71,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, report, fillEmptyResponses }) {
+function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, report, fillEmptyResponses, preferedScheme }) {
     return __awaiter(this, void 0, void 0, function* () {
         let options = {
             headers,
@@ -82,7 +82,8 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
             addSubOperations,
             sendOAuthTokenInQuery,
             report,
-            fillEmptyResponses
+            fillEmptyResponses,
+            preferedScheme
         };
         log(`Options: ${JSON.stringify(options)}`);
         /**
@@ -105,7 +106,7 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
             .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
             .forEach(([operationId, operation]) => {
             log(`Process operation "${operationId}"...`);
-            let field = getFieldForOperation(operation, data, oas);
+            let field = getFieldForOperation(operation, data, oas, options.preferedScheme);
             if (!operation.isMutation) {
                 let fieldName = operation.responseDefinition.otName;
                 if (operation.inViewer) {
@@ -213,7 +214,7 @@ function sortByHasLinksOrSubOps(op1, op2) {
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation(operation, data, oas) {
+function getFieldForOperation(operation, data, oas, preferedScheme) {
     // create GraphQL Type for response:
     let type = schema_builder_1.getGraphQLType({
         name: operation.responseDefinition.preferredName,
@@ -233,7 +234,8 @@ function getFieldForOperation(operation, data, oas) {
         operation,
         oas,
         payloadName: payloadSchemaName,
-        data
+        data,
+        preferedScheme
     });
     // create args:
     let args = schema_builder_1.getArgs({
