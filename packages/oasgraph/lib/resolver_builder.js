@@ -15,9 +15,9 @@ const log = debug_1.default('http');
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloadName, data, oas }) {
+function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloadName, data, oas, preferedScheme }) {
     // determine the appropriate URL:
-    let baseUrl = Oas3Tools.getBaseUrl(oas, operation);
+    let baseUrl = Oas3Tools.getBaseUrl(oas, operation, preferedScheme);
     // return resolve function:
     return (root, args, ctx = {}) => {
         // fetch possibly existing _oasgraph
