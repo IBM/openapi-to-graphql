@@ -122,7 +122,6 @@ const getViewerOT = (name, protocolName, type, queryFields, data) => {
         }
     }
     return {
-        // @ts-ignore
         type: new graphql_1.GraphQLObjectType({
             name: name,
             description: `A viewer for the security protocol: "${scheme.rawName}"`,
@@ -162,7 +161,6 @@ const getViewerAnyAuthOT = (name, queryFields, data, oas) => {
         };
     };
     return {
-        // @ts-ignore
         type: new graphql_1.GraphQLObjectType({
             name: name,
             description: 'Warning: Not every request will work with this viewer type',

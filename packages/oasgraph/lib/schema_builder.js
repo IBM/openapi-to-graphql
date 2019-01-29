@@ -122,7 +122,6 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
                     : ''));
             let description = typeof schema.description !== 'undefined'
                 ? schema.description : 'No description available.';
-            // @ts-ignore
             def.ot = new graphql_1.GraphQLObjectType({
                 name: def.otName,
                 description,
@@ -157,7 +156,6 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
                     : ''));
             let description = typeof schema.description !== 'undefined'
                 ? schema.description : 'No description available.';
-            // @ts-ignore
             def.iot = new graphql_1.GraphQLInputObjectType({
                 name: def.iotName,
                 description: schema.description,
@@ -206,7 +204,6 @@ function reuseOrCreateList({ name, operation, schema, data, oas, iteration, isMu
         itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas);
         itemsName = schema.items['$ref'].split('/').pop();
     }
-    // @ts-ignore
     let itemsType = getGraphQLType({
         name: itemsName,
         schema: itemsSchema,
