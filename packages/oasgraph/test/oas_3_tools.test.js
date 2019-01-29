@@ -41,7 +41,7 @@ test('Sanitize object keys including array', () => {
     'a_key': {
       'b&**key': 'test !!',
       'asf blah': [
-        {'a)(a': 'test2'}
+        { 'a)(a': 'test2' }
       ]
     }
   }
@@ -58,9 +58,11 @@ test('Sanitize object keys including array', () => {
 
 test('Sanitize object keys when given an array', () => {
   let obj = [
-    {'a)(a': {
-      'b_2': 'test'
-    }}
+    {
+      'a)(a': {
+        'b_2': 'test'
+      }
+    }
   ]
   let clean = Oas3Tools.sanitizeObjKeys(obj)
   expect(clean).toEqual([{
@@ -110,8 +112,8 @@ test('Desanitize object keys including array', () => {
   let obj = {
     'productId': {
       info: [
-        {'productName': 'test1'},
-        {'productTag': 'test2'}
+        { 'productName': 'test1' },
+        { 'productTag': 'test2' }
       ]
     }
   }
@@ -119,8 +121,8 @@ test('Desanitize object keys including array', () => {
   expect(clean).toEqual({
     'product-id': {
       info: [
-        {'product-name': 'test1'},
-        {'product-tag': 'test2'}
+        { 'product-name': 'test1' },
+        { 'product-tag': 'test2' }
       ]
     }
   })
@@ -128,9 +130,11 @@ test('Desanitize object keys including array', () => {
 
 test('Desanitize object keys when given an array', () => {
   let obj = [
-    {'productName': {
-      'productTag': 'test'
-    }}
+    {
+      'productName': {
+        'productTag': 'test'
+      }
+    }
   ]
   let clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
   expect(clean).toEqual([{
@@ -139,6 +143,40 @@ test('Desanitize object keys when given an array', () => {
     }
   }])
 })
+
+test('The server with the preferred scheme is returned when available', () => {
+  let servers = [
+    { url: 'http://api.wunderground.com/api' },
+    { url: 'https://api.wunderground.com/api' },
+    { url: 'ws://api.wunderground.com/api' }]
+
+  let preferredScheme = "https"
+  let preferredServer = Oas3Tools.getPreferredServer(servers, preferredScheme)
+  expect(preferredServer.url).toEqual('https://api.wunderground.com/api')
+})
+
+test('The first server is returned when no preferred scheme is specified', () => {
+  let servers = [
+    { url: 'http://api.wunderground.com/api' },
+    { url: 'https://api.wunderground.com/api' },
+    { url: 'ws://api.wunderground.com/api' }]
+
+  let preferredServer = Oas3Tools.getPreferredServer(servers)
+  expect(preferredServer.url).toEqual('http://api.wunderground.com/api')
+})
+
+test('The first server with the preferred scheme is returned when many are avaible', () => {
+  let servers = [
+    { url: 'http://api.wunderground.com/api' },
+    { url: 'https://api.wunderground.com/api' },
+    { url: 'ws://api1.wunderground.com/api' },
+    { url: 'ws://api2.wunderground.com/api' }]
+
+  let preferredScheme = "ws"
+  let preferredServer = Oas3Tools.getPreferredServer(servers, preferredScheme)
+  expect(preferredServer.url).toEqual('ws://api1.wunderground.com/api')
+})
+
 
 test('Properly treat null values during sanitization', () => {
   let schema = new GraphQLSchema({
