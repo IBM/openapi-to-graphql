@@ -90,5 +90,5 @@ export type Options = {
    * Possible values are "http", "https", "ws" or "wss".
    * By default, the first encountered server will be used.
    */
-  preferedScheme?: Schemes
+  preferredScheme?: Schemes
 }

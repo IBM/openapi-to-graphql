@@ -24,19 +24,19 @@ import debug from 'debug'
 // Type definitions & exports:
 type GetResolverParams = {
   operation: Operation,
-  argsFromLink?: {[key: string]: string},
+  argsFromLink?: { [key: string]: string },
   argsFromParent?: string[],
   payloadName?: string,
   data: PreprocessingData,
   oas: Oas3,
-  preferedScheme?: Schemes
+  preferredScheme?: Schemes
 }
 
 type RequestOptions = {
   method: string,
   url: string,
-  headers: {[key: string]: string},
-  qs: {[key: string]: string},
+  headers: { [key: string]: string },
+  qs: { [key: string]: string },
   body?: (Object | Array<any> | string)
 }
 
@@ -46,8 +46,8 @@ type AuthReqAndProtcolName = {
 }
 
 type AuthOptions = {
-  authHeaders: {[key: string]: string},
-  authQs: {[key: string]: string}
+  authHeaders: { [key: string]: string },
+  authQs: { [key: string]: string }
 }
 
 const log = debug('http')
@@ -63,10 +63,10 @@ export function getResolver ({
   payloadName,
   data,
   oas,
-  preferedScheme
+  preferredScheme
 }: GetResolverParams): ResolveFunction {
   // determine the appropriate URL:
-  let baseUrl = Oas3Tools.getBaseUrl(oas, operation, preferedScheme)
+  let baseUrl = Oas3Tools.getBaseUrl(oas, operation, preferredScheme)
 
   // return resolve function:
   return (root: any, args, ctx = {}) => {
@@ -99,15 +99,15 @@ export function getResolver ({
         } else {
           log(`Warning: could not extract parameter ${paramName} form link`)
         }
-      // CASE: parameter in previous query parameter
+        // CASE: parameter in previous query parameter
       } else if (/query\./.test(value)) {
         args[paramNameWithoutLocation] =
           _oasgraph.usedParams[Oas3Tools.beautify(value.split('query.')[1])]
-      // CASE: parameter in previous path parameter
+        // CASE: parameter in previous path parameter
       } else if (/path\./.test(value)) {
         args[paramNameWithoutLocation] =
           _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
-      // CASE: link OASGraph currently does not support
+        // CASE: link OASGraph currently does not support
       } else {
         log(`Warning: could not process link parameter ${paramName} with ` +
           `value ${value}`)
@@ -129,7 +129,7 @@ export function getResolver ({
     operation.parameters.forEach(param => {
       let paramName = Oas3Tools.beautify(param.name)
       if (typeof args[paramName] === 'undefined' &&
-      param.schema && typeof param.schema === 'object') {
+        param.schema && typeof param.schema === 'object') {
         let schema = param.schema
         if (schema && schema.$ref && typeof schema.$ref === 'string') {
           schema = Oas3Tools.resolveRef(schema.$ref, oas)
@@ -156,8 +156,8 @@ export function getResolver ({
     // cannot be easily changed
     //
     // NOTE: This may cause the use to encounter unexpected changes
-    headers['content-type'] = typeof(operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json'
-    headers['accept'] = typeof(operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json'
+    headers['content-type'] = typeof (operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json'
+    headers['accept'] = typeof (operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json'
 
     let options: RequestOptions = {
       method: operation.method,
@@ -269,7 +269,7 @@ export function getResolver ({
 function createOAuthQS (
   data: PreprocessingData,
   ctx: Object
-): {[key: string]: string} {
+): { [key: string]: string } {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
@@ -296,7 +296,7 @@ function createOAuthQS (
 function createOAuthHeader (
   data: PreprocessingData,
   ctx: Object
-): {[key: string]: string} {
+): { [key: string]: string } {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
   }
