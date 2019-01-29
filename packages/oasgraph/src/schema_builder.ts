@@ -229,7 +229,6 @@ function reuseOrCreateOt ({
 
       let description = typeof schema.description !== 'undefined'
         ? schema.description : 'No description available.'
-      // @ts-ignore
       def.ot = new GraphQLObjectType({
         name: def.otName,
         description,
@@ -264,7 +263,6 @@ function reuseOrCreateOt ({
 
       let description = typeof schema.description !== 'undefined'
         ? schema.description : 'No description available.'
-      // @ts-ignore
       def.iot = new GraphQLInputObjectType({
         name: def.iotName,
         description: schema.description, 
@@ -327,7 +325,6 @@ function reuseOrCreateList ({
     itemsName = schema.items['$ref'].split('/').pop()
   }
 
-  // @ts-ignore
   let itemsType = getGraphQLType({
     name: itemsName,
     schema: itemsSchema,
