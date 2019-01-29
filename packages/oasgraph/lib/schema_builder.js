@@ -109,14 +109,14 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
     // CASE: query - create or reuse OT
     if (!isMutation) {
         if (def.ot && typeof def.ot !== 'undefined') {
-            log(`reuse  Object Type "${def.otName}"` +
+            log(`Reuse  Object Type "${def.otName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
             return def.ot;
         }
         else {
-            log(`create Object Type "${def.otName}"` +
+            log(`Create Object Type "${def.otName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
@@ -144,14 +144,14 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
     }
     else {
         if (typeof def.iot !== 'undefined') {
-            log(`reuse  Input Object Type "${def.iotName}"` +
+            log(`Reuse  Input Object Type "${def.iotName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
             return def.iot;
         }
         else {
-            log(`create Input Object Type "${def.iotName}"` +
+            log(`Create Input Object Type "${def.iotName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
@@ -190,15 +190,15 @@ function reuseOrCreateList({ name, operation, schema, data, oas, iteration, isMu
     let def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: `${name}` });
     // try to reuse existing Object Type
     if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
-        log(`reuse  GraphQLList "${def.otName}"`);
+        log(`Reuse  GraphQLList "${def.otName}"`);
         return def.ot;
     }
     else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
-        log(`reuse  GraphQLList "${def.iotName}"`);
+        log(`Reuse  GraphQLList "${def.iotName}"`);
         return def.iot;
     }
     // create new List Object Type
-    log(`create GraphQLList "${def.otName}"`);
+    log(`Create GraphQLList "${def.otName}"`);
     // determine the type of the list elements
     let itemsSchema = schema.items;
     let itemsName = `${name}ListItem`;
@@ -245,11 +245,11 @@ function reuseOrCreateEnum({ name, data, schema }) {
     // try to reuse existing Enum Type
     let def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: name });
     if (def.ot && typeof def.ot !== 'undefined') {
-        log(`reuse  GraphQLEnumType "${def.otName}"`);
+        log(`Reuse  GraphQLEnumType "${def.otName}"`);
         return def.ot;
     }
     else {
-        log(`create GraphQLEnumType "${def.otName}"`);
+        log(`Create GraphQLEnumType "${def.otName}"`);
         let values = {};
         schema.enum.forEach(e => {
             values[Oas3Tools.beautify(e, false)] = {
@@ -337,7 +337,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
         !isMutation // only if we are not talking INPUT object type
     ) {
         for (let linkKey in operation.links) {
-            log(`create link "${linkKey}"...`);
+            log(`Create link "${linkKey}"...`);
             // get linked operation
             let linkedOpId;
             // TODO: href is yet another alternative to operationRef and operationId
@@ -419,7 +419,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
         for (let subOp of operation.subOps) {
             // here, we know the operation is present
             operation = operation;
-            let fieldName = subOp.responseDefinition.otName;
+            let fieldName = Oas3Tools.uncapitalize(subOp.responseDefinition.otName);
             let otName = operation.responseDefinition.otName;
             // check for collision with existing field name:
             if (typeof fields[fieldName] !== 'undefined') {
@@ -431,7 +431,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                 });
                 continue;
             }
-            log(`add sub operation '${fieldName}' to ` +
+            log(`Add sub operation '${fieldName}' to ` +
                 `'${otName}'`);
             // determine parameters provided via parent operation
             let argsFromParent = operation.parameters.filter(param => {

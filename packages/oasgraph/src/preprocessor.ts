@@ -340,8 +340,8 @@ export function createOrReuseDataDef (
   let def = {
     schema,
     preferredName,
-    otName: saneName,
-    iotName: saneInputName
+    otName: Oas3Tools.capitalize(saneName),
+    iotName: Oas3Tools.capitalize(saneInputName)
   }
 
   // Add the def to the master list

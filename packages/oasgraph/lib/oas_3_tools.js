@@ -867,4 +867,18 @@ function isOperation(method) {
     return exports.OAS_OPERATIONS.includes(method.toLowerCase());
 }
 exports.isOperation = isOperation;
+/**
+ * Capitalizes a given string
+ */
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
+exports.capitalize = capitalize;
+/**
+ * Uncapitalizes a given string
+ */
+function uncapitalize(str) {
+    return str.charAt(0).toLowerCase() + str.slice(1);
+}
+exports.uncapitalize = uncapitalize;
 //# sourceMappingURL=oas_3_tools.js.map
