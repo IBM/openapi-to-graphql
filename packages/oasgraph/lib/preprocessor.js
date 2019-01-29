@@ -275,8 +275,8 @@ function createOrReuseDataDef(data, schema, names) {
     let def = {
         schema,
         preferredName,
-        otName: saneName,
-        iotName: saneInputName
+        otName: Oas3Tools.capitalize(saneName),
+        iotName: Oas3Tools.capitalize(saneInputName)
     };
     // Add the def to the master list
     data.defs.push(def);

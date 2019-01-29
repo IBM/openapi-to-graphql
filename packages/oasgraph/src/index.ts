@@ -177,7 +177,7 @@ async function translateOpenApiToGraphQL (
       log(`Process operation "${operationId}"...`)
       let field = getFieldForOperation(operation, data, oas, options.preferredScheme)
       if (!operation.isMutation) {
-        let fieldName = operation.responseDefinition.otName
+        let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName)
         if (operation.inViewer) {
           for (let securityRequirement of operation.securityRequirements) {
             if (typeof authQueryFields[securityRequirement] !== 'object') {

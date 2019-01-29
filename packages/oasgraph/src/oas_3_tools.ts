@@ -1033,3 +1033,17 @@ export function trim (str: string, length: number): string {
 export function isOperation (method: string): boolean {
   return OAS_OPERATIONS.includes(method.toLowerCase())
 }
+
+/**
+ * Capitalizes a given string
+ */
+export function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+/**
+ * Uncapitalizes a given string
+ */
+export function uncapitalize(str: string): string {
+  return str.charAt(0).toLowerCase() + str.slice(1)
+}

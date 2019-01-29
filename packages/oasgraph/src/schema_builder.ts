@@ -216,13 +216,13 @@ function reuseOrCreateOt ({
   // CASE: query - create or reuse OT
   if (!isMutation) {
     if (def.ot && typeof def.ot !== 'undefined') {
-      log(`reuse  Object Type "${def.otName}"` +
+      log(`Reuse  Object Type "${def.otName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
       return ((def.ot as any) as GQObjectType | GQInputObjectType | GraphQLScalarType)
     } else {
-      log(`create Object Type "${def.otName}"` +
+      log(`Create Object Type "${def.otName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
@@ -251,13 +251,13 @@ function reuseOrCreateOt ({
   // CASE: mutation - create or reuse IOT
   } else {
     if (typeof def.iot !== 'undefined') {
-      log(`reuse  Input Object Type "${def.iotName}"` +
+      log(`Reuse  Input Object Type "${def.iotName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
       return ((def.iot as any) as GraphQLInputObjectType)
     } else {
-      log(`create Input Object Type "${def.iotName}"` +
+      log(`Create Input Object Type "${def.iotName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
@@ -309,15 +309,15 @@ function reuseOrCreateList ({
 
   // try to reuse existing Object Type
   if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
-    log(`reuse  GraphQLList "${def.otName}"`)
+    log(`Reuse  GraphQLList "${def.otName}"`)
     return ((def.ot as any) as GraphQLList<any>)
   } else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
-    log(`reuse  GraphQLList "${def.iotName}"`)
+    log(`Reuse  GraphQLList "${def.iotName}"`)
     return ((def.iot as any) as GraphQLList<any>)
   }
 
   // create new List Object Type
-  log(`create GraphQLList "${def.otName}"`)
+  log(`Create GraphQLList "${def.otName}"`)
 
   // determine the type of the list elements
   let itemsSchema = schema.items
@@ -372,10 +372,10 @@ function reuseOrCreateEnum ({
   let def = createOrReuseDataDef(data, schema, { fromRef: name })
 
   if (def.ot && typeof def.ot !== 'undefined') {
-    log(`reuse  GraphQLEnumType "${def.otName}"`)
+    log(`Reuse  GraphQLEnumType "${def.otName}"`)
     return ((def.ot as any) as GQEnumType)
   } else {
-    log(`create GraphQLEnumType "${def.otName}"`)
+    log(`Create GraphQLEnumType "${def.otName}"`)
     let values = {}
     schema.enum.forEach(e => {
       values[Oas3Tools.beautify(e, false)] = {
@@ -484,7 +484,7 @@ function createFields ({
     !isMutation // only if we are not talking INPUT object type
   ) {
     for (let linkKey in operation.links) {
-      log(`create link "${linkKey}"...`)
+      log(`Create link "${linkKey}"...`)
 
       // get linked operation
       let linkedOpId
@@ -576,7 +576,7 @@ function createFields ({
     for (let subOp of operation.subOps) {
       // here, we know the operation is present
       operation = ((operation as any) as Operation)
-      let fieldName = subOp.responseDefinition.otName
+      let fieldName = Oas3Tools.uncapitalize(subOp.responseDefinition.otName)
       let otName = operation.responseDefinition.otName
 
       // check for collision with existing field name:
@@ -590,7 +590,7 @@ function createFields ({
         continue
       }
 
-      log(`add sub operation '${fieldName}' to ` +
+      log(`Add sub operation '${fieldName}' to ` +
         `'${otName}'`)
 
       // determine parameters provided via parent operation
