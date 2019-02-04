@@ -18,6 +18,7 @@ program
     .usage('<OAS JSON file path or remote url> [options]')
     .arguments('<path>')
     .option('-p, --port <port>', 'select the port where the server will start', parseInt)
+    .option('-u, --url <url>', 'select the base url which paths will be built on')
     .option('-s, --strict', 'throw an error if OASGraph cannot run without compensating for errors or missing data in the OAS')
     .option('-a, --addSubOperations', 'nest operations based on path hierarchy')
     .option('-f, --fillEmptyResponses', 'create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them')
@@ -111,7 +112,8 @@ function startGraphQLServer(oas, port) {
         strict: program.strict,
         viewer: program.viewer,
         addSubOperations: program.addSubOperations,
-        fillEmptyResponses: program.fillEmptyResponses
+        fillEmptyResponses: program.fillEmptyResponses,
+        baseUrl: program.url
     })
         .then(({ schema, report }) => {
         console.log(JSON.stringify(report, null, 2));
