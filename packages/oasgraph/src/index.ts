@@ -31,7 +31,7 @@
  */
 
 // Type imports:
-import { Options, Report, Schemes } from './types/options'
+import { Options, Report } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
 import { Args, Field } from './types/graphql'

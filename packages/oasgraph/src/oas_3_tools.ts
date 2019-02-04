@@ -28,7 +28,7 @@ import {
   SecurityRequirementObject
 } from './types/oas3.js'
 import { PreprocessingData } from './types/preprocessing_data'
-import { Options, Schemes } from './types/options'
+import { Options } from './types/options'
 
 // Imports:
 import * as Swagger2OpenAPI from 'swagger2openapi'
