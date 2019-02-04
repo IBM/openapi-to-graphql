@@ -39,8 +39,7 @@
   "main": "lib/index.js",
   "scripts": {
     "dev": "tsc -w",
-    "build": "tsc",
-    "test": "npm run build && jest"
+    "build": "tsc"
   },
   "dependencies": {
     "commander": "^2.19.0",

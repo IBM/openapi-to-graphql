@@ -12,7 +12,6 @@ import { Oas3, SchemaObject } from './types/oas3'
 import { Operation } from './types/operation'
 import { ResolveFunction } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
-import { Schemes } from './types/options'
 
 // Imports:
 import * as request from 'request'
