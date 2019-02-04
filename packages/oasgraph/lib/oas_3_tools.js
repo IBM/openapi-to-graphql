@@ -139,7 +139,7 @@ exports.resolveRef = resolveRef;
 /**
  * From the given OAS, returns the base URL to use for the given operation.
  */
-function getBaseUrl(oas, operation, preferredScheme) {
+function getBaseUrl(oas, operation) {
     // check for servers:
     if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
         throw new Error(`No servers defined for operation ` +
@@ -147,45 +147,22 @@ function getBaseUrl(oas, operation, preferredScheme) {
     }
     // check for local servers
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
-        let url = buildUrl(getPreferredServer(operation.servers, preferredScheme));
+        let url = buildUrl(operation.servers[0]);
+        if (Array.isArray(operation.servers) && operation.servers.length > 1) {
+            logHttp(`Warning: Randomly selected first server ${url}`);
+        }
         return url.replace(/\/$/, '');
     }
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
-        let url = buildUrl(getPreferredServer(oas.servers, preferredScheme));
+        let url = buildUrl(oas.servers[0]);
+        if (Array.isArray(oas.servers) && oas.servers.length > 1) {
+            logHttp(`Warning: Randomly selected first server ${url}`);
+        }
         return url.replace(/\/$/, '');
     }
     throw new Error('Cannot find a server to call');
 }
 exports.getBaseUrl = getBaseUrl;
-/**
- * Return the first server that uses the preferred scheme. If none matches, return the first server.
- * @param servers List of servers
- * @param preferredScheme Optional. Preferred scheme to use
- */
-function getPreferredServer(servers, preferredScheme) {
-    if (Array.isArray(servers)) {
-        if (servers.length === 1) {
-            // No choice in servers can be made
-            return servers[0];
-        }
-        else if (servers.length >= 2) {
-            let preferredServers = servers.filter(server => server.url && server.url.startsWith(`${preferredScheme}:`));
-            if (preferredServers.length > 0) {
-                if (preferredServers.length > 1) {
-                    logHttp(`Warning: Randomly selected the first server that match the preferredScheme option (${preferredScheme}): ${preferredServers[0].url}`);
-                }
-                return preferredServers[0];
-            }
-            else {
-                // No preferred scheme can be found
-                logHttp(`Warning: Randomly selected first server ${servers[0].url}`);
-                return servers[0];
-            }
-        }
-    }
-    throw new Error('Cannot find a server to call');
-}
-exports.getPreferredServer = getPreferredServer;
 /**
  * Returns the default URL for a given OAS server object.
  */
