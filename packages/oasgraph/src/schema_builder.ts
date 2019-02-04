@@ -521,7 +521,9 @@ function createFields ({
           operation: linkedOp,
           argsFromLink,
           data,
-          oas
+          oas,
+          preferredScheme: data.options.preferredScheme,
+          baseUrl: data.options.baseUrl
         })
 
         // get args for link
@@ -599,7 +601,9 @@ function createFields ({
         operation: subOp,
         argsFromParent,
         data,
-        oas
+        oas,
+        preferredScheme: data.options.preferredScheme,
+        baseUrl: data.options.baseUrl
       })
 
       let dynamicParams = subOp.parameters.filter(parameter => {

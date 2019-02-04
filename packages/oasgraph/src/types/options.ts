@@ -91,4 +91,10 @@ export type Options = {
    * By default, the first encountered server will be used.
    */
   preferredScheme?: Schemes
+
+  /**
+   * Specifies the URL on which all paths will be based on. 
+   * Overrides the server object in the OAS.
+   */
+  baseUrl?: string
 }
