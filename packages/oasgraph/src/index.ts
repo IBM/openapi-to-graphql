@@ -137,7 +137,6 @@ async function translateOpenApiToGraphQL (
     sendOAuthTokenInQuery,
     report,
     fillEmptyResponses,
-    preferredScheme,
     baseUrl
   }: Options
 ): Promise<{ schema: GraphQLSchema, report: Report }> {
@@ -151,7 +150,6 @@ async function translateOpenApiToGraphQL (
     sendOAuthTokenInQuery,
     report,
     fillEmptyResponses,
-    preferredScheme,
     baseUrl
   }
   log(`Options: ${JSON.stringify(options)}`)
@@ -177,7 +175,7 @@ async function translateOpenApiToGraphQL (
     .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
     .forEach(([operationId, operation]) => {
       log(`Process operation "${operationId}"...`)
-      let field = getFieldForOperation(operation, data, oas, options.preferredScheme, options.baseUrl)
+      let field = getFieldForOperation(operation, data, oas, options.baseUrl)
       if (!operation.isMutation) {
         let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName)
         if (operation.inViewer) {
@@ -306,7 +304,6 @@ function getFieldForOperation (
   operation: Operation,
   data: PreprocessingData,
   oas: Oas3,
-  preferredScheme: Schemes,
   baseUrl: string
 ): Field {
   // create GraphQL Type for response:
@@ -330,7 +327,6 @@ function getFieldForOperation (
     oas,
     payloadName: payloadSchemaName,
     data,
-    preferredScheme,
     baseUrl
   })
 

@@ -86,13 +86,6 @@ export type Options = {
   fillEmptyResponses: boolean
 
   /**
-   * Specifies the prefered server's transport scheme to use in case a choice can be made.
-   * Possible values are "http", "https", "ws" or "wss".
-   * By default, the first encountered server will be used.
-   */
-  preferredScheme?: Schemes
-
-  /**
    * Specifies the URL on which all paths will be based on. 
    * Overrides the server object in the OAS.
    */

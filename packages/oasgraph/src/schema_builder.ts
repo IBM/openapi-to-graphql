@@ -522,7 +522,6 @@ function createFields ({
           argsFromLink,
           data,
           oas,
-          preferredScheme: data.options.preferredScheme,
           baseUrl: data.options.baseUrl
         })
 
@@ -602,7 +601,6 @@ function createFields ({
         argsFromParent,
         data,
         oas,
-        preferredScheme: data.options.preferredScheme,
         baseUrl: data.options.baseUrl
       })
 

@@ -15,14 +15,14 @@ const log = debug_1.default('http');
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloadName, data, oas, preferredScheme, baseUrl }) {
+function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloadName, data, oas, baseUrl }) {
     // determine the appropriate URL:
     if (typeof baseUrl === 'undefined') {
         /**
          * get the base URL from the server object of the OAS if the base URL is not
          * specified as an option
          */
-        baseUrl = Oas3Tools.getBaseUrl(oas, operation, preferredScheme);
+        baseUrl = Oas3Tools.getBaseUrl(oas, operation);
     }
     // return resolve function:
     return (root, args, ctx = {}) => {
