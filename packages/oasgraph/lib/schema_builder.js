@@ -370,7 +370,9 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                     operation: linkedOp,
                     argsFromLink,
                     data,
-                    oas
+                    oas,
+                    preferredScheme: data.options.preferredScheme,
+                    baseUrl: data.options.baseUrl
                 });
                 // get args for link
                 let args = getArgs({
@@ -438,7 +440,9 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                 operation: subOp,
                 argsFromParent,
                 data,
-                oas
+                oas,
+                preferredScheme: data.options.preferredScheme,
+                baseUrl: data.options.baseUrl
             });
             let dynamicParams = subOp.parameters.filter(parameter => {
                 return !argsFromParent.includes(parameter.name);
