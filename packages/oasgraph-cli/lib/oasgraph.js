@@ -3,6 +3,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const graphqlHTTP = require("express-graphql");
+const cors = require("cors");
 const oasgraph_1 = require("oasgraph");
 const path = require("path");
 const request = require("request");
@@ -22,6 +23,7 @@ program
     .option('-s, --strict', 'throw an error if OASGraph cannot run without compensating for errors or missing data in the OAS')
     .option('-a, --addSubOperations', 'nest operations based on path hierarchy')
     .option('-f, --fillEmptyResponses', 'create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them')
+    .option('--cors', 'enable Cross-origin resource sharing (CORS)')
     .option('--no-viewer', 'do not create GraphQL viewer objects for passing authentication credentials')
     .option('--save <file path>', 'save schema to path and do not start server')
     .action(function (path) {
@@ -36,7 +38,7 @@ if (typeof filePath === 'undefined') {
 if (program.port) {
     portNumber = program.port;
 }
-// check if the file exists 
+// check if the file exists
 if (fs.existsSync(path.resolve(filePath))) {
     try {
         let oas = readFile(path.resolve(filePath));
@@ -117,11 +119,15 @@ function startGraphQLServer(oas, port) {
     })
         .then(({ schema, report }) => {
         console.log(JSON.stringify(report, null, 2));
-        // save local file if required 
+        // save local file if required
         if (program.save) {
             writeSchema(schema);
         }
         else {
+            // Enable CORS
+            if (program.cors) {
+                app.use(cors());
+            }
             // mounting graphql endpoint using the middleware express-graphql
             app.use('/graphql', graphqlHTTP({
                 schema: schema,

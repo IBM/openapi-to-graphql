@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "commander": "^2.19.0",
+    "cors": "^2.8.5",
     "express": "^4.16.4",
     "express-graphql": "^0.7.1",
     "graphql": "^14.0.2",
