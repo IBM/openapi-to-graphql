@@ -163,6 +163,41 @@ test('Get nested resource via link operationRef', () => {
   })
 })
 
+test('Link parameters as constant and as a variable', () => {
+  let query = `{
+    scanner(query: "hello") {
+      query
+      basicQueryProtocol{
+        query
+      }
+      variableQueryProtocol{
+        query
+      }
+      constantQueryProtocol{
+        query
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        "scanner": {
+          "query": "hello",
+          "basicQueryProtocol": {
+            "query": "hello"
+          },
+          "variableQueryProtocol": {
+            "query": "_hello_hellohelloabchello123"
+          },
+          "constantQueryProtocol": {
+            "query": "123"
+          }
+        }
+      }
+    })
+  })
+})
+
 test('Get response without providing parameter with default value', () => {
   let query = `{
     productsReviews (id: "100") {

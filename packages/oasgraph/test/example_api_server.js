@@ -312,6 +312,11 @@ function startServer (PORT) {
     }
   })
 
+  app.get('/api/copier', (req, res) => {
+    console.log(req.method, req.path, req.query, req.headers)
+    res.status(200).send(req.query)
+  })
+
   app.get('/api/cleanDesks', (req, res) => {
     console.log(req.method, req.path)
     res.send('5 clean desks')
@@ -444,6 +449,11 @@ function startServer (PORT) {
     } else {
       res.status(201).send(product)
     }
+  })
+
+  app.get('/api/scanner', (req, res) => {
+    console.log(req.method, req.path, req.query, req.headers)
+    res.status(200).send(req.query)
   })
 
   app.get('/api/snack', (req, res) => {
