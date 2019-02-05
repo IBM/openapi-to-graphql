@@ -229,6 +229,36 @@
 				}
 			}
 		},
+		"/copier": {
+			"get": {
+				"operationId": "getCopier",
+				"description": "Used to test link parameters with variables",
+				"parameters": [{
+					"name": "query",
+					"in": "query",
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "Success!",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"query": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		},
 		"/cleanDesks": {
 			"get": {
 				"operationId": "getNumberOfCleanDesks",
@@ -620,6 +650,47 @@
 				]
 			}
 		},
+		"/scanner": {
+			"get": {
+				"operationId": "getScanner",
+				"description": "Used to test link parameters with variables",
+				"parameters": [{
+					"name": "query",
+					"in": "query",
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"responses": {
+					"200": {
+						"description": "Success!",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"query": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						},
+						"links": {
+							"basicQueryProtocol": {
+								"$ref": "#/components/links/BasicQueryProtocol"
+							},
+							"constantQueryProtocol": {
+								"$ref": "#/components/links/ConstantQueryProtocol"
+							},
+							"variableQueryProtocol": {
+								"$ref": "#/components/links/VariableQueryProtocol"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/snack": {
 			"get": {
 				"operationId": "getSnack",
@@ -998,6 +1069,24 @@
 					"username": "$response.body#/inventorId"
 				},
         "description": "Allows to fetch the user who invented a product."
+			},
+			"BasicQueryProtocol": {
+				"operationId": "getCopier",
+				"parameters": {
+					"query": "$request.query.query"
+				}
+			},
+			"ConstantQueryProtocol": {
+				"operationId": "getCopier",
+				"parameters": {
+					"query": "123"
+				}
+			},
+			"VariableQueryProtocol": {
+				"operationId": "getCopier",
+				"parameters": {
+					"query": "_{$request.query.query}_{$request.query.query}{$request.query.query}abc{$request.query.query}123"
+				}
 			},
 			"Reviews": {
 				"operationId": "getProductReviews",

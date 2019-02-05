@@ -38,36 +38,36 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
         }
         // handle arguments provided by links
         for (let paramName in argsFromLink) {
-            let value = argsFromLink[paramName];
-            // parameter names can specify location of parameter (e.g., path.id)
             let paramNameWithoutLocation = paramName;
             if (paramName.indexOf('.') !== -1) {
                 paramNameWithoutLocation = paramName.split('.')[1];
             }
-            // CASE: parameter in body
-            if (/body#/.test(value)) {
-                let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root });
-                if (Array.isArray(tokens) && tokens.length > 0) {
-                    args[paramNameWithoutLocation] = tokens[0];
+            // link parameter
+            let value = argsFromLink[paramName];
+            /**
+             * see if the link parameter contains constants that are appended to the link parameter
+             *
+             * e.g. instead of:
+             * $response.body#/employerId
+             *
+             * it could be:
+             * abc_{$response.body#/employerId}
+             */
+            if (value.search(/{|}/) === -1) {
+                if (isRuntimeExpression(value)) {
+                    args[paramNameWithoutLocation] = resolveLinkParameter(paramName, value, _oasgraph, root);
                 }
                 else {
-                    log(`Warning: could not extract parameter ${paramName} form link`);
+                    args[paramNameWithoutLocation] = value;
                 }
-                // CASE: parameter in previous query parameter
-            }
-            else if (/query\./.test(value)) {
-                args[paramNameWithoutLocation] =
-                    _oasgraph.usedParams[Oas3Tools.beautify(value.split('query.')[1])];
-                // CASE: parameter in previous path parameter
-            }
-            else if (/path\./.test(value)) {
-                args[paramNameWithoutLocation] =
-                    _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])];
-                // CASE: link OASGraph currently does not support
             }
             else {
-                log(`Warning: could not process link parameter ${paramName} with ` +
-                    `value ${value}`);
+                // replace link parameters with appropriate values
+                let linkParams = value.match(/{([^}]*)}/g);
+                linkParams.forEach((linkParam) => {
+                    value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), _oasgraph, root));
+                });
+                args[paramNameWithoutLocation] = value;
             }
         }
         /**
@@ -335,5 +335,60 @@ function getAuthReqAndProtcolName(operation, _oasgraph, data) {
     return {
         authRequired
     };
+}
+/**
+ * Given a link parameter, determine the value
+ *
+ * The link parameter is a reference to data contained in the
+ * url/method/statuscode or response/request body/query/path/header
+ */
+function resolveLinkParameter(paramName, value, _oasgraph, root) {
+    // CASE: parameter in body
+    if (/body#/.test(value)) {
+        let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root });
+        if (Array.isArray(tokens) && tokens.length > 0) {
+            return tokens[0];
+        }
+        else {
+            log(`Warning: could not extract parameter ${paramName} from link`);
+        }
+        // CASE: parameter in previous query parameter
+    }
+    else if (/query\./.test(value)) {
+        return _oasgraph.usedParams[Oas3Tools.beautify(value.split('query.')[1])];
+        // CASE: parameter in previous path parameter
+    }
+    else if (/path\./.test(value)) {
+        return _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])];
+        // CASE: link OASGraph currently does not support
+    }
+    else {
+        log(`Warning: could not process link parameter ${paramName} with ` +
+            `value ${value}`);
+    }
+}
+/**
+ * Check if a string is a runtime expression in the context of link parameters
+ */
+function isRuntimeExpression(str) {
+    let references = ["header.", "query.", "path.", "body"];
+    if (str.startsWith("$url") || str.startsWith("$method") || str.startsWith("$statusCode")) {
+        return true;
+    }
+    else if (str.startsWith("$request.")) {
+        for (let i = 0; i < references.length; i++) {
+            if (str.startsWith(`$request.${references[i]}`)) {
+                return true;
+            }
+        }
+    }
+    else if (str.startsWith("$response.")) {
+        for (let i = 0; i < references.length; i++) {
+            if (str.startsWith(`$response.${references[i]}`)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 //# sourceMappingURL=resolver_builder.js.map
