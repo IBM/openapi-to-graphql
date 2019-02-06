@@ -113,6 +113,7 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
             headers: headers,
             qs: query
         };
+        _oasgraph.usedPayload = {};
         /**
          * Determine possible payload
          * GraphQL produces sanitized payload names, so we have to sanitize before
@@ -123,6 +124,7 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
             if (sanePayloadName in args) {
                 // we need to desanitize the payload so the API understands it:
                 let rawPayload = Oas3Tools.desanitizeObjKeys(args[sanePayloadName], data.saneMap);
+                _oasgraph.usedPayload = rawPayload;
                 options.body = JSON.stringify(rawPayload);
             }
         }
@@ -222,7 +224,7 @@ function createOAuthQS(data, ctx) {
     }
     else {
         log(`Warning: could not extract OAuth token from context at ` +
-            `"${tokenJSONpath}"`);
+            `'${tokenJSONpath}'`);
         return {};
     }
 }
@@ -246,7 +248,7 @@ function createOAuthHeader(data, ctx) {
     }
     else {
         log(`Warning: could not extract OAuth token from context at ` +
-            `"${tokenJSONpath}"`);
+            `'${tokenJSONpath}'`);
         return {};
     }
 }
@@ -343,46 +345,73 @@ function getAuthReqAndProtcolName(operation, _oasgraph, data) {
  * url/method/statuscode or response/request body/query/path/header
  */
 function resolveLinkParameter(paramName, value, _oasgraph, root) {
-    // CASE: parameter in body
-    if (/body#/.test(value)) {
-        let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root });
-        if (Array.isArray(tokens) && tokens.length > 0) {
-            return tokens[0];
+    if (value === '$url') {
+    }
+    else if (value === '$method') {
+    }
+    else if (value === '$statusCode') {
+    }
+    else if (value.startsWith('$request.')) {
+        // CASE: parameter is previous body
+        if (value === '$request.body') {
+            // CASE: parameter in previous body
         }
-        else {
-            log(`Warning: could not extract parameter ${paramName} from link`);
+        else if (value.startsWith('$request.body#')) {
+            // CASE: parameter in previous query parameter
         }
-        // CASE: parameter in previous query parameter
+        else if (value.startsWith('$request.query')) {
+            return _oasgraph.usedParams[Oas3Tools.beautify(value.split('query.')[1])];
+            // CASE: parameter in previous path parameter
+        }
+        else if (value.startsWith('$request.path')) {
+            return _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])];
+            // CASE: parameter in previous header parameter
+        }
+        else if (value.startsWith('$request.header')) {
+        }
     }
-    else if (/query\./.test(value)) {
-        return _oasgraph.usedParams[Oas3Tools.beautify(value.split('query.')[1])];
-        // CASE: parameter in previous path parameter
+    else if (value.startsWith('$response.')) {
+        // CASE: parameter is body
+        if (value === '$response.body') {
+            // CASE: parameter in body
+        }
+        else if (value.startsWith('$response.body#')) {
+            let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root });
+            if (Array.isArray(tokens) && tokens.length > 0) {
+                return tokens[0];
+            }
+            else {
+                log(`Warning: could not extract parameter ${paramName} from link`);
+            }
+            // CASE: parameter in query parameter
+        }
+        else if (value.startsWith('$response.query')) {
+            // CASE: parameter in path parameter
+        }
+        else if (value.startsWith('$response.path')) {
+            // CASE: parameter in header parameter
+        }
+        else if (value.startsWith('$response.header')) {
+        }
     }
-    else if (/path\./.test(value)) {
-        return _oasgraph.usedParams[Oas3Tools.beautify(value.split('path.')[1])];
-        // CASE: link OASGraph currently does not support
-    }
-    else {
-        log(`Warning: could not process link parameter ${paramName} with ` +
-            `value ${value}`);
-    }
+    throw new Error(`Cannot create link because "${value}" is an invalid runtime expression`);
 }
 /**
  * Check if a string is a runtime expression in the context of link parameters
  */
 function isRuntimeExpression(str) {
-    let references = ["header.", "query.", "path.", "body"];
-    if (str.startsWith("$url") || str.startsWith("$method") || str.startsWith("$statusCode")) {
+    let references = ['header.', 'query.', 'path.', 'body'];
+    if (str === '$url' || str === '$method' || str === '$statusCode') {
         return true;
     }
-    else if (str.startsWith("$request.")) {
+    else if (str.startsWith('$request.')) {
         for (let i = 0; i < references.length; i++) {
             if (str.startsWith(`$request.${references[i]}`)) {
                 return true;
             }
         }
     }
-    else if (str.startsWith("$response.")) {
+    else if (str.startsWith('$response.')) {
         for (let i = 0; i < references.length; i++) {
             if (str.startsWith(`$response.${references[i]}`)) {
                 return true;
