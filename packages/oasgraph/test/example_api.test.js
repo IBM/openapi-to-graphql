@@ -163,18 +163,21 @@ test('Get nested resource via link operationRef', () => {
   })
 })
 
-test('Link parameters as constant and as a variable', () => {
+test('Link parameters as constants and variables', () => {
   let query = `{
     scanner(query: "hello") {
-      query
-      basicQueryProtocol{
-        query
+      body
+      basicLink{
+        body
       }
-      variableQueryProtocol{
-        query
+      variableLink{
+        body
       }
-      constantQueryProtocol{
-        query
+      constantLink{
+        body
+      }
+      everythingLink{
+        body
       }
     }
   }`
@@ -182,15 +185,112 @@ test('Link parameters as constant and as a variable', () => {
     expect(result).toEqual({
       data: {
         "scanner": {
-          "query": "hello",
-          "basicQueryProtocol": {
-            "query": "hello"
+          "body": "hello",
+          "basicLink": {
+            "body": "hello"
           },
-          "variableQueryProtocol": {
-            "query": "_hello_hellohelloabchello123"
+          "variableLink": {
+            "body": "_hello_hellohelloabchello123"
           },
-          "constantQueryProtocol": {
-            "query": "123"
+          "constantLink": {
+            "body": "123"
+          },
+          "everythingLink": {
+            "body": "http://localhost:3002/api/scanner_get_200_hello_application/json_close"
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Nested links with constants and variables', () => {
+  let query = `{
+    scanner(query: "val") {
+      body
+      basicLink{
+        body
+        basicLink{
+          body
+          basicLink{
+            body
+          }
+        }
+      }
+      variableLink{
+        body
+        constantLink{
+          body
+          everythingLink{
+            body
+            everythingLink{
+              body
+            }
+          }
+        }
+      }
+      constantLink{
+        body
+      }
+      everythingLink{
+        body
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        "scanner": {
+          "body": "val",
+          "basicLink": {
+            "body": "val",
+            "basicLink": {
+              "body": "val",
+              "basicLink": {
+                "body": "val"
+              }
+            }
+          },
+          "variableLink": {
+            "body": "_val_valvalabcval123",
+            "constantLink": {
+              "body": "123",
+              "everythingLink": {
+                "body": "http://localhost:3002/api/copier_get_200_123_application/json_close",
+                "everythingLink": {
+                  "body": "http://localhost:3002/api/copier_get_200_http://localhost:3002/api/copier_get_200_123_application/json_close_application/json_close"
+                }
+              }
+            }
+          },
+          "constantLink": {
+            "body": "123"
+          },
+          "everythingLink": {
+            "body": "http://localhost:3002/api/scanner_get_200_val_application/json_close"
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Link parameters as constants and variables with request payload', () => {
+  let query = `mutation {
+    postScanner(query: "query", path: "path", textPlainInput: "body") {
+      body
+      everythingLink2 {
+        body
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        "postScanner": {
+          "body": "req.body: body, req.query.query: query, req.path.path: path",
+          "everythingLink2": {
+            "body": "http://localhost:3002/api/scanner/path_post_200_body_query_path_application/json_req.body: body, req.query.query: query, req.path.path: path_query_path_close"
           }
         }
       }
@@ -425,7 +525,7 @@ test('Post resource with non-application/json content-type request and response 
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        postPaper: "You sent the paper idea: \"happy\""
+        postPaper: "You sent the paper idea: happy"
       }
     })
   })

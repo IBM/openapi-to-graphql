@@ -314,7 +314,9 @@ function startServer (PORT) {
 
   app.get('/api/copier', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
-    res.status(200).send(req.query)
+    res.status(200).send({
+      body: req.query.query
+    })
   })
 
   app.get('/api/cleanDesks', (req, res) => {
@@ -394,7 +396,7 @@ function startServer (PORT) {
         message: 'wrong content-type, expected \'text/plain\' but received ' + contentType
       })
     } else {
-      res.set('Content-Type', 'text/plain').status(201).send('You sent the paper idea: "' + JSON.parse(req.body) + '"')
+      res.set('Content-Type', 'text/plain').status(201).send('You sent the paper idea: ' + req.body)
     }
   })
 
@@ -453,7 +455,14 @@ function startServer (PORT) {
 
   app.get('/api/scanner', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
-    res.status(200).send(req.query)
+    res.status(200).send({body: req.query.query})
+  })
+
+  app.post('/api/scanner/:path', (req, res) => {
+    console.log(req.method, req.path)
+    res.status(200).send({
+      body: `req.body: ${req.body}, req.query.query: ${req.query.query}, req.path.path: ${req.params.path}`
+    })
   })
 
   app.get('/api/snack', (req, res) => {

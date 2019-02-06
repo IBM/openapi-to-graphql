@@ -90,7 +90,7 @@ export function preprocessOas (
       }
 
       // Response schema
-      let { responseContentType, responseSchema, responseSchemaNames } = Oas3Tools.getResponseSchemaAndNames(
+      let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(
         path, method, oas, data, options)
 
       if (!responseSchema || typeof responseSchema !== 'object') {
@@ -148,7 +148,8 @@ export function preprocessOas (
         securityRequirements,
         servers,
         inViewer,
-        isMutation
+        isMutation,
+        statusCode
       }
       data.operations[operationId] = operation
     }

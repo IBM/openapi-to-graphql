@@ -248,11 +248,25 @@
 								"schema": {
 									"type": "object",
 									"properties": {
-										"query": {
+										"body": {
 											"type": "string"
 										}
 									}
 								}
+							}
+						},
+						"links": {
+							"basicLink": {
+								"$ref": "#/components/links/BasicLink"
+							},
+							"constantLink": {
+								"$ref": "#/components/links/ConstantLink"
+							},
+							"variableLink": {
+								"$ref": "#/components/links/VariableLink"
+							},
+							"everythingLink": {
+								"$ref": "#/components/links/EverythingLink"
 							}
 						}
 					}
@@ -669,7 +683,7 @@
 								"schema": {
 									"type": "object",
 									"properties": {
-										"query": {
+										"body": {
 											"type": "string"
 										}
 									}
@@ -677,14 +691,82 @@
 							}
 						},
 						"links": {
-							"basicQueryProtocol": {
-								"$ref": "#/components/links/BasicQueryProtocol"
+							"basicLink": {
+								"$ref": "#/components/links/BasicLink"
 							},
-							"constantQueryProtocol": {
-								"$ref": "#/components/links/ConstantQueryProtocol"
+							"constantLink": {
+								"$ref": "#/components/links/ConstantLink"
 							},
-							"variableQueryProtocol": {
-								"$ref": "#/components/links/VariableQueryProtocol"
+							"variableLink": {
+								"$ref": "#/components/links/VariableLink"
+							},
+							"everythingLink": {
+								"$ref": "#/components/links/EverythingLink"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/scanner/{path}": {
+			"post": {
+				"operationId": "postScanner",
+				"description": "Used to test link parameters with variables",
+				"parameters": [{
+					"name": "query",
+					"in": "query",
+					"schema": {
+						"type": "string"
+					}
+				},
+				{
+					"name": "path",
+					"in": "path",
+					"required": true,
+					"schema": {
+						"type": "string"
+					}
+				}],
+				"requestBody": {
+					"content": {
+						"text/plain": {
+							"schema": {
+								"type": "string"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"200": {
+						"description": "Success!",
+						"content": {
+							"application/json": {
+								"schema": {
+									"type": "object",
+									"properties": {
+										"body": {
+											"type": "string"
+										}
+									}
+								}
+							}
+						},
+						"links": {
+							"basicLink": {
+								"$ref": "#/components/links/BasicLink"
+							},
+							"constantLink": {
+								"$ref": "#/components/links/ConstantLink"
+							},
+							"variableLink": {
+								"$ref": "#/components/links/VariableLink"
+							},
+							"everythingLink": {
+								"$ref": "#/components/links/EverythingLink"
+							},
+							"everythingLink2": {
+								"$ref": "#/components/links/EverythingLink2"
 							}
 						}
 					}
@@ -1070,22 +1152,34 @@
 				},
         "description": "Allows to fetch the user who invented a product."
 			},
-			"BasicQueryProtocol": {
+			"BasicLink": {
 				"operationId": "getCopier",
 				"parameters": {
 					"query": "$request.query.query"
 				}
 			},
-			"ConstantQueryProtocol": {
+			"ConstantLink": {
 				"operationId": "getCopier",
 				"parameters": {
 					"query": "123"
 				}
 			},
-			"VariableQueryProtocol": {
+			"VariableLink": {
 				"operationId": "getCopier",
 				"parameters": {
 					"query": "_{$request.query.query}_{$request.query.query}{$request.query.query}abc{$request.query.query}123"
+				}
+			},
+			"EverythingLink": {
+				"operationId": "getCopier",
+				"parameters": {
+					"query": "{$url}_{$method}_{$statusCode}_{$request.query.query}_{$request.header.accept}_{$response.header.connection}"
+				}
+			},
+			"EverythingLink2": {
+				"operationId": "getCopier",
+				"parameters": {
+					"query": "{$url}_{$method}_{$statusCode}_{$request.body}_{$request.query.query}_{$request.path.path}_{$request.header.accept}_{$response.body#/body}_{$response.query.query}_{$response.path.path}_{$response.header.connection}"
 				}
 			},
 			"Reviews": {

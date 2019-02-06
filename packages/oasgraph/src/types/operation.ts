@@ -118,4 +118,9 @@ export type Operation = {
    * Whether this operation is a mutation (or a query).
    */
   isMutation: boolean
+
+  /**
+   * The success HTTP code, 200-299, destined to become a GraphQL object type
+   */
+  statusCode: string
 }
