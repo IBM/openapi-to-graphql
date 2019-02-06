@@ -53,7 +53,8 @@ export type RequestSchemaAndNames = {
 export type ResponseSchemaAndNames = {
   responseContentType?: string,
   responseSchema?: SchemaObject | ReferenceObject,
-  responseSchemaNames?: SchemaNames
+  responseSchemaNames?: SchemaNames,
+  statusCode?: string
 }
 
 const logHttp = debug('http')
@@ -635,7 +636,8 @@ export function getResponseSchemaAndNames (
     return {
       responseContentType,
       responseSchema,
-      responseSchemaNames
+      responseSchemaNames,
+      statusCode
     }
   } else {
 

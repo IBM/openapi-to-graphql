@@ -520,7 +520,8 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
         return {
             responseContentType,
             responseSchema,
-            responseSchemaNames
+            responseSchemaNames,
+            statusCode
         };
     }
     else {
