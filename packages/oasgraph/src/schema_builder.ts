@@ -37,7 +37,7 @@ import * as mergeAllOf from 'json-schema-merge-allof'
 import { getResolver } from './resolver_builder'
 import { createOrReuseDataDef } from './preprocessor'
 import debug from 'debug'
-import { handleWarning } from './utils'
+import { handleWarning, sortObject } from './utils'
 
 // Type definitions & exports:
 type GetGraphQLTypeParams = {
@@ -624,6 +624,9 @@ function createFields ({
       }
     }
   }
+
+  fields = sortObject(fields)
+
   return fields
 }
 

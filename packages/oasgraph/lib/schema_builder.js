@@ -460,6 +460,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
             };
         }
     }
+    fields = utils_1.sortObject(fields);
     return fields;
 }
 /**

@@ -30,7 +30,7 @@ test('All Instagram query endpoints present', () => {
   }
   let gqlTypes = Object.keys(createdSchema
     ._typeMap
-    .query
+    .Query
     .getFields()
     .viewerAnyAuth
     .type
