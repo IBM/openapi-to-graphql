@@ -63,7 +63,7 @@ test('Get patent using basic auth', () => {
 
 test('Get patent using API key', () => {
   let query = `{
-    viewerApiKey (apiKey: "abcdef") {
+    viewerApiKey2 (apiKey: "abcdef") {
       patentWithId (patentId: "100") {
         patentId
       }
@@ -72,7 +72,7 @@ test('Get patent using API key', () => {
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       'data': {
-        'viewerApiKey': {
+        'viewerApiKey2': {
           'patentWithId': {
             'patentId': '100'
           }

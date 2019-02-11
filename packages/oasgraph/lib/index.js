@@ -21,6 +21,7 @@ const preprocessor_1 = require("./preprocessor");
 const Oas3Tools = require("./oas_3_tools");
 const auth_builder_1 = require("./auth_builder");
 const debug_1 = require("debug");
+const utils_1 = require("./utils");
 const log = debug_1.default('translation');
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
@@ -146,6 +147,17 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
                 }
             }
         });
+        // Sorting fields 
+        queryFields = utils_1.sortObject(queryFields);
+        mutationFields = utils_1.sortObject(mutationFields);
+        authQueryFields = utils_1.sortObject(authQueryFields);
+        Object.keys(authQueryFields).forEach((key) => {
+            authQueryFields[key] = utils_1.sortObject(authQueryFields[key]);
+        });
+        authMutationFields = utils_1.sortObject(authMutationFields);
+        Object.keys(authMutationFields).forEach((key) => {
+            authMutationFields[key] = utils_1.sortObject(authMutationFields[key]);
+        });
         /**
          * Count created queries / mutations
          */
@@ -174,14 +186,14 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
         const schemaConfig = {
             query: Object.keys(queryFields).length > 0
                 ? new graphql_1.GraphQLObjectType({
-                    name: 'query',
+                    name: 'Query',
                     description: 'The start of any query',
                     fields: queryFields
                 })
                 : GraphQLTools.getEmptyObjectType('query'),
             mutation: Object.keys(mutationFields).length > 0
                 ? new graphql_1.GraphQLObjectType({
-                    name: 'mutation',
+                    name: 'Mutation',
                     description: 'The start of any mutation',
                     fields: mutationFields
                 })

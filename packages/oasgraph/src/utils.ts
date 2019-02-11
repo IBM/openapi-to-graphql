@@ -34,7 +34,8 @@ export const WarningTypes: {
   MISSING_RESPONSE_SCHEMA: (culprit: string, solution: string) => {
     return {
       type: 'MissingResponseSchema',
-      message: `Operation '${culprit}' has no (valid) response schema.`,
+      message: `Operation '${culprit}' has no (valid) response schema.` + 
+      `You can create placeholder schemas using the fillEmptyResponses option.`,
       mitigation: `Ignore operation`
     }
   },
@@ -119,4 +120,10 @@ export function handleWarning ({
     }
     data.options.report.warnings.push(warning)
   }
+}
+
+// Code provided by codename- from StackOverflow
+// Link: https://stackoverflow.com/a/29622653
+export function sortObject(o) {
+  return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
 }

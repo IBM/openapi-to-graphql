@@ -51,8 +51,7 @@ import * as Oas3Tools from './oas_3_tools'
 import { createAndLoadViewer } from './auth_builder'
 import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
-
-import * as fs from 'fs'
+import { sortObject } from './utils'
 
 // Type definitions & exports:
 type LoadFieldsParams = {
@@ -66,6 +65,7 @@ type LoadFieldsParams = {
   oas: Oas3,
   options: Options
 }
+
 type Result = {
   schema: GraphQLSchema,
   report: Report
@@ -213,6 +213,18 @@ async function translateOpenApiToGraphQL (
       }
     })
 
+  // Sorting fields 
+  queryFields = sortObject(queryFields)
+  mutationFields = sortObject(mutationFields)
+  authQueryFields = sortObject(authQueryFields)
+  Object.keys(authQueryFields).forEach((key) => {
+    authQueryFields[key] = sortObject(authQueryFields[key])
+  })
+  authMutationFields = sortObject(authMutationFields)
+  Object.keys(authMutationFields).forEach((key) => {
+    authMutationFields[key] = sortObject(authMutationFields[key])
+  })
+
   /**
    * Count created queries / mutations
    */
@@ -255,14 +267,14 @@ async function translateOpenApiToGraphQL (
   const schemaConfig: GraphQLSchemaConfig = {
     query: Object.keys(queryFields).length > 0
       ? new GraphQLObjectType({
-        name: 'query',
+        name: 'Query',
         description: 'The start of any query',
         fields: queryFields
       })
       : GraphQLTools.getEmptyObjectType('query'),
     mutation: Object.keys(mutationFields).length > 0
       ? new GraphQLObjectType({
-        name: 'mutation',
+        name: 'Mutation',
         description: 'The start of any mutation',
         fields: mutationFields
       })
