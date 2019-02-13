@@ -119,6 +119,14 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
                         if (fieldName in authQueryFields[securityRequirement]) {
                             fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap);
                         }
+                        if (fieldName in authQueryFields[securityRequirement]) {
+                            utils_1.handleWarning({
+                                typeKey: 'DUPLICATE_FIELD_NAME',
+                                culprit: fieldName,
+                                data,
+                                log
+                            });
+                        }
                         authQueryFields[securityRequirement][fieldName] = field;
                     }
                 }
@@ -126,6 +134,14 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
                     // Avoid overwriting fields that return the same data:
                     if (fieldName in queryFields) {
                         fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap);
+                    }
+                    if (fieldName in queryFields) {
+                        utils_1.handleWarning({
+                            typeKey: 'DUPLICATE_FIELD_NAME',
+                            culprit: fieldName,
+                            data,
+                            log
+                        });
                     }
                     queryFields[fieldName] = field;
                 }
@@ -139,10 +155,26 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
                         if (typeof authMutationFields[securityRequirement] !== 'object') {
                             authMutationFields[securityRequirement] = {};
                         }
+                        if (saneFieldName in authMutationFields[securityRequirement]) {
+                            utils_1.handleWarning({
+                                typeKey: 'DUPLICATE_FIELD_NAME',
+                                culprit: saneFieldName,
+                                data,
+                                log
+                            });
+                        }
                         authMutationFields[securityRequirement][saneFieldName] = field;
                     }
                 }
                 else {
+                    if (saneFieldName in mutationFields) {
+                        utils_1.handleWarning({
+                            typeKey: 'DUPLICATE_FIELD_NAME',
+                            culprit: saneFieldName,
+                            data,
+                            log
+                        });
+                    }
                     mutationFields[saneFieldName] = field;
                 }
             }

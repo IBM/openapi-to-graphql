@@ -21,7 +21,7 @@ let oas = require('./fixtures/example_oas.json')
 // // requires Box API from API Guru
 // let oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
-OasGraph.createGraphQlSchema(oas, { strict: true, fillEmptyResponses: true })
+OasGraph.createGraphQlSchema(oas, { fillEmptyResponses: true })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
     app.use('/graphql', graphqlHTTP({

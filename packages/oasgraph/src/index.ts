@@ -51,7 +51,7 @@ import * as Oas3Tools from './oas_3_tools'
 import { createAndLoadViewer } from './auth_builder'
 import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
-import { sortObject } from './utils'
+import { sortObject, handleWarning } from './utils'
 
 // Type definitions & exports:
 type LoadFieldsParams = {
@@ -187,6 +187,16 @@ async function translateOpenApiToGraphQL (
             if (fieldName in authQueryFields[securityRequirement]) {
               fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
             }
+
+            if (fieldName in authQueryFields[securityRequirement]) {
+              handleWarning({
+                typeKey: 'DUPLICATE_FIELD_NAME',
+                culprit: fieldName,
+                data,
+                log
+              })
+            }  
+
             authQueryFields[securityRequirement][fieldName] = field
           }
         } else {
@@ -194,6 +204,16 @@ async function translateOpenApiToGraphQL (
           if (fieldName in queryFields) {
             fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
           }
+
+          if (fieldName in queryFields) {
+            handleWarning({
+              typeKey: 'DUPLICATE_FIELD_NAME',
+              culprit: fieldName,
+              data,
+              log
+            })
+          }
+
           queryFields[fieldName] = field
         }
       } else {
@@ -205,9 +225,28 @@ async function translateOpenApiToGraphQL (
             if (typeof authMutationFields[securityRequirement] !== 'object') {
               authMutationFields[securityRequirement] = {}
             }
+
+            if (saneFieldName in authMutationFields[securityRequirement]) {
+              handleWarning({
+                typeKey: 'DUPLICATE_FIELD_NAME',
+                culprit: saneFieldName,
+                data,
+                log
+              })
+            }
+
             authMutationFields[securityRequirement][saneFieldName] = field
           }
         } else {
+          if (saneFieldName in mutationFields) {
+            handleWarning({
+              typeKey: 'DUPLICATE_FIELD_NAME',
+              culprit: saneFieldName,
+              data,
+              log
+            })
+          }
+
           mutationFields[saneFieldName] = field
         }
       }

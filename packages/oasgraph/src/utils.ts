@@ -88,6 +88,13 @@ export const WarningTypes: {
       message: `Parameter misses 'name' property: ${culprit}.`,
       mitigation: `Ignore parameter`
     }
+  },
+  DUPLICATE_FIELD_NAME: (culprit: string, solution: string) => {
+    return {
+      type: 'duplicateFieldName',
+      message: `Field name '${culprit}' is already present in the object.`,
+      mitigation: `Ignore duplicate field`
+    }
   }
 }
 
