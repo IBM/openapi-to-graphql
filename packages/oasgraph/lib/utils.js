@@ -80,6 +80,13 @@ exports.WarningTypes = {
             message: `Parameter misses 'name' property: ${culprit}.`,
             mitigation: `Ignore parameter`
         };
+    },
+    DUPLICATE_FIELD_NAME: (culprit, solution) => {
+        return {
+            type: 'duplicateFieldName',
+            message: `Field name '${culprit}' is already present in the object.`,
+            mitigation: `Ignore duplicate field`
+        };
     }
 };
 /**
