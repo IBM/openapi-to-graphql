@@ -83,7 +83,6 @@ export async function createGraphQlSchema (
   // deal with option defaults:
   // @ts-ignore
   if (typeof options === 'undefined') options = {}
-
   options.strict = typeof options.strict === 'boolean'
     ? options.strict
     : false
@@ -99,7 +98,10 @@ export async function createGraphQlSchema (
   options.fillEmptyResponses = typeof options.fillEmptyResponses === 'boolean'
     ? options.fillEmptyResponses
     : false
-
+  options.operationIdFieldNames = typeof options.operationIdFieldNames === 'boolean'
+    ? options.operationIdFieldNames
+    : false
+  
   options.report = {
     warnings: [],
     numOps: 0,
@@ -137,7 +139,8 @@ async function translateOpenApiToGraphQL (
     sendOAuthTokenInQuery,
     report,
     fillEmptyResponses,
-    baseUrl
+    baseUrl,
+    operationIdFieldNames
   }: Options
 ): Promise<{ schema: GraphQLSchema, report: Report }> {
   let options = {
@@ -150,7 +153,8 @@ async function translateOpenApiToGraphQL (
     sendOAuthTokenInQuery,
     report,
     fillEmptyResponses,
-    baseUrl
+    baseUrl,
+    operationIdFieldNames
   }
   log(`Options: ${JSON.stringify(options)}`)
 
@@ -184,7 +188,8 @@ async function translateOpenApiToGraphQL (
               authQueryFields[securityRequirement] = {}
             }
             // Avoid overwriting fields that return the same data:
-            if (fieldName in authQueryFields[securityRequirement]) {
+            if (fieldName in authQueryFields[securityRequirement] ||
+              operationIdFieldNames) {
               fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
             }
 
@@ -201,7 +206,8 @@ async function translateOpenApiToGraphQL (
           }
         } else {
           // Avoid overwriting fields that return the same data:
-          if (fieldName in queryFields) {
+          if (fieldName in queryFields ||
+            operationIdFieldNames) {
             fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
           }
 

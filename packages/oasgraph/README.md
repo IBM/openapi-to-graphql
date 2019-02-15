@@ -81,6 +81,8 @@ The options object can contain the following properties:
 
 * `baseUrl` (type: `string`): Used to manual specify the base URL which all paths will be built on. Normally, OASGraph will select a base URL from the [server object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#serverObject) defined in the OAS. However, if the server object contains multiple URLs, OASGraph will randomly select one. The purpose of this option is to provide greater control over the base URL in these situations, especially when the OAS cannot be modified. This option may also prove to be useful in testing and development. 
 
+* `operationIdFieldNames` (type: `boolean`, default: `false`): By default, query field names are based on the return type type name and mutation field names are based on the [`operationId`](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#operation-object), which may be generated if it does not exist. This option forces OASGraph to only create field names based on the operationId.
+
 Consider this example of passing options:
 
 ```javascript

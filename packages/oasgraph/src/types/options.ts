@@ -82,4 +82,16 @@ export type Options = {
    * Overrides the server object in the OAS.
    */
   baseUrl?: string
+
+  /**
+   * Field names can only be beautified operationIds
+   * 
+   * By default, query field names are based on the return type type name and 
+   * mutation field names are based on the operationId, which may be generated 
+   * if it does not exist. 
+   * 
+   * This option forces OASGraph to only create field names based on the 
+   * operationId. 
+   */
+  operationIdFieldNames: boolean
 }
