@@ -47,6 +47,9 @@ function createGraphQlSchema(spec, options) {
         options.fillEmptyResponses = typeof options.fillEmptyResponses === 'boolean'
             ? options.fillEmptyResponses
             : false;
+        options.operationIdFieldNames = typeof options.operationIdFieldNames === 'boolean'
+            ? options.operationIdFieldNames
+            : false;
         options.report = {
             warnings: [],
             numOps: 0,
@@ -72,7 +75,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, report, fillEmptyResponses, baseUrl }) {
+function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, report, fillEmptyResponses, baseUrl, operationIdFieldNames }) {
     return __awaiter(this, void 0, void 0, function* () {
         let options = {
             headers,
@@ -84,7 +87,8 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
             sendOAuthTokenInQuery,
             report,
             fillEmptyResponses,
-            baseUrl
+            baseUrl,
+            operationIdFieldNames
         };
         log(`Options: ${JSON.stringify(options)}`);
         /**
@@ -116,7 +120,8 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
                             authQueryFields[securityRequirement] = {};
                         }
                         // Avoid overwriting fields that return the same data:
-                        if (fieldName in authQueryFields[securityRequirement]) {
+                        if (fieldName in authQueryFields[securityRequirement] ||
+                            operationIdFieldNames) {
                             fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap);
                         }
                         if (fieldName in authQueryFields[securityRequirement]) {
@@ -132,7 +137,8 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
                 }
                 else {
                     // Avoid overwriting fields that return the same data:
-                    if (fieldName in queryFields) {
+                    if (fieldName in queryFields ||
+                        operationIdFieldNames) {
                         fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap);
                     }
                     if (fieldName in queryFields) {

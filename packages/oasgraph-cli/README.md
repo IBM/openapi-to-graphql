@@ -24,16 +24,17 @@ npm i -g oasgraph-cli
 Usage: oasgraph <OAS JSON file path or remote url> [options]
 
 Options:
-  -V, --version             output the version number
-  -p, --port <port>         select the port where the server will start
-  -u, --url <url>           select the base url which paths will be built on
-  -s, --strict              throw an error if OASGraph cannot run without compensating for errors or missing data in the OAS
-  -a, --addSubOperations    nest operations based on path hierarchy
-  -f, --fillEmptyResponses  create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them
-  --cors                    enable Cross-origin resource sharing (CORS)
-  --no-viewer               do not create GraphQL viewer objects for passing authentication credentials
-  --save <file path>        save schema to path and do not start server
-  -h, --help                output usage information
+  -V, --version               output the version number
+  -p, --port <port>           select the port where the server will start
+  -u, --url <url>             select the base url which paths will be built on
+  -s, --strict                throw an error if OASGraph cannot run without compensating for errors or missing data in the OAS
+  -a, --addSubOperations      nest operations based on path hierarchy
+  -f, --fillEmptyResponses    create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them
+  -o, --operationIdFieldNames  create field names based on the operationId
+  --cors                      enable Cross-origin resource sharing (CORS)
+  --no-viewer                 do not create GraphQL viewer objects for passing authentication credentials
+  --save <file path>          save schema to path and do not start server
+  -h, --help                  output usage information
 ```
 
 The basic usage of the CLI takes the specified OAS, creates a GraphQL interface for it, and starts a server to host the GraphQL interface.
