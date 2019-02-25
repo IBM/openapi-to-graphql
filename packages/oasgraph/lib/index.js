@@ -58,13 +58,24 @@ function createGraphQlSchema(spec, options) {
             numQueriesCreated: 0,
             numMutationsCreated: 0
         };
-        /**
-         * Check if the spec is a valid OAS 3.0.x
-         * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
-         * translate the spec into a GraphQL schema
-         */
-        let oas = yield Oas3Tools.getValidOAS3(spec);
-        let { schema, report } = yield translateOpenApiToGraphQL(oas, options);
+        let oass;
+        if (Array.isArray(spec)) {
+            /**
+             * Convert all non-OAS 3.0.x into OAS 3.0.x
+             */
+            oass = yield Promise.all(spec.map((ele) => {
+                return Oas3Tools.getValidOAS3(ele);
+            }));
+        }
+        else {
+            /**
+             * Check if the spec is a valid OAS 3.0.x
+             * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
+             * translate the spec into a GraphQL schema
+             */
+            oass = [yield Oas3Tools.getValidOAS3(spec)];
+        }
+        let { schema, report } = yield translateOpenApiToGraphQL(oass, options);
         return {
             schema,
             report
@@ -75,7 +86,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, report, fillEmptyResponses, baseUrl, operationIdFieldNames }) {
+function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report }) {
     return __awaiter(this, void 0, void 0, function* () {
         let options = {
             headers,
@@ -85,17 +96,17 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
             strict,
             addSubOperations,
             sendOAuthTokenInQuery,
-            report,
             fillEmptyResponses,
             baseUrl,
-            operationIdFieldNames
+            operationIdFieldNames,
+            report
         };
         log(`Options: ${JSON.stringify(options)}`);
         /**
-         * Extract information from the OAS and put it inside a data structure that
+         * Extract information from the OASs and put it inside a data structure that
          * is easier for OASGraph to use
          */
-        let data = preprocessor_1.preprocessOas(oas, options);
+        let data = preprocessor_1.preprocessOas(oass, options);
         /**
          * Create GraphQL fields for every operation and structure them based on their
          * characteristics (query vs. mutation, auth vs. non-auth).
@@ -111,7 +122,7 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
             .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
             .forEach(([operationId, operation]) => {
             log(`Process operation "${operationId}"...`);
-            let field = getFieldForOperation(operation, data, oas, options.baseUrl);
+            let field = getFieldForOperation(operation, data, oass, options.baseUrl);
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
                 if (operation.inViewer) {
@@ -213,10 +224,10 @@ function translateOpenApiToGraphQL(oas, { strict, headers, qs, viewer, tokenJSON
          * Organize created queries / mutations into viewer objects.
          */
         if (Object.keys(authQueryFields).length > 0) {
-            Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, data, oas, false));
+            Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, data, false, oass));
         }
         if (Object.keys(authMutationFields).length > 0) {
-            Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, data, oas, true));
+            Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, data, true, oass));
         }
         /**
          * Build up the schema
@@ -264,14 +275,14 @@ function sortByHasLinksOrSubOps(op1, op2) {
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation(operation, data, oas, baseUrl) {
+function getFieldForOperation(operation, data, oass, baseUrl) {
     // create GraphQL Type for response:
     let type = schema_builder_1.getGraphQLType({
         name: operation.responseDefinition.preferredName,
         schema: operation.responseDefinition.schema,
         data,
         operation,
-        oas
+        oass
     });
     // create resolve function:
     let payloadSchemaName = operation.payloadDefinition
@@ -282,7 +293,6 @@ function getFieldForOperation(operation, data, oas, baseUrl) {
         : null;
     let resolve = resolver_builder_1.getResolver({
         operation,
-        oas,
         payloadName: payloadSchemaName,
         data,
         baseUrl
@@ -294,7 +304,7 @@ function getFieldForOperation(operation, data, oas, baseUrl) {
         payloadSchema,
         operation,
         data,
-        oas
+        oass
     });
     return {
         type,

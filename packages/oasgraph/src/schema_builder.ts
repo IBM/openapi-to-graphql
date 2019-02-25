@@ -45,7 +45,7 @@ type GetGraphQLTypeParams = {
   schema: SchemaObject | ReferenceObject,
   operation?: Operation,
   data: PreprocessingData,   // data produced by preprocessing
-  oas: Oas3,                 // input OAS 3
+  oass: Oas3[],                 // input OAS 3
   iteration?: number,        // count of recursions used to create type
   isMutation?: boolean       // whether to create an Input Type
 }
@@ -55,7 +55,7 @@ type GetArgsParams = {
   payloadSchema?: SchemaObject,
   payloadSchemaName?: string,
   data: PreprocessingData,
-  oas: Oas3,
+  oass: Oas3[],
   operation?: Operation
 }
 
@@ -64,7 +64,7 @@ type ReuseOrCreateOtParams = {
   schema: SchemaObject,
   operation?: Operation,
   data: PreprocessingData,
-  oas: Oas3,
+  oass: Oas3[],
   iteration: number,
   isMutation: boolean
 }
@@ -74,7 +74,7 @@ type ReuseOrCreateListParams = {
   operation?: Operation,
   schema: SchemaObject,
   data: PreprocessingData,
-  oas: Oas3,
+  oass: Oas3[],
   iteration: number,
   isMutation: boolean
 }
@@ -90,7 +90,7 @@ type CreateFieldsParams = {
   operation?: Operation,
   schema: SchemaObject,
   data: PreprocessingData,
-  oas: Oas3,
+  oass: Oas3[],
   iteration: number,
   isMutation: boolean
 }
@@ -105,9 +105,9 @@ export function getGraphQLType ({
   schema,
   operation,
   data,
-  oas,
   iteration = 0,
-  isMutation = false
+  isMutation = false,
+  oass
 }: GetGraphQLTypeParams
 ): GraphQLType {
   // avoid excessive iterations
@@ -128,7 +128,7 @@ export function getGraphQLType ({
 
   // resolve references - from hereon, we know schema is a SchemaObject!
   if (typeof schema.$ref === 'string') {
-    schema = Oas3Tools.resolveRef(schema.$ref, oas)
+    schema = Oas3Tools.resolveRef(schema.$ref, operation.oas)
   }
 
   // resolve allOf element in schema if applicable
@@ -156,7 +156,7 @@ export function getGraphQLType ({
       schema: schema as SchemaObject,
       operation,
       data,
-      oas,
+      oass,
       iteration,
       isMutation
     })
@@ -168,7 +168,7 @@ export function getGraphQLType ({
       schema: schema as SchemaObject,
       operation,
       data,
-      oas,
+      oass,
       iteration,
       isMutation
     })
@@ -207,9 +207,9 @@ function reuseOrCreateOt ({
   schema,
   operation,
   data,
-  oas,
   iteration,
-  isMutation
+  isMutation,
+  oass
 }: ReuseOrCreateOtParams): GraphQLType {
   let def: DataDefinition = createOrReuseDataDef(data, schema, { fromRef: name })
 
@@ -238,7 +238,7 @@ function reuseOrCreateOt ({
             schema,
             operation,
             data,
-            oas,
+            oass,
             iteration,
             isMutation
           })
@@ -261,8 +261,9 @@ function reuseOrCreateOt ({
           ? ` (for operation "${operation.operationId}")`
           : ''))
 
-      let description = typeof schema.description !== 'undefined'
+      schema.description = typeof schema.description !== 'undefined'
         ? schema.description : 'No description available.'
+
       def.iot = new GraphQLInputObjectType({
         name: def.iotName,
         description: schema.description, 
@@ -273,7 +274,7 @@ function reuseOrCreateOt ({
             schema,
             operation,
             data,
-            oas,
+            oass,
             iteration,
             isMutation
           })
@@ -293,9 +294,9 @@ function reuseOrCreateList ({
   operation,
   schema,
   data,
-  oas,
   iteration,
-  isMutation
+  isMutation,
+  oass
 }: ReuseOrCreateListParams): GraphQLList<any> {
   // minimal error-checking
   if (!('items' in schema)) {
@@ -321,7 +322,7 @@ function reuseOrCreateList ({
   let itemsSchema = schema.items
   let itemsName = `${name}ListItem`
   if ('$ref' in itemsSchema) {
-    itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
+    itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], operation.oas)
     itemsName = schema.items['$ref'].split('/').pop()
   }
 
@@ -330,7 +331,7 @@ function reuseOrCreateList ({
     schema: itemsSchema,
     data,
     operation,
-    oas,
+    oass,
     iteration: iteration + 1,
     isMutation
   })
@@ -426,15 +427,15 @@ function createFields ({
   schema,
   operation,
   data,
-  oas,
   iteration,
-  isMutation
+  isMutation,
+  oass
 }: CreateFieldsParams): GraphQLFieldConfigMap<any, any> {
   let fields: GraphQLFieldConfigMap<any, any> = {}
 
   // resolve reference if applicable
   if ('$ref' in schema) {
-    schema = Oas3Tools.resolveRef(schema['$ref'], oas)
+    schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas)
   }
 
   // create fields for properties
@@ -450,7 +451,7 @@ function createFields ({
     // if properties are referenced, try to reuse schemas
     if ('$ref' in propSchema) {
       propSchemaName = propSchema['$ref'].split('/').pop()
-      propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas)
+      propSchema = Oas3Tools.resolveRef(propSchema['$ref'], operation.oas)
     }
 
     // get object type describing the property
@@ -459,7 +460,7 @@ function createFields ({
       schema: propSchema,
       operation,
       data,
-      oas,
+      oass,
       iteration: iteration + 1,
       isMutation
     })
@@ -492,9 +493,7 @@ function createFields ({
         linkedOpId = linkOpRefToOpId({
           linkKey,
           operation,
-          name,
-          data,
-          oas
+          data
         })
       }
 
@@ -521,7 +520,6 @@ function createFields ({
           operation: linkedOp,
           argsFromLink,
           data,
-          oas,
           baseUrl: data.options.baseUrl
         })
 
@@ -530,7 +528,7 @@ function createFields ({
           parameters: dynamicParams,
           operation,
           data,
-          oas
+          oass
         })
 
         /**
@@ -545,8 +543,12 @@ function createFields ({
         if (typeof description !== 'string') {
           description = 'No description available.'
         }
-  
-        description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`
+      
+        if (oass.length === 1) {
+          description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`
+        } else {
+          description += `\n\nEquivalent to ${operation.oas.info.title} ${linkedOp.method.toUpperCase()} ${linkedOp.path}`
+        }
 
         // finally, add the object type to the fields (using sanitized field name)
         let saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap)
@@ -600,7 +602,6 @@ function createFields ({
         operation: subOp,
         argsFromParent,
         data,
-        oas,
         baseUrl: data.options.baseUrl
       })
 
@@ -613,7 +614,7 @@ function createFields ({
         parameters: dynamicParams,
         operation,
         data,
-        oas
+        oass
       })
 
       fields[fieldName] = {
@@ -642,9 +643,7 @@ function createFields ({
 function linkOpRefToOpId ({
   linkKey,
   operation,
-  name,
-  data,
-  oas
+  data
 }): string {
   let linkedOpId
 
@@ -754,6 +753,7 @@ function linkOpRefToOpId ({
         // path
         linkPath = linkPath.replace(/~1/g, "/")
 
+        let oas = operation.oas
         if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
           if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
             let linkedOpObject = oas.paths[linkPath][linkMethod]
@@ -822,8 +822,8 @@ export function getArgs ({
   payloadSchema,
   payloadSchemaName,
   data,
-  oas,
-  operation
+  operation,
+  oass
 }: GetArgsParams): Args {
   let args = {}
 
@@ -866,7 +866,7 @@ export function getArgs ({
         schema: parameter.schema,
         operation,
         data,
-        oas,
+        oass,
         iteration: 0,
         isMutation: true
       })
@@ -877,7 +877,7 @@ export function getArgs ({
     if (typeof parameter.schema === 'object') {
       let schema = parameter.schema
       if (typeof schema.$ref === 'string') {
-        schema = Oas3Tools.resolveRef(parameter.schema.$ref, oas)
+        schema = Oas3Tools.resolveRef(parameter.schema.$ref, operation.oas)
       }
       if (typeof (schema as SchemaObject).default !== 'undefined') {
         hasDefault = true
@@ -900,7 +900,7 @@ export function getArgs ({
       schema: payloadSchema,
       data,
       operation,
-      oas,
+      oass,
       isMutation: true
     })
 

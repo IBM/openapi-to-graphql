@@ -9,6 +9,7 @@
  */
 
 import {
+  Oas3,
   LinkObject,
   ParameterObject,
   ServerObject,
@@ -123,4 +124,9 @@ export type Operation = {
    * The success HTTP code, 200-299, destined to become a GraphQL object type
    */
   statusCode: string
+
+  /**
+   * The OAS which this operation originated from 
+   */
+  oas: Oas3
 }

@@ -27,7 +27,6 @@ type GetResolverParams = {
   argsFromParent?: string[],
   payloadName?: string,
   data: PreprocessingData,
-  oas: Oas3,
   baseUrl?: string
 }
 
@@ -61,7 +60,6 @@ export function getResolver ({
   argsFromParent = [],
   payloadName,
   data,
-  oas,
   baseUrl
 }: GetResolverParams): ResolveFunction {  
   // determine the appropriate URL:
@@ -70,7 +68,7 @@ export function getResolver ({
      * get the base URL from the server object of the OAS if the base URL is not
      * specified as an option
      */
-    baseUrl = Oas3Tools.getBaseUrl(oas, operation)
+    baseUrl = Oas3Tools.getBaseUrl(operation)
   }
 
   // return resolve function:
@@ -113,7 +111,7 @@ export function getResolver ({
         param.schema && typeof param.schema === 'object') {
         let schema = param.schema
         if (schema && schema.$ref && typeof schema.$ref === 'string') {
-          schema = Oas3Tools.resolveRef(schema.$ref, oas)
+          schema = Oas3Tools.resolveRef(schema.$ref, operation.oas)
         }
         if (schema && (schema as SchemaObject).default
           && typeof (schema as SchemaObject).default !== 'undefined') {

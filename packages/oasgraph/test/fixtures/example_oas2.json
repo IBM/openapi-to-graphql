@@ -29,7 +29,7 @@
 			"description": "The location of the local test server.",
 			"variables": {
 				"port": {
-					"default": "3000"
+					"default": "3002"
 				},
 				"basePath": {
 					"default": "api"

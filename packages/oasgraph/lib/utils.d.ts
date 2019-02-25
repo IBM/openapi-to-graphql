@@ -14,3 +14,7 @@ export declare function handleWarning({ typeKey, culprit, solution, data, log }:
     log?: Function;
 }): void;
 export declare function sortObject(o: any): {};
+/**
+ * Finds the common property names between two objects
+ */
+export declare function getCommonPropertyNames(object1: any, object2: any): string[];

@@ -157,7 +157,7 @@ DEBUG=level_1,level_2 node app-using-oasgraph.js
 
 The following logging levels are supported:
 
-* `preprocessing`: Logs information about preprocessing the OAS to GraphQL.
+* `preprocessing`: Logs information about preprocessing the OAS.
 * `translation`: Logs information about translating an OAS to GraphQL.
 * `http`: Logs information about the HTTP requests made to the API.
 
