@@ -15,7 +15,7 @@ const log = debug_1.default('preprocessing');
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OASGraph to use
  */
-function preprocessOas(oas, options) {
+function preprocessOas(oass, options) {
     let data = {
         usedOTNames: [
             'query',
@@ -27,102 +27,132 @@ function preprocessOas(oas, options) {
         security: {},
         options
     };
-    // store initial stats on OAS:
-    data.options.report.numOps = Oas3Tools.countOperations(oas);
-    data.options.report.numOpsMutation = Oas3Tools.countOperationsMutation(oas);
-    data.options.report.numOpsQuery = Oas3Tools.countOperationsQuery(oas);
-    // Security schemas
-    data.security = getProcessedSecuritySchemes(oas, data);
-    // Process all operations
-    for (let path in oas.paths) {
-        for (let method in oas.paths[path]) {
-            //  Only consider Operation Objects
-            if (!Oas3Tools.isOperation(method)) {
-                continue;
+    oass.forEach((oas) => {
+        // store stats on OAS:
+        data.options.report.numOps += Oas3Tools.countOperations(oas);
+        data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas);
+        data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas);
+        // Get security schemes
+        let currentSecurity = getProcessedSecuritySchemes(oas, data, oass);
+        let commonSecurityPropertyName = utils_1.getCommonPropertyNames(data.security, currentSecurity);
+        Object.assign(data.security, currentSecurity);
+        commonSecurityPropertyName.forEach((propertyName) => {
+            utils_1.handleWarning({
+                typeKey: 'SECURITY_SCHEME',
+                culprit: propertyName,
+                solution: currentSecurity[propertyName].oas.info.title,
+                data,
+                log
+            });
+        });
+        // Process all operations
+        for (let path in oas.paths) {
+            for (let method in oas.paths[path]) {
+                //  Only consider Operation Objects
+                if (!Oas3Tools.isOperation(method)) {
+                    continue;
+                }
+                let endpoint = oas.paths[path][method];
+                // Determine description
+                let description = endpoint.description;
+                if ((typeof description !== 'string' || description === '') &&
+                    typeof endpoint.summary === 'string') {
+                    description = endpoint.summary;
+                }
+                if (typeof description !== 'string') {
+                    description = 'No description available.';
+                }
+                if (oass.length === 1) {
+                    description += `\n\nEquivalent to ${method.toUpperCase()} ${path}`;
+                }
+                else {
+                    description += `\n\nEquivalent to ${oas.info.title} ${method.toUpperCase()} ${path}`;
+                }
+                // Hold on to the operationId
+                let operationId = endpoint.operationId;
+                // Fill in possibly missing operationId
+                if (typeof operationId === 'undefined') {
+                    operationId = Oas3Tools.beautify(`${method}:${path}`);
+                }
+                // Request schema
+                let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
+                let payloadDefinition;
+                if (payloadSchema && typeof payloadSchema !== 'undefined') {
+                    payloadDefinition = createOrReuseDataDef(data, payloadSchema, payloadSchemaNames);
+                }
+                // Response schema
+                let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options);
+                if (!responseSchema || typeof responseSchema !== 'object') {
+                    utils_1.handleWarning({
+                        typeKey: 'MISSING_RESPONSE_SCHEMA',
+                        culprit: `${method.toUpperCase()} ${path}`,
+                        data,
+                        log
+                    });
+                    continue;
+                }
+                let responseDefinition = createOrReuseDataDef(data, responseSchema, responseSchemaNames);
+                // Links
+                let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
+                // Parameters
+                let parameters = Oas3Tools.getParameters(path, method, oas);
+                // Security protocols
+                let securityRequirements = [];
+                if (options.viewer) {
+                    securityRequirements = Oas3Tools.getSecurityRequirements(path, method, data.security, oas);
+                }
+                // servers
+                let servers = Oas3Tools.getServers(path, method, oas);
+                // whether to place this operation into an authentication viewer
+                let inViewer = securityRequirements.length > 0 &&
+                    data.options.viewer !== false;
+                let isMutation = method.toLowerCase() !== 'get';
+                // Store determined information for operation
+                let operation = {
+                    operationId,
+                    description,
+                    path,
+                    method: method.toLowerCase(),
+                    payloadContentType,
+                    payloadDefinition,
+                    payloadRequired,
+                    responseContentType,
+                    responseDefinition,
+                    links,
+                    parameters,
+                    securityRequirements,
+                    servers,
+                    inViewer,
+                    isMutation,
+                    statusCode,
+                    oas
+                };
+                // Handle operationId property name collision
+                // May occur if multiple OAS are provided
+                if (operationId in data.operations) {
+                    utils_1.handleWarning({
+                        typeKey: 'DUPLICATE_OPERATION',
+                        culprit: operationId,
+                        solution: operation.oas.info.title,
+                        data,
+                        log
+                    });
+                }
+                data.operations[operationId] = operation;
             }
-            let endpoint = oas.paths[path][method];
-            // Determine description
-            let description = endpoint.description;
-            if ((typeof description !== 'string' || description === '') &&
-                typeof endpoint.summary === 'string') {
-                description = endpoint.summary;
-            }
-            if (typeof description !== 'string') {
-                description = 'No description available.';
-            }
-            description += `\n\nEquivalent to ${method.toUpperCase()} ${path}`;
-            // Hold on to the operationId
-            let operationId = endpoint.operationId;
-            // Fill in possibly missing operationId
-            if (typeof operationId === 'undefined') {
-                operationId = Oas3Tools.beautify(`${method}:${path}`);
-            }
-            // Request schema
-            let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
-            let payloadDefinition;
-            if (payloadSchema && typeof payloadSchema !== 'undefined') {
-                payloadDefinition = createOrReuseDataDef(data, payloadSchema, payloadSchemaNames);
-            }
-            // Response schema
-            let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options);
-            if (!responseSchema || typeof responseSchema !== 'object') {
-                utils_1.handleWarning({
-                    typeKey: 'MISSING_RESPONSE_SCHEMA',
-                    culprit: `${method.toUpperCase()} ${path}`,
-                    data,
-                    log
-                });
-                continue;
-            }
-            let responseDefinition = createOrReuseDataDef(data, responseSchema, responseSchemaNames);
-            // Links
-            let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
-            // Parameters
-            let parameters = Oas3Tools.getParameters(path, method, oas);
-            // Security protocols
-            let securityRequirements = [];
-            if (options.viewer) {
-                securityRequirements = Oas3Tools.getSecurityRequirements(path, method, data.security, oas);
-            }
-            // servers
-            let servers = Oas3Tools.getServers(path, method, oas);
-            // whether to place this operation into an authentication viewer
-            let inViewer = securityRequirements.length > 0 &&
-                data.options.viewer !== false;
-            let isMutation = method.toLowerCase() !== 'get';
-            // Store determined information for operation
-            let operation = {
-                operationId,
-                description,
-                path,
-                method: method.toLowerCase(),
-                payloadContentType,
-                payloadDefinition,
-                payloadRequired,
-                responseContentType,
-                responseDefinition,
-                links,
-                parameters,
-                securityRequirements,
-                servers,
-                inViewer,
-                isMutation,
-                statusCode
-            };
-            data.operations[operationId] = operation;
         }
-    }
-    /**
-     * SubOperation option
-     * Determine "links" based on sub-paths
-     * (Only now, when operations have been defined)
-     */
-    if (data.options.addSubOperations) {
-        for (let operationIndex in data.operations) {
-            let operation = data.operations[operationIndex];
-            operation.subOps = getSubOps(operation, data.operations);
+        /**
+         * SubOperation option
+         * Determine "links" based on sub-paths
+         * (Only now, when operations have been defined)
+         */
+        if (data.options.addSubOperations) {
+            for (let operationIndex in data.operations) {
+                let operation = data.operations[operationIndex];
+                operation.subOps = getSubOps(operation, data.operations);
+            }
         }
-    }
+    });
     return data;
 }
 exports.preprocessOas = preprocessOas;
@@ -164,7 +194,7 @@ exports.preprocessOas = preprocessOas;
  *   }
  * }
  */
-function getProcessedSecuritySchemes(oas, data) {
+function getProcessedSecuritySchemes(oas, data, oass) {
     let result = {};
     let security = Oas3Tools.getSecuritySchemes(oas);
     // Loop through all the security protocols
@@ -177,14 +207,19 @@ function getProcessedSecuritySchemes(oas, data) {
         let schema;
         // Determine the parameters and the schema for the security protocol
         let parameters = {};
+        let description;
         switch (protocol.type) {
             case ('apiKey'):
+                description = `API key credentials for the security protocol '${key}' `;
+                if (oass.length > 1) {
+                    description += `in ${oas.info.title}`;
+                }
                 parameters = {
                     apiKey: Oas3Tools.beautify(`${key}_apiKey`)
                 };
                 schema = {
                     type: 'object',
-                    description: `API key credentials for the protocol '${key}'`,
+                    description,
                     properties: {
                         apiKey: {
                             type: 'string'
@@ -198,13 +233,17 @@ function getProcessedSecuritySchemes(oas, data) {
                     // http://www.iana.org/assignments/http-authschemes/
                     // http-authschemes.xhtml)
                     case ('basic'):
+                        description = `Basic auth credentials for security protocol '${key}' `;
+                        if (oass.length > 1) {
+                            description += `in ${oas.info.title}`;
+                        }
                         parameters = {
                             username: Oas3Tools.beautify(`${key}_username`),
                             password: Oas3Tools.beautify(`${key}_password`)
                         };
                         schema = {
                             type: 'object',
-                            description: `Basic auth credentials for protocol '${key}'`,
+                            description,
                             properties: {
                                 username: {
                                     type: 'string'
@@ -240,7 +279,8 @@ function getProcessedSecuritySchemes(oas, data) {
             rawName: key,
             def: protocol,
             parameters,
-            schema
+            schema,
+            oas
         };
     }
     return result;

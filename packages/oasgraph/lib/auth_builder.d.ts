@@ -18,7 +18,7 @@ declare type Viewer = {
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-export declare function createAndLoadViewer(queryFields: Object, data: PreprocessingData, oas: Oas3, isMutation?: boolean): {
+export declare function createAndLoadViewer(queryFields: Object, data: PreprocessingData, isMutation: boolean, oass: Oas3[]): {
     [key: string]: Viewer;
 };
 export {};

@@ -27,7 +27,7 @@ import {
   SecuritySchemeObject,
   SecurityRequirementObject
 } from './types/oas3.js'
-import { PreprocessingData } from './types/preprocessing_data'
+import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data'
 import { InternalOptions } from './types/options'
 
 // Imports:
@@ -181,10 +181,9 @@ export function resolveRef (
 }
 
 /**
- * From the given OAS, returns the base URL to use for the given operation.
+ * Returns the base URL to use for the given operation.
  */
 export function getBaseUrl (
-  oas: Oas3,
   operation: Operation,
 ): string {
   // check for servers:
@@ -203,6 +202,8 @@ export function getBaseUrl (
 
     return url.replace(/\/$/, '')
   }
+
+  let oas = operation.oas
 
   if (Array.isArray(oas.servers) && oas.servers.length > 0) {
     let url = buildUrl(oas.servers[0])
@@ -876,7 +877,7 @@ export function getSecuritySchemes (
 export function getSecurityRequirements (
   path: string,
   method: string,
-  securitySchemes: { [key: string]: SecuritySchemeObject },
+  securitySchemes: { [key: string]: ProcessedSecurityScheme },
   oas: Oas3
 ): string[] {
   let results: string[] = []
@@ -888,7 +889,7 @@ export function getSecurityRequirements (
       for (let schemaKey in secReq) {
         if (securitySchemes[schemaKey] &&
           typeof securitySchemes[schemaKey] === 'object' &&
-          securitySchemes[schemaKey].type !== 'oauth2') {
+          securitySchemes[schemaKey].def.type !== 'oauth2') {
           results.push(schemaKey)
         }
       }
@@ -903,7 +904,7 @@ export function getSecurityRequirements (
       for (let schemaKey in secReq) {
         if (securitySchemes[schemaKey] &&
           typeof securitySchemes[schemaKey] === 'object' &&
-          securitySchemes[schemaKey].type !== 'oauth2') {
+          securitySchemes[schemaKey].def.type !== 'oauth2') {
           if (!results.includes(schemaKey)) {
             results.push(schemaKey)
           }

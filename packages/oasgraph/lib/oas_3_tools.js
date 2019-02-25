@@ -137,9 +137,9 @@ function resolveRef(ref, obj, parts) {
 }
 exports.resolveRef = resolveRef;
 /**
- * From the given OAS, returns the base URL to use for the given operation.
+ * Returns the base URL to use for the given operation.
  */
-function getBaseUrl(oas, operation) {
+function getBaseUrl(operation) {
     // check for servers:
     if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
         throw new Error(`No servers defined for operation ` +
@@ -153,6 +153,7 @@ function getBaseUrl(oas, operation) {
         }
         return url.replace(/\/$/, '');
     }
+    let oas = operation.oas;
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
         let url = buildUrl(oas.servers[0]);
         if (Array.isArray(oas.servers) && oas.servers.length > 1) {
@@ -732,7 +733,7 @@ function getSecurityRequirements(path, method, securitySchemes, oas) {
             for (let schemaKey in secReq) {
                 if (securitySchemes[schemaKey] &&
                     typeof securitySchemes[schemaKey] === 'object' &&
-                    securitySchemes[schemaKey].type !== 'oauth2') {
+                    securitySchemes[schemaKey].def.type !== 'oauth2') {
                     results.push(schemaKey);
                 }
             }
@@ -746,7 +747,7 @@ function getSecurityRequirements(path, method, securitySchemes, oas) {
             for (let schemaKey in secReq) {
                 if (securitySchemes[schemaKey] &&
                     typeof securitySchemes[schemaKey] === 'object' &&
-                    securitySchemes[schemaKey].type !== 'oauth2') {
+                    securitySchemes[schemaKey].def.type !== 'oauth2') {
                     if (!results.includes(schemaKey)) {
                         results.push(schemaKey);
                     }

@@ -26,7 +26,7 @@ exports.WarningTypes = {
     MISSING_RESPONSE_SCHEMA: (culprit, solution) => {
         return {
             type: 'MissingResponseSchema',
-            message: `Operation '${culprit}' has no (valid) response schema.` +
+            message: `Operation '${culprit}' has no (valid) response schema. ` +
                 `You can create placeholder schemas using the fillEmptyResponses option.`,
             mitigation: `Ignore operation`
         };
@@ -87,6 +87,20 @@ exports.WarningTypes = {
             message: `Field name '${culprit}' is already present in the object.`,
             mitigation: `Ignore duplicate field`
         };
+    },
+    DUPLICATE_OPERATION: (culprit, solution) => {
+        return {
+            type: 'duplicateOperation',
+            message: `Multiple OASs share operations with the same operationId '${culprit}'`,
+            mitigation: `The operation from the OAS '${solution}' will replace the previous one`
+        };
+    },
+    DUPLICATE_SECURITY_SCHEME: (culprit, solution) => {
+        return {
+            type: 'duplicateSecurity',
+            message: `Multiple OASs share security schemes with the same name '${culprit}'`,
+            mitigation: `The security scheme from the OAS '${solution}' will replace the previous one`
+        };
     }
 };
 /**
@@ -115,4 +129,13 @@ function sortObject(o) {
     return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
 }
 exports.sortObject = sortObject;
+/**
+ * Finds the common property names between two objects
+ */
+function getCommonPropertyNames(object1, object2) {
+    return Object.keys(object1).filter((propertyName) => {
+        return propertyName in object2;
+    });
+}
+exports.getCommonPropertyNames = getCommonPropertyNames;
 //# sourceMappingURL=utils.js.map

@@ -64,7 +64,7 @@ const log = debug('translation')
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
 export async function createGraphQlSchema (
-  spec: Oas3 | Oas2,
+  spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options?: Options
 ): Promise<Result> {
   if (typeof options === 'undefined') {
@@ -100,13 +100,25 @@ export async function createGraphQlSchema (
     numMutationsCreated: 0
   }
 
-  /**
-   * Check if the spec is a valid OAS 3.0.x
-   * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
-   * translate the spec into a GraphQL schema
-   */
-  let oas = await Oas3Tools.getValidOAS3(spec)
-  let { schema, report } = await translateOpenApiToGraphQL(oas, options as InternalOptions)
+  let oass: Oas3[]
+
+  if (Array.isArray(spec)) {
+    /**
+     * Convert all non-OAS 3.0.x into OAS 3.0.x
+     */
+    oass = await Promise.all(spec.map((ele) => {
+      return Oas3Tools.getValidOAS3(ele)
+    }))
+  } else {
+    /**
+     * Check if the spec is a valid OAS 3.0.x
+     * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
+     * translate the spec into a GraphQL schema
+     */
+    oass = [await Oas3Tools.getValidOAS3(spec)]
+  }
+
+  let { schema, report } = await translateOpenApiToGraphQL(oass, options as InternalOptions)
   return {
     schema,
     report
@@ -117,7 +129,7 @@ export async function createGraphQlSchema (
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
 async function translateOpenApiToGraphQL (
-  oas: Oas3,
+  oass: Oas3[],
   {
     strict,
     headers,
@@ -126,10 +138,10 @@ async function translateOpenApiToGraphQL (
     tokenJSONpath,
     addSubOperations,
     sendOAuthTokenInQuery,
-    report,
     fillEmptyResponses,
     baseUrl,
-    operationIdFieldNames
+    operationIdFieldNames,
+    report
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema, report: Report }> {
   let options = {
@@ -140,18 +152,18 @@ async function translateOpenApiToGraphQL (
     strict,
     addSubOperations,
     sendOAuthTokenInQuery,
-    report,
     fillEmptyResponses,
     baseUrl,
-    operationIdFieldNames
+    operationIdFieldNames,
+    report
   }
   log(`Options: ${JSON.stringify(options)}`)
 
   /**
-   * Extract information from the OAS and put it inside a data structure that
+   * Extract information from the OASs and put it inside a data structure that
    * is easier for OASGraph to use
    */
-  let data = preprocessOas(oas, options)
+  let data: PreprocessingData = preprocessOas(oass, options)
 
   /**
    * Create GraphQL fields for every operation and structure them based on their
@@ -168,7 +180,7 @@ async function translateOpenApiToGraphQL (
     .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
     .forEach(([operationId, operation]) => {
       log(`Process operation "${operationId}"...`)
-      let field = getFieldForOperation(operation, data, oas, options.baseUrl)
+      let field = getFieldForOperation(operation, data, oass, options.baseUrl)
       if (!operation.isMutation) {
         let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName)
         if (operation.inViewer) {
@@ -281,8 +293,8 @@ async function translateOpenApiToGraphQL (
     Object.assign(queryFields, createAndLoadViewer(
       authQueryFields,
       data,
-      oas,
-      false
+      false,
+      oass
     ))
   }
 
@@ -290,8 +302,8 @@ async function translateOpenApiToGraphQL (
     Object.assign(mutationFields, createAndLoadViewer(
       authMutationFields,
       data,
-      oas,
-      true
+      true,
+      oass
     ))
   }
 
@@ -349,7 +361,7 @@ function sortByHasLinksOrSubOps (op1: Operation, op2: Operation): number {
 function getFieldForOperation (
   operation: Operation,
   data: PreprocessingData,
-  oas: Oas3,
+  oass: Oas3[],
   baseUrl: string
 ): Field {
   // create GraphQL Type for response:
@@ -358,7 +370,7 @@ function getFieldForOperation (
     schema: operation.responseDefinition.schema,
     data,
     operation,
-    oas
+    oass
   })
 
   // create resolve function:
@@ -370,7 +382,6 @@ function getFieldForOperation (
     : null
   let resolve = getResolver({
     operation,
-    oas,
     payloadName: payloadSchemaName,
     data,
     baseUrl
@@ -383,7 +394,7 @@ function getFieldForOperation (
     payloadSchema,
     operation,
     data,
-    oas
+    oass
   })
 
   return {

@@ -3,7 +3,7 @@
  */
 import { Operation, DataDefinition } from './operation';
 import { InternalOptions } from './options';
-import { SecuritySchemeObject, SchemaObject } from './oas3';
+import { SecuritySchemeObject, SchemaObject, Oas3 } from './oas3';
 export declare type ProcessedSecurityScheme = {
     rawName: string;
     def: SecuritySchemeObject;
@@ -19,6 +19,10 @@ export declare type ProcessedSecurityScheme = {
      * JSON schema to create the viewer for this security scheme from.
      */
     schema: SchemaObject;
+    /**
+     * The OAS which this operation originated from
+     */
+    oas: Oas3;
 };
 export declare type PreprocessingData = {
     /**

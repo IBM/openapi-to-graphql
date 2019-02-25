@@ -34,7 +34,7 @@ export const WarningTypes: {
   MISSING_RESPONSE_SCHEMA: (culprit: string, solution: string) => {
     return {
       type: 'MissingResponseSchema',
-      message: `Operation '${culprit}' has no (valid) response schema.` + 
+      message: `Operation '${culprit}' has no (valid) response schema. ` + 
       `You can create placeholder schemas using the fillEmptyResponses option.`,
       mitigation: `Ignore operation`
     }
@@ -95,6 +95,20 @@ export const WarningTypes: {
       message: `Field name '${culprit}' is already present in the object.`,
       mitigation: `Ignore duplicate field`
     }
+  },
+  DUPLICATE_OPERATION: (culprit: string, solution: string) => {
+    return {
+      type: 'duplicateOperation',
+      message: `Multiple OASs share operations with the same operationId '${culprit}'`,
+      mitigation: `The operation from the OAS '${solution}' will replace the previous one`
+    }
+  },
+  DUPLICATE_SECURITY_SCHEME: (culprit: string, solution: string) => {
+    return {
+      type: 'duplicateSecurity',
+      message: `Multiple OASs share security schemes with the same name '${culprit}'`,
+      mitigation: `The security scheme from the OAS '${solution}' will replace the previous one`
+    }
   }
 }
 
@@ -133,4 +147,13 @@ export function handleWarning ({
 // Link: https://stackoverflow.com/a/29622653
 export function sortObject(o) {
   return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
+}
+
+/**
+ * Finds the common property names between two objects
+ */
+export function getCommonPropertyNames(object1, object2): string[] {
+  return Object.keys(object1).filter((propertyName) => {
+    return propertyName in object2
+  })
 }

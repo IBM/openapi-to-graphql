@@ -29,7 +29,7 @@
 			"description": "The location of the local test server.",
 			"variables": {
 				"port": {
-					"default": "3000"
+					"default": "3001"
 				},
 				"basePath": {
 					"default": "api"
@@ -576,7 +576,7 @@
 				},
 				"security": [
 					{
-						"example_basic_protocol": []
+						"example_api_basic_protocol": []
 					},
 					{
 						"example_api_key_protocol_2": []
@@ -1209,7 +1209,7 @@
 				"name": "access_token",
 				"type": "apiKey"
 			},
-			"example_basic_protocol": {
+			"example_api_basic_protocol": {
 				"type": "http",
 				"scheme": "basic"
 			}

@@ -17,7 +17,7 @@ const log = debug_1.default('translation');
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-function createAndLoadViewer(queryFields, data, oas, isMutation = false) {
+function createAndLoadViewer(queryFields, data, isMutation = false, oass) {
     let results = {};
     /**
      * Object that contains all previously defined viewer object names.
@@ -71,11 +71,10 @@ function createAndLoadViewer(queryFields, data, oas, isMutation = false) {
         }
         if (usedViewerNames[type].indexOf(viewerName) !== -1) {
             viewerName += (usedViewerNames[type].length + 1);
-            usedViewerNames[type].push(viewerName);
         }
         usedViewerNames[type].push(viewerName);
         // Add the viewer object type to the specified root query object type
-        results[viewerName] = getViewerOT(viewerName, protocolName, type, queryFields[protocolName], data);
+        results[viewerName] = getViewerOT(viewerName, protocolName, type, queryFields[protocolName], data, oass);
     }
     // create name for the AnyAuth viewer
     let anyAuthObjectName;
@@ -86,14 +85,14 @@ function createAndLoadViewer(queryFields, data, oas, isMutation = false) {
         anyAuthObjectName = 'mutationViewerAnyAuth';
     }
     // Add the AnyAuth object type to the specified root query object type
-    results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data, oas);
+    results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data, oass);
     return results;
 }
 exports.createAndLoadViewer = createAndLoadViewer;
 /**
  * Gets the viewer Object, resolve function, and arguments
  */
-const getViewerOT = (name, protocolName, type, queryFields, data) => {
+const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
     let scheme = data.security[protocolName];
     // resolve function:
     let resolve = (root, args, ctx) => {
@@ -121,22 +120,34 @@ const getViewerOT = (name, protocolName, type, queryFields, data) => {
             args[parameterName] = { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) };
         }
     }
+    let typeDescription;
+    let description;
+    if (oass.length === 1) {
+        typeDescription = `A viewer for the security protocol: '${scheme.rawName}'`;
+        description = `A viewer that wraps all operations authenticated via ${type}`;
+    }
+    else {
+        typeDescription = `A viewer for the security protocol '${scheme.rawName}' ` +
+            `in ${scheme.oas.info.title}`;
+        description = `A viewer that wraps all operations authenticated via ${type}\n\n` +
+            `For the security scheme: ${scheme.oas.info.title} ${protocolName}`;
+    }
     return {
         type: new graphql_1.GraphQLObjectType({
             name: name,
-            description: `A viewer for the security protocol: "${scheme.rawName}"`,
+            description: typeDescription,
             fields: () => queryFields
         }),
         resolve,
         args,
-        description: `A viewer that wraps all operations authenticated via ${type}`
+        description
     };
 };
 /**
  * Create an object containing an AnyAuth viewer, its resolve function,
  * and its args.
  */
-const getViewerAnyAuthOT = (name, queryFields, data, oas) => {
+const getViewerAnyAuthOT = (name, queryFields, data, oass) => {
     let args = {};
     for (let protocolName in data.security) {
         // create input object types for the viewer arguments
@@ -147,7 +158,7 @@ const getViewerAnyAuthOT = (name, queryFields, data, oas) => {
             name: protocolName,
             schema: data.security[protocolName].schema,
             data,
-            oas,
+            oass,
             isMutation: true
         });
         args[Oas3Tools.beautify(protocolName)] = { type };

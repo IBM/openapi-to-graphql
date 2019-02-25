@@ -17,7 +17,7 @@ const log = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
-function getGraphQLType({ name, schema, operation, data, oas, iteration = 0, isMutation = false }) {
+function getGraphQLType({ name, schema, operation, data, iteration = 0, isMutation = false, oass }) {
     // avoid excessive iterations
     if (iteration === 50) {
         throw new Error(`Too many iterations when creating schema ${name}`);
@@ -33,7 +33,7 @@ function getGraphQLType({ name, schema, operation, data, oas, iteration = 0, isM
     }
     // resolve references - from hereon, we know schema is a SchemaObject!
     if (typeof schema.$ref === 'string') {
-        schema = Oas3Tools.resolveRef(schema.$ref, oas);
+        schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
     }
     // resolve allOf element in schema if applicable
     if ('allOf' in schema) {
@@ -58,7 +58,7 @@ function getGraphQLType({ name, schema, operation, data, oas, iteration = 0, isM
             schema: schema,
             operation,
             data,
-            oas,
+            oass,
             iteration,
             isMutation
         });
@@ -70,7 +70,7 @@ function getGraphQLType({ name, schema, operation, data, oas, iteration = 0, isM
             schema: schema,
             operation,
             data,
-            oas,
+            oass,
             iteration,
             isMutation
         });
@@ -104,7 +104,7 @@ exports.getGraphQLType = getGraphQLType;
  *       resolve   // optional function defining how to obtain this type
  *   })
  */
-function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMutation }) {
+function reuseOrCreateOt({ name, schema, operation, data, iteration, isMutation, oass }) {
     let def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: name });
     // CASE: query - create or reuse OT
     if (!isMutation) {
@@ -131,7 +131,7 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
                         schema,
                         operation,
                         data,
-                        oas,
+                        oass,
                         iteration,
                         isMutation
                     });
@@ -154,7 +154,7 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
-            let description = typeof schema.description !== 'undefined'
+            schema.description = typeof schema.description !== 'undefined'
                 ? schema.description : 'No description available.';
             def.iot = new graphql_1.GraphQLInputObjectType({
                 name: def.iotName,
@@ -166,7 +166,7 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
                         schema,
                         operation,
                         data,
-                        oas,
+                        oass,
                         iteration,
                         isMutation
                     });
@@ -179,7 +179,7 @@ function reuseOrCreateOt({ name, schema, operation, data, oas, iteration, isMuta
 /**
  * Returns an existing List or creates a new one, and stores it in data
  */
-function reuseOrCreateList({ name, operation, schema, data, oas, iteration, isMutation }) {
+function reuseOrCreateList({ name, operation, schema, data, iteration, isMutation, oass }) {
     // minimal error-checking
     if (!('items' in schema)) {
         throw new Error(`Items property missing in array schema definition of ` +
@@ -201,7 +201,7 @@ function reuseOrCreateList({ name, operation, schema, data, oas, iteration, isMu
     let itemsSchema = schema.items;
     let itemsName = `${name}ListItem`;
     if ('$ref' in itemsSchema) {
-        itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas);
+        itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], operation.oas);
         itemsName = schema.items['$ref'].split('/').pop();
     }
     let itemsType = getGraphQLType({
@@ -209,7 +209,7 @@ function reuseOrCreateList({ name, operation, schema, data, oas, iteration, isMu
         schema: itemsSchema,
         data,
         operation,
-        oas,
+        oass,
         iteration: iteration + 1,
         isMutation
     });
@@ -289,11 +289,11 @@ function getScalarType(type, data) {
 /**
  * Creates the fields object to be used by an ObjectType
  */
-function createFields({ name, schema, operation, data, oas, iteration, isMutation }) {
+function createFields({ name, schema, operation, data, iteration, isMutation, oass }) {
     let fields = {};
     // resolve reference if applicable
     if ('$ref' in schema) {
-        schema = Oas3Tools.resolveRef(schema['$ref'], oas);
+        schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas);
     }
     // create fields for properties
     for (let propertyKey in schema.properties) {
@@ -306,7 +306,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
         // if properties are referenced, try to reuse schemas
         if ('$ref' in propSchema) {
             propSchemaName = propSchema['$ref'].split('/').pop();
-            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
+            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], operation.oas);
         }
         // get object type describing the property
         let objectType = getGraphQLType({
@@ -314,7 +314,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
             schema: propSchema,
             operation,
             data,
-            oas,
+            oass,
             iteration: iteration + 1,
             isMutation
         });
@@ -345,9 +345,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                 linkedOpId = linkOpRefToOpId({
                     linkKey,
                     operation,
-                    name,
-                    data,
-                    oas
+                    data
                 });
             }
             // linkedOpId may not be initialized because operationRef may lead to an
@@ -370,7 +368,6 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                     operation: linkedOp,
                     argsFromLink,
                     data,
-                    oas,
                     baseUrl: data.options.baseUrl
                 });
                 // get args for link
@@ -378,7 +375,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                     parameters: dynamicParams,
                     operation,
                     data,
-                    oas
+                    oass
                 });
                 /**
                  * get response object type
@@ -390,7 +387,12 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                 if (typeof description !== 'string') {
                     description = 'No description available.';
                 }
-                description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
+                if (oass.length === 1) {
+                    description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
+                }
+                else {
+                    description += `\n\nEquivalent to ${operation.oas.info.title} ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
+                }
                 // finally, add the object type to the fields (using sanitized field name)
                 let saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap);
                 fields[saneLinkKey] = {
@@ -439,7 +441,6 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                 operation: subOp,
                 argsFromParent,
                 data,
-                oas,
                 baseUrl: data.options.baseUrl
             });
             let dynamicParams = subOp.parameters.filter(parameter => {
@@ -450,7 +451,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
                 parameters: dynamicParams,
                 operation,
                 data,
-                oas
+                oass
             });
             fields[fieldName] = {
                 type: subOp.responseDefinition.ot,
@@ -472,7 +473,7 @@ function createFields({ name, schema, operation, data, oas, iteration, isMutatio
  *  Any changes to constructing operationIds in preprocessor.js should be
  *  reflected here.
  */
-function linkOpRefToOpId({ linkKey, operation, name, data, oas }) {
+function linkOpRefToOpId({ linkKey, operation, data }) {
     let linkedOpId;
     if (typeof operation.links[linkKey].operationRef === 'string') {
         // TODO: external refs
@@ -569,6 +570,7 @@ function linkOpRefToOpId({ linkKey, operation, name, data, oas }) {
                 // revert the escaped '/', represented by '~1', to form intended
                 // path
                 linkPath = linkPath.replace(/~1/g, "/");
+                let oas = operation.oas;
                 if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
                     if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
                         let linkedOpObject = oas.paths[linkPath][linkMethod];
@@ -630,7 +632,7 @@ function linkOpRefToOpId({ linkKey, operation, name, data, oas }) {
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
  * Type
  */
-function getArgs({ parameters, payloadSchema, payloadSchemaName, data, oas, operation }) {
+function getArgs({ parameters, payloadSchema, payloadSchemaName, data, operation, oass }) {
     let args = {};
     // handle params:
     for (let parameter of parameters) {
@@ -668,7 +670,7 @@ function getArgs({ parameters, payloadSchema, payloadSchemaName, data, oas, oper
                 schema: parameter.schema,
                 operation,
                 data,
-                oas,
+                oass,
                 iteration: 0,
                 isMutation: true
             });
@@ -678,7 +680,7 @@ function getArgs({ parameters, payloadSchema, payloadSchemaName, data, oas, oper
         if (typeof parameter.schema === 'object') {
             let schema = parameter.schema;
             if (typeof schema.$ref === 'string') {
-                schema = Oas3Tools.resolveRef(parameter.schema.$ref, oas);
+                schema = Oas3Tools.resolveRef(parameter.schema.$ref, operation.oas);
             }
             if (typeof schema.default !== 'undefined') {
                 hasDefault = true;
@@ -698,7 +700,7 @@ function getArgs({ parameters, payloadSchema, payloadSchemaName, data, oas, oper
             schema: payloadSchema,
             data,
             operation,
-            oas,
+            oass,
             isMutation: true
         });
         // sanitize the argument name

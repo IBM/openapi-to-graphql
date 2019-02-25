@@ -2,7 +2,7 @@
  * Type definitions for the objects created during preprocessing for every
  * operation in the OAS.
  */
-import { LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
+import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType } from 'graphql';
 export declare type DataDefinition = {
     schema: SchemaObject;
@@ -87,4 +87,8 @@ export declare type Operation = {
      * The success HTTP code, 200-299, destined to become a GraphQL object type
      */
     statusCode: string;
+    /**
+     * The OAS which this operation originated from
+     */
+    oas: Oas3;
 };

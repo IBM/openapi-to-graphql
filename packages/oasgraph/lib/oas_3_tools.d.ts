@@ -4,7 +4,7 @@
 import { Oas2 } from './types/oas2';
 import { Operation } from './types/operation';
 import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3.js';
-import { PreprocessingData } from './types/preprocessing_data';
+import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
     fromPath?: string;
@@ -51,9 +51,9 @@ export declare function countOperationsWithPayload(oas: Oas3): number;
  */
 export declare function resolveRef(ref: string, obj: Object, parts?: string[]): any;
 /**
- * From the given OAS, returns the base URL to use for the given operation.
+ * Returns the base URL to use for the given operation.
  */
-export declare function getBaseUrl(oas: Oas3, operation: Operation): string;
+export declare function getBaseUrl(operation: Operation): string;
 /**
  * Returns object | array where all object keys are sanitized. Keys passed in
  * exceptions are not sanitized.
@@ -149,7 +149,7 @@ export declare function getSecuritySchemes(oas: Oas3): {
  * required by the operation at the given path and method.
  */
 export declare function getSecurityRequirements(path: string, method: string, securitySchemes: {
-    [key: string]: SecuritySchemeObject;
+    [key: string]: ProcessedSecurityScheme;
 }, oas: Oas3): string[];
 /**
  * Beautifies the given string and stores the sanitized-to-original mapping in
