@@ -5,7 +5,7 @@
 
 // Type imports:
 import { Oas3, SchemaObject } from './types/oas3'
-import { Options } from './types/options'
+import { InternalOptions } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
 import {
   PreprocessingData,
@@ -28,7 +28,7 @@ const log = debug('preprocessing')
  */
 export function preprocessOas (
   oas: Oas3,
-  options: Options
+  options: InternalOptions
 ): PreprocessingData {
   let data = {
     usedOTNames: [

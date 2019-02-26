@@ -28,10 +28,10 @@ const log = debug_1.default('translation');
  */
 function createGraphQlSchema(spec, options) {
     return __awaiter(this, void 0, void 0, function* () {
-        // deal with option defaults:
-        // @ts-ignore
-        if (typeof options === 'undefined')
+        if (typeof options === 'undefined') {
             options = {};
+        }
+        // Setting default options
         options.strict = typeof options.strict === 'boolean'
             ? options.strict
             : false;
@@ -50,7 +50,7 @@ function createGraphQlSchema(spec, options) {
         options.operationIdFieldNames = typeof options.operationIdFieldNames === 'boolean'
             ? options.operationIdFieldNames
             : false;
-        options.report = {
+        options['report'] = {
             warnings: [],
             numOps: 0,
             numOpsQuery: 0,

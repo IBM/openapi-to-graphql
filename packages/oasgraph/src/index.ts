@@ -31,7 +31,7 @@
  */
 
 // Type imports:
-import { Options, Report } from './types/options'
+import { Options, InternalOptions, Report } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
 import { Args, Field } from './types/graphql'
@@ -53,19 +53,6 @@ import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
 import { sortObject, handleWarning } from './utils'
 
-// Type definitions & exports:
-type LoadFieldsParams = {
-  operation: Operation,
-  operationId: string,
-  queryFields: Object,
-  mutationFields: Object,
-  authQueryFields: Object,
-  authMutationFields: Object,
-  data: PreprocessingData,
-  oas: Oas3,
-  options: Options
-}
-
 type Result = {
   schema: GraphQLSchema,
   report: Report
@@ -78,11 +65,13 @@ const log = debug('translation')
  */
 export async function createGraphQlSchema (
   spec: Oas3 | Oas2,
-  options: Options
+  options?: Options
 ): Promise<Result> {
-  // deal with option defaults:
-  // @ts-ignore
-  if (typeof options === 'undefined') options = {}
+  if (typeof options === 'undefined') {
+    options = {}
+  }
+
+  // Setting default options
   options.strict = typeof options.strict === 'boolean'
     ? options.strict
     : false
@@ -101,8 +90,8 @@ export async function createGraphQlSchema (
   options.operationIdFieldNames = typeof options.operationIdFieldNames === 'boolean'
     ? options.operationIdFieldNames
     : false
-  
-  options.report = {
+
+  options['report'] = {
     warnings: [],
     numOps: 0,
     numOpsQuery: 0,
@@ -117,7 +106,7 @@ export async function createGraphQlSchema (
    * translate the spec into a GraphQL schema
    */
   let oas = await Oas3Tools.getValidOAS3(spec)
-  let { schema, report } = await translateOpenApiToGraphQL(oas, options)
+  let { schema, report } = await translateOpenApiToGraphQL(oas, options as InternalOptions)
   return {
     schema,
     report
@@ -141,7 +130,7 @@ async function translateOpenApiToGraphQL (
     fillEmptyResponses,
     baseUrl,
     operationIdFieldNames
-  }: Options
+  }: InternalOptions
 ): Promise<{ schema: GraphQLSchema, report: Report }> {
   let options = {
     headers,

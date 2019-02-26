@@ -8,7 +8,7 @@
  */
 
 import { Operation, DataDefinition } from './operation'
-import { Options } from './options'
+import { InternalOptions } from './options'
 import { SecuritySchemeObject, SchemaObject } from './oas3'
 
 export type ProcessedSecurityScheme = {
@@ -60,5 +60,5 @@ export type PreprocessingData = {
   /**
    * Options passed to OASGraph by the user
    */
-  options: Options
+  options: InternalOptions
 }

@@ -28,7 +28,7 @@ import {
   SecurityRequirementObject
 } from './types/oas3.js'
 import { PreprocessingData } from './types/preprocessing_data'
-import { Options } from './types/options'
+import { InternalOptions } from './types/options'
 
 // Imports:
 import * as Swagger2OpenAPI from 'swagger2openapi'
@@ -596,7 +596,7 @@ export function getResponseSchemaAndNames (
   method: string,
   oas: Oas3,
   data: PreprocessingData,
-  options: Options
+  options: InternalOptions
 ): ResponseSchemaAndNames {
   let endpoint: OperationObject = oas.paths[path][method]
   let responseSchemaNames: any = {}
