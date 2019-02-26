@@ -18,9 +18,6 @@ beforeAll(() => {
   return OasGraph.createGraphQlSchema(oas, { operationIdFieldNames: true })
     .then(({schema, report}) => {
       createdSchema = schema
-      console.log(schema._typeMap
-        .Query
-        .getFields())
     })
 })
 
