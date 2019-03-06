@@ -59,7 +59,7 @@ type GetArgsParams = {
   operation?: Operation
 }
 
-type ReuseOrCreateOtParams = {
+type CreateOrReuseOtParams = {
   name: string,
   schema: SchemaObject,
   operation?: Operation,
@@ -151,7 +151,7 @@ export function getGraphQLType ({
 
   // CASE: object - create ObjectType
   } else if (type === 'object') {
-    return reuseOrCreateOt({
+    return createOrReuseOt({
       name,
       schema: schema as SchemaObject,
       operation,
@@ -202,7 +202,7 @@ export function getGraphQLType ({
  *       resolve   // optional function defining how to obtain this type
  *   })
  */
-function reuseOrCreateOt ({
+function createOrReuseOt ({
   name,
   schema,
   operation,
@@ -210,13 +210,18 @@ function reuseOrCreateOt ({
   iteration,
   isMutation,
   oass
-}: ReuseOrCreateOtParams): GraphQLType {
-  let def: DataDefinition = createOrReuseDataDef(data, schema, { fromRef: name })
+}: CreateOrReuseOtParams): GraphQLType {
+  let def: DataDefinition
+  if (typeof operation === 'undefined') {
+    def = createOrReuseDataDef(data, schema, { fromRef: name })
+  } else {
+    def = createOrReuseDataDef(data, schema, { fromRef: name })
+  }
 
   // CASE: query - create or reuse OT
-  if (!isMutation) {
+  if (!isMutation) { 
     if (def.ot && typeof def.ot !== 'undefined') {
-      log(`Reuse  Object Type "${def.otName}"` +
+      log(`Reuse Object Type "${def.otName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
@@ -627,7 +632,6 @@ function createFields ({
   }
 
   fields = sortObject(fields)
-
   return fields
 }
 
@@ -917,5 +921,7 @@ export function getArgs ({
         ? 'No description available.' : payloadSchema.description
     }
   }
+
+  args = sortObject(args)
   return args
 }

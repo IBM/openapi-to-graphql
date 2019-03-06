@@ -53,7 +53,7 @@ function getGraphQLType({ name, schema, operation, data, iteration = 0, isMutati
         // CASE: object - create ObjectType
     }
     else if (type === 'object') {
-        return reuseOrCreateOt({
+        return createOrReuseOt({
             name,
             schema: schema,
             operation,
@@ -104,12 +104,18 @@ exports.getGraphQLType = getGraphQLType;
  *       resolve   // optional function defining how to obtain this type
  *   })
  */
-function reuseOrCreateOt({ name, schema, operation, data, iteration, isMutation, oass }) {
-    let def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: name });
+function createOrReuseOt({ name, schema, operation, data, iteration, isMutation, oass }) {
+    let def;
+    if (typeof operation === 'undefined') {
+        def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: name });
+    }
+    else {
+        def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: name });
+    }
     // CASE: query - create or reuse OT
     if (!isMutation) {
         if (def.ot && typeof def.ot !== 'undefined') {
-            log(`Reuse  Object Type "${def.otName}"` +
+            log(`Reuse Object Type "${def.otName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
@@ -716,6 +722,7 @@ function getArgs({ parameters, payloadSchema, payloadSchemaName, data, operation
                 ? 'No description available.' : payloadSchema.description
         };
     }
+    args = utils_1.sortObject(args);
     return args;
 }
 exports.getArgs = getArgs;

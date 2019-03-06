@@ -26,7 +26,7 @@ import {
 import { getGraphQLType } from './schema_builder'
 import * as Oas3Tools from './oas_3_tools'
 import debug from 'debug'
-import { handleWarning } from './utils'
+import { handleWarning, sortObject } from './utils'
 
 // Type definitions & exports:
 type Viewer = {
@@ -173,7 +173,9 @@ const getViewerOT = (
       args[parameterName] = { type: new GraphQLNonNull(GraphQLString) }
     }
   }
-
+  // Do not sort because they are already "sorted" in preprocessing
+  // Otherwise, for basic auth, "password" will appear before "username" 
+  
   let typeDescription
   let description
   if (oass.length === 1) {
@@ -225,6 +227,7 @@ const getViewerAnyAuthOT = (
     })
     args[Oas3Tools.beautify(protocolName)] = { type }
   }
+  args = sortObject(args)
 
   // pass object containing security information to fields
   let resolve = (root, args, ctx) => {

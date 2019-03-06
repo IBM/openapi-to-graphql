@@ -4,7 +4,7 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import { Oas3, SchemaObject } from './types/oas3'
+import { Oas3, SchemaObject, LinksObject } from './types/oas3'
 import { InternalOptions } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
 import {
@@ -97,6 +97,10 @@ export function preprocessOas (
           operationId = ((Oas3Tools.beautify(`${method}:${path}`) as any) as string)
         }
 
+        // Links
+        let links = Oas3Tools.getEndpointLinks(
+          path, method, oas, data)
+
         // Request schema
         let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } =
           Oas3Tools.getRequestSchemaAndNames(path, method, oas)
@@ -125,10 +129,6 @@ export function preprocessOas (
           (responseSchema as SchemaObject),
           responseSchemaNames
         )
-
-        // Links
-        let links = Oas3Tools.getEndpointLinks(
-          path, method, oas, data)
 
         // Parameters
         let parameters = Oas3Tools.getParameters(path, method, oas)
@@ -271,6 +271,7 @@ function getProcessedSecuritySchemes (
         parameters = {
           apiKey: Oas3Tools.beautify(`${key}_apiKey`)
         }
+
         schema = {
           type: 'object',
           description,
@@ -297,6 +298,7 @@ function getProcessedSecuritySchemes (
               username: Oas3Tools.beautify(`${key}_username`),
               password: Oas3Tools.beautify(`${key}_password`)
             }
+
             schema = {
               type: 'object',
               description,
@@ -355,8 +357,8 @@ function getProcessedSecuritySchemes (
  */
 export function createOrReuseDataDef (
   data: PreprocessingData,
-  schema?: SchemaObject,
-  names?: Oas3Tools.SchemaNames
+  schema: SchemaObject,
+  names: Oas3Tools.SchemaNames,
 ): DataDefinition {
   // Do a basic validation check
   if (!schema || typeof schema === 'undefined') {
@@ -364,7 +366,7 @@ export function createOrReuseDataDef (
       `"${String(schema)}"`)
   }
 
-  let preferredName = getPreferredName(data.usedOTNames, names)
+  let preferredName = getPreferredName(names)
 
   // Determine the index of possible existing data definition
   let index = getSchemaIndex(preferredName, schema, data.defs)
@@ -410,7 +412,7 @@ function getSchemaIndex (
   for (let def of dataDefs) {
     index++
 
-    if (def.preferredName === preferredName && deepEqual(schema, def.schema)) {
+    if (preferredName === def.preferredName && deepEqual(schema, def.schema)) {
       return index
     }
   }
@@ -428,8 +430,7 @@ function getSchemaIndex (
  * been taken.
  */
 function getPreferredName (
-  usedNames: string[],
-  names?: Oas3Tools.SchemaNames
+  names: Oas3Tools.SchemaNames
 ): string {
   let schemaName
 
@@ -445,21 +446,9 @@ function getPreferredName (
   } else if (typeof names.fromPath === 'string') {
     schemaName = names.fromPath
 
+  // CASE: placeholder name
   } else {
-    let tempName = 'RandomName'
-
-    let appendix = 2
-
-    /**
-     * GraphQL Objects cannot share the name so if the name already exists in
-     * the master list append an incremental number until the name does not
-     * exist anymore.
-     */
-    while (usedNames.includes(`${tempName}${appendix}`)) {
-      appendix++
-    }
-
-    schemaName = `${tempName}${appendix}`
+    schemaName = 'RandomName'
   }
 
   return Oas3Tools.beautify(schemaName)
@@ -548,5 +537,6 @@ function getSubOps (
       subOps.push(subOp)
     }
   }
+
   return subOps
 }
