@@ -120,6 +120,8 @@ const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
             args[parameterName] = { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) };
         }
     }
+    // Do not sort because they are already "sorted" in preprocessing
+    // Otherwise, for basic auth, "password" will appear before "username" 
     let typeDescription;
     let description;
     if (oass.length === 1) {
@@ -163,6 +165,7 @@ const getViewerAnyAuthOT = (name, queryFields, data, oass) => {
         });
         args[Oas3Tools.beautify(protocolName)] = { type };
     }
+    args = utils_1.sortObject(args);
     // pass object containing security information to fields
     let resolve = (root, args, ctx) => {
         return {

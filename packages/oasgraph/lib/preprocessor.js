@@ -74,6 +74,8 @@ function preprocessOas(oass, options) {
                 if (typeof operationId === 'undefined') {
                     operationId = Oas3Tools.beautify(`${method}:${path}`);
                 }
+                // Links
+                let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
                 // Request schema
                 let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
                 let payloadDefinition;
@@ -92,8 +94,6 @@ function preprocessOas(oass, options) {
                     continue;
                 }
                 let responseDefinition = createOrReuseDataDef(data, responseSchema, responseSchemaNames);
-                // Links
-                let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
                 // Parameters
                 let parameters = Oas3Tools.getParameters(path, method, oas);
                 // Security protocols
@@ -299,7 +299,7 @@ function createOrReuseDataDef(data, schema, names) {
         throw new Error(`Cannot create data definition for invalid schema ` +
             `"${String(schema)}"`);
     }
-    let preferredName = getPreferredName(data.usedOTNames, names);
+    let preferredName = getPreferredName(names);
     // Determine the index of possible existing data definition
     let index = getSchemaIndex(preferredName, schema, data.defs);
     if (index !== -1) {
@@ -333,7 +333,7 @@ function getSchemaIndex(preferredName, schema, dataDefs) {
     let index = -1;
     for (let def of dataDefs) {
         index++;
-        if (def.preferredName === preferredName && deepEqual(schema, def.schema)) {
+        if (preferredName === def.preferredName && deepEqual(schema, def.schema)) {
             return index;
         }
     }
@@ -348,7 +348,7 @@ function getSchemaIndex(preferredName, schema, dataDefs) {
  * Similar to getSchemaName() except it does not check if the name has already
  * been taken.
  */
-function getPreferredName(usedNames, names) {
+function getPreferredName(names) {
     let schemaName;
     // CASE: name from reference
     if (typeof names.fromRef === 'string') {
@@ -361,19 +361,10 @@ function getPreferredName(usedNames, names) {
     }
     else if (typeof names.fromPath === 'string') {
         schemaName = names.fromPath;
+        // CASE: placeholder name
     }
     else {
-        let tempName = 'RandomName';
-        let appendix = 2;
-        /**
-         * GraphQL Objects cannot share the name so if the name already exists in
-         * the master list append an incremental number until the name does not
-         * exist anymore.
-         */
-        while (usedNames.includes(`${tempName}${appendix}`)) {
-            appendix++;
-        }
-        schemaName = `${tempName}${appendix}`;
+        schemaName = 'RandomName';
     }
     return Oas3Tools.beautify(schemaName);
 }
