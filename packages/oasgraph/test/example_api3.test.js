@@ -19,8 +19,8 @@ const api2 = require('./example_api3_server')
 let createdSchema
 let oas = require('./fixtures/example_oas.json')
 let oas2 = require('./fixtures/example_oas3.json')
-const PORT = 3004
-const PORT2 = 3005
+const PORT = 3005
+const PORT2 = 3006
 // update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 oas2.servers[0].variables.port.default = String(PORT2)
