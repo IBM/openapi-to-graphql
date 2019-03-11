@@ -40,7 +40,7 @@ type RequestOptions = {
 
 type AuthReqAndProtcolName = {
   authRequired: boolean,
-  securityRequirement?: string
+  beautifiedSecurityRequirement?: string
 }
 
 type AuthOptions = {
@@ -398,8 +398,9 @@ function getAuthOptions (
 
   // determine if authentication is required, and which protocol (if any) we
   // can use
-  let { authRequired, securityRequirement } = getAuthReqAndProtcolName(
-    operation, _oasgraph, data)
+  let { authRequired, beautifiedSecurityRequirement } = getAuthReqAndProtcolName(
+    operation, _oasgraph)
+  let securityRequirement = data.saneMap[beautifiedSecurityRequirement]
 
   // possibly, we don't need to do anything:
   if (!authRequired) {
@@ -415,7 +416,7 @@ function getAuthOptions (
     let security = data.security[securityRequirement]
     switch (security.def.type) {
       case 'apiKey':
-        let apiKey = _oasgraph.security[securityRequirement].apiKey
+        let apiKey = _oasgraph.security[beautifiedSecurityRequirement].apiKey
         if ('in' in security.def) {
           if (security.def.in === 'header' &&
             typeof security.def.name === 'string') {
@@ -433,8 +434,8 @@ function getAuthOptions (
       case 'http':
         switch (security.def.scheme) {
           case 'basic':
-            let username = _oasgraph.security[securityRequirement].username
-            let password = _oasgraph.security[securityRequirement].password
+            let username = _oasgraph.security[beautifiedSecurityRequirement].username
+            let password = _oasgraph.security[beautifiedSecurityRequirement].password
             authHeaders['Authorization'] = 'Basic ' +
               Buffer.from(username + ':' + password).toString('base64')
             break
@@ -466,8 +467,7 @@ function getAuthOptions (
  */
 function getAuthReqAndProtcolName (
   operation: Operation,
-  _oasgraph,
-  data: PreprocessingData
+  _oasgraph
 ): AuthReqAndProtcolName {
   let authRequired = false
   if (Array.isArray(operation.securityRequirements) &&
@@ -475,10 +475,11 @@ function getAuthReqAndProtcolName (
     authRequired = true
 
     for (let securityRequirement of operation.securityRequirements) {
-      if (typeof _oasgraph.security[securityRequirement] === 'object') {
+      let beautifiedSecurityRequirement = Oas3Tools.beautify(securityRequirement)
+      if (typeof _oasgraph.security[beautifiedSecurityRequirement] === 'object') {
         return {
           authRequired,
-          securityRequirement
+          beautifiedSecurityRequirement
         }
       }
     }
