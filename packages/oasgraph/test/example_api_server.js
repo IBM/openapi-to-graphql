@@ -152,12 +152,20 @@ function startServer (PORT) {
     'Peace Among Companies': {
       projectId: 1,
       active: true,
-      leadId: 'arlene'
+      leadId: 'arlene',
+      patentId: ''
     },
     'Operation: Control CCC': {
       projectId: 2,
       active: false,
-      leadId: 'will'
+      leadId: 'will',
+      patentId: ''
+    },
+    'CCC operation system': {
+      projectId: 3,
+      active: true,
+      leadId: 'will',
+      patentId: '100'
     }
   }
 

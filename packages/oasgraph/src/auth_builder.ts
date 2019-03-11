@@ -148,12 +148,8 @@ const getViewerOT = (
 
   // resolve function:
   let resolve = (root, args, ctx) => {
-    let security: any = {}
-    if (typeof protocolName === 'string') {
-      security[protocolName] = args
-    } else {
-      security.anyAuth = args
-    }
+    let security = {}
+    security[protocolName] = args
 
     /**
      * viewers are always root, so we can instantiate _oasgraph here without
@@ -225,15 +221,26 @@ const getViewerAnyAuthOT = (
       oass,
       isMutation: true
     })
-    args[Oas3Tools.beautify(protocolName)] = { type }
+
+    args[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = { type }
   }
   args = sortObject(args)
 
   // pass object containing security information to fields
   let resolve = (root, args, ctx) => {
+    /**
+     * Authenticated resolvers expect security data to be stored with the raw
+     * security scheme name. As a result, the following constructs a new object
+     * with raw keys. 
+     */
+    let beautifiedArgs = Object.keys(args).reduce((acc, key) => {
+      acc[data.saneMap[key]] = args[key]
+      return acc
+    }, {})
+
     return {
       _oasgraph: {
-        security: args
+        security: beautifiedArgs
       }
     }
   }

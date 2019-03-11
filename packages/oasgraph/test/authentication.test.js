@@ -205,6 +205,138 @@ test('Post project using API key 2', () => {
   })
 })
 
+test('Basic AnyAuth usage', () => {
+  let query = `{ 
+    viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}) {
+      patentWithId (patentId: "100") {
+        patentId
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      "data": {
+        "viewerAnyAuth": {
+          "patentWithId": {
+            "patentId": "100"
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Basic AnyAuth usage with extraneous auth data', () => {
+  let query = `{ 
+    viewerAnyAuth(exampleApiKeyProtocol: {apiKey: "abcdef"}, exampleApiBasicProtocol: {username: "arlene123", password: "password123"}) {
+      patentWithId (patentId: "100") {
+        patentId
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      "data": {
+        "viewerAnyAuth": {
+          "patentWithId": {
+            "patentId": "100"
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Basic AnyAuth usage with multiple operations', () => {
+  let query = `{ 
+    viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}) {
+      patentWithId (patentId: "100") {
+        patentId
+      }
+      projectWithId (projectId: 1) {
+        projectId
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      "data": {
+        "viewerAnyAuth": {
+          "patentWithId": {
+            "patentId": "100"
+          },
+          "projectWithId": {
+            "projectId": 1
+          }
+        }
+      }
+    })
+  })
+})
+
+test('AnyAuth with multiple operations with different auth requirements', () => {
+  let query = `{ 
+    viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}, exampleApiKeyProtocol: {apiKey: "abcdef"}) {
+      patentWithId (patentId: "100") {
+        patentId
+      }
+      projectWithId (projectId: 1) {
+        projectId
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      "data": {
+        "viewerAnyAuth": {
+          "patentWithId": {
+            "patentId": "100"
+          },
+          "projectWithId": {
+            "projectId": 1
+          }
+        }
+      }
+    })
+  })
+})
+
+// This request can only be fulfilled using AnyAuth
+test('AnyAuth with multiple operations with different auth requirements in a link', () => {
+  let query = `{ 
+    viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}, exampleApiKeyProtocol: {apiKey: "abcdef"}) {
+      projectWithId (projectId: 3) {
+        projectId
+        patentId
+        patent {
+          patentId
+        }
+        projectLead {
+          name
+        }
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      "data": {
+        "viewerAnyAuth": {
+          "projectWithId": {
+            "projectId": 3,
+            "patentId": "100",
+            "patent": {
+              "patentId": "100"
+            },
+            "projectLead": {
+              "name": "William B Ropp"
+            }
+          }
+        }
+      }
+    })
+  })
+})
+
 test('Extract token from context', () => {
   let query = `{
     secure

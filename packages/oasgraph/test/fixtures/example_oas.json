@@ -545,12 +545,12 @@
 				}
 			}
 		},
-		"/patents/{patent-id}": {
+		"/patents/{patentId}": {
 			"get": {
 				"operationId": "get-patent-with-id",
 				"description": "An endpoint to test authentication.",
 				"parameters": [{
-					"name": "patent-id",
+					"name": "patentId",
 					"in": "path",
 					"required": true,
 					"schema": {
@@ -609,6 +609,9 @@
 						"links": {
 							"projectLead": {
 								"$ref": "#/components/links/ProjectLead"
+							},
+							"patent": {
+								"$ref": "#/components/links/Patent"
 							}
 						}
 					}
@@ -1060,7 +1063,7 @@
 				"type": "object",
 				"description": "A patent",
 				"properties": {
-					"patent-id": {
+					"patentId": {
 						"type": "string",
 						"description": "The id of the patent"
 					},
@@ -1069,7 +1072,7 @@
 						"description": "The id of the inventor"
 					}
 				},
-				"required": ["patent-name", "patent-id"]
+				"required": ["patent-name", "patentId"]
 			},
 			"product-with-id": {
 				"type": "object",
@@ -1104,7 +1107,11 @@
           "active": {
             "type": "boolean",
             "description": "Whether the project is active"
-          }
+					},
+					"patentId": {
+						"type": "string",
+						"description": "The patent associated with a project if applicable"
+					}
 				}
 			},
 			"tags": {
@@ -1144,6 +1151,13 @@
 					"username": "$response.body#/leadId"
 				},
         "description": "Allows to fetch the user leading a project."
+			},
+			"Patent": {
+				"operationId": "get-patent-with-id",
+				"parameters": {
+					"patentId": "$response.body#/patentId"
+				},
+        "description": "Allows to fetch a patent."
 			},
 			"Inventor": {
 				"operationId": "getUserByUsername",
