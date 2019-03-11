@@ -759,28 +759,6 @@ function getSecurityRequirements(path, method, securitySchemes, oas) {
 }
 exports.getSecurityRequirements = getSecurityRequirements;
 /**
- * Beautifies the given string and stores the sanitized-to-original mapping in
- * the given mapping.
- */
-function beautifyAndStore(str, mapping) {
-    if (!(typeof mapping === 'object')) {
-        throw new Error(`No/invalid mapping passed to beautifyAndStore`);
-    }
-    let clean = beautify(str);
-    if (!clean) {
-        throw new Error(`Cannot beautifyAndStore ${str}`);
-    }
-    else if (clean !== str) {
-        if (clean in mapping && str !== mapping[clean]) {
-            log(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
-                `to ${clean} - collusion possible. Desanitize to ${str}.`);
-        }
-        mapping[clean] = str;
-    }
-    return clean;
-}
-exports.beautifyAndStore = beautifyAndStore;
-/**
  * First sanitizes given string and then also camel-cases it.
  */
 function beautify(str, lowercaseFirstChar = true) {
@@ -817,6 +795,39 @@ function beautify(str, lowercaseFirstChar = true) {
     return sanitized;
 }
 exports.beautify = beautify;
+/**
+ * Beautifies the given string and stores the sanitized-to-original mapping in
+ * the given mapping.
+ */
+function beautifyAndStore(str, mapping) {
+    if (!(typeof mapping === 'object')) {
+        throw new Error(`No/invalid mapping passed to beautifyAndStore`);
+    }
+    let clean = beautify(str);
+    if (!clean) {
+        throw new Error(`Cannot beautifyAndStore ${str}`);
+    }
+    else if (clean !== str) {
+        if (clean in mapping && str !== mapping[clean]) {
+            log(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
+                `to ${clean} - collusion possible. Desanitize to ${str}.`);
+        }
+        mapping[clean] = str;
+    }
+    return clean;
+}
+exports.beautifyAndStore = beautifyAndStore;
+/**
+ * Return an object similar to the input object except the keys are all
+ * beautified
+ */
+function beautifyObjectKeys(obj) {
+    return Object.keys(obj).reduce((acc, key) => {
+        acc[beautify(key)] = obj[key];
+        return acc;
+    }, {});
+}
+exports.beautifyObjectKeys = beautifyObjectKeys;
 /**
  * Sanitizes the given string so that it can be used as the name for a GraphQL
  * Object Type.

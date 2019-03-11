@@ -372,7 +372,7 @@ function createFields({ name, schema, operation, data, iteration, isMutation, oa
                 // get resolve function for link
                 let linkResolver = resolver_builder_1.getResolver({
                     operation: linkedOp,
-                    argsFromLink,
+                    argsFromLink: Oas3Tools.beautifyObjectKeys(argsFromLink),
                     data,
                     baseUrl: data.options.baseUrl
                 });

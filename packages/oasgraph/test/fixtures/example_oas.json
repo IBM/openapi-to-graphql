@@ -545,12 +545,12 @@
 				}
 			}
 		},
-		"/patents/{patentId}": {
+		"/patents/{patent-id}": {
 			"get": {
 				"operationId": "get-patent-with-id",
 				"description": "An endpoint to test authentication.",
 				"parameters": [{
-					"name": "patentId",
+					"name": "patent-id",
 					"in": "path",
 					"required": true,
 					"schema": {
@@ -1063,7 +1063,7 @@
 				"type": "object",
 				"description": "A patent",
 				"properties": {
-					"patentId": {
+					"patent-id": {
 						"type": "string",
 						"description": "The id of the patent"
 					},
@@ -1072,7 +1072,7 @@
 						"description": "The id of the inventor"
 					}
 				},
-				"required": ["patent-name", "patentId"]
+				"required": ["patent-name", "patent-id"]
 			},
 			"product-with-id": {
 				"type": "object",
@@ -1155,7 +1155,7 @@
 			"Patent": {
 				"operationId": "get-patent-with-id",
 				"parameters": {
-					"patentId": "$response.body#/patentId"
+					"patent-id": "$response.body#/patentId"
 				},
         "description": "Allows to fetch a patent."
 			},

@@ -523,7 +523,7 @@ function createFields ({
         // get resolve function for link
         let linkResolver = getResolver({
           operation: linkedOp,
-          argsFromLink,
+          argsFromLink: Oas3Tools.beautifyObjectKeys(argsFromLink) as { [key: string]: string },
           data,
           baseUrl: data.options.baseUrl
         })
