@@ -36,6 +36,7 @@ export function preprocessOas (
       'mutation' // used by OASGraph for root-level element
     ],
     defs: [],
+    schemasToLinks: {},
     operations: {},
     saneMap: {},
     security: {},
@@ -97,10 +98,6 @@ export function preprocessOas (
           operationId = Oas3Tools.generateOperationId(method, path)
         }
 
-        // Links
-        let links = Oas3Tools.getEndpointLinks(
-          path, method, oas, data)
-
         // Request schema
         let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } =
           Oas3Tools.getRequestSchemaAndNames(path, method, oas)
@@ -117,7 +114,7 @@ export function preprocessOas (
         if (!responseSchema || typeof responseSchema !== 'object') {
           handleWarning({
             typeKey: 'MISSING_RESPONSE_SCHEMA',
-            culprit: `${method.toUpperCase()} ${path}`,
+            culprit: `${oas.info.title} ${method.toUpperCase()} ${path}`,
             data,
             log
           })
@@ -129,6 +126,41 @@ export function preprocessOas (
           (responseSchema as SchemaObject),
           responseSchemaNames
         )
+
+        // Links
+        let links = Oas3Tools.getEndpointLinks(
+          path, method, oas, data)
+
+        let preferredName = responseDefinition.preferredName
+        let stringifiedResponseSchema = JSON.stringify(responseSchema, null, 2)
+        if (preferredName in data.schemasToLinks) {
+          if (stringifiedResponseSchema in data.schemasToLinks[preferredName]) {
+            // Check if there are any overlapping links
+            let commonLinkKeys = Object.keys(data.schemasToLinks[preferredName][stringifiedResponseSchema])
+              .filter((linkKey) => {
+                return linkKey in links
+              })
+            
+            commonLinkKeys.forEach((linkKey) => {
+              if (!(deepEqual(data.schemasToLinks[preferredName][stringifiedResponseSchema][linkKey], links[linkKey]))) {
+                handleWarning({
+                  typeKey: 'DUPLICATE_LINK_KEY',
+                  culprit: linkKey,
+                  solution: `${oas.info.title} ${method} ${path}`,
+                  data,
+                  log
+                })
+              }
+            })
+          } else {
+            data.schemasToLinks[preferredName][stringifiedResponseSchema] = {}
+          }
+        } else {
+          data.schemasToLinks[preferredName] = {}
+          data.schemasToLinks[preferredName][stringifiedResponseSchema] = {}
+        }
+        // Collapse the links for a return type
+        Object.assign(data.schemasToLinks[preferredName][stringifiedResponseSchema], links)
 
         // Parameters
         let parameters = Oas3Tools.getParameters(path, method, oas)
@@ -160,7 +192,7 @@ export function preprocessOas (
           payloadRequired,
           responseContentType,
           responseDefinition,
-          links,
+          links: data.schemasToLinks[preferredName][stringifiedResponseSchema],
           parameters,
           securityRequirements,
           servers,

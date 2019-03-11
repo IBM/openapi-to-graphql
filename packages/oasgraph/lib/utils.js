@@ -101,6 +101,13 @@ exports.WarningTypes = {
             message: `Multiple OASs share security schemes with the same name '${culprit}'`,
             mitigation: `The security scheme from the OAS '${solution}' will replace the previous one`
         };
+    },
+    DUPLICATE_LINK_KEY: (culprit, solution) => {
+        return {
+            type: 'duplicateLinkKey',
+            message: `Multiple operations share the same link key '${culprit}'`,
+            mitigation: `The link from operation '${solution}' will replace the previous one`
+        };
     }
 };
 /**

@@ -161,6 +161,15 @@ async function translateOpenApiToGraphQL (
    */
   let data: PreprocessingData = preprocessOas(oass, options)
 
+//   const fs = require('fs');
+// fs.writeFile("preprocessing.json", JSON.stringify(data, null, 2), function(err) {
+//     if(err) {
+//         return console.log(err);
+//     }
+
+//     console.log("The file was saved!");
+// }); 
+
   /**
    * Create GraphQL fields for every operation and structure them based on their
    * characteristics (query vs. mutation, auth vs. non-auth).
