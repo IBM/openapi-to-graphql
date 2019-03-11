@@ -104,6 +104,13 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
          * is easier for OASGraph to use
          */
         let data = preprocessor_1.preprocessOas(oass, options);
+        //   const fs = require('fs');
+        // fs.writeFile("preprocessing.json", JSON.stringify(data, null, 2), function(err) {
+        //     if(err) {
+        //         return console.log(err);
+        //     }
+        //     console.log("The file was saved!");
+        // }); 
         /**
          * Create GraphQL fields for every operation and structure them based on their
          * characteristics (query vs. mutation, auth vs. non-auth).

@@ -22,6 +22,7 @@ function preprocessOas(oass, options) {
             'mutation' // used by OASGraph for root-level element
         ],
         defs: [],
+        schemasToLinks: {},
         operations: {},
         saneMap: {},
         security: {},
@@ -74,8 +75,6 @@ function preprocessOas(oass, options) {
                 if (typeof operationId === 'undefined') {
                     operationId = Oas3Tools.generateOperationId(method, path);
                 }
-                // Links
-                let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
                 // Request schema
                 let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
                 let payloadDefinition;
@@ -87,13 +86,46 @@ function preprocessOas(oass, options) {
                 if (!responseSchema || typeof responseSchema !== 'object') {
                     utils_1.handleWarning({
                         typeKey: 'MISSING_RESPONSE_SCHEMA',
-                        culprit: `${method.toUpperCase()} ${path}`,
+                        culprit: `${oas.info.title} ${method.toUpperCase()} ${path}`,
                         data,
                         log
                     });
                     continue;
                 }
                 let responseDefinition = createOrReuseDataDef(data, responseSchema, responseSchemaNames);
+                // Links
+                let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
+                let preferredName = responseDefinition.preferredName;
+                let stringifiedResponseSchema = JSON.stringify(responseSchema, null, 2);
+                if (preferredName in data.schemasToLinks) {
+                    if (stringifiedResponseSchema in data.schemasToLinks[preferredName]) {
+                        // Check if there are any overlapping links
+                        let commonLinkKeys = Object.keys(data.schemasToLinks[preferredName][stringifiedResponseSchema])
+                            .filter((linkKey) => {
+                            return linkKey in links;
+                        });
+                        commonLinkKeys.forEach((linkKey) => {
+                            if (!(deepEqual(data.schemasToLinks[preferredName][stringifiedResponseSchema][linkKey], links[linkKey]))) {
+                                utils_1.handleWarning({
+                                    typeKey: 'DUPLICATE_LINK_KEY',
+                                    culprit: linkKey,
+                                    solution: `${oas.info.title} ${method} ${path}`,
+                                    data,
+                                    log
+                                });
+                            }
+                        });
+                    }
+                    else {
+                        data.schemasToLinks[preferredName][stringifiedResponseSchema] = {};
+                    }
+                }
+                else {
+                    data.schemasToLinks[preferredName] = {};
+                    data.schemasToLinks[preferredName][stringifiedResponseSchema] = {};
+                }
+                // Collapse the links for a return type
+                Object.assign(data.schemasToLinks[preferredName][stringifiedResponseSchema], links);
                 // Parameters
                 let parameters = Oas3Tools.getParameters(path, method, oas);
                 // Security protocols
@@ -118,7 +150,7 @@ function preprocessOas(oass, options) {
                     payloadRequired,
                     responseContentType,
                     responseDefinition,
-                    links,
+                    links: data.schemasToLinks[preferredName][stringifiedResponseSchema],
                     parameters,
                     securityRequirements,
                     servers,
