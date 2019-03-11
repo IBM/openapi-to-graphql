@@ -916,30 +916,6 @@ export function getSecurityRequirements (
 }
 
 /**
- * Beautifies the given string and stores the sanitized-to-original mapping in
- * the given mapping.
- */
-export function beautifyAndStore (
-  str: string,
-  mapping: { [key: string]: string }
-): string {
-  if (!(typeof mapping === 'object')) {
-    throw new Error(`No/invalid mapping passed to beautifyAndStore`)
-  }
-  let clean = beautify(str)
-  if (!clean) {
-    throw new Error(`Cannot beautifyAndStore ${str}`)
-  } else if (clean !== str) {
-    if (clean in mapping && str !== mapping[clean]) {
-      log(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
-        `to ${clean} - collusion possible. Desanitize to ${str}.`)
-    }
-    mapping[clean] = str
-  }
-  return clean
-}
-
-/**
  * First sanitizes given string and then also camel-cases it.
  */
 export function beautify (
@@ -979,6 +955,41 @@ export function beautify (
   }
 
   return sanitized
+}
+
+/**
+ * Beautifies the given string and stores the sanitized-to-original mapping in
+ * the given mapping.
+ */
+export function beautifyAndStore (
+  str: string,
+  mapping: { [key: string]: string }
+): string {
+  if (!(typeof mapping === 'object')) {
+    throw new Error(`No/invalid mapping passed to beautifyAndStore`)
+  }
+  let clean = beautify(str)
+  if (!clean) {
+    throw new Error(`Cannot beautifyAndStore ${str}`)
+  } else if (clean !== str) {
+    if (clean in mapping && str !== mapping[clean]) {
+      log(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
+        `to ${clean} - collusion possible. Desanitize to ${str}.`)
+    }
+    mapping[clean] = str
+  }
+  return clean
+}
+
+/**
+ * Return an object similar to the input object except the keys are all 
+ * beautified
+ */
+export function beautifyObjectKeys (obj: object): object {
+  return Object.keys(obj).reduce((acc, key) => {
+    acc[beautify(key)] = obj[key]
+    return acc
+  }, {})
 }
 
 /**
