@@ -91,7 +91,7 @@ function startServer (PORT) {
 
   const Books = {
     software: {
-      title: 'Software Engineering for Dumdums',
+      title: 'The OASGraph Cookbook',
       authorName: 'arlene'
     },
     frog: {

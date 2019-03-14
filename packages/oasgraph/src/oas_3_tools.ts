@@ -1037,3 +1037,10 @@ export function capitalize(str: string): string {
 export function uncapitalize(str: string): string {
   return str.charAt(0).toLowerCase() + str.slice(1)
 }
+
+/**
+ * For operations that do not have an operationId, generate one
+ */
+export function generateOperationId(method: string, path: string): string {
+  return beautify(`${method}:${path}`)
+}

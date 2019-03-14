@@ -72,7 +72,7 @@ function preprocessOas(oass, options) {
                 let operationId = endpoint.operationId;
                 // Fill in possibly missing operationId
                 if (typeof operationId === 'undefined') {
-                    operationId = Oas3Tools.beautify(`${method}:${path}`);
+                    operationId = Oas3Tools.generateOperationId(method, path);
                 }
                 // Links
                 let links = Oas3Tools.getEndpointLinks(path, method, oas, data);

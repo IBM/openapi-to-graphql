@@ -184,3 +184,7 @@ export declare function capitalize(str: string): string;
  * Uncapitalizes a given string
  */
 export declare function uncapitalize(str: string): string;
+/**
+ * For operations that do not have an operationId, generate one
+ */
+export declare function generateOperationId(method: string, path: string): string;
