@@ -871,4 +871,11 @@ function uncapitalize(str) {
     return str.charAt(0).toLowerCase() + str.slice(1);
 }
 exports.uncapitalize = uncapitalize;
+/**
+ * For operations that do not have an operationId, generate one
+ */
+function generateOperationId(method, path) {
+    return beautify(`${method}:${path}`);
+}
+exports.generateOperationId = generateOperationId;
 //# sourceMappingURL=oas_3_tools.js.map

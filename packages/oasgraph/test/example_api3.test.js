@@ -68,7 +68,7 @@ test('Basic query on two APIs', () => {
           "name": "Arlene L McMahon"
         },
         "book": {
-          "title": "Software Engineering for Dumdums"
+          "title": "The OASGraph Cookbook"
         },
         "user": {
           "name": "Arlene L McMahon"
@@ -78,7 +78,7 @@ test('Basic query on two APIs', () => {
   })
 })
 
-test('Two APIs with links', () => {
+test('Two APIs with independent links', () => {
   let query = `query {
     author(authorId: "arlene") {
       name
@@ -113,11 +113,11 @@ test('Two APIs with links', () => {
           "name": "Arlene L McMahon",
           "masterpieceTitle": "software",
           "masterpiece": {
-            "title": "Software Engineering for Dumdums"
+            "title": "The OASGraph Cookbook"
           }
         },
         "book": {
-          "title": "Software Engineering for Dumdums",
+          "title": "The OASGraph Cookbook",
           "authorName": "arlene",
           "author": {
             "name": "Arlene L McMahon",
@@ -132,6 +132,60 @@ test('Two APIs with links', () => {
           "name": "Arlene L McMahon",
           "employerCompany": {
             "name": "Binary Solutions"
+          }
+        }
+      }
+    })
+  })
+})
+
+
+test('Two APIs with interrelated links', () => {
+  let query = `query {
+    author(authorId: "arlene") {
+      name
+      employee{
+        name
+        employerCompany{
+          name
+        }
+        author{
+          name
+          masterpiece{
+            title
+            author{
+              name
+              employee{
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      "data": {
+        "author": {
+          "name": "Arlene L McMahon",
+          "employee": {
+            "name": "Arlene L McMahon",
+            "employerCompany": {
+              "name": "Binary Solutions"
+            },
+            "author": {
+              "name": "Arlene L McMahon",
+              "masterpiece": {
+                "title": "The OASGraph Cookbook",
+                "author": {
+                  "name": "Arlene L McMahon",
+                  "employee": {
+                    "name": "Arlene L McMahon"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -169,6 +223,74 @@ test('Two APIs with viewers', () => {
         "viewerBasicAuth2": {
           "patentWithId": {
             "patentId": "100"
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Two APIs with AnyAuth viewer', () => {
+  let query = `{ 
+    viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}, exampleApi3BasicProtocol: {username: "arlene123", password: "password123"}) {
+      projectWithId(projectId: 1) {
+        projectLead{
+          name
+        }
+      }
+      nextWork(authorId: "arlene") {
+        title
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      "data": {
+        "viewerAnyAuth": {
+          "projectWithId": {
+            "projectLead": {
+              "name": "Arlene L McMahon"
+            }
+          },
+          "nextWork": {
+            "title": "OASGraph for Power Users"
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Two APIs with AnyAuth viewer and interrelated links', () => {
+  let query = `{ 
+    viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}, exampleApi3BasicProtocol: {username: "arlene123", password: "password123"}) {
+      projectWithId(projectId: 1) {
+        projectLead{
+          name
+          author {
+            name
+            nextWork {
+              title
+            }
+          }
+        }
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      "data": {
+        "viewerAnyAuth": {
+          "projectWithId": {
+            "projectLead": {
+              "name": "Arlene L McMahon",
+              "author": {
+                "name": "Arlene L McMahon",
+                "nextWork": {
+                  "title": "OASGraph for Power Users"
+                }
+              }
+            }
           }
         }
       }

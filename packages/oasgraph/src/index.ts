@@ -109,6 +109,7 @@ export async function createGraphQlSchema (
     oass = await Promise.all(spec.map((ele) => {
       return Oas3Tools.getValidOAS3(ele)
     }))
+
   } else {
     /**
      * Check if the spec is a valid OAS 3.0.x

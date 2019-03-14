@@ -120,6 +120,9 @@
 						"links": {
 							"employerCompany": {
 								"$ref": "#/components/links/EmployerCompany"
+							},
+							"author": {
+								"$ref": "#/components/links/Author"
 							}
 						}
 					}
@@ -1124,6 +1127,14 @@
       }
 		},
 		"links": {
+			"Author": {
+				"$ref" : "ThisIsHereAndFormattedThisWayBecauseOfAnIssueWithADependency",
+				"operationRef": "Example API 3#/paths/~1authors~1{authorId}/get",
+				"parameters": {
+					"authorId": "$request.path.username"
+				},
+        "description": "Link between two different APIs"
+			},
 			"Employee": {
 				"operationId": "getUserByUsername",
 				"parameters": {

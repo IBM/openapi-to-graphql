@@ -10,7 +10,7 @@
 // Type imports:
 import { PreprocessingData } from './types/preprocessing_data'
 import { Operation, DataDefinition } from './types/operation'
-import { Oas3, SchemaObject, ParameterObject, ReferenceObject } from './types/oas3'
+import { Oas3, SchemaObject, ParameterObject, ReferenceObject, LinkObject } from './types/oas3'
 import { GraphQLType, Args, Field } from './types/graphql'
 import {
   GraphQLObjectType as GQObjectType,
@@ -93,6 +93,13 @@ type CreateFieldsParams = {
   oass: Oas3[],
   iteration: number,
   isMutation: boolean
+}
+
+type LinkOpRefToOpIdParams = {
+  linkKey: string,
+  operation: Operation,
+  data: PreprocessingData,
+  oass: Oas3[]
 }
 
 const log = debug('translation')
@@ -488,17 +495,21 @@ function createFields ({
   ) {
     for (let linkKey in operation.links) {
       log(`Create link "${linkKey}"...`)
+      let link = operation.links[linkKey]
 
       // get linked operation
       let linkedOpId
       // TODO: href is yet another alternative to operationRef and operationId
-      if (typeof operation.links[linkKey].operationId === 'string') {
-        linkedOpId = operation.links[linkKey].operationId
-      } else if (typeof operation.links[linkKey].operationRef === 'string') {
+      if (typeof link.operationId === 'string') {
+        linkedOpId = link.operationId
+
+      } else if (typeof link.operationRef === 'string') {
+
         linkedOpId = linkOpRefToOpId({
           linkKey,
           operation,
-          data
+          data,
+          oass
         })
       }
 
@@ -508,7 +519,7 @@ function createFields ({
         let linkedOp = data.operations[linkedOpId]
 
         // determine parameters provided via link
-        let argsFromLink = operation.links[linkKey].parameters
+        let argsFromLink = link.parameters
 
         // remove argsFromLinks from operation parameters
         let dynamicParams = linkedOp.parameters
@@ -543,7 +554,7 @@ function createFields ({
          */
         let resObjectType = linkedOp.responseDefinition.ot
 
-        let description = operation.links[linkKey].description
+        let description = link.description
 
         if (typeof description !== 'string') {
           description = 'No description available.'
@@ -647,14 +658,17 @@ function createFields ({
 function linkOpRefToOpId ({
   linkKey,
   operation,
-  data
-}): string {
-  let linkedOpId
+  data,
+  oass
+}: LinkOpRefToOpIdParams): string {
+  let link = operation.links[linkKey]
 
-  if (typeof operation.links[linkKey].operationRef === 'string') {
+  let linkedOpId
+  if (typeof link.operationRef === 'string') {
     // TODO: external refs
 
-    let operationRef = operation.links[linkKey].operationRef
+    let operationRef = link.operationRef
+    let linkLocation
     let linkRelativePathAndMethod
 
     // example relative path: '#/paths/~12.0~1repositories~1{username}/get'
@@ -668,12 +682,12 @@ function linkOpRefToOpId ({
     } else {
       // '#' may exist in other places in the path
       // '/#/' is more likely to point to the beginning of the path
-      let firstPathIndex = operationRef.indexOf('/#/paths/')
+      let firstPathIndex = operationRef.indexOf('#/paths/')
 
       // found a relative path candidate
       if (firstPathIndex !== -1) {
         // check to see if there are other relative path candidates
-        let lastPathIndex = operationRef.lastIndexOf('/#/paths/')
+        let lastPathIndex = operationRef.lastIndexOf('#/paths/')
         if (firstPathIndex !== lastPathIndex) {
           handleWarning({
             typeKey: 'AMBIGUOUS_LINK',
@@ -683,8 +697,8 @@ function linkOpRefToOpId ({
           })
         }
 
-        // +1 to avoid the first '/'
-        linkRelativePathAndMethod = operationRef.substring(firstPathIndex + 1)
+        linkLocation = operationRef.substring(0, firstPathIndex)
+        linkRelativePathAndMethod = operationRef.substring(firstPathIndex)
 
       // cannot find relative path candidate
       } else {
@@ -757,37 +771,58 @@ function linkOpRefToOpId ({
         // path
         linkPath = linkPath.replace(/~1/g, "/")
 
-        let oas = operation.oas
-        if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
-          if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
-            let linkedOpObject = oas.paths[linkPath][linkMethod]
+        // find the right oas
+        let oas: Oas3
+        if (typeof linkLocation === 'undefined') {
+          oas = operation.oas
+        } else {
+          oas = getOasFromLinkLocation(linkLocation, link, data, oass)
+        }
 
-            if ('operationId' in linkedOpObject) {
-              linkedOpId = linkedOpObject.operationId
+        // if the link was external, make sure that an OAS could be identified
+        if (typeof oas !== 'undefined') {
+          if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
+            if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
+              let linkedOpObject = oas.paths[linkPath][linkMethod]
+  
+              if ('operationId' in linkedOpObject) {
+                linkedOpId = linkedOpObject.operationId
+              }
             }
-          }
-
-          if (typeof linkedOpId !== 'string') {
-            linkedOpId = ((Oas3Tools.beautify(`${linkMethod}:${linkPath}`) as any) as string)
-          }
-
-          if (linkedOpId in data.operations) {
-            return linkedOpId
+  
+            if (typeof linkedOpId !== 'string') {
+              linkedOpId = Oas3Tools.generateOperationId(linkMethod, linkPath)
+            }
+  
+            if (linkedOpId in data.operations) {
+              return linkedOpId
+            } else {
+              handleWarning({
+                typeKey: 'UNRESOLVABLE_LINK',
+                culprit: `Could not find operationId '${linkedOpId}' in link ` +
+                  `'${linkKey}'`,
+                data,
+                log
+              })
+            }
+  
+          // path and method could not be found
           } else {
             handleWarning({
               typeKey: 'UNRESOLVABLE_LINK',
-              culprit: `Could not find operationId '${linkedOpId}' in link ` +
-                `'${linkKey}'`,
+              culprit: `Could not find path and/or method from operationRef ` +
+                `'${operationRef}' in link '${linkKey}'`,
               data,
               log
             })
           }
-        // path and method could not be found
+
+        // external link could not be resolved
         } else {
           handleWarning({
             typeKey: 'UNRESOLVABLE_LINK',
-            culprit: `Could not find path and/or method from operationRef ` +
-              `'${operationRef}' in link '${linkKey}'`,
+            culprit: `OAS of external link '${link.operationRef}' could not ` +
+              `be identified`,
             data,
             log
           })
@@ -925,3 +960,79 @@ export function getArgs ({
   args = sortObject(args)
   return args
 }
+
+/**
+ * Used in the context of links, specifically those using an external operationRef
+ * If the reference is an absolute reference, determine the type of location
+ * 
+ * For example, name reference, file path, web-hosted OAS link, etc. 
+ */
+function getLinkLocationType (linkLocation: string): string {
+  // TODO
+  // Currently we only support the title as a link location
+  return 'title'
+}
+
+/**
+ * Used in the context of links, specifically those using an external operationRef
+ * Based on the location of the OAS, retrieve said OAS
+ */
+function getOasFromLinkLocation (linkLocation: string, link: LinkObject, data: PreprocessingData, oass: Oas3[]): Oas3 {
+  // may be an external reference
+  switch (getLinkLocationType(linkLocation)) {
+    case 'title': 
+      // get the possible 
+      let possibleOass = oass.filter((oas) => {
+        return oas.info.title === linkLocation
+      })
+
+      // check if there are an ambiguous OASs
+      if (possibleOass.length === 1) {
+        // no ambiguity
+        return possibleOass[0]
+
+      } else if (possibleOass.length > 1) {
+        // some ambiguity
+        handleWarning({
+          typeKey: 'AMBIGUOUS_LINK',
+          culprit: `Multiple OASs share the same title '${linkLocation}' in ` +
+            `the operationRef '${link.operationRef}'`,
+          data,
+          log
+        })
+
+      } else {
+        // no OAS had the expected title
+        handleWarning({
+          typeKey: 'UNRESOLVABLE_LINK',
+          culprit: `No OAS has the title '${linkLocation}' in the ` + 
+            `operationRef '${link.operationRef}`,
+          data,
+          log
+        })
+      }
+
+      break
+
+    // // TODO
+    // case 'url': 
+    //   break
+
+    // // TODO
+    // case 'file': 
+    //   break
+
+    // TODO: should title be default?
+    // In cases of names like api.io 
+    default:
+    handleWarning({
+      typeKey: 'UNRESOLVABLE_LINK',
+      culprit: `The link location of the operationRef ` + 
+      `'${link.operationRef}' is currently not supported\n` +
+      `Currently only the title of the OAS is supported`,
+      data,
+      log
+    })
+  }
+}
+ 

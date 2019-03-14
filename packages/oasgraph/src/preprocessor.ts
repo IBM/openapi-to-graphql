@@ -94,7 +94,7 @@ export function preprocessOas (
 
         // Fill in possibly missing operationId
         if (typeof operationId === 'undefined') {
-          operationId = ((Oas3Tools.beautify(`${method}:${path}`) as any) as string)
+          operationId = Oas3Tools.generateOperationId(method, path)
         }
 
         // Links
