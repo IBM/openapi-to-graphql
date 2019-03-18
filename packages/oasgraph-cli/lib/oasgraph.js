@@ -4,20 +4,18 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
 const graphqlHTTP = require("express-graphql");
 const cors = require("cors");
-const oasgraph_1 = require("oasgraph");
 const path = require("path");
 const request = require("request");
 const fs = require("fs");
 const yaml = require("js-yaml");
 const graphql_1 = require("graphql");
-var program = require('commander');
+const oasgraph_1 = require("oasgraph");
 const app = express();
-let filePath;
-let portNumber = 3001;
+let program = require('commander');
 program
     .version(require('../package.json').version)
-    .usage('<OAS JSON file path or remote url> [options]')
-    .arguments('<path>')
+    .usage('<OAS JSON file path(s) and/or remote url(s)> [options]')
+    .arguments('<path(s) and/or url(s)>')
     .option('-p, --port <port>', 'select the port where the server will start', parseInt)
     .option('-u, --url <url>', 'select the base url which paths will be built on')
     .option('-s, --strict', 'throw an error if OASGraph cannot run without compensating for errors or missing data in the OAS')
@@ -27,39 +25,55 @@ program
     .option('--cors', 'enable Cross-origin resource sharing (CORS)')
     .option('--no-viewer', 'do not create GraphQL viewer objects for passing authentication credentials')
     .option('--save <file path>', 'save schema to path and do not start server')
-    .action(function (path) {
-    filePath = path;
-})
     .parse(process.argv);
-if (typeof filePath === 'undefined') {
-    console.error('No path provided');
-    console.error('Please refer to the help manual (oasgraph -h) for more information');
-    process.exit(1);
-}
+// Select the port on which to host the GraphQL server
+let portNumber = 3000;
 if (program.port) {
     portNumber = program.port;
 }
-// check if the file exists
-if (fs.existsSync(path.resolve(filePath))) {
-    try {
-        let oas = readFile(path.resolve(filePath));
-        startGraphQLServer(oas, portNumber);
-    }
-    catch (e) {
-        console.error(e);
-    }
+let filePaths = program.args;
+if (typeof filePaths === 'undefined' || filePaths.length === 0) {
+    console.error('No path(s) provided');
+    console.error('Please refer to the help manual (oasgraph -h) for more information');
+    process.exit(1);
 }
-else {
-    // falls back to a remote location
-    if (filePath.match(/^https?/g)) {
-        getRemoteFileSpec(filePath).then(remoteContent => {
-            startGraphQLServer(remoteContent, portNumber);
-        });
-    }
-    else {
-        console.error(`OASGraph reading local file error. File ${filePath} does not exist.`);
-    }
-}
+// Load the OASs based off of the provided paths
+Promise.all(filePaths.map(filePath => {
+    return new Promise((resolve, reject) => {
+        // Check if the file exists
+        if (fs.existsSync(path.resolve(filePath))) {
+            try {
+                resolve(readFile(path.resolve(filePath)));
+            }
+            catch (error) {
+                console.error(error);
+                reject(filePath);
+            }
+            // Check if file is in a remote location
+        }
+        else if (filePath.match(/^https?/g)) {
+            getRemoteFileSpec(filePath)
+                .then((remoteContent) => {
+                resolve(remoteContent);
+            })
+                .catch((error) => {
+                console.error(error);
+                reject(filePath);
+            });
+            // Cannot determine location of file
+        }
+        else {
+            reject(filePath);
+        }
+    });
+}))
+    .then(oass => {
+    startGraphQLServer(oass, portNumber);
+})
+    .catch(filePath => {
+    console.error(`OASGraph cannot read file. File '${filePath}' does not exist.`);
+    process.exit(1);
+});
 /**
 * Returns content of read JSON/YAML file.
 *
