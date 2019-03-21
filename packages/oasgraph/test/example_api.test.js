@@ -577,53 +577,22 @@ test('Request data is correctly de-sanitized to be sent', () => {
   })
 })
 
-test('Sub operations are properly made available', () => {
-  let query = `{
-    user (username: "arlene") {
-      name
-      car {
-        color
-        model
-      }
-    }
-  }`
-  return graphql(createdSchema, query, null, {}).then(result => {
-    expect(result).toEqual({
-      data: {
-        user: {
-          name: 'Arlene L McMahon',
-          car: {
-            color: 'black',
-            model: 'BMW 7 series'
-          }
-        }
-      }
-    })
-  })
-})
-
 test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
   let query = `{
-    user (username: "arlene") {
-      name
-      car {
-        color
-        model
-        tags
-      }
+    car (username: "arlene") {
+      color
+      model
+      tags
     }
   }`
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        user: {
-          name: 'Arlene L McMahon',
-          car: {
-            color: 'black',
-            model: 'BMW 7 series',
-            tags: {
-              impression: 'decadent'
-            }
+        "car": {
+          "color": "black",
+          "model": "BMW 7 series",
+          "tags": {
+            "impression": "decadent"
           }
         }
       }
@@ -633,21 +602,15 @@ test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
 
 test('Capitalized enum values can be returned', () => {
   let query = `{
-    user (username: "arlene") {
-      name
-      car {
-        kind
-      }
+    car (username: "arlene") {
+      kind
     }
   }`
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        user: {
-          name: 'Arlene L McMahon',
-          car: {
-            kind: 'LIMOSINE'
-          }
+        "car": {
+          "kind": "LIMOSINE"
         }
       }
     })

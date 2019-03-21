@@ -141,17 +141,6 @@ function preprocessOas(oass, options) {
                 data.operations[operationId] = operation;
             }
         }
-        /**
-         * SubOperation option
-         * Determine "links" based on sub-paths
-         * (Only now, when operations have been defined)
-         */
-        if (data.options.addSubOperations) {
-            for (let operationIndex in data.operations) {
-                let operation = data.operations[operationIndex];
-                operation.subOps = getSubOps(operation, data.operations);
-            }
-        }
     });
     return data;
 }
@@ -416,27 +405,5 @@ function getSchemaName(usedNames, names) {
         schemaName = `${tempName}${appendix}`;
     }
     return schemaName;
-}
-/**
- * Returns an array of operations whose path contains the path of the given
- * operation. E.g., output could be an array with an operation having a path
- * '/users/{id}/profile' for a given operation with a path of '/users/{id}'.
- * Sub operations are only returned if the path of the given operation contains
- * at least one path parameter.
- */
-function getSubOps(operation, operations) {
-    let subOps = [];
-    let hasPathParams = /\{.*\}/g.test(operation.path);
-    if (!hasPathParams)
-        return subOps;
-    for (let operationIndex in operations) {
-        let subOp = operations[operationIndex];
-        if (subOp.method === 'get' && operation.method === 'get' &&
-            subOp.operationId !== operation.operationId &&
-            subOp.path.includes(operation.path)) {
-            subOps.push(subOp);
-        }
-    }
-    return subOps;
 }
 //# sourceMappingURL=preprocessor.js.map

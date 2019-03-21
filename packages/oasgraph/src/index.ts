@@ -75,9 +75,6 @@ export async function createGraphQlSchema (
   options.strict = typeof options.strict === 'boolean'
     ? options.strict
     : false
-  options.addSubOperations = typeof options.addSubOperations === 'boolean'
-    ? options.addSubOperations
-    : false
   options.viewer = typeof options.viewer === 'boolean'
     ? options.viewer
     : true
@@ -137,7 +134,6 @@ async function translateOpenApiToGraphQL (
     qs,
     viewer,
     tokenJSONpath,
-    addSubOperations,
     sendOAuthTokenInQuery,
     fillEmptyResponses,
     baseUrl,
@@ -151,7 +147,6 @@ async function translateOpenApiToGraphQL (
     viewer,
     tokenJSONpath,
     strict,
-    addSubOperations,
     sendOAuthTokenInQuery,
     fillEmptyResponses,
     baseUrl,
@@ -178,7 +173,7 @@ async function translateOpenApiToGraphQL (
     // Start with endpoints that DO contain links OR that DO contain sub
     // operations, so that built-up GraphQL object types contain these links
     // when they are re-used.
-    .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
+    .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinks(op1, op2))
     .forEach(([operationId, operation]) => {
       log(`Process operation "${operationId}"...`)
       let field = getFieldForOperation(operation, data, oass, options.baseUrl)
@@ -345,15 +340,26 @@ async function translateOpenApiToGraphQL (
 }
 
 /**
- * Helper function for sorting operations based on them having links or sub-
- * operations.
+ * Helper function for sorting operations based on them having links
  */
-function sortByHasLinksOrSubOps (op1: Operation, op2: Operation): number {
-  const hasOp1 = Object.keys(op1.links).length > 0 ||
-    (Array.isArray(op1.subOps) && op1.subOps.length > 0)
-  const hasOp2 = Object.keys(op2.links).length > 0 ||
-    (Array.isArray(op2.subOps) && op2.subOps.length > 0)
-  return (hasOp1 === hasOp2) ? 0 : hasOp1 ? -1 : 1 // hasOp1 = true => -1 = first
+function sortByHasLinks (op1: Operation, op2: Operation): number {
+  // Operations that return arrays because you cannot declare links in the
+  // array but they can by reusing object types. To do so, the reused object
+  // type must be create first
+  if (op1.responseDefinition.schema.type === 'array' && 
+    op2.responseDefinition.schema.type !== 'array') {
+      return 1
+
+  } else if (op1.responseDefinition.schema.type !== 'array' && 
+  op2.responseDefinition.schema.type === 'array') {
+    return -1 
+
+  } else {
+    const hasOp1 = Object.keys(op1.links).length > 0
+    const hasOp2 = Object.keys(op2.links).length > 0
+
+    return (hasOp1 === hasOp2) ? 0 : hasOp1 ? -1 : 1 // hasOp1 = true => -1 = first
+  }
 }
 
 /**
