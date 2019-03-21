@@ -48,12 +48,6 @@ export type Options = {
   viewer?: boolean,
 
   /**
-   * Determines whether OASGraph will attempt to nest operations based on their
-   * URL structure (e.g., "/users/{id}" and "/users/{id}/friends").
-   */
-  addSubOperations?: boolean,
-
-  /**
    * JSON path to OAuth 2 token contained in GraphQL context. Tokens will per
    * default be sent in "Authorization" header.
    */
@@ -124,12 +118,6 @@ export type InternalOptions = {
    * basic auth and API key credentials.
    */
   viewer: boolean,
-
-  /**
-   * Determines whether OASGraph will attempt to nest operations based on their
-   * URL structure (e.g., "/users/{id}" and "/users/{id}/friends").
-   */
-  addSubOperations: boolean,
 
   /**
    * JSON path to OAuth 2 token contained in GraphQL context. Tokens will per

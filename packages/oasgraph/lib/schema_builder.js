@@ -420,55 +420,6 @@ function createFields({ name, schema, operation, data, iteration, isMutation, oa
             }
         }
     }
-    // create fields for subOperations
-    if (data.options.addSubOperations && iteration === 0 && operation &&
-        typeof operation === 'object' &&
-        Array.isArray(operation.subOps)) {
-        for (let subOp of operation.subOps) {
-            // here, we know the operation is present
-            operation = operation;
-            let fieldName = Oas3Tools.uncapitalize(subOp.responseDefinition.otName);
-            let otName = operation.responseDefinition.otName;
-            // check for collision with existing field name:
-            if (typeof fields[fieldName] !== 'undefined') {
-                utils_1.handleWarning({
-                    typeKey: 'LINK_NAME_COLLISION',
-                    culprit: fieldName,
-                    data,
-                    log
-                });
-                continue;
-            }
-            log(`Add sub operation '${fieldName}' to ` +
-                `'${otName}'`);
-            // determine parameters provided via parent operation
-            let argsFromParent = operation.parameters.filter(param => {
-                return param.in === 'path';
-            }).map(args => args.name);
-            let subOpResolver = resolver_builder_1.getResolver({
-                operation: subOp,
-                argsFromParent,
-                data,
-                baseUrl: data.options.baseUrl
-            });
-            let dynamicParams = subOp.parameters.filter(parameter => {
-                return !argsFromParent.includes(parameter.name);
-            });
-            // get args
-            let args = getArgs({
-                parameters: dynamicParams,
-                operation,
-                data,
-                oass
-            });
-            fields[fieldName] = {
-                type: subOp.responseDefinition.ot,
-                resolve: subOpResolver,
-                args,
-                description: subOp.responseDefinition.schema.description
-            };
-        }
-    }
     fields = utils_1.sortObject(fields);
     return fields;
 }
@@ -662,7 +613,7 @@ function linkOpRefToOpId({ linkKey, operation, data, oass }) {
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
  * Type
  */
-function getArgs({ parameters, payloadSchema, payloadSchemaName, data, operation, oass }) {
+function getArgs({ parameters, payloadSchema, payloadSchemaName, operation, data, oass }) {
     let args = {};
     // handle params:
     for (let parameter of parameters) {

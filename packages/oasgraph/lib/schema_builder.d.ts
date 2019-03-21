@@ -30,5 +30,5 @@ export declare function getGraphQLType({ name, schema, operation, data, iteratio
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
  * Type
  */
-export declare function getArgs({ parameters, payloadSchema, payloadSchemaName, data, operation, oass }: GetArgsParams): Args;
+export declare function getArgs({ parameters, payloadSchema, payloadSchemaName, operation, data, oass }: GetArgsParams): Args;
 export {};
