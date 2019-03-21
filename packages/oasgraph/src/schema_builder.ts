@@ -585,63 +585,6 @@ function createFields ({
     }
   }
 
-  // create fields for subOperations
-  if (data.options.addSubOperations && iteration === 0 && operation &&
-    typeof operation === 'object' &&
-    Array.isArray(operation.subOps)) {
-    for (let subOp of operation.subOps) {
-      // here, we know the operation is present
-      operation = ((operation as any) as Operation)
-      let fieldName = Oas3Tools.uncapitalize(subOp.responseDefinition.otName)
-      let otName = operation.responseDefinition.otName
-
-      // check for collision with existing field name:
-      if (typeof fields[fieldName] !== 'undefined') {
-        handleWarning({
-          typeKey: 'LINK_NAME_COLLISION',
-          culprit: fieldName,
-          data,
-          log
-        })
-        continue
-      }
-
-      log(`Add sub operation '${fieldName}' to ` +
-        `'${otName}'`)
-
-      // determine parameters provided via parent operation
-      let argsFromParent = operation.parameters.filter(param => {
-        return param.in === 'path'
-      }).map(args => args.name)
-
-      let subOpResolver = getResolver({
-        operation: subOp,
-        argsFromParent,
-        data,
-        baseUrl: data.options.baseUrl
-      })
-
-      let dynamicParams = subOp.parameters.filter(parameter => {
-        return !argsFromParent.includes(parameter.name)
-      })
-
-      // get args
-      let args = getArgs({
-        parameters: dynamicParams,
-        operation,
-        data,
-        oass
-      })
-
-      fields[fieldName] = {
-        type: subOp.responseDefinition.ot,
-        resolve: subOpResolver,
-        args,
-        description: subOp.responseDefinition.schema.description
-      }
-    }
-  }
-
   fields = sortObject(fields)
   return fields
 }
@@ -860,8 +803,8 @@ export function getArgs ({
   parameters,
   payloadSchema,
   payloadSchemaName,
-  data,
   operation,
+  data,
   oass
 }: GetArgsParams): Args {
   let args = {}
