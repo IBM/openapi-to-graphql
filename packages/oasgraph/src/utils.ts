@@ -113,8 +113,9 @@ export const WarningTypes: {
   DUPLICATE_LINK_KEY: (culprit: string, solution: string) => {
     return {
       type: 'duplicateLinkKey',
-      message: `Multiple operations share the same link key '${culprit}'`,
-      mitigation: `The link from operation '${solution}' will replace the previous one`
+      message: `Multiple operations with the same response body schema share the same link key '${culprit}'`,
+      // TODO: improve mitigation message
+      mitigation: `The link will replace the previous one`
     }
   }
 }

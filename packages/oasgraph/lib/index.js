@@ -104,13 +104,6 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
          * is easier for OASGraph to use
          */
         let data = preprocessor_1.preprocessOas(oass, options);
-        //   const fs = require('fs');
-        // fs.writeFile("preprocessing.json", JSON.stringify(data, null, 2), function(err) {
-        //     if(err) {
-        //         return console.log(err);
-        //     }
-        //     console.log("The file was saved!");
-        // }); 
         /**
          * Create GraphQL fields for every operation and structure them based on their
          * characteristics (query vs. mutation, auth vs. non-auth).
@@ -123,7 +116,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             // Start with endpoints that DO contain links OR that DO contain sub
             // operations, so that built-up GraphQL object types contain these links
             // when they are re-used.
-            .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinks(op1, op2))
+            .sort(([op1Id, op1], [op2Id, op2]) => sortByHasArray(op1, op2))
             .forEach(([operationId, operation]) => {
             log(`Process operation "${operationId}"...`);
             let field = getFieldForOperation(operation, data, oass, options.baseUrl, requestOptions);
@@ -266,12 +259,15 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
     });
 }
 /**
- * Helper function for sorting operations based on them having links
+ * Helper function for sorting operations based on the return type, whether it
+ * is an object or an array
+ *
+ * You cannot define links for operations that return arrays in the OAS
+ *
+ * These links are instead created by reusing the return type from other
+ * operations
  */
-function sortByHasLinks(op1, op2) {
-    // Operations that return arrays because you cannot declare links in the
-    // array but they can by reusing object types. To do so, the reused object
-    // type must be create first
+function sortByHasArray(op1, op2) {
     if (op1.responseDefinition.schema.type === 'array' &&
         op2.responseDefinition.schema.type !== 'array') {
         return 1;
@@ -281,9 +277,7 @@ function sortByHasLinks(op1, op2) {
         return -1;
     }
     else {
-        const hasOp1 = Object.keys(op1.links).length > 0;
-        const hasOp2 = Object.keys(op2.links).length > 0;
-        return (hasOp1 === hasOp2) ? 0 : hasOp1 ? -1 : 1; // hasOp1 = true => -1 = first
+        return 0;
     }
 }
 /**

@@ -50,16 +50,6 @@ export type PreprocessingData = {
   defs: DataDefinition[],
 
   /**
-   * Allows collapsing schemas from multiple operations with the same return 
-   * type
-   * 
-   * First key is the preferredName of the schema
-   * Second key is the stringified schema
-   * Third key-value pair is the links object
-   */
-  schemasToLinks: {[key: string]: {[key: string]: {[key: string]: LinkObject}}}
-
-  /**
    * The security definitions contained in the OAS. References are resolved.
    *
    * NOTE: Keys are beautified

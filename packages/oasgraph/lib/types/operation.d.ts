@@ -5,8 +5,11 @@
 import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType } from 'graphql';
 export declare type DataDefinition = {
-    schema: SchemaObject;
     preferredName: string;
+    schema: SchemaObject;
+    links: {
+        [key: string]: LinkObject;
+    };
     otName: string;
     iotName: string;
     ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType;
@@ -49,12 +52,6 @@ export declare type Operation = {
      * Information about the response payload
      */
     responseDefinition: DataDefinition;
-    /**
-     * Links of the operation
-     */
-    links: {
-        [key: string]: LinkObject;
-    };
     /**
      * List of parameters of the operation
      */
