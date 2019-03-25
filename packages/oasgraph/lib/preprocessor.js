@@ -22,7 +22,6 @@ function preprocessOas(oass, options) {
             'mutation' // used by OASGraph for root-level element
         ],
         defs: [],
-        schemasToLinks: {},
         operations: {},
         saneMap: {},
         security: {},
@@ -79,7 +78,7 @@ function preprocessOas(oass, options) {
                 let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
                 let payloadDefinition;
                 if (payloadSchema && typeof payloadSchema !== 'undefined') {
-                    payloadDefinition = createOrReuseDataDef(data, payloadSchema, payloadSchemaNames);
+                    payloadDefinition = createOrReuseDataDef(payloadSchemaNames, payloadSchema, data);
                 }
                 // Response schema
                 let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options);
@@ -92,40 +91,9 @@ function preprocessOas(oass, options) {
                     });
                     continue;
                 }
-                let responseDefinition = createOrReuseDataDef(data, responseSchema, responseSchemaNames);
                 // Links
                 let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
-                let preferredName = responseDefinition.preferredName;
-                let stringifiedResponseSchema = JSON.stringify(responseSchema, null, 2);
-                if (preferredName in data.schemasToLinks) {
-                    if (stringifiedResponseSchema in data.schemasToLinks[preferredName]) {
-                        // Check if there are any overlapping links
-                        let commonLinkKeys = Object.keys(data.schemasToLinks[preferredName][stringifiedResponseSchema])
-                            .filter((linkKey) => {
-                            return linkKey in links;
-                        });
-                        commonLinkKeys.forEach((linkKey) => {
-                            if (!(deepEqual(data.schemasToLinks[preferredName][stringifiedResponseSchema][linkKey], links[linkKey]))) {
-                                utils_1.handleWarning({
-                                    typeKey: 'DUPLICATE_LINK_KEY',
-                                    culprit: linkKey,
-                                    solution: `${oas.info.title} ${method} ${path}`,
-                                    data,
-                                    log
-                                });
-                            }
-                        });
-                    }
-                    else {
-                        data.schemasToLinks[preferredName][stringifiedResponseSchema] = {};
-                    }
-                }
-                else {
-                    data.schemasToLinks[preferredName] = {};
-                    data.schemasToLinks[preferredName][stringifiedResponseSchema] = {};
-                }
-                // Collapse the links for a return type
-                Object.assign(data.schemasToLinks[preferredName][stringifiedResponseSchema], links);
+                let responseDefinition = createOrReuseDataDef(responseSchemaNames, responseSchema, data, links);
                 // Parameters
                 let parameters = Oas3Tools.getParameters(path, method, oas);
                 // Security protocols
@@ -150,7 +118,6 @@ function preprocessOas(oass, options) {
                     payloadRequired,
                     responseContentType,
                     responseDefinition,
-                    links: data.schemasToLinks[preferredName][stringifiedResponseSchema],
                     parameters,
                     securityRequirements,
                     servers,
@@ -314,7 +281,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
  */
-function createOrReuseDataDef(data, schema, names) {
+function createOrReuseDataDef(names, schema, data, links) {
     // Do a basic validation check
     if (!schema || typeof schema === 'undefined') {
         throw new Error(`Cannot create data definition for invalid schema ` +
@@ -324,25 +291,50 @@ function createOrReuseDataDef(data, schema, names) {
     // Determine the index of possible existing data definition
     let index = getSchemaIndex(preferredName, schema, data.defs);
     if (index !== -1) {
-        return data.defs[index];
+        let existingDataDef = data.defs[index];
+        if (typeof links !== 'undefined') {
+            if (typeof existingDataDef.links !== 'undefined') {
+                // Check if there are any overlapping links
+                Object.keys(existingDataDef.links)
+                    .forEach((linkKey) => {
+                    if (!(deepEqual(existingDataDef[linkKey], links[linkKey]))) {
+                        utils_1.handleWarning({
+                            typeKey: 'DUPLICATE_LINK_KEY',
+                            culprit: linkKey,
+                            data,
+                            log
+                        });
+                    }
+                });
+                // Collapse the links
+                Object.assign(existingDataDef.links, links);
+            }
+            else {
+                existingDataDef.links = links;
+            }
+        }
+        return existingDataDef;
     }
-    // Else, define a new name, store the def, and return it
-    let name = getSchemaName(data.usedOTNames, names);
-    // Store and beautify the name
-    let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap);
-    let saneInputName = saneName + 'Input';
-    // Add the names to the master list
-    data.usedOTNames.push(saneName);
-    data.usedOTNames.push(saneInputName);
-    let def = {
-        schema,
-        preferredName,
-        otName: Oas3Tools.capitalize(saneName),
-        iotName: Oas3Tools.capitalize(saneInputName)
-    };
-    // Add the def to the master list
-    data.defs.push(def);
-    return def;
+    else {
+        // Else, define a new name, store the def, and return it
+        let name = getSchemaName(data.usedOTNames, names);
+        // Store and beautify the name
+        let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap);
+        let saneInputName = saneName + 'Input';
+        // Add the names to the master list
+        data.usedOTNames.push(saneName);
+        data.usedOTNames.push(saneInputName);
+        let def = {
+            preferredName,
+            schema,
+            links,
+            otName: Oas3Tools.capitalize(saneName),
+            iotName: Oas3Tools.capitalize(saneInputName)
+        };
+        // Add the def to the master list
+        data.defs.push(def);
+        return def;
+    }
 }
 exports.createOrReuseDataDef = createOrReuseDataDef;
 /**

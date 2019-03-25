@@ -105,13 +105,7 @@ exports.getGraphQLType = getGraphQLType;
  *   })
  */
 function createOrReuseOt({ name, schema, operation, data, iteration, isMutation, oass }) {
-    let def;
-    if (typeof operation === 'undefined') {
-        def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: name });
-    }
-    else {
-        def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: name });
-    }
+    let def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
     // CASE: query - create or reuse OT
     if (!isMutation) {
         if (def.ot && typeof def.ot !== 'undefined') {
@@ -135,6 +129,7 @@ function createOrReuseOt({ name, schema, operation, data, iteration, isMutation,
                     return createFields({
                         name: def.otName,
                         schema,
+                        links: def.links,
                         operation,
                         data,
                         oass,
@@ -170,6 +165,7 @@ function createOrReuseOt({ name, schema, operation, data, iteration, isMutation,
                     return createFields({
                         name: def.iotName,
                         schema,
+                        links: undefined,
                         operation,
                         data,
                         oass,
@@ -191,7 +187,7 @@ function reuseOrCreateList({ name, operation, schema, data, iteration, isMutatio
         throw new Error(`Items property missing in array schema definition of ` +
             `'${name}'.`);
     }
-    let def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: `${name}` });
+    let def = preprocessor_1.createOrReuseDataDef({ fromRef: `${name}` }, schema, data);
     // try to reuse existing Object Type
     if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
         log(`Reuse  GraphQLList "${def.otName}"`);
@@ -246,7 +242,7 @@ function reuseOrCreateList({ name, operation, schema, data, iteration, isMutatio
  */
 function reuseOrCreateEnum({ name, data, schema }) {
     // try to reuse existing Enum Type
-    let def = preprocessor_1.createOrReuseDataDef(data, schema, { fromRef: name });
+    let def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
     if (def.ot && typeof def.ot !== 'undefined') {
         log(`Reuse  GraphQLEnumType "${def.otName}"`);
         return def.ot;
@@ -295,7 +291,7 @@ function getScalarType(type, data) {
 /**
  * Creates the fields object to be used by an ObjectType
  */
-function createFields({ name, schema, operation, data, iteration, isMutation, oass }) {
+function createFields({ name, schema, links, operation, data, iteration, isMutation, oass }) {
     let fields = {};
     // resolve reference if applicable
     if ('$ref' in schema) {
@@ -336,12 +332,12 @@ function createFields({ name, schema, operation, data, iteration, isMutation, oa
     // create fields for links
     if (iteration === 0 && // only for operation-level object types
         operation && typeof operation === 'object' && // operation is provided
-        typeof operation.links === 'object' && // links are present
+        typeof links === 'object' && // links are present
         !isMutation // only if we are not talking INPUT object type
     ) {
-        for (let linkKey in operation.links) {
+        for (let linkKey in links) {
             log(`Create link "${linkKey}"...`);
-            let link = operation.links[linkKey];
+            let link = links[linkKey];
             // get linked operation
             let linkedOpId;
             // TODO: href is yet another alternative to operationRef and operationId
@@ -350,6 +346,7 @@ function createFields({ name, schema, operation, data, iteration, isMutation, oa
             }
             else if (typeof link.operationRef === 'string') {
                 linkedOpId = linkOpRefToOpId({
+                    links,
                     linkKey,
                     operation,
                     data,
@@ -432,8 +429,8 @@ function createFields({ name, schema, operation, data, iteration, isMutation, oa
  *  Any changes to constructing operationIds in preprocessor.js should be
  *  reflected here.
  */
-function linkOpRefToOpId({ linkKey, operation, data, oass }) {
-    let link = operation.links[linkKey];
+function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
+    let link = links[linkKey];
     let linkedOpId;
     if (typeof link.operationRef === 'string') {
         // TODO: external refs

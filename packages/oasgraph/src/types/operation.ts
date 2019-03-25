@@ -13,7 +13,8 @@ import {
   LinkObject,
   ParameterObject,
   ServerObject,
-  SchemaObject
+  SchemaObject,
+  LinksObject
 } from './oas3'
 
 import {
@@ -25,8 +26,9 @@ import {
 } from 'graphql'
 
 export type DataDefinition = {
-  schema: SchemaObject,
   preferredName: string,
+  schema: SchemaObject,
+  links: { [key: string]: LinkObject },
   otName: string,
   iotName: string,
   ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType,
@@ -78,13 +80,6 @@ export type Operation = {
    * Information about the response payload
    */
   responseDefinition: DataDefinition,
-
-  /**
-   * Links of the operation
-   */
-  links: {
-    [key: string]: LinkObject
-  },
 
   /**
    * List of parameters of the operation

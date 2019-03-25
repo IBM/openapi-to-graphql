@@ -3,7 +3,7 @@
  */
 import { Operation, DataDefinition } from './operation';
 import { InternalOptions } from './options';
-import { SecuritySchemeObject, SchemaObject, Oas3, LinkObject } from './oas3';
+import { SecuritySchemeObject, SchemaObject, Oas3 } from './oas3';
 export declare type ProcessedSecurityScheme = {
     rawName: string;
     def: SecuritySchemeObject;
@@ -39,21 +39,6 @@ export declare type PreprocessingData = {
      * List of data definitions for JSON schemas already used.
      */
     defs: DataDefinition[];
-    /**
-     * Allows collapsing schemas from multiple operations with the same return
-     * type
-     *
-     * First key is the preferredName of the schema
-     * Second key is the stringified schema
-     * Third key-value pair is the links object
-     */
-    schemasToLinks: {
-        [key: string]: {
-            [key: string]: {
-                [key: string]: LinkObject;
-            };
-        };
-    };
     /**
      * The security definitions contained in the OAS. References are resolved.
      *

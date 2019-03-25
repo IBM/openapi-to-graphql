@@ -19,7 +19,7 @@ let oas3 = require('./fixtures/example_oas3.json')
 // let oas = require('./fixtures/government_social_work_api.json')
 // let oas = require('./fixtures/weather_underground_api.json')
 
-OasGraph.createGraphQlSchema([oas, oas3])
+OasGraph.createGraphQlSchema(oas)
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
     app.use('/graphql', graphqlHTTP({

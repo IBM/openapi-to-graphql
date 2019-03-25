@@ -10,7 +10,7 @@
 // Type imports:
 import { PreprocessingData } from './types/preprocessing_data'
 import { Operation, DataDefinition } from './types/operation'
-import { Oas3, SchemaObject, ParameterObject, ReferenceObject, LinkObject } from './types/oas3'
+import { Oas3, SchemaObject, ParameterObject, ReferenceObject, LinkObject, LinksObject } from './types/oas3'
 import { GraphQLType, Args, Field } from './types/graphql'
 import {
   GraphQLObjectType as GQObjectType,
@@ -89,6 +89,7 @@ type CreateFieldsParams = {
   name: string,
   operation?: Operation,
   schema: SchemaObject,
+  links: { [key: string]: LinkObject },
   data: PreprocessingData,
   oass: Oas3[],
   iteration: number,
@@ -96,6 +97,7 @@ type CreateFieldsParams = {
 }
 
 type LinkOpRefToOpIdParams = {
+  links: { [key: string]: LinkObject },
   linkKey: string,
   operation: Operation,
   data: PreprocessingData,
@@ -218,12 +220,7 @@ function createOrReuseOt ({
   isMutation,
   oass
 }: CreateOrReuseOtParams): GraphQLType {
-  let def: DataDefinition
-  if (typeof operation === 'undefined') {
-    def = createOrReuseDataDef(data, schema, { fromRef: name })
-  } else {
-    def = createOrReuseDataDef(data, schema, { fromRef: name })
-  }
+  let def: DataDefinition = createOrReuseDataDef({ fromRef: name }, schema, data)
 
   // CASE: query - create or reuse OT
   if (!isMutation) { 
@@ -248,6 +245,7 @@ function createOrReuseOt ({
           return createFields({
             name: def.otName,
             schema,
+            links: def.links,
             operation,
             data,
             oass,
@@ -284,6 +282,7 @@ function createOrReuseOt ({
           return createFields({
             name: def.iotName,
             schema,
+            links: undefined,
             operation,
             data,
             oass,
@@ -316,7 +315,7 @@ function reuseOrCreateList ({
       `'${name}'.`)
   }
 
-  let def = createOrReuseDataDef(data, schema, { fromRef: `${name}` })
+  let def = createOrReuseDataDef({ fromRef: `${name}` }, schema, data)
 
   // try to reuse existing Object Type
   if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
@@ -379,7 +378,7 @@ function reuseOrCreateEnum ({
   schema
 }: ReuseOrCreateEnum): GQEnumType {
   // try to reuse existing Enum Type
-  let def = createOrReuseDataDef(data, schema, { fromRef: name })
+  let def = createOrReuseDataDef({ fromRef: name }, schema, data)
 
   if (def.ot && typeof def.ot !== 'undefined') {
     log(`Reuse  GraphQLEnumType "${def.otName}"`)
@@ -437,6 +436,7 @@ function getScalarType (
 function createFields ({
   name,
   schema,
+  links,
   operation,
   data,
   iteration,
@@ -490,12 +490,12 @@ function createFields ({
   // create fields for links
   if (iteration === 0 && // only for operation-level object types
     operation && typeof operation === 'object' && // operation is provided
-    typeof operation.links === 'object' && // links are present
+    typeof links === 'object' && // links are present
     !isMutation // only if we are not talking INPUT object type
   ) {
-    for (let linkKey in operation.links) {
+    for (let linkKey in links) {
       log(`Create link "${linkKey}"...`)
-      let link = operation.links[linkKey]
+      let link = links[linkKey]
 
       // get linked operation
       let linkedOpId
@@ -506,6 +506,7 @@ function createFields ({
       } else if (typeof link.operationRef === 'string') {
 
         linkedOpId = linkOpRefToOpId({
+          links,
           linkKey,
           operation,
           data,
@@ -599,12 +600,13 @@ function createFields ({
  *  reflected here.
  */
 function linkOpRefToOpId ({
+  links,
   linkKey,
   operation,
   data,
   oass
 }: LinkOpRefToOpIdParams): string {
-  let link = operation.links[linkKey]
+  let link = links[linkKey]
 
   let linkedOpId
   if (typeof link.operationRef === 'string') {

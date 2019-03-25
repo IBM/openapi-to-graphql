@@ -1,4 +1,4 @@
-import { Oas3, SchemaObject } from './types/oas3';
+import { Oas3, SchemaObject, LinkObject } from './types/oas3';
 import { InternalOptions } from './types/options';
 import { DataDefinition } from './types/operation';
 import { PreprocessingData } from './types/preprocessing_data';
@@ -16,4 +16,6 @@ export declare function preprocessOas(oass: Oas3[], options: InternalOptions): P
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
  */
-export declare function createOrReuseDataDef(data: PreprocessingData, schema: SchemaObject, names: Oas3Tools.SchemaNames): DataDefinition;
+export declare function createOrReuseDataDef(names: Oas3Tools.SchemaNames, schema: SchemaObject, data: PreprocessingData, links?: {
+    [key: string]: LinkObject;
+}): DataDefinition;
