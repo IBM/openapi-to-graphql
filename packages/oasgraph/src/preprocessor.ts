@@ -4,7 +4,7 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import { Oas3, SchemaObject, LinksObject } from './types/oas3'
+import { Oas3, SchemaObject, LinksObject, LinkObject } from './types/oas3'
 import { InternalOptions } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
 import {
@@ -36,7 +36,6 @@ export function preprocessOas (
       'mutation' // used by OASGraph for root-level element
     ],
     defs: [],
-    schemasToLinks: {},
     operations: {},
     saneMap: {},
     security: {},
@@ -104,7 +103,7 @@ export function preprocessOas (
 
         let payloadDefinition
         if (payloadSchema && typeof payloadSchema !== 'undefined') {
-          payloadDefinition = createOrReuseDataDef(data, (payloadSchema as SchemaObject), payloadSchemaNames)
+          payloadDefinition = createOrReuseDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), data)
         }
 
         // Response schema
@@ -121,46 +120,16 @@ export function preprocessOas (
           continue
         }
 
-        let responseDefinition = createOrReuseDataDef(
-          data,
-          (responseSchema as SchemaObject),
-          responseSchemaNames
-        )
-
         // Links
         let links = Oas3Tools.getEndpointLinks(
           path, method, oas, data)
 
-        let preferredName = responseDefinition.preferredName
-        let stringifiedResponseSchema = JSON.stringify(responseSchema, null, 2)
-        if (preferredName in data.schemasToLinks) {
-          if (stringifiedResponseSchema in data.schemasToLinks[preferredName]) {
-            // Check if there are any overlapping links
-            let commonLinkKeys = Object.keys(data.schemasToLinks[preferredName][stringifiedResponseSchema])
-              .filter((linkKey) => {
-                return linkKey in links
-              })
-            
-            commonLinkKeys.forEach((linkKey) => {
-              if (!(deepEqual(data.schemasToLinks[preferredName][stringifiedResponseSchema][linkKey], links[linkKey]))) {
-                handleWarning({
-                  typeKey: 'DUPLICATE_LINK_KEY',
-                  culprit: linkKey,
-                  solution: `${oas.info.title} ${method} ${path}`,
-                  data,
-                  log
-                })
-              }
-            })
-          } else {
-            data.schemasToLinks[preferredName][stringifiedResponseSchema] = {}
-          }
-        } else {
-          data.schemasToLinks[preferredName] = {}
-          data.schemasToLinks[preferredName][stringifiedResponseSchema] = {}
-        }
-        // Collapse the links for a return type
-        Object.assign(data.schemasToLinks[preferredName][stringifiedResponseSchema], links)
+        let responseDefinition = createOrReuseDataDef(
+          responseSchemaNames,
+          (responseSchema as SchemaObject),
+          data,
+          links
+        )
 
         // Parameters
         let parameters = Oas3Tools.getParameters(path, method, oas)
@@ -192,7 +161,6 @@ export function preprocessOas (
           payloadRequired,
           responseContentType,
           responseDefinition,
-          links: data.schemasToLinks[preferredName][stringifiedResponseSchema],
           parameters,
           securityRequirements,
           servers,
@@ -376,9 +344,10 @@ function getProcessedSecuritySchemes (
  * (= the Input Object Type for the schema).
  */
 export function createOrReuseDataDef (
-  data: PreprocessingData,
-  schema: SchemaObject,
   names: Oas3Tools.SchemaNames,
+  schema: SchemaObject,
+  data: PreprocessingData,
+  links?: { [key: string]: LinkObject }
 ): DataDefinition {
   // Do a basic validation check
   if (!schema || typeof schema === 'undefined') {
@@ -391,31 +360,58 @@ export function createOrReuseDataDef (
   // Determine the index of possible existing data definition
   let index = getSchemaIndex(preferredName, schema, data.defs)
   if (index !== -1) {
-    return data.defs[index]
+    let existingDataDef = data.defs[index]
+
+    if (typeof links !== 'undefined') {
+      if (typeof existingDataDef.links !== 'undefined') {
+        // Check if there are any overlapping links
+        Object.keys(existingDataDef.links)
+        .forEach((linkKey) => {
+          if (!(deepEqual(existingDataDef[linkKey], links[linkKey]))) {
+            handleWarning({
+              typeKey: 'DUPLICATE_LINK_KEY',
+              culprit: linkKey,
+              data,
+              log
+            })
+          }
+        })
+
+        // Collapse the links
+        Object.assign(existingDataDef.links, links)
+        
+      } else {
+        existingDataDef.links = links
+      }
+    }
+
+    return existingDataDef
+
+  } else {
+    // Else, define a new name, store the def, and return it
+    let name = getSchemaName(data.usedOTNames, names)
+
+    // Store and beautify the name
+    let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
+    let saneInputName = saneName + 'Input'
+
+    // Add the names to the master list
+    data.usedOTNames.push(saneName)
+    data.usedOTNames.push(saneInputName)
+
+    let def = {
+      preferredName,
+      schema,
+      links,
+      otName: Oas3Tools.capitalize(saneName),
+      iotName: Oas3Tools.capitalize(saneInputName)
+    }
+
+    // Add the def to the master list
+    data.defs.push(def)
+
+    return def
   }
-
-  // Else, define a new name, store the def, and return it
-  let name = getSchemaName(data.usedOTNames, names)
-
-  // Store and beautify the name
-  let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
-  let saneInputName = saneName + 'Input'
-
-  // Add the names to the master list
-  data.usedOTNames.push(saneName)
-  data.usedOTNames.push(saneInputName)
-
-  let def = {
-    schema,
-    preferredName,
-    otName: Oas3Tools.capitalize(saneName),
-    iotName: Oas3Tools.capitalize(saneInputName)
-  }
-
-  // Add the def to the master list
-  data.defs.push(def)
-
-  return def
 }
 
 /**
