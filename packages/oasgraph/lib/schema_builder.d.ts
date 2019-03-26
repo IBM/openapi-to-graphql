@@ -6,26 +6,27 @@ import { Operation } from './types/operation';
 import { Oas3, SchemaObject, ParameterObject, ReferenceObject } from './types/oas3';
 import { GraphQLType, Args } from './types/graphql';
 declare type GetGraphQLTypeParams = {
-    name: string;
+    name?: string;
     schema: SchemaObject | ReferenceObject;
+    preferredName?: string;
     operation?: Operation;
     data: PreprocessingData;
-    oass: Oas3[];
     iteration?: number;
     isMutation?: boolean;
+    oass: Oas3[];
 };
 declare type GetArgsParams = {
     parameters: ParameterObject[];
     payloadSchema?: SchemaObject;
     payloadSchemaName?: string;
+    operation?: Operation;
     data: PreprocessingData;
     oass: Oas3[];
-    operation?: Operation;
 };
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
-export declare function getGraphQLType({ name, schema, operation, data, iteration, isMutation, oass }: GetGraphQLTypeParams): GraphQLType;
+export declare function getGraphQLType({ name, schema, preferredName, operation, data, iteration, isMutation, oass, }: GetGraphQLTypeParams): GraphQLType;
 /**
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
  * Type

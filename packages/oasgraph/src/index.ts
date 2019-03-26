@@ -373,8 +373,9 @@ function getFieldForOperation (
 ): Field {
   // create GraphQL Type for response:
   let type = getGraphQLType({
-    name: operation.responseDefinition.preferredName,
+    name: undefined,
     schema: operation.responseDefinition.schema,
+    preferredName: operation.responseDefinition.preferredName,
     data,
     operation,
     oass

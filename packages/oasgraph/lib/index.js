@@ -285,8 +285,9 @@ function sortByHasArray(op1, op2) {
 function getFieldForOperation(operation, data, oass, baseUrl) {
     // create GraphQL Type for response:
     let type = schema_builder_1.getGraphQLType({
-        name: operation.responseDefinition.preferredName,
+        name: undefined,
         schema: operation.responseDefinition.schema,
+        preferredName: operation.responseDefinition.preferredName,
         data,
         operation,
         oass
