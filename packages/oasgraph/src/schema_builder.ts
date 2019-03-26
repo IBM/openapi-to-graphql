@@ -41,59 +41,63 @@ import { handleWarning, sortObject } from './utils'
 
 // Type definitions & exports:
 type GetGraphQLTypeParams = {
-  name: string,              // name of type to create NOTE: ignored for scalars
+  name?: string,              // name of type to create NOTE: ignored for scalars
   schema: SchemaObject | ReferenceObject,
+  preferredName?: string,    // the preferredName if it is known
   operation?: Operation,
   data: PreprocessingData,   // data produced by preprocessing
-  oass: Oas3[],                 // input OAS 3
   iteration?: number,        // count of recursions used to create type
   isMutation?: boolean       // whether to create an Input Type
+  oass: Oas3[]               // input OAS 3
 }
 
 type GetArgsParams = {
   parameters: ParameterObject[],
   payloadSchema?: SchemaObject,
   payloadSchemaName?: string,
+  operation?: Operation,
   data: PreprocessingData,
-  oass: Oas3[],
-  operation?: Operation
+  oass: Oas3[]
 }
 
 type CreateOrReuseOtParams = {
   name: string,
   schema: SchemaObject,
+  preferredName?: string,    
   operation?: Operation,
-  data: PreprocessingData,
-  oass: Oas3[],
   iteration: number,
-  isMutation: boolean
+  isMutation: boolean,
+  data: PreprocessingData,
+  oass: Oas3[]
 }
 
 type ReuseOrCreateListParams = {
   name: string,
-  operation?: Operation,
   schema: SchemaObject,
-  data: PreprocessingData,
-  oass: Oas3[],
+  preferredName?: string,    // the preferredName if it is known
+  operation?: Operation,
   iteration: number,
-  isMutation: boolean
+  isMutation: boolean,
+  data: PreprocessingData,
+  oass: Oas3[]
 }
 
 type ReuseOrCreateEnum = {
   name: string,
-  data: PreprocessingData,
-  schema: SchemaObject
+  schema: SchemaObject,
+  preferredName?: string,    // the preferredName if it is known
+  data: PreprocessingData
 }
 
 type CreateFieldsParams = {
   name: string,
-  operation?: Operation,
   schema: SchemaObject,
   links: { [key: string]: LinkObject },
-  data: PreprocessingData,
-  oass: Oas3[],
+  operation?: Operation,
   iteration: number,
-  isMutation: boolean
+  isMutation: boolean,
+  data: PreprocessingData,
+  oass: Oas3[]
 }
 
 type LinkOpRefToOpIdParams = {
@@ -112,21 +116,17 @@ const log = debug('translation')
 export function getGraphQLType ({
   name,
   schema,
+  preferredName,
   operation,
   data,
   iteration = 0,
   isMutation = false,
-  oass
+  oass,
 }: GetGraphQLTypeParams
 ): GraphQLType {
   // avoid excessive iterations
   if (iteration === 50) {
     throw new Error(`Too many iterations when creating schema ${name}`)
-  }
-
-  // no valid schema name
-  if (!name || typeof name !== 'string') {
-    throw new Error(`Invalid schema name provided`)
   }
 
   // some error checking
@@ -163,6 +163,7 @@ export function getGraphQLType ({
     return createOrReuseOt({
       name,
       schema: schema as SchemaObject,
+      preferredName,
       operation,
       data,
       oass,
@@ -175,6 +176,7 @@ export function getGraphQLType ({
     return reuseOrCreateList({
       name,
       schema: schema as SchemaObject,
+      preferredName,
       operation,
       data,
       oass,
@@ -186,8 +188,9 @@ export function getGraphQLType ({
   } else if (type === 'enum') {
     return reuseOrCreateEnum({
       name,
-      data,
-      schema: schema as SchemaObject
+      schema: schema as SchemaObject,
+      preferredName,
+      data
     })
 
   // CASE: scalar - return scalar
@@ -214,13 +217,19 @@ export function getGraphQLType ({
 function createOrReuseOt ({
   name,
   schema,
+  preferredName,
   operation,
   data,
   iteration,
   isMutation,
   oass
 }: CreateOrReuseOtParams): GraphQLType {
-  let def: DataDefinition = createOrReuseDataDef({ fromRef: name }, schema, data)
+  let def: DataDefinition
+  if (typeof preferredName === 'undefined') {
+    def = createOrReuseDataDef({ fromRef: name }, schema, data)
+  } else {
+    def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+  }
 
   // CASE: query - create or reuse OT
   if (!isMutation) { 
@@ -302,11 +311,12 @@ function createOrReuseOt ({
  */
 function reuseOrCreateList ({
   name,
-  operation,
   schema,
-  data,
+  preferredName,
+  operation,
   iteration,
   isMutation,
+  data,
   oass
 }: ReuseOrCreateListParams): GraphQLList<any> {
   // minimal error-checking
@@ -315,14 +325,19 @@ function reuseOrCreateList ({
       `'${name}'.`)
   }
 
-  let def = createOrReuseDataDef({ fromRef: `${name}` }, schema, data)
+  let def: DataDefinition
+  if (typeof preferredName === 'undefined') {
+    def = createOrReuseDataDef({ fromRef: name }, schema, data)
+  } else {
+    def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+  }
 
   // try to reuse existing Object Type
   if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
-    log(`Reuse  GraphQLList "${def.otName}"`)
+    log(`Reuse GraphQLList "${def.otName}"`)
     return ((def.ot as any) as GraphQLList<any>)
   } else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
-    log(`Reuse  GraphQLList "${def.iotName}"`)
+    log(`Reuse GraphQLList "${def.iotName}"`)
     return ((def.iot as any) as GraphQLList<any>)
   }
 
@@ -357,6 +372,7 @@ function reuseOrCreateList ({
       def.iot = listObjectType
     }
     return listObjectType
+
   } else {
     handleWarning({
       typeKey: 'INVALID_SCHEMA_TYPE_LIST_ITEM',
@@ -374,11 +390,17 @@ function reuseOrCreateList ({
  */
 function reuseOrCreateEnum ({
   name,
-  data,
-  schema
+  schema,
+  preferredName,
+  data
 }: ReuseOrCreateEnum): GQEnumType {
   // try to reuse existing Enum Type
-  let def = createOrReuseDataDef({ fromRef: name }, schema, data)
+  let def: DataDefinition
+  if (typeof preferredName === 'undefined') {
+    def = createOrReuseDataDef({ fromRef: name }, schema, data)
+  } else {
+    def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+  }
 
   if (def.ot && typeof def.ot !== 'undefined') {
     log(`Reuse  GraphQLEnumType "${def.otName}"`)

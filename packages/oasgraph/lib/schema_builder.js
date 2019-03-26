@@ -17,14 +17,10 @@ const log = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
-function getGraphQLType({ name, schema, operation, data, iteration = 0, isMutation = false, oass }) {
+function getGraphQLType({ name, schema, preferredName, operation, data, iteration = 0, isMutation = false, oass, }) {
     // avoid excessive iterations
     if (iteration === 50) {
         throw new Error(`Too many iterations when creating schema ${name}`);
-    }
-    // no valid schema name
-    if (!name || typeof name !== 'string') {
-        throw new Error(`Invalid schema name provided`);
     }
     // some error checking
     if (!schema || typeof schema !== 'object') {
@@ -56,6 +52,7 @@ function getGraphQLType({ name, schema, operation, data, iteration = 0, isMutati
         return createOrReuseOt({
             name,
             schema: schema,
+            preferredName,
             operation,
             data,
             oass,
@@ -68,6 +65,7 @@ function getGraphQLType({ name, schema, operation, data, iteration = 0, isMutati
         return reuseOrCreateList({
             name,
             schema: schema,
+            preferredName,
             operation,
             data,
             oass,
@@ -79,8 +77,9 @@ function getGraphQLType({ name, schema, operation, data, iteration = 0, isMutati
     else if (type === 'enum') {
         return reuseOrCreateEnum({
             name,
-            data,
-            schema: schema
+            schema: schema,
+            preferredName,
+            data
         });
         // CASE: scalar - return scalar
     }
@@ -104,8 +103,14 @@ exports.getGraphQLType = getGraphQLType;
  *       resolve   // optional function defining how to obtain this type
  *   })
  */
-function createOrReuseOt({ name, schema, operation, data, iteration, isMutation, oass }) {
-    let def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+function createOrReuseOt({ name, schema, preferredName, operation, data, iteration, isMutation, oass }) {
+    let def;
+    if (typeof preferredName === 'undefined') {
+        def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+    }
+    else {
+        def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName);
+    }
     // CASE: query - create or reuse OT
     if (!isMutation) {
         if (def.ot && typeof def.ot !== 'undefined') {
@@ -181,20 +186,26 @@ function createOrReuseOt({ name, schema, operation, data, iteration, isMutation,
 /**
  * Returns an existing List or creates a new one, and stores it in data
  */
-function reuseOrCreateList({ name, operation, schema, data, iteration, isMutation, oass }) {
+function reuseOrCreateList({ name, schema, preferredName, operation, iteration, isMutation, data, oass }) {
     // minimal error-checking
     if (!('items' in schema)) {
         throw new Error(`Items property missing in array schema definition of ` +
             `'${name}'.`);
     }
-    let def = preprocessor_1.createOrReuseDataDef({ fromRef: `${name}` }, schema, data);
+    let def;
+    if (typeof preferredName === 'undefined') {
+        def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+    }
+    else {
+        def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName);
+    }
     // try to reuse existing Object Type
     if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
-        log(`Reuse  GraphQLList "${def.otName}"`);
+        log(`Reuse GraphQLList "${def.otName}"`);
         return def.ot;
     }
     else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
-        log(`Reuse  GraphQLList "${def.iotName}"`);
+        log(`Reuse GraphQLList "${def.iotName}"`);
         return def.iot;
     }
     // create new List Object Type
@@ -240,9 +251,15 @@ function reuseOrCreateList({ name, operation, schema, data, iteration, isMutatio
 /**
  * Returns an existing Enum Type or creates a new one, and stores it in data
  */
-function reuseOrCreateEnum({ name, data, schema }) {
+function reuseOrCreateEnum({ name, schema, preferredName, data }) {
     // try to reuse existing Enum Type
-    let def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+    let def;
+    if (typeof preferredName === 'undefined') {
+        def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+    }
+    else {
+        def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName);
+    }
     if (def.ot && typeof def.ot !== 'undefined') {
         log(`Reuse  GraphQLEnumType "${def.otName}"`);
         return def.ot;
