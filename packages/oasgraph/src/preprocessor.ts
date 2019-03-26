@@ -347,7 +347,8 @@ export function createOrReuseDataDef (
   names: Oas3Tools.SchemaNames,
   schema: SchemaObject,
   data: PreprocessingData,
-  links?: { [key: string]: LinkObject }
+  links?: { [key: string]: LinkObject },
+  preferredName?: string
 ): DataDefinition {
   // Do a basic validation check
   if (!schema || typeof schema === 'undefined') {
@@ -355,7 +356,9 @@ export function createOrReuseDataDef (
       `"${String(schema)}"`)
   }
 
-  let preferredName = getPreferredName(names)
+  if (typeof preferredName === 'undefined') {
+    preferredName = getPreferredName(names)
+  }
 
   // Determine the index of possible existing data definition
   let index = getSchemaIndex(preferredName, schema, data.defs)

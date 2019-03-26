@@ -281,13 +281,15 @@ function getProcessedSecuritySchemes(oas, data, oass) {
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
  */
-function createOrReuseDataDef(names, schema, data, links) {
+function createOrReuseDataDef(names, schema, data, links, preferredName) {
     // Do a basic validation check
     if (!schema || typeof schema === 'undefined') {
         throw new Error(`Cannot create data definition for invalid schema ` +
             `"${String(schema)}"`);
     }
-    let preferredName = getPreferredName(names);
+    if (typeof preferredName === 'undefined') {
+        preferredName = getPreferredName(names);
+    }
     // Determine the index of possible existing data definition
     let index = getSchemaIndex(preferredName, schema, data.defs);
     if (index !== -1) {
