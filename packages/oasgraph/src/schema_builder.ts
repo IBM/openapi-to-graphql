@@ -11,7 +11,7 @@
 import { PreprocessingData } from './types/preprocessing_data'
 import { Operation, DataDefinition } from './types/operation'
 import { Oas3, SchemaObject, ParameterObject, ReferenceObject, LinkObject, LinksObject } from './types/oas3'
-import { GraphQLType, Args, Field } from './types/graphql'
+import { Args, Field, GraphQLType } from './types/graphql'
 import {
   GraphQLObjectType as GQObjectType,
   GraphQLScalarType,
