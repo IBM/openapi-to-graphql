@@ -25,10 +25,6 @@ import {
   GraphQLEnumType
 } from 'graphql'
 
-import {
-  GraphQLType
-} from './graphql'
-
 export type DataDefinition = {
   preferredName: string,
   schema: SchemaObject,
@@ -84,11 +80,6 @@ export type Operation = {
    * Information about the response payload
    */
   responseDefinition: DataDefinition,
-
-  /**
-   * The GraphQL type formed from the response definition
-   */
-  graphQLType?: GraphQLType,
 
   /**
    * List of parameters of the operation

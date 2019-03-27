@@ -84,7 +84,7 @@ function getGraphQLType({ name, schema, preferredName, operation, data, iteratio
         // CASE: scalar - return scalar
     }
     else {
-        return getScalarType(type, data);
+        return getScalarType(name, schema, preferredName, type, data);
     }
 }
 exports.getGraphQLType = getGraphQLType;
@@ -283,18 +283,31 @@ function reuseOrCreateEnum({ name, schema, preferredName, data }) {
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType(type, data) {
+function getScalarType(name, schema, preferredName, type, data) {
+    // try to reuse existing Enum Type
+    let def;
+    if (typeof preferredName === 'undefined') {
+        def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+    }
+    else {
+        def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName);
+    }
     switch (type) {
         case 'string':
-            return graphql_1.GraphQLString;
+            def.ot = graphql_1.GraphQLString;
+            break;
         case 'integer':
-            return graphql_1.GraphQLInt;
+            def.ot = graphql_1.GraphQLInt;
+            break;
         case 'number':
-            return graphql_1.GraphQLFloat;
+            def.ot = graphql_1.GraphQLFloat;
+            break;
         case 'boolean':
-            return graphql_1.GraphQLBoolean;
+            def.ot = graphql_1.GraphQLBoolean;
+            break;
         case 'json':
-            return GraphQLJSON;
+            def.ot = GraphQLJSON;
+            break;
         default:
             utils_1.handleWarning({
                 typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
@@ -302,8 +315,10 @@ function getScalarType(type, data) {
                 data,
                 log
             });
-            return graphql_1.GraphQLString;
+            def.ot = graphql_1.GraphQLString;
+            break;
     }
+    return def.ot;
 }
 /**
  * Creates the fields object to be used by an ObjectType
