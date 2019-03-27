@@ -10,6 +10,7 @@ const Oas3Tools = require("./oas_3_tools");
 const deepEqual = require("deep-equal");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const schema_builder_1 = require("./schema_builder");
 const log = debug_1.default('preprocessing');
 /**
  * Extract information from the OAS and put it inside a data structure that
@@ -140,6 +141,25 @@ function preprocessOas(oass, options) {
                 data.operations[operationId] = operation;
             }
         }
+    });
+    Object.entries(data.operations)
+        /**
+         * Start with operations that return objects rather than arrays
+         *
+         * First, build up the GraphQL object so that operations that return arrays
+         * can use them
+         */
+        .sort(([op1Id, op1], [op2Id, op2]) => sortByHasArray(op1, op2))
+        .forEach(([operationId, operation]) => {
+        // Create GraphQL Type for response:
+        operation.graphQLType = schema_builder_1.getGraphQLType({
+            name: undefined,
+            schema: operation.responseDefinition.schema,
+            preferredName: operation.responseDefinition.preferredName,
+            data,
+            operation,
+            oass
+        });
     });
     return data;
 }
@@ -431,5 +451,27 @@ function getSchemaName(usedNames, names) {
         schemaName = `${tempName}${appendix}`;
     }
     return schemaName;
+}
+/**
+ * Helper function for sorting operations based on the return type, whether it
+ * is an object or an array
+ *
+ * You cannot define links for operations that return arrays in the OAS
+ *
+ * These links are instead created by reusing the return type from other
+ * operations
+ */
+function sortByHasArray(op1, op2) {
+    if (op1.responseDefinition.schema.type === 'array' &&
+        op2.responseDefinition.schema.type !== 'array') {
+        return 1;
+    }
+    else if (op1.responseDefinition.schema.type !== 'array' &&
+        op2.responseDefinition.schema.type === 'array') {
+        return -1;
+    }
+    else {
+        return 0;
+    }
 }
 //# sourceMappingURL=preprocessor.js.map

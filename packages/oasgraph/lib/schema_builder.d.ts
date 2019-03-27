@@ -4,7 +4,7 @@
 import { PreprocessingData } from './types/preprocessing_data';
 import { Operation } from './types/operation';
 import { Oas3, SchemaObject, ParameterObject, ReferenceObject } from './types/oas3';
-import { GraphQLType, Args } from './types/graphql';
+import { Args, GraphQLType } from './types/graphql';
 declare type GetGraphQLTypeParams = {
     name?: string;
     schema: SchemaObject | ReferenceObject;

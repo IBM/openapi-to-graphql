@@ -19,6 +19,7 @@ import * as Oas3Tools from './oas_3_tools'
 import * as deepEqual from 'deep-equal'
 import debug from 'debug'
 import { handleWarning, getCommonPropertyNames } from './utils'
+import { getGraphQLType } from './schema_builder';
 
 const log = debug('preprocessing')
 
@@ -185,6 +186,26 @@ export function preprocessOas (
         data.operations[operationId] = operation
       }
     }
+  })
+
+  Object.entries(data.operations)
+  /**
+   * Start with operations that return objects rather than arrays
+   * 
+   * First, build up the GraphQL object so that operations that return arrays
+   * can use them
+   */
+  .sort(([op1Id, op1], [op2Id, op2]) => sortByHasArray(op1, op2))
+  .forEach(([operationId, operation]) => {
+    // Create GraphQL Type for response:
+    operation.graphQLType = getGraphQLType({
+      name: undefined,
+      schema: operation.responseDefinition.schema,
+      preferredName: operation.responseDefinition.preferredName,
+      data,
+      operation,
+      oass
+    })
   })
 
   return data
@@ -531,4 +552,27 @@ function getSchemaName (
   }
 
   return schemaName
+}
+
+/**
+ * Helper function for sorting operations based on the return type, whether it
+ * is an object or an array
+ * 
+ * You cannot define links for operations that return arrays in the OAS
+ * 
+ * These links are instead created by reusing the return type from other
+ * operations
+ */
+function sortByHasArray (op1: Operation, op2: Operation): number {
+  if (op1.responseDefinition.schema.type === 'array' && 
+    op2.responseDefinition.schema.type !== 'array') {
+    return 1
+
+  } else if (op1.responseDefinition.schema.type !== 'array' && 
+  op2.responseDefinition.schema.type === 'array') {
+    return -1 
+
+  } else {
+    return 0
+  }
 }

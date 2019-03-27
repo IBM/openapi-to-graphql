@@ -8,20 +8,18 @@
  */
 
 import {
-  GraphQLObjectType as GQObjectType,
+  GraphQLObjectType,
   GraphQLScalarType,
-  GraphQLInputObjectType as GQInputObjectType,
-  GraphQLList as GQList,
-  GraphQLEnumType as GQEnumType,
+  GraphQLInputObjectType,
   GraphQLList,
-  GraphQLEnumType
+  GraphQLEnumType,
 } from 'graphql'
 
-export type GraphQLType = GQObjectType
-  | GQInputObjectType
-  | GraphQLScalarType
-  | GQList<any>
-  | GQEnumType
+export type GraphQLType = GraphQLScalarType 
+  | GraphQLObjectType 
+  | GraphQLEnumType 
+  | GraphQLInputObjectType 
+  | GraphQLList<any>
 
 type Arg = {
   type: any,
@@ -37,8 +35,7 @@ export type ResolveFunction =
 
 // export type FieldsType = Thunk<GraphQLFieldConfigMap<Object, Object>>
 export type Field = {
-  type: GQObjectType | GQInputObjectType | GraphQLScalarType |
-    GraphQLList<any> | GraphQLEnumType,
+  type: GraphQLType,
   resolve?: ResolveFunction,
   args?: Args,
   description: string
