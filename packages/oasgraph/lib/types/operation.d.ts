@@ -4,7 +4,6 @@
  */
 import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType } from 'graphql';
-import { GraphQLType } from './graphql';
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
@@ -53,10 +52,6 @@ export declare type Operation = {
      * Information about the response payload
      */
     responseDefinition: DataDefinition;
-    /**
-     * The GraphQL type formed from the response definition
-     */
-    graphQLType?: GraphQLType;
     /**
      * List of parameters of the operation
      */

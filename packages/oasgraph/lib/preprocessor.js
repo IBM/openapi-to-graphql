@@ -152,7 +152,7 @@ function preprocessOas(oass, options) {
         .sort(([op1Id, op1], [op2Id, op2]) => sortByHasArray(op1, op2))
         .forEach(([operationId, operation]) => {
         // Create GraphQL Type for response:
-        operation.graphQLType = schema_builder_1.getGraphQLType({
+        schema_builder_1.getGraphQLType({
             name: undefined,
             schema: operation.responseDefinition.schema,
             preferredName: operation.responseDefinition.preferredName,

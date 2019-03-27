@@ -13,10 +13,7 @@ import { Operation, DataDefinition } from './types/operation'
 import { Oas3, SchemaObject, ParameterObject, ReferenceObject, LinkObject, LinksObject } from './types/oas3'
 import { Args, Field, GraphQLType } from './types/graphql'
 import {
-  GraphQLObjectType as GQObjectType,
   GraphQLScalarType,
-  GraphQLInputObjectType as GQInputObjectType,
-  GraphQLEnumType as GQEnumType,
   GraphQLObjectType,
   GraphQLString,
   GraphQLInt,
@@ -195,7 +192,7 @@ export function getGraphQLType ({
 
   // CASE: scalar - return scalar
   } else {
-    return getScalarType(type, data)
+    return getScalarType(name, schema as SchemaObject, preferredName, type, data)
   }
 }
 
@@ -238,7 +235,7 @@ function createOrReuseOt ({
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
-      return ((def.ot as any) as GQObjectType | GQInputObjectType | GraphQLScalarType)
+      return def.ot as (GraphQLObjectType | GraphQLInputObjectType | GraphQLScalarType)
     } else {
       log(`Create Object Type "${def.otName}"` +
         (typeof operation === 'object'
@@ -273,7 +270,7 @@ function createOrReuseOt ({
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
-      return ((def.iot as any) as GraphQLInputObjectType)
+      return def.iot as GraphQLInputObjectType
     } else {
       log(`Create Input Object Type "${def.iotName}"` +
         (typeof operation === 'object'
@@ -335,10 +332,10 @@ function reuseOrCreateList ({
   // try to reuse existing Object Type
   if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
     log(`Reuse GraphQLList "${def.otName}"`)
-    return ((def.ot as any) as GraphQLList<any>)
+    return def.ot as GraphQLList<any>
   } else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
     log(`Reuse GraphQLList "${def.iotName}"`)
-    return ((def.iot as any) as GraphQLList<any>)
+    return def.iot as GraphQLList<any>
   }
 
   // create new List Object Type
@@ -393,7 +390,7 @@ function reuseOrCreateEnum ({
   schema,
   preferredName,
   data
-}: ReuseOrCreateEnum): GQEnumType {
+}: ReuseOrCreateEnum): GraphQLEnumType {
   // try to reuse existing Enum Type
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
@@ -404,7 +401,7 @@ function reuseOrCreateEnum ({
 
   if (def.ot && typeof def.ot !== 'undefined') {
     log(`Reuse  GraphQLEnumType "${def.otName}"`)
-    return ((def.ot as any) as GQEnumType)
+    return def.ot as GraphQLEnumType
   } else {
     log(`Create GraphQLEnumType "${def.otName}"`)
     let values = {}
@@ -427,20 +424,36 @@ function reuseOrCreateEnum ({
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
 function getScalarType (
+  name: string,
+  schema,
+  preferredName: string,
   type: string,
   data: PreprocessingData
 ): GraphQLScalarType {
+    // try to reuse existing Enum Type
+    let def: DataDefinition
+    if (typeof preferredName === 'undefined') {
+      def = createOrReuseDataDef({ fromRef: name }, schema, data)
+    } else {
+      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+    }
+
   switch (type) {
     case 'string':
-      return GraphQLString
+      def.ot = GraphQLString
+      break
     case 'integer':
-      return GraphQLInt
+      def.ot = GraphQLInt
+      break
     case 'number':
-      return GraphQLFloat
+      def.ot = GraphQLFloat
+      break
     case 'boolean':
-      return GraphQLBoolean
+      def.ot = GraphQLBoolean
+      break
     case 'json':
-      return GraphQLJSON
+      def.ot = GraphQLJSON
+      break
     default:
       handleWarning({
         typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
@@ -448,8 +461,11 @@ function getScalarType (
         data,
         log
       })
-      return GraphQLString
+      def.ot = GraphQLString
+      break
   }
+
+  return def.ot as GraphQLScalarType
 }
 
 /**
@@ -549,7 +565,7 @@ function createFields ({
         if (typeof argsFromLink === 'object') {
           dynamicParams = dynamicParams.filter(p => {
             // here, we know argsFromLink is present:
-            argsFromLink = ((argsFromLink as any) as Object)
+            argsFromLink = argsFromLink as Object
             return (typeof argsFromLink[p.name] === 'undefined')
           })
         }
