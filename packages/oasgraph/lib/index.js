@@ -113,13 +113,9 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
         let authQueryFields = {};
         let authMutationFields = {};
         Object.entries(data.operations)
-            // Start with endpoints that DO contain links OR that DO contain sub
-            // operations, so that built-up GraphQL object types contain these links
-            // when they are re-used.
-            .sort(([op1Id, op1], [op2Id, op2]) => sortByHasArray(op1, op2))
             .forEach(([operationId, operation]) => {
             log(`Process operation "${operationId}"...`);
-            let field = getFieldForOperation(operation, data, oass, options.baseUrl, requestOptions);
+            let field = getFieldForOperation(operation, options.baseUrl, data, oass, requestOptions);
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
                 if (operation.inViewer) {
@@ -259,31 +255,9 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
     });
 }
 /**
- * Helper function for sorting operations based on the return type, whether it
- * is an object or an array
- *
- * You cannot define links for operations that return arrays in the OAS
- *
- * These links are instead created by reusing the return type from other
- * operations
- */
-function sortByHasArray(op1, op2) {
-    if (op1.responseDefinition.schema.type === 'array' &&
-        op2.responseDefinition.schema.type !== 'array') {
-        return 1;
-    }
-    else if (op1.responseDefinition.schema.type !== 'array' &&
-        op2.responseDefinition.schema.type === 'array') {
-        return -1;
-    }
-    else {
-        return 0;
-    }
-}
-/**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation(operation, data, oass, baseUrl, requestOptions) {
+function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
     // create GraphQL Type for response:
     let type = schema_builder_1.getGraphQLType({
         name: undefined,
