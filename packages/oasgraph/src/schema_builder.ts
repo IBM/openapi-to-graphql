@@ -83,6 +83,7 @@ type ReuseOrCreateEnum = {
   name: string,
   schema: SchemaObject,
   preferredName?: string,    // the preferredName if it is known
+  operation?: Operation,
   data: PreprocessingData
 }
 
@@ -187,12 +188,13 @@ export function getGraphQLType ({
       name,
       schema: schema as SchemaObject,
       preferredName,
+      operation,
       data
     })
 
   // CASE: scalar - return scalar
   } else {
-    return getScalarType(name, schema as SchemaObject, preferredName, type, data)
+    return getScalarType(name, schema as SchemaObject, preferredName, operation, type, data)
   }
 }
 
@@ -223,9 +225,17 @@ function createOrReuseOt ({
 }: CreateOrReuseOtParams): GraphQLType {
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
-    def = createOrReuseDataDef({ fromRef: name }, schema, data)
+    if (operation) {
+      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas)
+    } else {
+      def = createOrReuseDataDef({ fromRef: name }, schema, data)
+    }
   } else {
-    def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+    if (operation) {
+      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas)
+    } else {
+      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+    }
   }
 
   // CASE: query - create or reuse OT
@@ -324,9 +334,17 @@ function reuseOrCreateList ({
 
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
-    def = createOrReuseDataDef({ fromRef: name }, schema, data)
+    if (operation) {
+      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas)
+    } else {
+      def = createOrReuseDataDef({ fromRef: name }, schema, data)
+    }
   } else {
-    def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+    if (operation) {
+      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas)
+    } else {
+      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+    }
   }
 
   // try to reuse existing Object Type
@@ -389,14 +407,23 @@ function reuseOrCreateEnum ({
   name,
   schema,
   preferredName,
+  operation,
   data
 }: ReuseOrCreateEnum): GraphQLEnumType {
   // try to reuse existing Enum Type
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
-    def = createOrReuseDataDef({ fromRef: name }, schema, data)
+    if (operation) {
+      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas)
+    } else {
+      def = createOrReuseDataDef({ fromRef: name }, schema, data)
+    }
   } else {
-    def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+    if (operation) {
+      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas)
+    } else {
+      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+    }
   }
 
   if (def.ot && typeof def.ot !== 'undefined') {
@@ -427,15 +454,24 @@ function getScalarType (
   name: string,
   schema,
   preferredName: string,
+  operation: Operation,
   type: string,
   data: PreprocessingData
 ): GraphQLScalarType {
     // try to reuse existing Enum Type
     let def: DataDefinition
     if (typeof preferredName === 'undefined') {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data)
+      if (operation) {
+        def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas)
+      } else {
+        def = createOrReuseDataDef({ fromRef: name }, schema, data)
+      }
     } else {
-      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+      if (operation) {
+        def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas)
+      } else {
+        def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+      }
     }
 
   switch (type) {

@@ -104,7 +104,7 @@ export function preprocessOas (
 
         let payloadDefinition
         if (payloadSchema && typeof payloadSchema !== 'undefined') {
-          payloadDefinition = createOrReuseDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), data)
+          payloadDefinition = createOrReuseDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), data, undefined, undefined, oas)
         }
 
         // Response schema
@@ -129,7 +129,9 @@ export function preprocessOas (
           responseSchemaNames,
           (responseSchema as SchemaObject),
           data,
-          links
+          links,
+          undefined,
+          oas
         )
 
         // Parameters
@@ -369,7 +371,8 @@ export function createOrReuseDataDef (
   schema: SchemaObject,
   data: PreprocessingData,
   links?: { [key: string]: LinkObject },
-  preferredName?: string
+  preferredName?: string,
+  oas?: Oas3
 ): DataDefinition {
   // Do a basic validation check
   if (!schema || typeof schema === 'undefined') {
@@ -433,6 +436,51 @@ export function createOrReuseDataDef (
 
     // Add the def to the master list
     data.defs.push(def)
+
+    // Break schema down into component parts
+    if (schema.type === 'array') {
+      let itemsSchema = schema.items
+      let itemsName = `${name}ListItem`
+      if ('$ref' in itemsSchema) {
+        if (oas) {
+          itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
+          itemsName = schema.items['$ref'].split('/').pop()
+        } else {
+          // TODO: Should this simply throw an error?
+          handleWarning({
+            typeKey: 'UNRESOLVABLE_REFERENCE',
+            culprit: undefined,
+            data,
+            log
+          })
+        }       
+      }
+
+      createOrReuseDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, data, undefined, undefined, oas)
+
+    } else if (schema.type === 'object') {
+      for (let propertyKey in schema.properties) {
+        let propSchema = schema.properties[propertyKey]
+        let propSchemaName = propertyKey
+
+        if ('$ref' in propSchema) {
+          if (oas) {
+            propSchemaName = propSchema['$ref'].split('/').pop()
+            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas)
+          } else {
+            // TODO: Should this simply throw an error?
+            handleWarning({
+              typeKey: 'UNRESOLVABLE_REFERENCE',
+              culprit: undefined,
+              data,
+              log
+            })
+          }       
+        }
+
+        createOrReuseDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, data, undefined, undefined, oas)
+      }
+    }
 
     return def
   }
