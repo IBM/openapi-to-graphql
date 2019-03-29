@@ -79,7 +79,7 @@ function preprocessOas(oass, options) {
                 let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
                 let payloadDefinition;
                 if (payloadSchema && typeof payloadSchema !== 'undefined') {
-                    payloadDefinition = createOrReuseDataDef(payloadSchemaNames, payloadSchema, data);
+                    payloadDefinition = createOrReuseDataDef(payloadSchemaNames, payloadSchema, data, undefined, undefined, oas);
                 }
                 // Response schema
                 let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options);
@@ -94,7 +94,7 @@ function preprocessOas(oass, options) {
                 }
                 // Links
                 let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
-                let responseDefinition = createOrReuseDataDef(responseSchemaNames, responseSchema, data, links);
+                let responseDefinition = createOrReuseDataDef(responseSchemaNames, responseSchema, data, links, undefined, oas);
                 // Parameters
                 let parameters = Oas3Tools.getParameters(path, method, oas);
                 // Security protocols
@@ -301,7 +301,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
  */
-function createOrReuseDataDef(names, schema, data, links, preferredName) {
+function createOrReuseDataDef(names, schema, data, links, preferredName, oas) {
     // Do a basic validation check
     if (!schema || typeof schema === 'undefined') {
         throw new Error(`Cannot create data definition for invalid schema ` +
@@ -355,6 +355,49 @@ function createOrReuseDataDef(names, schema, data, links, preferredName) {
         };
         // Add the def to the master list
         data.defs.push(def);
+        // Break schema down into component parts
+        if (schema.type === 'array') {
+            let itemsSchema = schema.items;
+            let itemsName = `${name}ListItem`;
+            if ('$ref' in itemsSchema) {
+                if (oas) {
+                    itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas);
+                    itemsName = schema.items['$ref'].split('/').pop();
+                }
+                else {
+                    // TODO: Should this simply throw an error?
+                    utils_1.handleWarning({
+                        typeKey: 'UNRESOLVABLE_REFERENCE',
+                        culprit: undefined,
+                        data,
+                        log
+                    });
+                }
+            }
+            createOrReuseDataDef({ fromRef: itemsName }, itemsSchema, data, undefined, undefined, oas);
+        }
+        else if (schema.type === 'object') {
+            for (let propertyKey in schema.properties) {
+                let propSchema = schema.properties[propertyKey];
+                let propSchemaName = propertyKey;
+                if ('$ref' in propSchema) {
+                    if (oas) {
+                        propSchemaName = propSchema['$ref'].split('/').pop();
+                        propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
+                    }
+                    else {
+                        // TODO: Should this simply throw an error?
+                        utils_1.handleWarning({
+                            typeKey: 'UNRESOLVABLE_REFERENCE',
+                            culprit: undefined,
+                            data,
+                            log
+                        });
+                    }
+                }
+                createOrReuseDataDef({ fromRef: propSchemaName }, propSchema, data, undefined, undefined, oas);
+            }
+        }
         return def;
     }
 }

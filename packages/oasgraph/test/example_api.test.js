@@ -627,7 +627,7 @@ test('Define header and query options', () => {
     }
   }
   let query = `{
-    status (globalquery: "test")
+    status2 (globalquery: "test")
   }`
   return OasGraph.createGraphQlSchema(oas, options)
     .then(({schema}) => {
@@ -638,7 +638,7 @@ test('Define header and query options', () => {
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
           data: {
-            status: 'Ok.'
+            status2: 'Ok.'
           }
         })
       })

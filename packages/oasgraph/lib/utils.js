@@ -109,6 +109,13 @@ exports.WarningTypes = {
             // TODO: improve mitigation message
             mitigation: `The link will replace the previous one`
         };
+    },
+    UNRESOLVABLE_REFERENCE: (culprit, solution) => {
+        return {
+            type: 'unresolvableReference',
+            message: `A schema reference could not be resolved due to unknown OAS origin`,
+            mitigation: `The schema will not be resolved, which may cause issues`
+        };
     }
 };
 /**
