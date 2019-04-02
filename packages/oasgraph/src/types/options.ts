@@ -94,7 +94,7 @@ export type Options = {
   operationIdFieldNames?: boolean
 
   /**
-   * Allow to override or add options to the node's request object used to make
+   * Allows to override or add options to the node's request object used to make
    * calls to the API backend. 
    * e.g. Setup the web proxy to use.
    */
@@ -177,7 +177,7 @@ export type InternalOptions = {
   operationIdFieldNames: boolean
 
   /**
-   * Allow to override or add options to the node's request object used to make
+   * Allows to override or add options to the node's request object used to make
    * calls to the API backend. 
    * e.g. Setup the web proxy to use.
    */
