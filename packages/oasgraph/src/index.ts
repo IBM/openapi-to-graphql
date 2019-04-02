@@ -205,7 +205,7 @@ async function translateOpenApiToGraphQL (
                 data,
                 log
               })
-            }  
+            }
 
             authQueryFields[securityRequirement][fieldName] = field
           }
