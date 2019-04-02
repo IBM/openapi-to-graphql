@@ -189,7 +189,7 @@ export function getResolver({
      * Deep merge optional "requestOptions" parameter with current request options.
      * See https://github.com/TehShrike/deepmerge
      */
-    if (!!requestOptions) {
+    if (requestOptions) {
       /**
        * DeepMerge merges two objects x and y deeply, returning a new merged object with the elements from both x and y.
        * If an element at the same key is present for both x and y, the value from y will appear in the result.
