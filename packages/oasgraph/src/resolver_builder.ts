@@ -57,7 +57,7 @@ const log = debug('http')
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-export function getResolver({
+export function getResolver ({
   operation,
   argsFromLink = {},
   argsFromParent = [],
@@ -202,7 +202,7 @@ export function getResolver({
       const emptyTarget = value => Array.isArray(value) ? [] : {}
       const clone = (value, options) => deepmerge(emptyTarget(value), value, options)
 
-      function combineMerge(target, source, options) {
+      function combineMerge (target, source, options) {
         const destination = target.slice()
 
         source.forEach(function (e, i) {
@@ -373,7 +373,7 @@ export function getResolver({
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
-function createOAuthQS(
+function createOAuthQS (
   data: PreprocessingData,
   ctx: Object
 ): { [key: string]: string } {
@@ -400,7 +400,7 @@ function createOAuthQS(
  * Attempts to create an OAuth authorization header by extracting an OAuth token
  * from the ctx based on the JSON path provided in the options.
  */
-function createOAuthHeader(
+function createOAuthHeader (
   data: PreprocessingData,
   ctx: Object
 ): { [key: string]: string } {
@@ -430,7 +430,7 @@ function createOAuthHeader(
  * which hold headers and query parameters respectively to authentication a
  * request.
  */
-function getAuthOptions(
+function getAuthOptions (
   operation: Operation,
   _oasgraph: any,
   data: PreprocessingData
@@ -507,7 +507,7 @@ function getAuthOptions(
  * (possibly multiple) authentication protocols can be used based on the data
  * present in the given context.
  */
-function getAuthReqAndProtcolName(
+function getAuthReqAndProtcolName (
   operation: Operation,
   _oasgraph
 ): AuthReqAndProtcolName {
@@ -537,7 +537,7 @@ function getAuthReqAndProtcolName(
  * The link parameter is a reference to data contained in the 
  * url/method/statuscode or response/request body/query/path/header
  */
-function resolveLinkParameter(paramName: string, value: string, resolveData: any, root: any, args: any): any {
+function resolveLinkParameter (paramName: string, value: string, resolveData: any, root: any, args: any): any {
   if (value === '$url') {
     return resolveData.usedRequestOptions.url
 
@@ -619,7 +619,7 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
 /**
  * Check if a string is a runtime expression in the context of link parameters
  */
-function isRuntimeExpression(str: string): boolean {
+function isRuntimeExpression (str: string): boolean {
   let references = ['header.', 'query.', 'path.', 'body']
 
   if (str === '$url' || str === '$method' || str === '$statusCode') {
@@ -649,14 +649,14 @@ function isRuntimeExpression(str: string): boolean {
  * 
  * Used to store and retrieve the _oasgraph of parent field
  */
-function getIdentifier(info): string {
+function getIdentifier (info): string {
   return getIdentifierRecursive(info.path)
 }
 
 /**
  * Get the path of nested field names (or aliases if provided)
  */
-function getIdentifierRecursive(path): string {
+function getIdentifierRecursive (path): string {
   if (typeof path.prev === 'undefined') {
     return path.key
   } else {
@@ -668,6 +668,6 @@ function getIdentifierRecursive(path): string {
  * From the info object provided by the resolver, get the unique identifier of
  * the parent object
  */
-function getParentIdentifier(info): string {
+function getParentIdentifier (info): string {
   return getIdentifierRecursive(info.path.prev)
 }
