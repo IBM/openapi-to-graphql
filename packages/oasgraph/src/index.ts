@@ -41,6 +41,7 @@ import {
   GraphQLSchema,
   GraphQLObjectType
 } from 'graphql'
+import { CoreOptions } from 'request'
 
 // Imports:
 import { getGraphQLType, getArgs } from './schema_builder'
@@ -142,7 +143,8 @@ async function translateOpenApiToGraphQL (
     fillEmptyResponses,
     baseUrl,
     operationIdFieldNames,
-    report
+    report,
+    requestOptions
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema, report: Report }> {
   let options = {
@@ -156,7 +158,8 @@ async function translateOpenApiToGraphQL (
     fillEmptyResponses,
     baseUrl,
     operationIdFieldNames,
-    report
+    report,
+    requestOptions
   }
   log(`Options: ${JSON.stringify(options)}`)
 
@@ -181,7 +184,7 @@ async function translateOpenApiToGraphQL (
     .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
     .forEach(([operationId, operation]) => {
       log(`Process operation "${operationId}"...`)
-      let field = getFieldForOperation(operation, data, oass, options.baseUrl)
+      let field = getFieldForOperation(operation, data, oass, options.baseUrl, requestOptions)
       if (!operation.isMutation) {
         let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName)
         if (operation.inViewer) {
@@ -363,7 +366,8 @@ function getFieldForOperation (
   operation: Operation,
   data: PreprocessingData,
   oass: Oas3[],
-  baseUrl: string
+  baseUrl: string,
+  requestOptions: CoreOptions
 ): Field {
   // create GraphQL Type for response:
   let type = getGraphQLType({
@@ -371,7 +375,7 @@ function getFieldForOperation (
     schema: operation.responseDefinition.schema,
     data,
     operation,
-    oass
+    oass,
   })
 
   // create resolve function:
@@ -385,7 +389,8 @@ function getFieldForOperation (
     operation,
     payloadName: payloadSchemaName,
     data,
-    baseUrl
+    baseUrl,
+    requestOptions
   })
 
   // create args:

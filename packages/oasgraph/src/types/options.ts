@@ -3,6 +3,9 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
+// Type imports:
+import { CoreOptions } from 'request'
+
 /**
  * Type definition of the options that users can pass to OASGraph.
  */
@@ -89,6 +92,13 @@ export type Options = {
    * operationId. 
    */
   operationIdFieldNames?: boolean
+
+  /**
+   * Allow to override or add options to the node's request object used to make
+   * calls to the API backend. 
+   * e.g. Setup the web proxy to use.
+   */
+  requestOptions?: CoreOptions
 }
 
 
@@ -165,4 +175,11 @@ export type InternalOptions = {
    * operationId. 
    */
   operationIdFieldNames: boolean
+
+  /**
+   * Allow to override or add options to the node's request object used to make
+   * calls to the API backend. 
+   * e.g. Setup the web proxy to use.
+   */
+  requestOptions?: CoreOptions
 }

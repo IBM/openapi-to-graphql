@@ -9,13 +9,14 @@ const request = require("request");
 const Oas3Tools = require("./oas_3_tools");
 const querystring = require("querystring");
 const JSONPath = require("jsonpath-plus");
+const deepmerge = require("deepmerge");
 const debug_1 = require("debug");
 const log = debug_1.debug('http');
 /**
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloadName, data, baseUrl }) {
+function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloadName, data, baseUrl, requestOptions }) {
     // determine the appropriate URL:
     if (typeof baseUrl === 'undefined') {
         /**
@@ -121,6 +122,41 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
             headers: headers,
             qs: query
         };
+        /**
+         * Deep merge optional "requestOptions" parameter with current request options.
+         * See https://github.com/TehShrike/deepmerge
+         */
+        if (!!requestOptions) {
+            /**
+             * DeepMerge merges two objects x and y deeply, returning a new merged object with the elements from both x and y.
+             * If an element at the same key is present for both x and y, the value from y will appear in the result.
+             * Merging creates a new object, so that neither x or y is modified.
+             *
+             * Note: By default, arrays are merged by concatenating them.
+             */
+            // Here we define a "combine" strategy for arrays instead of the "concatenate" default one.
+            const emptyTarget = value => Array.isArray(value) ? [] : {};
+            const clone = (value, options) => deepmerge(emptyTarget(value), value, options);
+            function combineMerge(target, source, options) {
+                const destination = target.slice();
+                source.forEach(function (e, i) {
+                    if (typeof destination[i] === 'undefined') {
+                        const cloneRequested = options.clone !== false;
+                        const shouldClone = cloneRequested && options.isMergeableObject(e);
+                        destination[i] = shouldClone ? clone(e, options) : e;
+                    }
+                    else if (options.isMergeableObject(e)) {
+                        destination[i] = deepmerge(target[i], e, options);
+                    }
+                    else if (target.indexOf(e) === -1) {
+                        destination.push(e);
+                    }
+                });
+                return destination;
+            }
+            // Do the actual merge using the "combineMerge" strategy for arrays !
+            options = deepmerge(options, requestOptions, { arrayMerge: combineMerge });
+        }
         /**
          * Determine possible payload
          * GraphQL produces sanitized payload names, so we have to sanitize before

@@ -12,12 +12,14 @@ import { Oas3, SchemaObject } from './types/oas3'
 import { Operation } from './types/operation'
 import { ResolveFunction } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
+import { CoreOptions } from 'request'
 
 // Imports:
 import * as request from 'request'
 import * as Oas3Tools from './oas_3_tools'
 import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
+import * as deepmerge from 'deepmerge'
 import { debug } from 'debug'
 
 // Type definitions & exports:
@@ -27,7 +29,8 @@ type GetResolverParams = {
   argsFromParent?: string[],
   payloadName?: string,
   data: PreprocessingData,
-  baseUrl?: string
+  baseUrl?: string,
+  requestOptions?: CoreOptions
 }
 
 type RequestOptions = {
@@ -54,14 +57,15 @@ const log = debug('http')
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-export function getResolver ({
+export function getResolver({
   operation,
   argsFromLink = {},
   argsFromParent = [],
   payloadName,
   data,
-  baseUrl
-}: GetResolverParams): ResolveFunction {  
+  baseUrl,
+  requestOptions
+}: GetResolverParams): ResolveFunction {
   // determine the appropriate URL:
   if (typeof baseUrl === 'undefined') {
     /**
@@ -77,7 +81,7 @@ export function getResolver ({
     // NOTE: _oasgraph is an object used to pass security info and data from
     // previous resolvers
     let resolveData: any = {}
-    if (root && 
+    if (root &&
       typeof root === 'object' &&
       typeof root._oasgraph == 'object' &&
       typeof root._oasgraph.data == 'object') {
@@ -182,6 +186,44 @@ export function getResolver ({
     }
 
     /**
+     * Deep merge optional "requestOptions" parameter with current request options.
+     * See https://github.com/TehShrike/deepmerge
+     */
+    if (!!requestOptions) {
+      /**
+       * DeepMerge merges two objects x and y deeply, returning a new merged object with the elements from both x and y.
+       * If an element at the same key is present for both x and y, the value from y will appear in the result.
+       * Merging creates a new object, so that neither x or y is modified.
+       * 
+       * Note: By default, arrays are merged by concatenating them.
+       */
+
+      // Here we define a "combine" strategy for arrays instead of the "concatenate" default one.
+      const emptyTarget = value => Array.isArray(value) ? [] : {}
+      const clone = (value, options) => deepmerge(emptyTarget(value), value, options)
+
+      function combineMerge(target, source, options) {
+        const destination = target.slice()
+
+        source.forEach(function (e, i) {
+          if (typeof destination[i] === 'undefined') {
+            const cloneRequested = options.clone !== false
+            const shouldClone = cloneRequested && options.isMergeableObject(e)
+            destination[i] = shouldClone ? clone(e, options) : e
+          } else if (options.isMergeableObject(e)) {
+            destination[i] = deepmerge(target[i], e, options)
+          } else if (target.indexOf(e) === -1) {
+            destination.push(e)
+          }
+        })
+        return destination
+      }
+
+      // Do the actual merge using the "combineMerge" strategy for arrays !
+      options = deepmerge(options, requestOptions, { arrayMerge: combineMerge })
+    }
+
+    /**
      * Determine possible payload
      * GraphQL produces sanitized payload names, so we have to sanitize before
      * lookup here
@@ -201,7 +243,7 @@ export function getResolver ({
         } else {
           // payload is not an object (stored as an application/json)
           let rawPayload = args[sanePayloadName]
-        
+
           options.body = rawPayload
           resolveData.usedPayload = rawPayload
         }
@@ -229,7 +271,7 @@ export function getResolver ({
     }
 
     // get authentication headers and query parameters
-    if (root && 
+    if (root &&
       typeof root === 'object' &&
       typeof root._oasgraph == 'object') {
       let { authHeaders, authQs } = getAuthOptions(operation, root._oasgraph, data)
@@ -294,8 +336,8 @@ export function getResolver ({
                     data: {}
                   }
                 }
-        
-                if (root && 
+
+                if (root &&
                   typeof root === 'object' &&
                   typeof root._oasgraph == 'object') {
                   Object.assign(element._oasgraph, root._oasgraph)
@@ -310,7 +352,7 @@ export function getResolver ({
                 }
               }
 
-              if (root && 
+              if (root &&
                 typeof root === 'object' &&
                 typeof root._oasgraph == 'object') {
                 Object.assign(saneData._oasgraph, root._oasgraph)
@@ -331,7 +373,7 @@ export function getResolver ({
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
-function createOAuthQS (
+function createOAuthQS(
   data: PreprocessingData,
   ctx: Object
 ): { [key: string]: string } {
@@ -358,7 +400,7 @@ function createOAuthQS (
  * Attempts to create an OAuth authorization header by extracting an OAuth token
  * from the ctx based on the JSON path provided in the options.
  */
-function createOAuthHeader (
+function createOAuthHeader(
   data: PreprocessingData,
   ctx: Object
 ): { [key: string]: string } {
@@ -388,7 +430,7 @@ function createOAuthHeader (
  * which hold headers and query parameters respectively to authentication a
  * request.
  */
-function getAuthOptions (
+function getAuthOptions(
   operation: Operation,
   _oasgraph: any,
   data: PreprocessingData
@@ -465,7 +507,7 @@ function getAuthOptions (
  * (possibly multiple) authentication protocols can be used based on the data
  * present in the given context.
  */
-function getAuthReqAndProtcolName (
+function getAuthReqAndProtcolName(
   operation: Operation,
   _oasgraph
 ): AuthReqAndProtcolName {
@@ -510,7 +552,7 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
     if (value === '$request.body') {
       return resolveData.usedPayload
 
-    // CASE: parameter in previous body
+      // CASE: parameter in previous body
     } else if (value.startsWith('$request.body#')) {
       let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: resolveData.usedPayload })
       if (Array.isArray(tokens) && tokens.length > 0) {
@@ -519,15 +561,15 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
         log(`Warning: could not extract parameter ${paramName} from link`)
       }
 
-    // CASE: parameter in previous query parameter
+      // CASE: parameter in previous query parameter
     } else if (value.startsWith('$request.query')) {
       return resolveData.usedParams[Oas3Tools.beautify(value.split('query.')[1])]
 
-    // CASE: parameter in previous path parameter
+      // CASE: parameter in previous path parameter
     } else if (value.startsWith('$request.path')) {
       return resolveData.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
 
-    // CASE: parameter in previous header parameter
+      // CASE: parameter in previous header parameter
     } else if (value.startsWith('$request.header')) {
       return resolveData.usedRequestOptions.headers[value.split('header.')[1]]
     }
@@ -546,7 +588,7 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
       result._oasgraph = undefined
       return result
 
-    // CASE: parameter in body
+      // CASE: parameter in body
     } else if (value.startsWith('$response.body#')) {
       let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root })
       if (Array.isArray(tokens) && tokens.length > 0) {
@@ -555,23 +597,23 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
         log(`Warning: could not extract parameter ${paramName} from link`)
       }
 
-    // CASE: parameter in query parameter
+      // CASE: parameter in query parameter
     } else if (value.startsWith('$response.query')) {
       // NOTE: handled the same way $request.query is handled
       return resolveData.usedParams[Oas3Tools.beautify(value.split('query.')[1])]
 
-    // CASE: parameter in path parameter
+      // CASE: parameter in path parameter
     } else if (value.startsWith('$response.path')) {
       // NOTE: handled the same way $request.path is handled
       return resolveData.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
 
-    // CASE: parameter in header parameter
+      // CASE: parameter in header parameter
     } else if (value.startsWith('$response.header')) {
       return resolveData.responseHeaders[value.split('header.')[1]]
     }
   }
-  
-  throw new Error (`Cannot create link because "${value}" is an invalid runtime expression`)
+
+  throw new Error(`Cannot create link because "${value}" is an invalid runtime expression`)
 }
 
 /**
@@ -597,7 +639,7 @@ function isRuntimeExpression(str: string): boolean {
       }
     }
   }
-  
+
   return false
 }
 

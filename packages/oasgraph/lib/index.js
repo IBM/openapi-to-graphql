@@ -86,7 +86,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report }) {
+function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, addSubOperations, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions }) {
     return __awaiter(this, void 0, void 0, function* () {
         let options = {
             headers,
@@ -99,7 +99,8 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             fillEmptyResponses,
             baseUrl,
             operationIdFieldNames,
-            report
+            report,
+            requestOptions
         };
         log(`Options: ${JSON.stringify(options)}`);
         /**
@@ -122,7 +123,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             .sort(([op1Id, op1], [op2Id, op2]) => sortByHasLinksOrSubOps(op1, op2))
             .forEach(([operationId, operation]) => {
             log(`Process operation "${operationId}"...`);
-            let field = getFieldForOperation(operation, data, oass, options.baseUrl);
+            let field = getFieldForOperation(operation, data, oass, options.baseUrl, requestOptions);
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
                 if (operation.inViewer) {
@@ -275,14 +276,14 @@ function sortByHasLinksOrSubOps(op1, op2) {
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation(operation, data, oass, baseUrl) {
+function getFieldForOperation(operation, data, oass, baseUrl, requestOptions) {
     // create GraphQL Type for response:
     let type = schema_builder_1.getGraphQLType({
         name: operation.responseDefinition.preferredName,
         schema: operation.responseDefinition.schema,
         data,
         operation,
-        oass
+        oass,
     });
     // create resolve function:
     let payloadSchemaName = operation.payloadDefinition
@@ -295,7 +296,8 @@ function getFieldForOperation(operation, data, oass, baseUrl) {
         operation,
         payloadName: payloadSchemaName,
         data,
-        baseUrl
+        baseUrl,
+        requestOptions
     });
     // create args:
     let args = schema_builder_1.getArgs({
