@@ -16,7 +16,7 @@ let oas = require('./fixtures/example_oas.json')
 const PORT = 3003
 // update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
-const {startServer, stopServer} = require('./example_api_server')
+const { startServer, stopServer } = require('./example_api_server')
 
 let createdSchema
 
@@ -26,9 +26,9 @@ let createdSchema
 beforeAll(() => {
   return Promise.all([
     OasGraph.createGraphQlSchema(oas)
-    .then(({schema}) => {
-      createdSchema = schema
-    }),
+      .then(({ schema }) => {
+        createdSchema = schema
+      }),
     startServer(PORT)
   ])
 })
@@ -106,7 +106,7 @@ test('Get project using API key 1', () => {
 })
 
 test('Get project using API key passed as option - viewer is disabled', async () => {
-  let {schema} = await OasGraph.createGraphQlSchema(oas, {
+  let { schema } = await OasGraph.createGraphQlSchema(oas, {
     viewer: false,
     headers: {
       access_token: 'abcdef'
@@ -129,7 +129,7 @@ test('Get project using API key passed as option - viewer is disabled', async ()
 })
 
 test('Get project using API key passed in the requestOptions - viewer is disabled', async () => {
-  let {schema} = await OasGraph.createGraphQlSchema(oas, {
+  let { schema } = await OasGraph.createGraphQlSchema(oas, {
     viewer: false,
     requestOptions: {
       headers: {
@@ -367,9 +367,9 @@ test('Extract token from context', () => {
     secure
   }`
 
-  return OasGraph.createGraphQlSchema(oas, {tokenJSONpath: '$.user.token', viewer: true})
-    .then(({schema}) => {
-      return graphql(schema, query, null, {user: {token: 'abcdef'}}).then(result => {
+  return OasGraph.createGraphQlSchema(oas, { tokenJSONpath: '$.user.token', viewer: true })
+    .then(({ schema }) => {
+      return graphql(schema, query, null, { user: { token: 'abcdef' } }).then(result => {
         expect(result).toEqual({
           'data': {
             secure: 'A secure message.'

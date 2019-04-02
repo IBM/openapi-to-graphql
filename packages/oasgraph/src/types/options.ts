@@ -34,12 +34,12 @@ export type Options = {
   /**
    * Custom headers to send with every request made by a resolve function.
    */
-  headers?: {[key: string]: string},
+  headers?: { [key: string]: string },
 
   /**
    * Custom query parameters to send with every reqeust by a resolve function.
    */
-  qs?: {[key: string]: string},
+  qs?: { [key: string]: string },
 
   /**
    * Determines whether OASGraph should create viewers that allow users to pass
@@ -112,12 +112,12 @@ export type InternalOptions = {
   /**
    * Custom headers to send with every request made by a resolve function.
    */
-  headers?: {[key: string]: string},
+  headers?: { [key: string]: string },
 
   /**
    * Custom query parameters to send with every reqeust by a resolve function.
    */
-  qs?: {[key: string]: string},
+  qs?: { [key: string]: string },
 
   /**
    * Determines whether OASGraph should create viewers that allow users to pass
