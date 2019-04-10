@@ -4,7 +4,7 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import { CoreOptions } from 'request'
+import * as NodeRequest from 'request'
 
 /**
  * Type definition of the options that users can pass to OASGraph.
@@ -98,7 +98,7 @@ export type Options = {
    * calls to the API backend. 
    * e.g. Setup the web proxy to use.
    */
-  requestOptions?: CoreOptions
+  requestOptions?: NodeRequest.OptionsWithUrl
 }
 
 
@@ -181,5 +181,5 @@ export type InternalOptions = {
    * calls to the API backend. 
    * e.g. Setup the web proxy to use.
    */
-  requestOptions?: CoreOptions
+  requestOptions?: NodeRequest.OptionsWithUrl
 }

@@ -1,4 +1,4 @@
-import { CoreOptions } from 'request';
+import * as NodeRequest from 'request';
 /**
  * Type definition of the options that users can pass to OASGraph.
  */
@@ -79,11 +79,11 @@ export declare type Options = {
      */
     operationIdFieldNames?: boolean;
     /**
-     * Allow to override or add options to the node's request object used to make
+     * Allows to override or add options to the node's request object used to make
      * calls to the API backend.
      * e.g. Setup the web proxy to use.
      */
-    requestOptions?: CoreOptions;
+    requestOptions?: NodeRequest.OptionsWithUrl;
 };
 export declare type InternalOptions = {
     /**
@@ -153,9 +153,9 @@ export declare type InternalOptions = {
      */
     operationIdFieldNames: boolean;
     /**
-     * Allow to override or add options to the node's request object used to make
+     * Allows to override or add options to the node's request object used to make
      * calls to the API backend.
      * e.g. Setup the web proxy to use.
      */
-    requestOptions?: CoreOptions;
+    requestOptions?: NodeRequest.OptionsWithUrl;
 };

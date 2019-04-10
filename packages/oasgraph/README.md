@@ -157,6 +157,8 @@ The options object can contain the following properties:
 
 * `operationIdFieldNames` (type: `boolean`, default: `false`): By default, query field names are based on the return type type name and mutation field names are based on the [`operationId`](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#operation-object), which may be generated if it does not exist. This option forces OASGraph to only create field names based on the operationId.
 
+* `requestOptions` (type: `object`, default: `{}`): Additional [options](https://github.com/request/request#requestoptions-callback), provided by the  [`Request` module](https://github.com/request/request), that can be used to configure the HTTP calls that powers the generated GraphQL resolvers. A common usecase is to use this to set a web proxy through the `proxy` field.
+
 Consider this example of passing options:
 
 ```javascript
@@ -168,10 +170,12 @@ OASGraph.createGraphQLSchema(oas, {
   qs: {
     limit: 30 // send limit query string in every request
   },
-  addSubOperations: false
+  addSubOperations: false,
+  requestOptions: {
+    proxy: "http://my-proxy:3128"
+  }
 })
 ```
-
 
 ## Authentication
 Per default, OASGraph will wrap API requests that need authentication in corresponding `viewers`, which allow the user to pass required credentials. OASGraph currently supports viewers for basic authentication and API keys. For example, a query using an API key viewer is:
