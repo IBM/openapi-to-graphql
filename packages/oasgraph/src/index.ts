@@ -41,7 +41,7 @@ import {
   GraphQLSchema,
   GraphQLObjectType
 } from 'graphql'
-import { CoreOptions } from 'request'
+import * as NodeRequest from 'request'
 
 // Imports:
 import { getGraphQLType, getArgs } from './schema_builder'
@@ -367,7 +367,7 @@ function getFieldForOperation (
   data: PreprocessingData,
   oass: Oas3[],
   baseUrl: string,
-  requestOptions: CoreOptions
+  requestOptions: NodeRequest.OptionsWithUrl
 ): Field {
   // create GraphQL Type for response:
   let type = getGraphQLType({

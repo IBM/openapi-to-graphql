@@ -12,14 +12,13 @@ import { Oas3, SchemaObject } from './types/oas3'
 import { Operation } from './types/operation'
 import { ResolveFunction } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
-import { CoreOptions } from 'request'
+import * as NodeRequest from 'request'
 
 // Imports:
 import * as request from 'request'
 import * as Oas3Tools from './oas_3_tools'
 import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
-import * as deepmerge from 'deepmerge'
 import { debug } from 'debug'
 
 // Type definitions & exports:
@@ -30,15 +29,7 @@ type GetResolverParams = {
   payloadName?: string,
   data: PreprocessingData,
   baseUrl?: string,
-  requestOptions?: CoreOptions
-}
-
-type RequestOptions = {
-  method: string,
-  url: string,
-  headers: { [key: string]: string },
-  qs: { [key: string]: string },
-  body?: (Object | Array<any> | string)
+  requestOptions?: NodeRequest.OptionsWithUrl
 }
 
 type AuthReqAndProtcolName = {
@@ -57,7 +48,7 @@ const log = debug('http')
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-export function getResolver ({
+export function getResolver({
   operation,
   argsFromLink = {},
   argsFromParent = [],
@@ -178,49 +169,29 @@ export function getResolver ({
     headers['content-type'] = typeof (operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json'
     headers['accept'] = typeof (operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json'
 
-    let options: RequestOptions = {
-      method: operation.method,
-      url: url,
-      headers: headers,
-      qs: query
-    }
-
-    /**
-     * Deep merge optional "requestOptions" parameter with current request options.
-     * See https://github.com/TehShrike/deepmerge
-     */
+    let options: NodeRequest.OptionsWithUrl
     if (requestOptions) {
-      /**
-       * DeepMerge merges two objects x and y deeply, returning a new merged object with the elements from both x and y.
-       * If an element at the same key is present for both x and y, the value from y will appear in the result.
-       * Merging creates a new object, so that neither x or y is modified.
-       * 
-       * Note: By default, arrays are merged by concatenating them.
-       */
+      options = { ...requestOptions }
 
-      // Here we define a "combine" strategy for arrays instead of the "concatenate" default one.
-      const emptyTarget = value => Array.isArray(value) ? [] : {}
-      const clone = (value, options) => deepmerge(emptyTarget(value), value, options)
-
-      function combineMerge (target, source, options) {
-        const destination = target.slice()
-
-        source.forEach(function (e, i) {
-          if (typeof destination[i] === 'undefined') {
-            const cloneRequested = options.clone !== false
-            const shouldClone = cloneRequested && options.isMergeableObject(e)
-            destination[i] = shouldClone ? clone(e, options) : e
-          } else if (options.isMergeableObject(e)) {
-            destination[i] = deepmerge(target[i], e, options)
-          } else if (target.indexOf(e) === -1) {
-            destination.push(e)
-          }
-        })
-        return destination
+      options['method'] = operation.method
+      options['url'] = url
+      if (options.headers) {
+        Object.assign(options.headers, headers)
+      } else {
+        options['headers'] = headers
       }
-
-      // Do the actual merge using the "combineMerge" strategy for arrays !
-      options = deepmerge(options, requestOptions, { arrayMerge: combineMerge })
+      if (options.qs) {
+        Object.assign(options.qs, query)
+      } else {
+        options['qs'] = query
+      }
+    } else {
+      options = {
+        method: operation.method,
+        url: url,
+        headers: headers,
+        qs: query
+      }
     }
 
     /**
@@ -373,7 +344,7 @@ export function getResolver ({
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
-function createOAuthQS (
+function createOAuthQS(
   data: PreprocessingData,
   ctx: Object
 ): { [key: string]: string } {
@@ -400,7 +371,7 @@ function createOAuthQS (
  * Attempts to create an OAuth authorization header by extracting an OAuth token
  * from the ctx based on the JSON path provided in the options.
  */
-function createOAuthHeader (
+function createOAuthHeader(
   data: PreprocessingData,
   ctx: Object
 ): { [key: string]: string } {
@@ -430,7 +401,7 @@ function createOAuthHeader (
  * which hold headers and query parameters respectively to authentication a
  * request.
  */
-function getAuthOptions (
+function getAuthOptions(
   operation: Operation,
   _oasgraph: any,
   data: PreprocessingData
@@ -507,7 +478,7 @@ function getAuthOptions (
  * (possibly multiple) authentication protocols can be used based on the data
  * present in the given context.
  */
-function getAuthReqAndProtcolName (
+function getAuthReqAndProtcolName(
   operation: Operation,
   _oasgraph
 ): AuthReqAndProtcolName {
@@ -537,7 +508,7 @@ function getAuthReqAndProtcolName (
  * The link parameter is a reference to data contained in the 
  * url/method/statuscode or response/request body/query/path/header
  */
-function resolveLinkParameter (paramName: string, value: string, resolveData: any, root: any, args: any): any {
+function resolveLinkParameter(paramName: string, value: string, resolveData: any, root: any, args: any): any {
   if (value === '$url') {
     return resolveData.usedRequestOptions.url
 
@@ -619,7 +590,7 @@ function resolveLinkParameter (paramName: string, value: string, resolveData: an
 /**
  * Check if a string is a runtime expression in the context of link parameters
  */
-function isRuntimeExpression (str: string): boolean {
+function isRuntimeExpression(str: string): boolean {
   let references = ['header.', 'query.', 'path.', 'body']
 
   if (str === '$url' || str === '$method' || str === '$statusCode') {
@@ -649,14 +620,14 @@ function isRuntimeExpression (str: string): boolean {
  * 
  * Used to store and retrieve the _oasgraph of parent field
  */
-function getIdentifier (info): string {
+function getIdentifier(info): string {
   return getIdentifierRecursive(info.path)
 }
 
 /**
  * Get the path of nested field names (or aliases if provided)
  */
-function getIdentifierRecursive (path): string {
+function getIdentifierRecursive(path): string {
   if (typeof path.prev === 'undefined') {
     return path.key
   } else {
@@ -668,6 +639,6 @@ function getIdentifierRecursive (path): string {
  * From the info object provided by the resolver, get the unique identifier of
  * the parent object
  */
-function getParentIdentifier (info): string {
+function getParentIdentifier(info): string {
   return getIdentifierRecursive(info.path.prev)
 }
