@@ -40,7 +40,11 @@ import { handleWarning } from './utils'
 export type SchemaNames = {
   fromPath?: string,
   fromSchema?: string,
-  fromRef?: string
+  fromRef?: string,
+
+  // Used when the preferred name is known, i.e. a new data def does not 
+  // need to be created
+  preferred?: string
 }
 
 export type RequestSchemaAndNames = {

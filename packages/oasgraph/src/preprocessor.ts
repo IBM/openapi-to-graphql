@@ -104,7 +104,7 @@ export function preprocessOas (
 
         let payloadDefinition
         if (payloadSchema && typeof payloadSchema !== 'undefined') {
-          payloadDefinition = createOrReuseDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), data, undefined, undefined, oas)
+          payloadDefinition = createOrReuseDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), data, undefined, oas)
         }
 
         // Response schema
@@ -130,7 +130,6 @@ export function preprocessOas (
           (responseSchema as SchemaObject),
           data,
           links,
-          undefined,
           oas
         )
 
@@ -365,13 +364,14 @@ function getProcessedSecuritySchemes (
  * (= String to use as the name for Input Object Types). Eventually, data
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
+ * 
+ * Either names or preferredName should exist. 
  */
 export function createOrReuseDataDef (
   names: Oas3Tools.SchemaNames,
   schema: SchemaObject,
   data: PreprocessingData,
   links?: { [key: string]: LinkObject },
-  preferredName?: string,
   oas?: Oas3
 ): DataDefinition {
   // Do a basic validation check
@@ -380,9 +380,7 @@ export function createOrReuseDataDef (
       `"${String(schema)}"`)
   }
 
-  if (typeof preferredName === 'undefined') {
-    preferredName = getPreferredName(names)
-  }
+  let preferredName = getPreferredName(names)
 
   // Determine the index of possible existing data definition
   let index = getSchemaIndex(preferredName, schema, data.defs)
@@ -456,7 +454,7 @@ export function createOrReuseDataDef (
         }       
       }
 
-      createOrReuseDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, data, undefined, undefined, oas)
+      createOrReuseDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, data, undefined, oas)
 
     } else if (schema.type === 'object') {
       for (let propertyKey in schema.properties) {
@@ -478,7 +476,7 @@ export function createOrReuseDataDef (
           }       
         }
 
-        createOrReuseDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, data, undefined, undefined, oas)
+        createOrReuseDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, data, undefined, oas)
       }
     }
 
@@ -522,8 +520,12 @@ function getPreferredName (
 ): string {
   let schemaName
 
+  // CASE: preferred name already known
+  if (typeof names.preferred === 'string') {
+    schemaName = names.preferred
+
   // CASE: name from reference
-  if (typeof names.fromRef === 'string') {
+  } else if (typeof names.fromRef === 'string') {
     schemaName = names.fromRef
 
   // CASE: name from schema (i.e., "title" property in schema)
@@ -550,8 +552,12 @@ function getSchemaName (
   usedNames: string[],
   names?: Oas3Tools.SchemaNames
 ): string {
-  if (!names || typeof names === 'undefined') {
+  if (!names || typeof names === 'undefined' ) {
     throw new Error(`Cannot create data definition without name(s).`)
+
+  // Cannot create a schema name from only preferred name
+  } else if (Object.keys(names).length === 1 && typeof names.preferred === 'string') {
+    throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`)
   }
 
   let schemaName

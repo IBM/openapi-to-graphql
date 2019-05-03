@@ -15,7 +15,9 @@ export declare function preprocessOas(oass: Oas3[], options: InternalOptions): P
  * (= String to use as the name for Input Object Types). Eventually, data
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
+ *
+ * Either names or preferredName should exist.
  */
 export declare function createOrReuseDataDef(names: Oas3Tools.SchemaNames, schema: SchemaObject, data: PreprocessingData, links?: {
     [key: string]: LinkObject;
-}, preferredName?: string, oas?: Oas3): DataDefinition;
+}, oas?: Oas3): DataDefinition;

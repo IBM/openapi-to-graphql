@@ -10,6 +10,7 @@ export declare type SchemaNames = {
     fromPath?: string;
     fromSchema?: string;
     fromRef?: string;
+    preferred?: string;
 };
 export declare type RequestSchemaAndNames = {
     payloadContentType?: string;

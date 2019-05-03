@@ -108,7 +108,7 @@ function createOrReuseOt({ name, schema, preferredName, operation, data, iterati
     let def;
     if (typeof preferredName === 'undefined') {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas);
         }
         else {
             def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
@@ -116,10 +116,10 @@ function createOrReuseOt({ name, schema, preferredName, operation, data, iterati
     }
     else {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data);
         }
     }
     // CASE: query - create or reuse OT
@@ -206,7 +206,7 @@ function reuseOrCreateList({ name, schema, preferredName, operation, iteration, 
     let def;
     if (typeof preferredName === 'undefined') {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas);
         }
         else {
             def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
@@ -214,10 +214,10 @@ function reuseOrCreateList({ name, schema, preferredName, operation, iteration, 
     }
     else {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data);
         }
     }
     // try to reuse existing Object Type
@@ -277,7 +277,7 @@ function reuseOrCreateEnum({ name, schema, preferredName, operation, data }) {
     let def;
     if (typeof preferredName === 'undefined') {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas);
         }
         else {
             def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
@@ -285,10 +285,10 @@ function reuseOrCreateEnum({ name, schema, preferredName, operation, data }) {
     }
     else {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data);
         }
     }
     if (def.ot && typeof def.ot !== 'undefined') {
@@ -319,7 +319,7 @@ function getScalarType(name, schema, preferredName, operation, type, data) {
     let def;
     if (typeof preferredName === 'undefined') {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas);
         }
         else {
             def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
@@ -327,10 +327,10 @@ function getScalarType(name, schema, preferredName, operation, type, data) {
     }
     else {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef(undefined, schema, data, undefined, preferredName);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data);
         }
     }
     switch (type) {

@@ -226,15 +226,15 @@ function createOrReuseOt ({
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
     if (operation) {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas)
+      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas)
     } else {
       def = createOrReuseDataDef({ fromRef: name }, schema, data)
     }
   } else {
     if (operation) {
-      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, data)
     }
   }
 
@@ -335,15 +335,15 @@ function reuseOrCreateList ({
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
     if (operation) {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas)
+      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas)
     } else {
       def = createOrReuseDataDef({ fromRef: name }, schema, data)
     }
   } else {
     if (operation) {
-      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, data)
     }
   }
 
@@ -414,15 +414,15 @@ function reuseOrCreateEnum ({
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
     if (operation) {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas)
+      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas)
     } else {
       def = createOrReuseDataDef({ fromRef: name }, schema, data)
     }
   } else {
     if (operation) {
-      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, data)
     }
   }
 
@@ -462,15 +462,15 @@ function getScalarType (
     let def: DataDefinition
     if (typeof preferredName === 'undefined') {
       if (operation) {
-        def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, undefined, operation.oas)
+        def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas)
       } else {
         def = createOrReuseDataDef({ fromRef: name }, schema, data)
       }
     } else {
       if (operation) {
-        def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName, operation.oas)
+        def = createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas)
       } else {
-        def = createOrReuseDataDef(undefined, schema, data, undefined, preferredName)
+        def = createOrReuseDataDef({ preferred: preferredName }, schema, data)
       }
     }
 
