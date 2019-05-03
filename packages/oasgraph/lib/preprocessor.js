@@ -79,7 +79,7 @@ function preprocessOas(oass, options) {
                 let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
                 let payloadDefinition;
                 if (payloadSchema && typeof payloadSchema !== 'undefined') {
-                    payloadDefinition = createOrReuseDataDef(payloadSchemaNames, payloadSchema, data, undefined, undefined, oas);
+                    payloadDefinition = createOrReuseDataDef(payloadSchemaNames, payloadSchema, data, undefined, oas);
                 }
                 // Response schema
                 let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options);
@@ -94,7 +94,7 @@ function preprocessOas(oass, options) {
                 }
                 // Links
                 let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
-                let responseDefinition = createOrReuseDataDef(responseSchemaNames, responseSchema, data, links, undefined, oas);
+                let responseDefinition = createOrReuseDataDef(responseSchemaNames, responseSchema, data, links, oas);
                 // Parameters
                 let parameters = Oas3Tools.getParameters(path, method, oas);
                 // Security protocols
@@ -300,16 +300,16 @@ function getProcessedSecuritySchemes(oas, data, oass) {
  * (= String to use as the name for Input Object Types). Eventually, data
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
+ *
+ * Either names or preferredName should exist.
  */
-function createOrReuseDataDef(names, schema, data, links, preferredName, oas) {
+function createOrReuseDataDef(names, schema, data, links, oas) {
     // Do a basic validation check
     if (!schema || typeof schema === 'undefined') {
         throw new Error(`Cannot create data definition for invalid schema ` +
             `"${String(schema)}"`);
     }
-    if (typeof preferredName === 'undefined') {
-        preferredName = getPreferredName(names);
-    }
+    let preferredName = getPreferredName(names);
     // Determine the index of possible existing data definition
     let index = getSchemaIndex(preferredName, schema, data.defs);
     if (index !== -1) {
@@ -374,7 +374,7 @@ function createOrReuseDataDef(names, schema, data, links, preferredName, oas) {
                     });
                 }
             }
-            createOrReuseDataDef({ fromRef: itemsName }, itemsSchema, data, undefined, undefined, oas);
+            createOrReuseDataDef({ fromRef: itemsName }, itemsSchema, data, undefined, oas);
         }
         else if (schema.type === 'object') {
             for (let propertyKey in schema.properties) {
@@ -395,7 +395,7 @@ function createOrReuseDataDef(names, schema, data, links, preferredName, oas) {
                         });
                     }
                 }
-                createOrReuseDataDef({ fromRef: propSchemaName }, propSchema, data, undefined, undefined, oas);
+                createOrReuseDataDef({ fromRef: propSchemaName }, propSchema, data, undefined, oas);
             }
         }
         return def;
@@ -428,8 +428,12 @@ function getSchemaIndex(preferredName, schema, dataDefs) {
  */
 function getPreferredName(names) {
     let schemaName;
-    // CASE: name from reference
-    if (typeof names.fromRef === 'string') {
+    // CASE: preferred name already known
+    if (typeof names.preferred === 'string') {
+        schemaName = names.preferred;
+        // CASE: name from reference
+    }
+    else if (typeof names.fromRef === 'string') {
         schemaName = names.fromRef;
         // CASE: name from schema (i.e., "title" property in schema)
     }
@@ -453,6 +457,10 @@ function getPreferredName(names) {
 function getSchemaName(usedNames, names) {
     if (!names || typeof names === 'undefined') {
         throw new Error(`Cannot create data definition without name(s).`);
+        // Cannot create a schema name from only preferred name
+    }
+    else if (Object.keys(names).length === 1 && typeof names.preferred === 'string') {
+        throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`);
     }
     let schemaName;
     // CASE: name from reference
