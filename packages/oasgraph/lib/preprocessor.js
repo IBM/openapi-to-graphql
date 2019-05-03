@@ -149,7 +149,7 @@ function preprocessOas(oass, options) {
          * First, build up the GraphQL object so that operations that return arrays
          * can use them
          */
-        .sort(([op1Id, op1], [op2Id, op2]) => sortByHasArray(op1, op2))
+        .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
         .forEach(([operationId, operation]) => {
         // Create GraphQL Type for response:
         schema_builder_1.getGraphQLType({
@@ -496,15 +496,20 @@ function getSchemaName(usedNames, names) {
     return schemaName;
 }
 /**
- * Helper function for sorting operations based on the return type, whether it
- * is an object or an array
+ * Helper function for sorting operations based on the return type and method
  *
  * You cannot define links for operations that return arrays in the OAS
  *
  * These links are instead created by reusing the return type from other
  * operations
+ *
+ * Therefore, operations that return objects should be created first
+ *
+ * In addition, process GET operations first because their field names are based
+ * on the return type (so long as there are no naming collisions).
  */
-function sortByHasArray(op1, op2) {
+function sortOperations(op1, op2) {
+    // Sort by object/array type
     if (op1.responseDefinition.schema.type === 'array' &&
         op2.responseDefinition.schema.type !== 'array') {
         return 1;
@@ -514,7 +519,16 @@ function sortByHasArray(op1, op2) {
         return -1;
     }
     else {
-        return 0;
+        // Sort by GET/non-GET method
+        if (op1.method === 'get' && op2.method !== 'get') {
+            return -1;
+        }
+        else if (op1.method !== 'get' && op2.method === 'get') {
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
 }
 //# sourceMappingURL=preprocessor.js.map
