@@ -7,6 +7,10 @@ import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLLi
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
+    /**
+     * Data definitions of subschemas in the schema
+     */
+    subDefinitions: DataDefinition[];
     links: {
         [key: string]: LinkObject;
     };

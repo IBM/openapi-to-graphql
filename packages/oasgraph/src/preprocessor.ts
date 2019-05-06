@@ -427,6 +427,7 @@ export function createOrReuseDataDef (
     let def = {
       preferredName,
       schema,
+      subDefinitions: [],
       links,
       otName: Oas3Tools.capitalize(saneName),
       iotName: Oas3Tools.capitalize(saneInputName)
@@ -454,7 +455,8 @@ export function createOrReuseDataDef (
         }       
       }
 
-      createOrReuseDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, data, undefined, oas)
+      let subDefinition = createOrReuseDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, data, undefined, oas)
+      def.subDefinitions.push(subDefinition)
 
     } else if (schema.type === 'object') {
       for (let propertyKey in schema.properties) {
@@ -476,7 +478,8 @@ export function createOrReuseDataDef (
           }       
         }
 
-        createOrReuseDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, data, undefined, oas)
+        let subDefinition = createOrReuseDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, data, undefined, oas)
+        def.subDefinitions.push(subDefinition)
       }
     }
 
