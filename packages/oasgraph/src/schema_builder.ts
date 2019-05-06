@@ -84,7 +84,6 @@ type ReuseOrCreateEnum = {
   schema: SchemaObject,
   preferredName?: string,    // the preferredName if it is known
   operation?: Operation,
-  isMutation: boolean,
   data: PreprocessingData
 }
 
@@ -94,7 +93,6 @@ type ReuseOrCreateScalar = {
   preferredName?: string,    // the preferredName if it is known
   type: string,
   operation?: Operation,
-  isMutation: boolean,
   data: PreprocessingData
 }
 
@@ -200,8 +198,7 @@ export function getGraphQLType ({
       schema: schema as SchemaObject,
       preferredName,
       operation,
-      data,
-      isMutation
+      data
     })
 
   // CASE: scalar - return scalar
@@ -212,8 +209,8 @@ export function getGraphQLType ({
       preferredName, 
       type, 
       operation, 
-      data, 
-      isMutation})
+      data
+    })
   }
 }
 
@@ -428,21 +425,20 @@ function reuseOrCreateEnum ({
   preferredName,
   operation,
   data,
-  isMutation = false
 }: ReuseOrCreateEnum): GraphQLEnumType {
   // try to reuse existing Enum Type
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
     if (operation) {
-      def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas)
+      def = createOrReuseDataDef({ fromRef: name }, schema, false, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data)
+      def = createOrReuseDataDef({ fromRef: name }, schema, false, data)
     }
   } else {
     if (operation) {
-      def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, false, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, false, data)
     }
   }
 
@@ -477,21 +473,20 @@ function getScalarType ({
   operation,
   type,
   data,
-  isMutation = false
 }: ReuseOrCreateScalar): GraphQLScalarType {
     // try to reuse existing Enum Type
     let def: DataDefinition
     if (typeof preferredName === 'undefined') {
       if (operation) {
-        def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas)
+        def = createOrReuseDataDef({ fromRef: name }, schema, false, data, undefined, operation.oas)
       } else {
-        def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data)
+        def = createOrReuseDataDef({ fromRef: name }, schema, false, data)
       }
     } else {
       if (operation) {
-        def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas)
+        def = createOrReuseDataDef({ preferred: preferredName }, schema, false, data, undefined, operation.oas)
       } else {
-        def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data)
+        def = createOrReuseDataDef({ preferred: preferredName }, schema, false, data)
       }
     }
 
