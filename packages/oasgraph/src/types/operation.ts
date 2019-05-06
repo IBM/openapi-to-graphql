@@ -28,6 +28,12 @@ import {
 export type DataDefinition = {
   preferredName: string,
   schema: SchemaObject,
+
+  /**
+   * Data definitions of subschemas in the schema 
+   */
+  subDefinitions: DataDefinition[],
+
   links: { [key: string]: LinkObject },
   otName: string,
   iotName: string,

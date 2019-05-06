@@ -349,6 +349,7 @@ function createOrReuseDataDef(names, schema, data, links, oas) {
         let def = {
             preferredName,
             schema,
+            subDefinitions: [],
             links,
             otName: Oas3Tools.capitalize(saneName),
             iotName: Oas3Tools.capitalize(saneInputName)
@@ -374,7 +375,8 @@ function createOrReuseDataDef(names, schema, data, links, oas) {
                     });
                 }
             }
-            createOrReuseDataDef({ fromRef: itemsName }, itemsSchema, data, undefined, oas);
+            let subDefinition = createOrReuseDataDef({ fromRef: itemsName }, itemsSchema, data, undefined, oas);
+            def.subDefinitions.push(subDefinition);
         }
         else if (schema.type === 'object') {
             for (let propertyKey in schema.properties) {
@@ -395,7 +397,8 @@ function createOrReuseDataDef(names, schema, data, links, oas) {
                         });
                     }
                 }
-                createOrReuseDataDef({ fromRef: propSchemaName }, propSchema, data, undefined, oas);
+                let subDefinition = createOrReuseDataDef({ fromRef: propSchemaName }, propSchema, data, undefined, oas);
+                def.subDefinitions.push(subDefinition);
             }
         }
         return def;
