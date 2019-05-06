@@ -104,7 +104,7 @@ export function preprocessOas (
 
         let payloadDefinition
         if (payloadSchema && typeof payloadSchema !== 'undefined') {
-          payloadDefinition = createOrReuseDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), data, undefined, oas)
+          payloadDefinition = createOrReuseDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), true, data, undefined, oas)
         }
 
         // Response schema
@@ -128,6 +128,7 @@ export function preprocessOas (
         let responseDefinition = createOrReuseDataDef(
           responseSchemaNames,
           (responseSchema as SchemaObject),
+          false,
           data,
           links,
           oas
@@ -370,6 +371,7 @@ function getProcessedSecuritySchemes (
 export function createOrReuseDataDef (
   names: Oas3Tools.SchemaNames,
   schema: SchemaObject,
+  isInputObjectType: boolean,
   data: PreprocessingData,
   links?: { [key: string]: LinkObject },
   oas?: Oas3
@@ -410,6 +412,14 @@ export function createOrReuseDataDef (
       }
     }
 
+    traverseDataDef(existingDataDef, [], (childDef) => {
+      if (isInputObjectType) {
+        childDef.isInputObjectType = true
+      } else {  
+        childDef.isObjectType = true
+      }
+    })
+
     return existingDataDef
 
   } else {
@@ -424,13 +434,21 @@ export function createOrReuseDataDef (
     data.usedOTNames.push(saneName)
     data.usedOTNames.push(saneInputName)
 
-    let def = {
+    let def: DataDefinition = {
       preferredName,
       schema,
       subDefinitions: [],
+      isObjectType: false,
+      isInputObjectType: false,
       links,
       otName: Oas3Tools.capitalize(saneName),
       iotName: Oas3Tools.capitalize(saneInputName)
+    }
+    
+    if (isInputObjectType) {
+      def.isInputObjectType = true
+    } else {  
+      def.isObjectType = true
     }
 
     // Add the def to the master list
@@ -455,7 +473,7 @@ export function createOrReuseDataDef (
         }       
       }
 
-      let subDefinition = createOrReuseDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, data, undefined, oas)
+      let subDefinition = createOrReuseDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, isInputObjectType, data, undefined, oas)
       def.subDefinitions.push(subDefinition)
 
     } else if (schema.type === 'object') {
@@ -478,7 +496,7 @@ export function createOrReuseDataDef (
           }       
         }
 
-        let subDefinition = createOrReuseDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, data, undefined, oas)
+        let subDefinition = createOrReuseDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, isInputObjectType, data, undefined, oas)
         def.subDefinitions.push(subDefinition)
       }
     }
@@ -609,6 +627,29 @@ function getSchemaName (
   }
 
   return schemaName
+}
+
+/**
+ * From a given data definition, traverse the sub data definitions.
+ */
+export function traverseDataDef (
+  rootDef: DataDefinition,
+  seenDefs: DataDefinition[],
+  f: ((childDef: DataDefinition) => void)
+) {
+  seenDefs.push(rootDef)
+
+  f(rootDef)
+
+  if (Array.isArray(rootDef.subDefinitions) && rootDef.subDefinitions.length > 0) {
+    rootDef.subDefinitions.forEach((dataDef: DataDefinition) => {
+
+      // Only traverse into subDataDefs if they have not been seen/processed yet
+      if (getSchemaIndex(dataDef.preferredName, dataDef.schema, seenDefs) === -1) {
+        traverseDataDef(dataDef, seenDefs, f)
+      }
+    })
+  }
 }
 
 /**

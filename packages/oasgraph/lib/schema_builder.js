@@ -80,12 +80,13 @@ function getGraphQLType({ name, schema, preferredName, operation, data, iteratio
             schema: schema,
             preferredName,
             operation,
+            isMutation,
             data
         });
         // CASE: scalar - return scalar
     }
     else {
-        return getScalarType(name, schema, preferredName, operation, type, data);
+        return getScalarType(name, schema, preferredName, operation, type, data, isMutation);
     }
 }
 exports.getGraphQLType = getGraphQLType;
@@ -108,18 +109,18 @@ function createOrReuseOt({ name, schema, preferredName, operation, data, iterati
     let def;
     if (typeof preferredName === 'undefined') {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, isMutation, data);
         }
     }
     else {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data);
         }
     }
     // CASE: query - create or reuse OT
@@ -206,18 +207,18 @@ function reuseOrCreateList({ name, schema, preferredName, operation, iteration, 
     let def;
     if (typeof preferredName === 'undefined') {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, isMutation, data);
         }
     }
     else {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data);
         }
     }
     // try to reuse existing Object Type
@@ -272,23 +273,23 @@ function reuseOrCreateList({ name, schema, preferredName, operation, iteration, 
 /**
  * Returns an existing Enum Type or creates a new one, and stores it in data
  */
-function reuseOrCreateEnum({ name, schema, preferredName, operation, data }) {
+function reuseOrCreateEnum({ name, schema, preferredName, operation, data, isMutation = false }) {
     // try to reuse existing Enum Type
     let def;
     if (typeof preferredName === 'undefined') {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, isMutation, data);
         }
     }
     else {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data);
         }
     }
     if (def.ot && typeof def.ot !== 'undefined') {
@@ -314,23 +315,23 @@ function reuseOrCreateEnum({ name, schema, preferredName, operation, data }) {
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType(name, schema, preferredName, operation, type, data) {
+function getScalarType(name, schema, preferredName, operation, type, data, isMutation = false) {
     // try to reuse existing Enum Type
     let def;
     if (typeof preferredName === 'undefined') {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, data);
+            def = preprocessor_1.createOrReuseDataDef({ fromRef: name }, schema, isMutation, data);
         }
     }
     else {
         if (operation) {
-            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas);
         }
         else {
-            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, data);
+            def = preprocessor_1.createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data);
         }
     }
     switch (type) {
