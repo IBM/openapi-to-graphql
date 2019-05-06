@@ -88,6 +88,16 @@ type ReuseOrCreateEnum = {
   data: PreprocessingData
 }
 
+type ReuseOrCreateScalar = {
+  name: string,
+  schema: SchemaObject,
+  preferredName?: string,    // the preferredName if it is known
+  type: string,
+  operation?: Operation,
+  isMutation: boolean,
+  data: PreprocessingData
+}
+
 type CreateFieldsParams = {
   name: string,
   schema: SchemaObject,
@@ -190,13 +200,20 @@ export function getGraphQLType ({
       schema: schema as SchemaObject,
       preferredName,
       operation,
-      isMutation,
-      data
+      data,
+      isMutation
     })
 
   // CASE: scalar - return scalar
   } else {
-    return getScalarType(name, schema as SchemaObject, preferredName, operation, type, data, isMutation)
+    return getScalarType({
+      name, 
+      schema: schema as SchemaObject, 
+      preferredName, 
+      type, 
+      operation, 
+      data, 
+      isMutation})
   }
 }
 
@@ -303,9 +320,9 @@ function createOrReuseOt ({
             links: undefined,
             operation,
             data,
-            oass,
             iteration,
-            isMutation
+            isMutation,
+            oass
           })
         }
       })
@@ -453,15 +470,15 @@ function reuseOrCreateEnum ({
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType (
-  name: string,
+function getScalarType ({
+  name,
   schema,
-  preferredName: string,
-  operation: Operation,
-  type: string,
-  data: PreprocessingData,
+  preferredName,
+  operation,
+  type,
+  data,
   isMutation = false
-): GraphQLScalarType {
+}: ReuseOrCreateScalar): GraphQLScalarType {
     // try to reuse existing Enum Type
     let def: DataDefinition
     if (typeof preferredName === 'undefined') {
