@@ -22,7 +22,7 @@ import {
   GraphQLObjectType,
   GraphQLInputObjectType,
   GraphQLList,
-  GraphQLEnumType
+  GraphQLEnumType,
 } from 'graphql'
 
 export type DataDefinition = {
@@ -35,6 +35,14 @@ export type DataDefinition = {
   subDefinitions: DataDefinition[],
 
   links: { [key: string]: LinkObject },
+
+  /**
+   * Whether this data definition is to be used as an GraphQL Object Type or
+   * an Input Object Type
+   */
+  isObjectType: boolean,
+  isInputObjectType: boolean,
+
   otName: string,
   iotName: string,
   ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType,

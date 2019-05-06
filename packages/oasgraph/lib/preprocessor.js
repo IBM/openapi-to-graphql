@@ -79,7 +79,7 @@ function preprocessOas(oass, options) {
                 let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
                 let payloadDefinition;
                 if (payloadSchema && typeof payloadSchema !== 'undefined') {
-                    payloadDefinition = createOrReuseDataDef(payloadSchemaNames, payloadSchema, data, undefined, oas);
+                    payloadDefinition = createOrReuseDataDef(payloadSchemaNames, payloadSchema, true, data, undefined, oas);
                 }
                 // Response schema
                 let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options);
@@ -94,7 +94,7 @@ function preprocessOas(oass, options) {
                 }
                 // Links
                 let links = Oas3Tools.getEndpointLinks(path, method, oas, data);
-                let responseDefinition = createOrReuseDataDef(responseSchemaNames, responseSchema, data, links, oas);
+                let responseDefinition = createOrReuseDataDef(responseSchemaNames, responseSchema, false, data, links, oas);
                 // Parameters
                 let parameters = Oas3Tools.getParameters(path, method, oas);
                 // Security protocols
@@ -303,7 +303,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
  *
  * Either names or preferredName should exist.
  */
-function createOrReuseDataDef(names, schema, data, links, oas) {
+function createOrReuseDataDef(names, schema, isInputObjectType, data, links, oas) {
     // Do a basic validation check
     if (!schema || typeof schema === 'undefined') {
         throw new Error(`Cannot create data definition for invalid schema ` +
@@ -335,6 +335,14 @@ function createOrReuseDataDef(names, schema, data, links, oas) {
                 existingDataDef.links = links;
             }
         }
+        traverseDataDef(existingDataDef, [], (childDef) => {
+            if (isInputObjectType) {
+                childDef.isInputObjectType = true;
+            }
+            else {
+                childDef.isObjectType = true;
+            }
+        });
         return existingDataDef;
     }
     else {
@@ -350,10 +358,18 @@ function createOrReuseDataDef(names, schema, data, links, oas) {
             preferredName,
             schema,
             subDefinitions: [],
+            isObjectType: false,
+            isInputObjectType: false,
             links,
             otName: Oas3Tools.capitalize(saneName),
             iotName: Oas3Tools.capitalize(saneInputName)
         };
+        if (isInputObjectType) {
+            def.isInputObjectType = true;
+        }
+        else {
+            def.isObjectType = true;
+        }
         // Add the def to the master list
         data.defs.push(def);
         // Break schema down into component parts
@@ -375,7 +391,7 @@ function createOrReuseDataDef(names, schema, data, links, oas) {
                     });
                 }
             }
-            let subDefinition = createOrReuseDataDef({ fromRef: itemsName }, itemsSchema, data, undefined, oas);
+            let subDefinition = createOrReuseDataDef({ fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
             def.subDefinitions.push(subDefinition);
         }
         else if (schema.type === 'object') {
@@ -397,7 +413,7 @@ function createOrReuseDataDef(names, schema, data, links, oas) {
                         });
                     }
                 }
-                let subDefinition = createOrReuseDataDef({ fromRef: propSchemaName }, propSchema, data, undefined, oas);
+                let subDefinition = createOrReuseDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
                 def.subDefinitions.push(subDefinition);
             }
         }
@@ -506,6 +522,21 @@ function getSchemaName(usedNames, names) {
     }
     return schemaName;
 }
+/**
+ * From a given data definition, traverse the sub data definitions.
+ */
+function traverseDataDef(rootDef, seenDefs, f) {
+    seenDefs.push(rootDef);
+    f(rootDef);
+    if (Array.isArray(rootDef.subDefinitions) && rootDef.subDefinitions.length > 0) {
+        rootDef.subDefinitions.forEach((dataDef) => {
+            if (getSchemaIndex(dataDef.preferredName, dataDef.schema, seenDefs) === -1) {
+                traverseDataDef(dataDef, seenDefs, f);
+            }
+        });
+    }
+}
+exports.traverseDataDef = traverseDataDef;
 /**
  * Helper function for sorting operations based on the return type and method
  *

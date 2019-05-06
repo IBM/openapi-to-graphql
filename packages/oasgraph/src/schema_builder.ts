@@ -84,6 +84,7 @@ type ReuseOrCreateEnum = {
   schema: SchemaObject,
   preferredName?: string,    // the preferredName if it is known
   operation?: Operation,
+  isMutation: boolean,
   data: PreprocessingData
 }
 
@@ -189,12 +190,13 @@ export function getGraphQLType ({
       schema: schema as SchemaObject,
       preferredName,
       operation,
+      isMutation,
       data
     })
 
   // CASE: scalar - return scalar
   } else {
-    return getScalarType(name, schema as SchemaObject, preferredName, operation, type, data)
+    return getScalarType(name, schema as SchemaObject, preferredName, operation, type, data, isMutation)
   }
 }
 
@@ -226,15 +228,15 @@ function createOrReuseOt ({
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
     if (operation) {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas)
+      def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data)
+      def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data)
     }
   } else {
     if (operation) {
-      def = createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef({ preferred: preferredName }, schema, data)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data)
     }
   }
 
@@ -335,15 +337,15 @@ function reuseOrCreateList ({
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
     if (operation) {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas)
+      def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data)
+      def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data)
     }
   } else {
     if (operation) {
-      def = createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef({ preferred: preferredName }, schema, data)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data)
     }
   }
 
@@ -408,21 +410,22 @@ function reuseOrCreateEnum ({
   schema,
   preferredName,
   operation,
-  data
+  data,
+  isMutation = false
 }: ReuseOrCreateEnum): GraphQLEnumType {
   // try to reuse existing Enum Type
   let def: DataDefinition
   if (typeof preferredName === 'undefined') {
     if (operation) {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas)
+      def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef({ fromRef: name }, schema, data)
+      def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data)
     }
   } else {
     if (operation) {
-      def = createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas)
     } else {
-      def = createOrReuseDataDef({ preferred: preferredName }, schema, data)
+      def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data)
     }
   }
 
@@ -456,21 +459,22 @@ function getScalarType (
   preferredName: string,
   operation: Operation,
   type: string,
-  data: PreprocessingData
+  data: PreprocessingData,
+  isMutation = false
 ): GraphQLScalarType {
     // try to reuse existing Enum Type
     let def: DataDefinition
     if (typeof preferredName === 'undefined') {
       if (operation) {
-        def = createOrReuseDataDef({ fromRef: name }, schema, data, undefined, operation.oas)
+        def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data, undefined, operation.oas)
       } else {
-        def = createOrReuseDataDef({ fromRef: name }, schema, data)
+        def = createOrReuseDataDef({ fromRef: name }, schema, isMutation, data)
       }
     } else {
       if (operation) {
-        def = createOrReuseDataDef({ preferred: preferredName }, schema, data, undefined, operation.oas)
+        def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data, undefined, operation.oas)
       } else {
-        def = createOrReuseDataDef({ preferred: preferredName }, schema, data)
+        def = createOrReuseDataDef({ preferred: preferredName }, schema, isMutation, data)
       }
     }
 
