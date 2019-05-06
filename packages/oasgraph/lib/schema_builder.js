@@ -80,13 +80,21 @@ function getGraphQLType({ name, schema, preferredName, operation, data, iteratio
             schema: schema,
             preferredName,
             operation,
-            isMutation,
-            data
+            data,
+            isMutation
         });
         // CASE: scalar - return scalar
     }
     else {
-        return getScalarType(name, schema, preferredName, operation, type, data, isMutation);
+        return getScalarType({
+            name,
+            schema: schema,
+            preferredName,
+            type,
+            operation,
+            data,
+            isMutation
+        });
     }
 }
 exports.getGraphQLType = getGraphQLType;
@@ -185,9 +193,9 @@ function createOrReuseOt({ name, schema, preferredName, operation, data, iterati
                         links: undefined,
                         operation,
                         data,
-                        oass,
                         iteration,
-                        isMutation
+                        isMutation,
+                        oass
                     });
                 }
             });
@@ -315,7 +323,7 @@ function reuseOrCreateEnum({ name, schema, preferredName, operation, data, isMut
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType(name, schema, preferredName, operation, type, data, isMutation = false) {
+function getScalarType({ name, schema, preferredName, operation, type, data, isMutation = false }) {
     // try to reuse existing Enum Type
     let def;
     if (typeof preferredName === 'undefined') {

@@ -530,6 +530,7 @@ function traverseDataDef(rootDef, seenDefs, f) {
     f(rootDef);
     if (Array.isArray(rootDef.subDefinitions) && rootDef.subDefinitions.length > 0) {
         rootDef.subDefinitions.forEach((dataDef) => {
+            // Only traverse into subDataDefs if they have not been seen/processed yet
             if (getSchemaIndex(dataDef.preferredName, dataDef.schema, seenDefs) === -1) {
                 traverseDataDef(dataDef, seenDefs, f);
             }
