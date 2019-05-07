@@ -173,6 +173,13 @@ async function translateOpenApiToGraphQL (
   let authQueryFields = {}
   let authMutationFields = {}
   Object.entries(data.operations)
+    /**
+     * Start with operations that return objects rather than arrays
+     * 
+     * First, build up the GraphQL object so that operations that return arrays
+     * can use them
+     */
+    .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
     .forEach(([operationId, operation]) => {
       log(`Process operation "${operationId}"...`)
       let field = getFieldForOperation(operation, options.baseUrl, data, oass, requestOptions)
@@ -385,5 +392,43 @@ function getFieldForOperation (
     resolve,
     args,
     description: operation.description
+  }
+}
+
+/**
+ * Helper function for sorting operations based on the return type and method
+ * 
+ * You cannot define links for operations that return arrays in the OAS
+ * 
+ * These links are instead created by reusing the return type from other
+ * operations
+ * 
+ * Therefore, operations that return objects should be created first
+ * 
+ * In addition, process GET operations first because their field names are based
+ * on the return type (so long as there are no naming collisions).
+ */
+function sortOperations (op1: Operation, op2: Operation): number {
+  // Sort by object/array type
+  if (op1.responseDefinition.schema.type === 'array' && 
+    op2.responseDefinition.schema.type !== 'array') {
+    return 1
+
+  } else if (op1.responseDefinition.schema.type !== 'array' && 
+  op2.responseDefinition.schema.type === 'array') {
+    return -1 
+
+  } else {
+
+    // Sort by GET/non-GET method
+    if (op1.method === 'get' && op2.method !== 'get') {
+      return -1
+
+    } else if (op1.method !== 'get' && op2.method === 'get') {
+      return 1
+
+    } else {
+      return 0
+    }
   }
 }

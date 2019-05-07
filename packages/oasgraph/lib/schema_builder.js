@@ -115,7 +115,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
     }
     else {
         if (typeof def.iot !== 'undefined') {
-            log(`Reuse  Input Object Type "${def.iotName}"` +
+            log(`Reuse Input Object Type "${def.iotName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
