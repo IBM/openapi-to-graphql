@@ -21,7 +21,3 @@ export declare function preprocessOas(oass: Oas3[], options: InternalOptions): P
 export declare function createDataDef(names: Oas3Tools.SchemaNames, schema: SchemaObject, isInputObjectType: boolean, data: PreprocessingData, links?: {
     [key: string]: LinkObject;
 }, oas?: Oas3): DataDefinition;
-/**
- * From a given data definition, traverse the sub data definitions.
- */
-export declare function traverseDataDef(rootDef: DataDefinition, seenDefs: DataDefinition[], f: ((childDef: DataDefinition) => void)): void;
