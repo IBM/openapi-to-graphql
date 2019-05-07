@@ -376,6 +376,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         // Add the def to the master list
         data.defs.push(def);
         // Break schema down into component parts
+        // I.e. if it is an list type, create a reference to the list item type
+        // Or if it is an object type, create references to all of the field types
         if (type === 'array' && typeof schema.items === 'object') {
             let itemsSchema = schema.items;
             let itemsName = `${name}ListItem`;
@@ -395,6 +397,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 }
             }
             let subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
+            // Add list item reference
             def.subDefinitions = subDefinition;
         }
         else if (type === 'object') {
@@ -418,6 +421,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                     }
                 }
                 let subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
+                // Add field type references
                 def.subDefinitions[propSchemaName] = subDefinition;
             }
         }

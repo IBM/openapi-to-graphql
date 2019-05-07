@@ -263,14 +263,14 @@ function getScalarType({ def, data, }) {
  */
 function createFields({ def, links, operation, data, iteration, isMutation, oass }) {
     let fields = {};
-    const subDefinitions = def.subDefinitions;
+    const fieldTypeDefinitions = def.subDefinitions;
     // create fields for properties
-    for (let propertyKey in subDefinitions) {
-        const subDefinition = subDefinitions[propertyKey];
-        const schema = subDefinition.schema;
+    for (let fieldTypeKey in fieldTypeDefinitions) {
+        const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey];
+        const schema = fieldTypeDefinition.schema;
         // get object type describing the property
         let objectType = getGraphQLType({
-            def: subDefinition,
+            def: fieldTypeDefinition,
             operation,
             data,
             oass,
@@ -280,14 +280,14 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
         // determine if this property is required in mutations
         let reqMutationProp = (isMutation &&
             ('required' in schema) &&
-            schema.required.includes(propertyKey));
+            schema.required.includes(fieldTypeKey));
         // finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
-            let sanePropName = Oas3Tools.beautifyAndStore(propertyKey, data.saneMap);
+            let sanePropName = Oas3Tools.beautifyAndStore(fieldTypeKey, data.saneMap);
             fields[sanePropName] = {
                 type: reqMutationProp ? new graphql_1.GraphQLNonNull(objectType) : objectType,
-                // might be undefined
-                description: schema.description
+                description: typeof def.schema.description === 'undefined'
+                    ? 'No description available.' : def.schema.description
             };
         }
     }
