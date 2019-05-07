@@ -10,6 +10,7 @@ const schema_builder_1 = require("./schema_builder");
 const Oas3Tools = require("./oas_3_tools");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const preprocessor_1 = require("./preprocessor");
 const log = debug_1.default('translation');
 /**
  * Load the field object in the appropriate root object
@@ -151,9 +152,9 @@ const getViewerAnyAuthOT = (name, queryFields, data, oass) => {
         // NOTE: does not need to check for OAuth 2.0 anymore
         // TODO: This is bad. We don't pass an operation, which is needed for
         // creating the GraphQLType, though.
+        let def = preprocessor_1.createDataDef({ fromRef: protocolName }, data.security[protocolName].schema, true, data);
         let type = schema_builder_1.getGraphQLType({
-            name: protocolName,
-            schema: data.security[protocolName].schema,
+            def,
             data,
             oass,
             isMutation: true

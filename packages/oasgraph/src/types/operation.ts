@@ -29,10 +29,12 @@ export type DataDefinition = {
   preferredName: string,
   schema: SchemaObject,
 
+  type: string,
+
   /**
    * Data definitions of subschemas in the schema 
    */
-  subDefinitions: DataDefinition[],
+  subDefinitions: DataDefinition | {[fieldName: string]: DataDefinition},
 
   links: { [key: string]: LinkObject },
 

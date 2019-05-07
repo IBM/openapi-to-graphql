@@ -350,9 +350,7 @@ function getFieldForOperation (
 ): Field {
   // create GraphQL Type for response:
   let type = getGraphQLType({
-    name: undefined,
-    schema: operation.responseDefinition.schema,
-    preferredName: operation.responseDefinition.preferredName,
+    def: operation.responseDefinition,
     data,
     operation,
     oass,
@@ -375,9 +373,8 @@ function getFieldForOperation (
 
   // create args:
   let args: Args = getArgs({
+    def: operation.payloadDefinition,
     parameters: operation.parameters,
-    payloadSchemaName: payloadSchemaName,
-    payloadSchema,
     operation,
     data,
     oass

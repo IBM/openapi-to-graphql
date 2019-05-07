@@ -19,7 +19,8 @@ import * as Oas3Tools from './oas_3_tools'
 import * as deepEqual from 'deep-equal'
 import debug from 'debug'
 import { handleWarning, getCommonPropertyNames } from './utils'
-import { getGraphQLType } from './schema_builder';
+import { getGraphQLType } from './schema_builder'
+import * as mergeAllOf from 'json-schema-merge-allof'
 
 const log = debug('preprocessing')
 
@@ -104,7 +105,7 @@ export function preprocessOas (
 
         let payloadDefinition
         if (payloadSchema && typeof payloadSchema !== 'undefined') {
-          payloadDefinition = createOrReuseDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), true, data, undefined, oas)
+          payloadDefinition = createDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), true, data, undefined, oas)
         }
 
         // Response schema
@@ -125,7 +126,7 @@ export function preprocessOas (
         let links = Oas3Tools.getEndpointLinks(
           path, method, oas, data)
 
-        let responseDefinition = createOrReuseDataDef(
+        let responseDefinition = createDataDef(
           responseSchemaNames,
           (responseSchema as SchemaObject),
           false,
@@ -201,9 +202,7 @@ export function preprocessOas (
   .forEach(([operationId, operation]) => {
     // Create GraphQL Type for response:
     getGraphQLType({
-      name: undefined,
-      schema: operation.responseDefinition.schema,
-      preferredName: operation.responseDefinition.preferredName,
+      def: operation.responseDefinition,
       data,
       operation,
       oass
@@ -368,7 +367,7 @@ function getProcessedSecuritySchemes (
  * 
  * Either names or preferredName should exist. 
  */
-export function createOrReuseDataDef (
+export function createDataDef (
   names: Oas3Tools.SchemaNames,
   schema: SchemaObject,
   isInputObjectType: boolean,
@@ -382,10 +381,15 @@ export function createOrReuseDataDef (
       `"${String(schema)}"`)
   }
 
-  let preferredName = getPreferredName(names)
+  const preferredName = getPreferredName(names)
+
+  // resolve allOf element in schema if applicable
+  if ('allOf' in schema) {
+    schema = mergeAllOf(schema)
+  }
 
   // Determine the index of possible existing data definition
-  let index = getSchemaIndex(preferredName, schema, data.defs)
+  const index = getSchemaIndex(preferredName, schema, data.defs)
   if (index !== -1) {
     let existingDataDef = data.defs[index]
 
@@ -424,20 +428,32 @@ export function createOrReuseDataDef (
 
   } else {
     // Else, define a new name, store the def, and return it
-    let name = getSchemaName(data.usedOTNames, names)
+    const name = getSchemaName(data.usedOTNames, names)
 
     // Store and beautify the name
-    let saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
-    let saneInputName = saneName + 'Input'
+    const saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
+    const saneInputName = saneName + 'Input'
 
     // Add the names to the master list
     data.usedOTNames.push(saneName)
     data.usedOTNames.push(saneInputName)
 
-    let def: DataDefinition = {
+    // Determine the type of the schema
+    const type = Oas3Tools.getSchemaType(schema as SchemaObject)
+    if (!type) {
+      handleWarning({
+        typeKey: 'INVALID_SCHEMA_TYPE',
+        culprit: JSON.stringify(schema),
+        data,
+        log
+      })
+    }  
+
+    const def: DataDefinition = {
       preferredName,
       schema,
-      subDefinitions: [],
+      type,
+      subDefinitions: undefined,
       isObjectType: false,
       isInputObjectType: false,
       links,
@@ -455,13 +471,13 @@ export function createOrReuseDataDef (
     data.defs.push(def)
 
     // Break schema down into component parts
-    if (schema.type === 'array') {
+    if (type === 'array' && typeof schema.items === 'object') {
       let itemsSchema = schema.items
       let itemsName = `${name}ListItem`
       if ('$ref' in itemsSchema) {
         if (oas) {
-          itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
           itemsName = schema.items['$ref'].split('/').pop()
+          itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
         } else {
           // TODO: Should this simply throw an error?
           handleWarning({
@@ -473,13 +489,16 @@ export function createOrReuseDataDef (
         }       
       }
 
-      let subDefinition = createOrReuseDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, isInputObjectType, data, undefined, oas)
-      def.subDefinitions.push(subDefinition)
+      let subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, isInputObjectType, data, undefined, oas)
+      def.subDefinitions = subDefinition
 
-    } else if (schema.type === 'object') {
+    } else if (type === 'object') {
+
+      def.subDefinitions = {}
+
       for (let propertyKey in schema.properties) {
-        let propSchema = schema.properties[propertyKey]
         let propSchemaName = propertyKey
+        let propSchema = schema.properties[propertyKey]
 
         if ('$ref' in propSchema) {
           if (oas) {
@@ -496,8 +515,8 @@ export function createOrReuseDataDef (
           }       
         }
 
-        let subDefinition = createOrReuseDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, isInputObjectType, data, undefined, oas)
-        def.subDefinitions.push(subDefinition)
+        let subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, isInputObjectType, data, undefined, oas)
+        def.subDefinitions[propSchemaName] = subDefinition
       }
     }
 
