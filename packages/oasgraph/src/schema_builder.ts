@@ -111,9 +111,7 @@ export function getGraphQLType ({
   iteration = 0,
   isMutation = false,
   oass
-}: GetGraphQLTypeParams
-): GraphQLType {
-
+}: GetGraphQLTypeParams): GraphQLType {
   const name = isMutation ? def.iotName : def.otName
 
   // avoid excessive iterations
@@ -332,7 +330,6 @@ function reuseOrCreateEnum ({
   data
 }: ReuseOrCreateEnum): GraphQLEnumType {
   // try to reuse existing Enum Type
-
   if (def.ot && typeof def.ot !== 'undefined') {
     log(`Reuse  GraphQLEnumType "${def.otName}"`)
     return def.ot as GraphQLEnumType
@@ -407,16 +404,16 @@ function createFields ({
 }: CreateFieldsParams): GraphQLFieldConfigMap<any, any> {
   let fields: GraphQLFieldConfigMap<any, any> = {}
 
-  const subDefinitions = def.subDefinitions as {[fieldName: string]: DataDefinition}
+  const fieldTypeDefinitions = def.subDefinitions as {[fieldName: string]: DataDefinition}
 
   // create fields for properties
-  for (let propertyKey in subDefinitions) {
-    const subDefinition = subDefinitions[propertyKey]
-    const schema = subDefinition.schema
+  for (let fieldTypeKey in fieldTypeDefinitions) {
+    const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey]
+    const schema = fieldTypeDefinition.schema
 
     // get object type describing the property
     let objectType = getGraphQLType({
-      def: subDefinition,
+      def: fieldTypeDefinition,
       operation,
       data,
       oass,
@@ -427,16 +424,16 @@ function createFields ({
     // determine if this property is required in mutations
     let reqMutationProp = (isMutation &&
       ('required' in schema) &&
-      schema.required.includes(propertyKey))
+      schema.required.includes(fieldTypeKey))
 
     // finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
-      let sanePropName = Oas3Tools.beautifyAndStore(propertyKey, data.saneMap)
+      let sanePropName = Oas3Tools.beautifyAndStore(fieldTypeKey, data.saneMap)
       fields[sanePropName] = {
         type: reqMutationProp ? new GraphQLNonNull(objectType) : objectType as GraphQLOutputType,
 
-        // might be undefined
-        description: schema.description 
+        description: typeof def.schema.description === 'undefined'
+          ? 'No description available.' : def.schema.description
       }
     }
   }

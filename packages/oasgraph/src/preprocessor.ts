@@ -4,7 +4,7 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import { Oas3, SchemaObject, LinksObject, LinkObject } from './types/oas3'
+import { Oas3, SchemaObject, LinkObject } from './types/oas3'
 import { InternalOptions } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
 import {
@@ -460,6 +460,8 @@ export function createDataDef (
     data.defs.push(def)
 
     // Break schema down into component parts
+    // I.e. if it is an list type, create a reference to the list item type
+    // Or if it is an object type, create references to all of the field types
     if (type === 'array' && typeof schema.items === 'object') {
       let itemsSchema = schema.items
       let itemsName = `${name}ListItem`
@@ -479,10 +481,10 @@ export function createDataDef (
       }
 
       let subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, isInputObjectType, data, undefined, oas)
+      // Add list item reference
       def.subDefinitions = subDefinition
 
     } else if (type === 'object') {
-
       def.subDefinitions = {}
 
       for (let propertyKey in schema.properties) {
@@ -505,6 +507,7 @@ export function createDataDef (
         }
 
         let subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, isInputObjectType, data, undefined, oas)
+        // Add field type references
         def.subDefinitions[propSchemaName] = subDefinition
       }
     }

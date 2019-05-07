@@ -13,8 +13,7 @@ import {
   LinkObject,
   ParameterObject,
   ServerObject,
-  SchemaObject,
-  LinksObject
+  SchemaObject
 } from './oas3'
 
 import {
@@ -33,6 +32,12 @@ export type DataDefinition = {
 
   /**
    * Data definitions of subschemas in the schema 
+   * 
+   * I.e. If the dataDef is a list type, the subDefinition is a reference to the
+   * list item type
+   * 
+   * Or if the dataDef is an object type, the subDefinitions are references to 
+   * the field types
    */
   subDefinitions: DataDefinition | {[fieldName: string]: DataDefinition},
 
