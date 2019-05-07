@@ -391,8 +391,12 @@ export function createDataDef (
   // Determine the index of possible existing data definition
   const index = getSchemaIndex(preferredName, schema, data.defs)
   if (index !== -1) {
+    // Found existing data definition. Fetch it
     let existingDataDef = data.defs[index]
 
+    // Collapse links if possible
+    // I.e. if the current operation has links, combine them with the prexisting
+    // ones
     if (typeof links !== 'undefined') {
       if (typeof existingDataDef.links !== 'undefined') {
         // Check if there are any overlapping links
@@ -412,17 +416,10 @@ export function createDataDef (
         Object.assign(existingDataDef.links, links)
         
       } else {
+        // No preexisting links, so simply assign the links
         existingDataDef.links = links
       }
     }
-
-    traverseDataDef(existingDataDef, [], (childDef) => {
-      if (isInputObjectType) {
-        childDef.isInputObjectType = true
-      } else {  
-        childDef.isObjectType = true
-      }
-    })
 
     return existingDataDef
 
@@ -454,17 +451,9 @@ export function createDataDef (
       schema,
       type,
       subDefinitions: undefined,
-      isObjectType: false,
-      isInputObjectType: false,
       links,
       otName: Oas3Tools.capitalize(saneName),
       iotName: Oas3Tools.capitalize(saneInputName)
-    }
-    
-    if (isInputObjectType) {
-      def.isInputObjectType = true
-    } else {  
-      def.isObjectType = true
     }
 
     // Add the def to the master list
@@ -646,29 +635,6 @@ function getSchemaName (
   }
 
   return schemaName
-}
-
-/**
- * From a given data definition, traverse the sub data definitions.
- */
-export function traverseDataDef (
-  rootDef: DataDefinition,
-  seenDefs: DataDefinition[],
-  f: ((childDef: DataDefinition) => void)
-) {
-  seenDefs.push(rootDef)
-
-  f(rootDef)
-
-  if (Array.isArray(rootDef.subDefinitions) && rootDef.subDefinitions.length > 0) {
-    rootDef.subDefinitions.forEach((dataDef: DataDefinition) => {
-
-      // Only traverse into subDataDefs if they have not been seen/processed yet
-      if (getSchemaIndex(dataDef.preferredName, dataDef.schema, seenDefs) === -1) {
-        traverseDataDef(dataDef, seenDefs, f)
-      }
-    })
-  }
 }
 
 /**
