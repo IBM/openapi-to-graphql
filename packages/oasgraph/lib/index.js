@@ -260,9 +260,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
 function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
     // create GraphQL Type for response:
     let type = schema_builder_1.getGraphQLType({
-        name: undefined,
-        schema: operation.responseDefinition.schema,
-        preferredName: operation.responseDefinition.preferredName,
+        def: operation.responseDefinition,
         data,
         operation,
         oass,
@@ -283,9 +281,8 @@ function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
     });
     // create args:
     let args = schema_builder_1.getArgs({
+        def: operation.payloadDefinition,
         parameters: operation.parameters,
-        payloadSchemaName: payloadSchemaName,
-        payloadSchema,
         operation,
         data,
         oass

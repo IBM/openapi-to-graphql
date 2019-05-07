@@ -391,6 +391,7 @@ export function getSchemaType (schema: SchemaObject): string | null {
 
     return 'object'
   }
+  
   if ('properties' in schema) {
     return 'object'
   }

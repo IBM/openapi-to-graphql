@@ -18,7 +18,7 @@ export declare function preprocessOas(oass: Oas3[], options: InternalOptions): P
  *
  * Either names or preferredName should exist.
  */
-export declare function createOrReuseDataDef(names: Oas3Tools.SchemaNames, schema: SchemaObject, isInputObjectType: boolean, data: PreprocessingData, links?: {
+export declare function createDataDef(names: Oas3Tools.SchemaNames, schema: SchemaObject, isInputObjectType: boolean, data: PreprocessingData, links?: {
     [key: string]: LinkObject;
 }, oas?: Oas3): DataDefinition;
 /**

@@ -27,6 +27,7 @@ import { getGraphQLType } from './schema_builder'
 import * as Oas3Tools from './oas_3_tools'
 import debug from 'debug'
 import { handleWarning, sortObject } from './utils'
+import { createDataDef } from './preprocessor'
 
 // Type definitions & exports:
 type Viewer = {
@@ -214,9 +215,11 @@ const getViewerAnyAuthOT = (
     // NOTE: does not need to check for OAuth 2.0 anymore
     // TODO: This is bad. We don't pass an operation, which is needed for
     // creating the GraphQLType, though.
+
+    let def = createDataDef({ fromRef: protocolName }, data.security[protocolName].schema, true, data)
+
     let type = getGraphQLType({
-      name: protocolName,
-      schema: data.security[protocolName].schema,
+      def,
       data,
       oass,
       isMutation: true
