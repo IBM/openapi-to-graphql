@@ -221,7 +221,7 @@ function createOrReuseOt ({
   // CASE: mutation - create or reuse IOT
   } else {
     if (typeof def.iot !== 'undefined') {
-      log(`Reuse  Input Object Type "${def.iotName}"` +
+      log(`Reuse Input Object Type "${def.iotName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
