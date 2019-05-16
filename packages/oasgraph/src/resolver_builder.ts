@@ -15,13 +15,25 @@ import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
 
 // Imports:
-import * as request from 'request'
 import * as Oas3Tools from './oas_3_tools'
 import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
 import { debug } from 'debug'
 
+const log = debug('http')
 // Type definitions & exports:
+
+type AuthReqAndProtcolName = {
+  authRequired: boolean,
+  beautifiedSecurityRequirement?: string
+}
+
+type AuthOptions = {
+  authHeaders: { [key: string]: string },
+  authQs: { [key: string]: string },
+  authCookie: NodeRequest.Cookie
+}
+
 type GetResolverParams = {
   operation: Operation,
   argsFromLink?: { [key: string]: string },
@@ -31,19 +43,6 @@ type GetResolverParams = {
   baseUrl?: string,
   requestOptions?: NodeRequest.OptionsWithUrl
 }
-
-type AuthReqAndProtcolName = {
-  authRequired: boolean,
-  beautifiedSecurityRequirement?: string
-}
-
-type AuthOptions = {
-  authHeaders: { [key: string]: string },
-  authQs: { [key: string]: string }
-}
-
-const log = debug('http')
-
 /**
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
@@ -59,10 +58,6 @@ export function getResolver({
 }: GetResolverParams): ResolveFunction {
   // determine the appropriate URL:
   if (typeof baseUrl === 'undefined') {
-    /**
-     * get the base URL from the server object of the OAS if the base URL is not
-     * specified as an option
-     */
     baseUrl = Oas3Tools.getBaseUrl(operation)
   }
 
@@ -74,8 +69,8 @@ export function getResolver({
     let resolveData: any = {}
     if (root &&
       typeof root === 'object' &&
-      typeof root._oasgraph == 'object' &&
-      typeof root._oasgraph.data == 'object') {
+      typeof root._oasgraph === 'object' &&
+      typeof root._oasgraph.data === 'object') {
       let parentIdentifier = getParentIdentifier(info)
       if (!(parentIdentifier.length === 0) && parentIdentifier in root._oasgraph.data) {
         // resolving link params may change the usedParams, but these changes
@@ -102,14 +97,13 @@ export function getResolver({
      */
     operation.parameters.forEach(param => {
       let paramName = Oas3Tools.beautify(param.name)
-      if (typeof args[paramName] === 'undefined' &&
-        param.schema && typeof param.schema === 'object') {
+      if (typeof args[paramName] === 'undefined' && param.schema && typeof param.schema === 'object') {
         let schema = param.schema
         if (schema && schema.$ref && typeof schema.$ref === 'string') {
           schema = Oas3Tools.resolveRef(schema.$ref, operation.oas)
         }
-        if (schema && (schema as SchemaObject).default
-          && typeof (schema as SchemaObject).default !== 'undefined') {
+        if (schema && (schema as SchemaObject).default &&
+         typeof (schema as SchemaObject).default !== 'undefined') {
           args[paramName] = (schema as SchemaObject).default
         }
       }
@@ -117,36 +111,29 @@ export function getResolver({
 
     // handle arguments provided by links
     for (let paramName in argsFromLink) {
+      let value = argsFromLink[paramName]
+
       let paramNameWithoutLocation = paramName
       if (paramName.indexOf('.') !== -1) {
         paramNameWithoutLocation = paramName.split('.')[1]
       }
-
-      // link parameter
-      let value = argsFromLink[paramName]
-
       /**
        * see if the link parameter contains constants that are appended to the link parameter
-       * 
+       *
        * e.g. instead of:
        * $response.body#/employerId
-       * 
+       *
        * it could be:
        * abc_{$response.body#/employerId}
        */
       if (value.search(/{|}/) === -1) {
-        if (isRuntimeExpression(value)) {
-          args[paramNameWithoutLocation] = resolveLinkParameter(paramName, value, resolveData, root, args)
-        } else {
-          args[paramNameWithoutLocation] = value
-        }
+        args[paramNameWithoutLocation] = (isRuntimeExpression(value)) ? resolveLinkParameter(paramName, value, resolveData, root, args) : value
       } else {
         // replace link parameters with appropriate values
         let linkParams = value.match(/{([^}]*)}/g)
         linkParams.forEach((linkParam) => {
           value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args))
         })
-
         args[paramNameWithoutLocation] = value
       }
     }
@@ -172,7 +159,6 @@ export function getResolver({
     let options: NodeRequest.OptionsWithUrl
     if (requestOptions) {
       options = { ...requestOptions }
-
       options['method'] = operation.method
       options['url'] = url
       if (options.headers) {
@@ -245,11 +231,18 @@ export function getResolver({
     if (root &&
       typeof root === 'object' &&
       typeof root._oasgraph == 'object') {
-      let { authHeaders, authQs } = getAuthOptions(operation, root._oasgraph, data)
+      let { authHeaders, authQs, authCookie } = getAuthOptions(operation, root._oasgraph, data)
 
       // ...and pass them to the options
       Object.assign(options.headers, authHeaders)
       Object.assign(options.qs, authQs)
+
+      // add authentication cookie if created
+      if (authCookie !== null) {
+        const j = NodeRequest.jar()
+        j.setCookie(authCookie, options.url)
+        options.jar = j
+      }
     }
 
     // extract OAuth token from context (if available)
@@ -265,11 +258,10 @@ export function getResolver({
     resolveData.usedStatusCode = operation.statusCode
 
     // make the call
-    log(`Call ${options.method.toUpperCase()} ${options.url}` +
-      `?${querystring.stringify(options.qs)} ` +
-      `headers:${JSON.stringify(options.headers)}`)
+    log(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}` +
+    `headers:${JSON.stringify(options.headers)}`)
     return new Promise((resolve, reject) => {
-      request(options, (err, response, body) => {
+      NodeRequest(options, (err, response, body) => {
         if (err) {
           log(err)
           reject(err)
@@ -344,15 +336,11 @@ export function getResolver({
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
-function createOAuthQS(
-  data: PreprocessingData,
-  ctx: Object
-): { [key: string]: string } {
-  if (typeof data.options.tokenJSONpath !== 'string') {
-    return {}
-  }
+function createOAuthQS ( data: PreprocessingData, ctx: Object ): { [key: string]: string } {
+  return (typeof data.options.tokenJSONpath !== 'string') ? {} : extractToken(data, ctx)
+}
 
-  // extract token:
+function extractToken(data: PreprocessingData, ctx: Object) {
   let tokenJSONpath = data.options.tokenJSONpath
   let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
   if (Array.isArray(tokens) && tokens.length > 0) {
@@ -361,8 +349,7 @@ function createOAuthQS(
       access_token: token
     }
   } else {
-    log(`Warning: could not extract OAuth token from context at ` +
-      `'${tokenJSONpath}'`)
+    log(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`)
     return {}
   }
 }
@@ -371,7 +358,7 @@ function createOAuthQS(
  * Attempts to create an OAuth authorization header by extracting an OAuth token
  * from the ctx based on the JSON path provided in the options.
  */
-function createOAuthHeader(
+function createOAuthHeader (
   data: PreprocessingData,
   ctx: Object
 ): { [key: string]: string } {
@@ -401,13 +388,14 @@ function createOAuthHeader(
  * which hold headers and query parameters respectively to authentication a
  * request.
  */
-function getAuthOptions(
+function getAuthOptions (
   operation: Operation,
   _oasgraph: any,
   data: PreprocessingData
 ): AuthOptions {
   let authHeaders = {}
   let authQs = {}
+  let authCookie = null
 
   // determine if authentication is required, and which protocol (if any) we
   // can use
@@ -417,7 +405,7 @@ function getAuthOptions(
 
   // possibly, we don't need to do anything:
   if (!authRequired) {
-    return { authHeaders, authQs }
+    return { authHeaders, authQs, authCookie }
   }
 
   // if authentication is required, but we can't fulfill the protocol, throw:
@@ -431,15 +419,16 @@ function getAuthOptions(
       case 'apiKey':
         let apiKey = _oasgraph.security[beautifiedSecurityRequirement].apiKey
         if ('in' in security.def) {
-          if (security.def.in === 'header' &&
-            typeof security.def.name === 'string') {
-            authHeaders[security.def.name] = apiKey
-          } else if (security.def.in === 'query' &&
-            typeof security.def.name === 'string') {
-            authQs[security.def.name] = apiKey
+          if (typeof security.def.name === 'string') {
+            if (security.def.in === 'header') {
+              authHeaders[security.def.name] = apiKey
+            } else if (security.def.in === 'query') {
+              authQs[security.def.name] = apiKey
+            } else if (security.def.in === 'cookie') {
+              authCookie = NodeRequest.cookie(`${security.def.name}=${apiKey}`)
+            }
           } else {
-            throw new Error(`Cannot send apiKey in ` +
-              `'${JSON.stringify(security.def.in)}'`)
+            throw new Error(`Cannot send apiKey in '${JSON.stringify(security.def.in)}'`)
           }
         }
         break
@@ -447,12 +436,11 @@ function getAuthOptions(
       case 'http':
         switch (security.def.scheme) {
           case 'basic':
-            let username = _oasgraph.security[beautifiedSecurityRequirement].username
-            let password = _oasgraph.security[beautifiedSecurityRequirement].password
-            authHeaders['Authorization'] = 'Basic ' +
-              Buffer.from(username + ':' + password).toString('base64')
+            const username = _oasgraph.security[beautifiedSecurityRequirement].username
+            const password = _oasgraph.security[beautifiedSecurityRequirement].password
+            const credentials = `${username}:${password}`
+            authHeaders['Authorization'] = `Basic ${Buffer.from(credentials).toString('base64')}`
             break
-
           default:
             throw new Error(`Cannot recognize http security scheme ` +
               `'${JSON.stringify(security.def.scheme)}'`)
@@ -469,8 +457,7 @@ function getAuthOptions(
         throw new Error(`Cannot recognize security type '${security.def.type}'`)
     }
   }
-
-  return { authHeaders, authQs }
+  return { authHeaders, authQs, authCookie }
 }
 
 /**
@@ -625,20 +612,16 @@ function getIdentifier(info): string {
 }
 
 /**
- * Get the path of nested field names (or aliases if provided)
- */
-function getIdentifierRecursive(path): string {
-  if (typeof path.prev === 'undefined') {
-    return path.key
-  } else {
-    return `${path.key}/${getIdentifierRecursive(path.prev)}`
-  }
-}
-
-/**
  * From the info object provided by the resolver, get the unique identifier of
  * the parent object
  */
 function getParentIdentifier(info): string {
   return getIdentifierRecursive(info.path.prev)
+}
+
+/**
+ * Get the path of nested field names (or aliases if provided)
+ */
+function getIdentifierRecursive(path): string {
+  return (typeof path.prev === 'undefined') ? path.key : `${path.key}/${getIdentifierRecursive(path.prev)}`
 }
