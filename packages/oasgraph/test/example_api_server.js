@@ -240,7 +240,17 @@ function startServer (PORT) {
         message: 'Incorrect credentials'
       })
       return false
-    } else if ('access_token' in req.query) {
+    } else if ('cookie' in req.headers) {
+      for (let user in Auth) {
+        if (Auth[user].accessToken === req.headers.cookie.split('=')[1]) {
+          return next()
+        }
+      }
+      res.status(401).send({
+        message: 'Incorrect credentials'
+      })
+      return false
+    }else if ('access_token' in req.query) {
       for (let user in Auth) {
         if (Auth[user].accessToken === req.query.access_token) {
           return next()
