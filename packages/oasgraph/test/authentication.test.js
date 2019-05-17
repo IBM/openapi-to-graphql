@@ -8,9 +8,7 @@
 /* globals beforeAll, test, expect */
 
 const OasGraph = require('../lib/index.js')
-const {
-  graphql
-} = require('graphql')
+const { graphql } = require('graphql')
 
 let oas = require('./fixtures/example_oas.json')
 const PORT = 3003
@@ -73,6 +71,27 @@ test('Get patent using API key', () => {
     expect(result).toEqual({
       'data': {
         'viewerApiKey2': {
+          'patentWithId': {
+            'patentId': '100'
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Get patent using API key 3', () => {
+  let query = `{
+    viewerApiKey3 (apiKey: "abcdef") {
+      patentWithId (patentId: "100") {
+        patentId
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      'data': {
+        'viewerApiKey3': {
           'patentWithId': {
             'patentId': '100'
           }
@@ -224,6 +243,75 @@ test('Post project using API key 2', () => {
               name: 'Arlene L McMahon'
             }
           }
+        }
+      }
+    })
+  })
+})
+
+test('Get project using API key 3', async () => {
+  let query = `{
+    viewerApiKey3 (apiKey: "abcdef") {
+      projectWithId (projectId: 1) {
+        projectId
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        viewerApiKey3: {
+          projectWithId: {
+            projectId: 1
+          }
+        }
+      }
+    })
+  })
+})
+
+test('Get project using API key 3 passed as option - viewer is disabled', async () => {
+  let { schema } = await OasGraph.createGraphQlSchema(oas, {
+    viewer: false,
+    headers: {
+      cookie: "access_token=abcdef"
+    }
+  })
+  let query = `{
+    projectWithId (projectId: 1) {
+      projectId
+    }
+  }`
+  return graphql(schema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        projectWithId: {
+          projectId: 1
+        }
+      }
+    })
+  })
+})
+
+test('Get project using API key 3 passed in the requestOptions - viewer is disabled', async () => {
+  let { schema } = await OasGraph.createGraphQlSchema(oas, {
+    viewer: false,
+    requestOptions: {
+      headers: {
+        cookie: "access_token=abcdef"
+      }
+    }
+  })
+  let query = `{
+    projectWithId (projectId: 1) {
+      projectId
+    }
+  }`
+  return graphql(schema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        projectWithId: {
+          projectId: 1
         }
       }
     })
