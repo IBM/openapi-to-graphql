@@ -583,6 +583,9 @@
 					},
 					{
 						"example_api_key_protocol_2": []
+					},
+					{
+						"example_api_key_protocol_3": []
 					}
 				]
 			}
@@ -625,6 +628,9 @@
 					},
 					{
 						"example_api_key_protocol_2": []
+					},
+					{
+						"example_api_key_protocol_3": []
 					}
 				]
 			}
@@ -1231,6 +1237,11 @@
 			},
 			"example_api_key_protocol_2": {
 				"in": "query",
+				"name": "access_token",
+				"type": "apiKey"
+			},
+			"example_api_key_protocol_3": {
+				"in": "cookie",
 				"name": "access_token",
 				"type": "apiKey"
 			},
