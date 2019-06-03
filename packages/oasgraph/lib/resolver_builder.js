@@ -211,14 +211,20 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
                 else if (response.statusCode > 299) {
                     log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
                     const operationString = `${operation.method.toUpperCase()} ${operation.path}`;
-                    const extensions = {
-                        method: operation.method,
-                        path: operation.path,
-                        statusCode: response.statusCode,
-                        responseHeaders: response.headers,
-                        responseBody: JSON.parse(body)
-                    };
-                    reject(graphQLErrorWithExtensions(`Could not invoke operation ${operationString}`, extensions));
+                    const errorString = `Could not invoke operation ${operationString}`;
+                    if (data.options.provideErrorExtensions) {
+                        const extensions = {
+                            method: operation.method,
+                            path: operation.path,
+                            statusCode: response.statusCode,
+                            responseHeaders: response.headers,
+                            responseBody: JSON.parse(body)
+                        };
+                        reject(graphQLErrorWithExtensions(errorString, extensions));
+                    }
+                    else {
+                        reject(new Error(errorString));
+                    }
                 }
                 else {
                     log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
