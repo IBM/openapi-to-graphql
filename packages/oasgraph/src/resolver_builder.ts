@@ -19,6 +19,7 @@ import * as Oas3Tools from './oas_3_tools'
 import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
 import { debug } from 'debug'
+import { GraphQLError } from 'graphql'
 
 const log = debug('http')
 // Type definitions & exports:
@@ -267,7 +268,18 @@ export function getResolver({
           reject(err)
         } else if (response.statusCode > 299) {
           log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
-          reject(new Error(`${response.statusCode} - ${JSON.stringify(body)}`))
+
+          const operationString = `${operation.method.toUpperCase()} ${operation.path}`
+          const extensions = {
+            method: operation.method,
+            path: operation.path, 
+
+            statusCode: response.statusCode,
+            responseHeaders: response.headers,
+            responseBody: JSON.parse(body)
+          }
+          reject(graphQLErrorWithExtensions(`Could not invoke operation ${operationString}`, extensions))
+
         } else {
           log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
@@ -618,10 +630,17 @@ function getIdentifier(info): string {
 function getParentIdentifier(info): string {
   return getIdentifierRecursive(info.path.prev)
 }
-
+ 
 /**
  * Get the path of nested field names (or aliases if provided)
  */
 function getIdentifierRecursive(path): string {
   return (typeof path.prev === 'undefined') ? path.key : `${path.key}/${getIdentifierRecursive(path.prev)}`
+}
+
+/**
+ * Create a new GraphQLError with an extensions field
+ */
+function graphQLErrorWithExtensions(message: string, extensions: { [key: string]: any }): GraphQLError {
+  return new GraphQLError(message, null, null, null, null, null, extensions)
 }
