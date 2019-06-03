@@ -278,7 +278,13 @@ function startServer (PORT) {
 
   app.get('/api/users/:username', (req, res) => {
     console.log(req.method, req.path)
-    res.send(Users[req.params.username])
+    if (req.params.username in Users) {
+      res.send(Users[req.params.username])
+    } else {
+      res.status(401).send({
+        message: 'Wrong username.'
+      })
+    }
   })
 
   app.get('/api/users/:username/car', (req, res) => {

@@ -673,3 +673,26 @@ test('Resolve allOf', () => {
     })
   })
 })
+
+test('Error contains extension', () => {
+  let query = `query {
+    user(username: "abcdef") {
+      name
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(error => {
+    const extensions = error.errors[0].extensions
+    expect(extensions).toBeDefined()
+
+    // Remove headers because it contains fields that may change from run to run
+    delete extensions.responseHeaders
+    expect(extensions).toEqual({
+      "method": "get",
+      "path": "/users/{username}",
+      "statusCode": 401,
+      "responseBody": {
+        "message": "Wrong username."
+      }
+    })
+  })
+})

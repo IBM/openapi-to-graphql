@@ -10,6 +10,7 @@ const Oas3Tools = require("./oas_3_tools");
 const querystring = require("querystring");
 const JSONPath = require("jsonpath-plus");
 const debug_1 = require("debug");
+const graphql_1 = require("graphql");
 const log = debug_1.debug('http');
 /**
  * Creates and returns a resolver function that performs API requests for the
@@ -209,7 +210,15 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
                 }
                 else if (response.statusCode > 299) {
                     log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
-                    reject(new Error(`${response.statusCode} - ${JSON.stringify(body)}`));
+                    const operationString = `${operation.method.toUpperCase()} ${operation.path}`;
+                    const extensions = {
+                        method: operation.method,
+                        path: operation.path,
+                        statusCode: response.statusCode,
+                        responseHeaders: response.headers,
+                        responseBody: JSON.parse(body)
+                    };
+                    reject(graphQLErrorWithExtensions(`Could not invoke operation ${operationString}`, extensions));
                 }
                 else {
                     log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
@@ -534,5 +543,11 @@ function getParentIdentifier(info) {
  */
 function getIdentifierRecursive(path) {
     return (typeof path.prev === 'undefined') ? path.key : `${path.key}/${getIdentifierRecursive(path.prev)}`;
+}
+/**
+ * Create a new GraphQLError with an extensions field
+ */
+function graphQLErrorWithExtensions(message, extensions) {
+    return new graphql_1.GraphQLError(message, null, null, null, null, null, extensions);
 }
 //# sourceMappingURL=resolver_builder.js.map
