@@ -88,6 +88,9 @@ export async function createGraphQlSchema (
   options.operationIdFieldNames = typeof options.operationIdFieldNames === 'boolean'
     ? options.operationIdFieldNames
     : false
+  options.provideErrorExtensions = typeof options.provideErrorExtensions === 'boolean'
+    ? options.provideErrorExtensions
+    : true
 
   options['report'] = {
     warnings: [],
@@ -140,7 +143,8 @@ async function translateOpenApiToGraphQL (
     baseUrl,
     operationIdFieldNames,
     report,
-    requestOptions
+    requestOptions,
+    provideErrorExtensions
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema, report: Report }> {
   let options = {
@@ -154,7 +158,8 @@ async function translateOpenApiToGraphQL (
     baseUrl,
     operationIdFieldNames,
     report,
-    requestOptions
+    requestOptions,
+    provideErrorExtensions
   }
   log(`Options: ${JSON.stringify(options)}`)
 

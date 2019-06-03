@@ -47,6 +47,9 @@ function createGraphQlSchema(spec, options) {
         options.operationIdFieldNames = typeof options.operationIdFieldNames === 'boolean'
             ? options.operationIdFieldNames
             : false;
+        options.provideErrorExtensions = typeof options.provideErrorExtensions === 'boolean'
+            ? options.provideErrorExtensions
+            : true;
         options['report'] = {
             warnings: [],
             numOps: 0,
@@ -83,7 +86,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions }) {
+function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions }) {
     return __awaiter(this, void 0, void 0, function* () {
         let options = {
             headers,
@@ -96,7 +99,8 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             baseUrl,
             operationIdFieldNames,
             report,
-            requestOptions
+            requestOptions,
+            provideErrorExtensions
         };
         log(`Options: ${JSON.stringify(options)}`);
         /**

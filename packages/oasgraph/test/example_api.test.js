@@ -630,19 +630,19 @@ test('Define header and query options', () => {
     status2 (globalquery: "test")
   }`
   return OasGraph.createGraphQlSchema(oas, options)
-    .then(({schema}) => {
-      // validate that 'limit' parameter is covered by options:
-      let ast = parse(query)
-      let errors = validate(schema, ast)
-      expect(errors).toEqual([])
-      return graphql(schema, query).then(result => {
-        expect(result).toEqual({
-          data: {
-            status2: 'Ok.'
-          }
-        })
+  .then(({schema}) => {
+    // validate that 'limit' parameter is covered by options:
+    let ast = parse(query)
+    let errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(result).toEqual({
+        data: {
+          status2: 'Ok.'
+        }
       })
     })
+  })
 })
 
 test('Resolve allOf', () => {
@@ -693,6 +693,45 @@ test('Error contains extension', () => {
       "responseBody": {
         "message": "Wrong username."
       }
+    })
+  })
+})
+
+test('Option provideErrorExtensions should prevent error extensions from being created', () => {
+  let options = {
+    provideErrorExtensions: false 
+  }
+  let query = `query {
+    user(username: "abcdef") {
+      name
+    }
+  }`
+  return OasGraph.createGraphQlSchema(oas, options)
+  .then(({schema}) => {
+    // validate that 'limit' parameter is covered by options:
+    let ast = parse(query)
+    let errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(result).toEqual({
+        "errors": [
+          {
+            "message": "Could not invoke operation GET /users/{username}",
+            "locations": [
+              {
+                "line": 2,
+                "column": 5
+              }
+            ],
+            "path": [
+              "user"
+            ]
+          }
+        ],
+        "data": {
+          "user": null
+        }
+      })
     })
   })
 })

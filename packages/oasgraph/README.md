@@ -157,6 +157,8 @@ The options object can contain the following properties:
 
 * `requestOptions` (type: `object`, default: `{}`): Additional [options](https://github.com/request/request#requestoptions-callback), provided by the  [`Request` module](https://github.com/request/request), that can be used to configure the HTTP calls that powers the generated GraphQL resolvers. A common use case is to use this to up set a web proxy with the `proxy` field.
 
+* `provideErrorExtensions` (type: `boolean`, default: `true`): If a query cannot fulfilled, GraphQL will provide a [list of error objects](https://graphql.github.io/graphql-spec/draft/#sec-Errors) for all fields that could not be resolved. OASGraph will add an extensions to all error objects resulting from REST calls that did not return successful HTTP codes (i.e. 200-299). These extensions contain data about the REST call (e.g. the method, path, status code, response headers, and response body). This data can be useful for debugging but it can also _unintentionally leak information_. This option prevents the error extensions from being created. 
+
 Consider this example of passing options:
 
 ```javascript
