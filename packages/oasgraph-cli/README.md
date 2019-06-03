@@ -32,6 +32,7 @@ Options:
   -o, --operationIdFieldNames  create field names based on the operationId
   --cors                       enable Cross-origin resource sharing (CORS)
   --no-viewer                  do not create GraphQL viewer objects for passing authentication credentials
+  --no-extensions              do not add extentions, containing information about failed REST calls, to the GraphQL errors objects
   --save <file path>           save schema to path and do not start server
   -h, --help                   output usage information
 ```

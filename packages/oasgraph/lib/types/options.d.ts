@@ -80,13 +80,13 @@ export declare type Options = {
      */
     requestOptions?: NodeRequest.OptionsWithUrl;
     /**
-     * The error extension is part of the GraphQLErrors that will be returned if
-     * the query cannot be fulfilled. It provides information about the REST call
-     * that could be fulfilled (e.g. the method, path, status code, response
+     * The error extensions is part of the GraphQLErrors that will be returned if
+     * the query cannot be fulfilled. It provides information about the failed
+     * REST call(e.g. the method, path, status code, response
      * headers, and response body). It can be useful for debugging but may
      * unintentionally leak information.
      *
-     * This option prevents the extension from being created.
+     * This option prevents the extensions from being created.
      */
     provideErrorExtensions?: boolean;
 };
@@ -159,13 +159,13 @@ export declare type InternalOptions = {
      */
     requestOptions?: NodeRequest.OptionsWithUrl;
     /**
-     * The error extension is part of the GraphQLErrors that will be returned if
-     * the query cannot be fulfilled. It provides information about the REST call
-     * that could be fulfilled (e.g. the method, path, status code, response
+     * The error extensions is part of the GraphQLErrors that will be returned if
+     * the query cannot be fulfilled. It provides information about the failed
+     * REST call(e.g. the method, path, status code, response
      * headers, and response body). It can be useful for debugging but may
      * unintentionally leak information.
      *
-     * This option prevents the extension from being created.
+     * This option prevents the extensions from being created.
      */
     provideErrorExtensions: boolean;
 };

@@ -96,8 +96,8 @@ export type Options = {
 
   /**
    * The error extensions is part of the GraphQLErrors that will be returned if
-   * the query cannot be fulfilled. It provides information about the REST call
-   * that could be fulfilled (e.g. the method, path, status code, response 
+   * the query cannot be fulfilled. It provides information about the failed 
+   * REST call(e.g. the method, path, status code, response 
    * headers, and response body). It can be useful for debugging but may 
    * unintentionally leak information.
    * 
@@ -184,8 +184,8 @@ export type InternalOptions = {
 
   /**
    * The error extensions is part of the GraphQLErrors that will be returned if
-   * the query cannot be fulfilled. It provides information about the REST call
-   * that could be fulfilled (e.g. the method, path, status code, response 
+   * the query cannot be fulfilled. It provides information about the failed 
+   * REST call(e.g. the method, path, status code, response 
    * headers, and response body). It can be useful for debugging but may 
    * unintentionally leak information.
    * 

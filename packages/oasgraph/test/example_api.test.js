@@ -689,7 +689,7 @@ test('Error contains extension', () => {
     expect(extensions).toEqual({
       "method": "get",
       "path": "/users/{username}",
-      "statusCode": 401,
+      "statusCode": 404,
       "responseBody": {
         "message": "Wrong username."
       }

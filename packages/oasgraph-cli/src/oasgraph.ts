@@ -25,6 +25,7 @@ program
   .option('-o, --operationIdFieldNames', 'create field names based on the operationId')
   .option('--cors', 'enable Cross-origin resource sharing (CORS)')
   .option('--no-viewer', 'do not create GraphQL viewer objects for passing authentication credentials')
+  .option('--no-extensions', 'do not add extentions, containing information about failed REST calls, to the GraphQL errors objects')
   .option('--save <file path>', 'save schema to path and do not start server')
   .parse(process.argv)
 
@@ -136,7 +137,8 @@ function startGraphQLServer(oas, port) {
     viewer: program.viewer,
     fillEmptyResponses: program.fillEmptyResponses,
     baseUrl: program.url,
-    operationIdFieldNames: program.operationIdFieldNames
+    operationIdFieldNames: program.operationIdFieldNames,
+    provideErrorExtensions: program.extensions
   })
      .then(({schema, report}) => {
       console.log(JSON.stringify(report, null, 2))

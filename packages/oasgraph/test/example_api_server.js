@@ -281,7 +281,7 @@ function startServer (PORT) {
     if (req.params.username in Users) {
       res.send(Users[req.params.username])
     } else {
-      res.status(401).send({
+      res.status(404).send({
         message: 'Wrong username.'
       })
     }
@@ -291,7 +291,7 @@ function startServer (PORT) {
     console.log(req.method, req.path)
     if (typeof req.params.username !== 'string' ||
       req.params.username === 'undefined') {
-      res.status(401).send({
+      res.status(404).send({
         message: 'Wrong username.'
       })
     } else {
