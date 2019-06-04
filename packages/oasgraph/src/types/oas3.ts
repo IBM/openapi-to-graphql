@@ -98,7 +98,7 @@ export type MediaTypesObject = {
 export type ServerObject = {
   url: string,
   description?: string,
-  variables?: Object // TODO: extend
+  variables?: object // TODO: extend
 }
 
 export type RequestBodyObject = {
@@ -220,7 +220,7 @@ type ComponentsObject = {
   securitySchemes?: SecuritySchemesObject,
   links?: LinksObject,
   callbacks?: {
-    [key: string]: Object | ReferenceObject
+    [key: string]: object | ReferenceObject
   }
 }
 

@@ -59,7 +59,7 @@ type Result = {
   report: Report
 }
 
-const log = debug('translation')
+const translationLog = debug('translation')
 
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
@@ -144,7 +144,8 @@ async function translateOpenApiToGraphQL (
     operationIdFieldNames,
     report,
     requestOptions,
-    provideErrorExtensions
+    provideErrorExtensions,
+    customResolvers
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema, report: Report }> {
   let options = {
@@ -159,9 +160,10 @@ async function translateOpenApiToGraphQL (
     operationIdFieldNames,
     report,
     requestOptions,
-    provideErrorExtensions
+    provideErrorExtensions,
+    customResolvers
   }
-  log(`Options: ${JSON.stringify(options)}`)
+  translationLog(`Options: ${JSON.stringify(options)}`)
 
   /**
    * Extract information from the OASs and put it inside a data structure that
@@ -186,7 +188,7 @@ async function translateOpenApiToGraphQL (
      */
     .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
     .forEach(([operationId, operation]) => {
-      log(`Process operation "${operationId}"...`)
+      translationLog(`Process operation "${operationId}"...`)
       let field = getFieldForOperation(operation, options.baseUrl, data, oass, requestOptions)
       if (!operation.isMutation) {
         let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName)
@@ -206,7 +208,7 @@ async function translateOpenApiToGraphQL (
                 typeKey: 'DUPLICATE_FIELD_NAME',
                 culprit: fieldName,
                 data,
-                log
+                log: translationLog
               })
             }
 
@@ -224,7 +226,7 @@ async function translateOpenApiToGraphQL (
               typeKey: 'DUPLICATE_FIELD_NAME',
               culprit: fieldName,
               data,
-              log
+              log: translationLog
             })
           }
 
@@ -245,7 +247,7 @@ async function translateOpenApiToGraphQL (
                 typeKey: 'DUPLICATE_FIELD_NAME',
                 culprit: saneFieldName,
                 data,
-                log
+                log: translationLog
               })
             }
 
@@ -257,7 +259,7 @@ async function translateOpenApiToGraphQL (
               typeKey: 'DUPLICATE_FIELD_NAME',
               culprit: saneFieldName,
               data,
-              log
+              log: translationLog
             })
           }
 
@@ -372,9 +374,7 @@ function getFieldForOperation (
   let payloadSchemaName = operation.payloadDefinition
     ? operation.payloadDefinition.iotName
     : null
-  let payloadSchema = operation.payloadDefinition
-    ? operation.payloadDefinition.schema
-    : null
+
   let resolve = getResolver({
     operation,
     payloadName: payloadSchemaName,

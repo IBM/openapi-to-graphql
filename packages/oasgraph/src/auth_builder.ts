@@ -37,7 +37,7 @@ type Viewer = {
   description: string
 }
 
-const log = debug('translation')
+const translationLog = debug('translation')
 
 /**
  * Load the field object in the appropriate root object
@@ -46,7 +46,7 @@ const log = debug('translation')
  * rootQueryFields/rootMutationFields for further processing
  */
 export function createAndLoadViewer (
-    queryFields: Object,
+    queryFields: object,
     data: PreprocessingData,
     isMutation: boolean = false,
     oass: Oas3[]
@@ -92,7 +92,7 @@ export function createAndLoadViewer (
             typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
             culprit: String(scheme),
             data,
-            log
+            log: translationLog
           })
       }
     }

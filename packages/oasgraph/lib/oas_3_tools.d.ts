@@ -50,7 +50,7 @@ export declare function countOperationsWithPayload(oas: Oas3): number;
 /**
  * Resolves the given reference in the given object.
  */
-export declare function resolveRef(ref: string, obj: Object, parts?: string[]): any;
+export declare function resolveRef(ref: string, obj: object, parts?: string[]): any;
 /**
  * Returns the base URL to use for the given operation.
  */
@@ -59,17 +59,17 @@ export declare function getBaseUrl(operation: Operation): string;
  * Returns object | array where all object keys are sanitized. Keys passed in
  * exceptions are not sanitized.
  */
-export declare function sanitizeObjKeys(obj: Object | Array<any>, exceptions?: string[]): Object | Array<any>;
+export declare function sanitizeObjKeys(obj: object | Array<any>, exceptions?: string[]): object | Array<any>;
 /**
  * Desanitizes keys in given object by replacing them with the keys stored in
  * the given mapping.
  */
-export declare function desanitizeObjKeys(obj: Object | Array<any>, mapping?: Object): Object | Array<any>;
+export declare function desanitizeObjKeys(obj: object | Array<any>, mapping?: object): object | Array<any>;
 /**
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: Object): {
+export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object): {
     path: string;
     query: {
         [key: string]: string;

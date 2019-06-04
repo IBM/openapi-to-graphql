@@ -83,7 +83,7 @@ export declare type MediaTypesObject = {
 export declare type ServerObject = {
     url: string;
     description?: string;
-    variables?: Object;
+    variables?: object;
 };
 export declare type RequestBodyObject = {
     description?: string;
@@ -191,7 +191,7 @@ declare type ComponentsObject = {
     securitySchemes?: SecuritySchemesObject;
     links?: LinksObject;
     callbacks?: {
-        [key: string]: Object | ReferenceObject;
+        [key: string]: object | ReferenceObject;
     };
 };
 declare type TagObject = {

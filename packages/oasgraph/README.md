@@ -155,9 +155,11 @@ The options object can contain the following properties:
 
 * `operationIdFieldNames` (type: `boolean`, default: `false`): By default, query field names are based on the return type type name and mutation field names are based on the [`operationId`](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#operation-object), which may be generated if it does not exist. This option forces OASGraph to only create field names based on the operationId.
 
-* `requestOptions` (type: `object`, default: `{}`): Additional [options](https://github.com/request/request#requestoptions-callback), provided by the  [`Request` module](https://github.com/request/request), that can be used to configure the HTTP calls that powers the generated GraphQL resolvers. A common use case is to use this to up set a web proxy with the `proxy` field.
+* `requestOptions` (type: `object`, default: `{}`): Additional [options](https://github.com/request/request#requestoptions-callback), provided by the [`Request` module](https://github.com/request/request), that can be used to configure the HTTP calls that powers the generated GraphQL resolvers. A common use case for this option is to set up a web proxy with the `proxy` field.
 
-* `provideErrorExtensions` (type: `boolean`, default: `true`): If a query cannot fulfilled, GraphQL will provide a [list of error objects](https://graphql.github.io/graphql-spec/draft/#sec-Errors) for all fields that could not be resolved. OASGraph will add an extensions to all error objects resulting from REST calls that did not return successful HTTP codes (i.e. 200-299). These extensions contain data about the REST call (e.g. the method, path, status code, response headers, and response body). This data can be useful for debugging but it can also _unintentionally leak information_. This option prevents the error extensions from being created. 
+* `provideErrorExtensions` (type: `boolean`, default: `true`): If a query cannot be fulfilled, GraphQL provides a [list of error objects](https://graphql.github.io/graphql-spec/draft/#sec-Errors) for all fields that could not be resolved. OASGraph will add an `extensions` object to all error objects resulting from REST calls that did not return successful HTTP codes (i.e. 200-299). Each `extensions` object contain data about the REST call (e.g. the method, path, status code, response headers, and response body). This data can be useful for debugging but it can also _unintentionally leak information_. If set to `false`, this option prevents the `extensions` objects from being created. 
+
+* `customResolvers` (type: `object`, default: `{}`): OASGraph, per default, creates resolver functions that make REST calls to resolve fields in the generated GraphQL interface. This option allows users to provide custom resolver functions to be used in place of said ones created by OASGraph. The field that the custom resolver will affect is identifed first by the [title](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#infoObject) of the OAS, then the [path](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#paths-object) of the operation, and lastly the [method](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#path-item-object) of the operation. The `customResolvers` object is thus a triply nested object where the outer key is the title, followed by the path, and finally the method, which points to the [resolver function](https://graphql.org/learn/execution/#root-fields-resolvers) itself. The resolver function can use the parameters `obj`, `args`, `context`, and `info` in order to produce the proper data, as do standard [resolver functions](https://graphql.org/learn/execution/#root-fields-resolvers) in GraphQL. Use cases include the resolution of complex relationships between types, implementing performance improvements like caching, or dealing with non-standard authentication requirements. _Note: Because the arguments are provided by the GraphQL interface, they may look different from the [parameters](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject) defined by the OAS. For example, they will have [sanitized](https://github.com/Alan-Cha/oasgraph#characteristics) names. The [request body](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#requestBodyObject) will also be contained in the arguments as an [input object type](https://graphql.org/graphql-js/mutations-and-input-types/)._
 
 Consider this example of passing options:
 
@@ -173,6 +175,20 @@ OASGraph.createGraphQLSchema(oas, {
   addSubOperations: false,
   requestOptions: {
     proxy: "http://my-proxy:3128"
+  }, 
+  customResolvers: {
+  'I <3 Books API': {
+    '/favoriteBooks/{name}': {
+      'get': (obj, args, context, info) => {
+        return {
+          books: [
+            'A Guide to OASGraph',
+            'Why OASGraph is Amazing',
+            'Long Live OASGraph!'
+          ]
+        }
+      }
+    }
   }
 })
 ```

@@ -708,7 +708,6 @@ test('Option provideErrorExtensions should prevent error extensions from being c
   }`
   return OasGraph.createGraphQlSchema(oas, options)
   .then(({schema}) => {
-    // validate that 'limit' parameter is covered by options:
     let ast = parse(query)
     let errors = validate(schema, ast)
     expect(errors).toEqual([])
@@ -730,6 +729,169 @@ test('Option provideErrorExtensions should prevent error extensions from being c
         ],
         "data": {
           "user": null
+        }
+      })
+    })
+  })
+})
+
+test('Option customResolver', () => {
+  let options = {
+    customResolvers: {
+      'Example API': {
+        '/users/{username}': {
+          'get': () => {
+            return {
+              name: 'Jenifer Aldric'
+            }
+          }
+        }
+      }
+    }
+  }
+  let query = `query {
+    user(username: "abcdef") {
+      name
+    }
+  }`
+  return OasGraph.createGraphQlSchema(oas, options)
+  .then(({schema}) => {
+    let ast = parse(query)
+    let errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(result).toEqual({
+        "data": {
+          "user": {
+            "name": "Jenifer Aldric"
+          }
+        }
+      })
+    })
+  })
+})
+
+test('Option customResolver with links', () => {
+  let options = {
+    customResolvers: {
+      'Example API': {
+        '/users/{username}': {
+          'get': () => {
+            return {
+              name: 'Jenifer Aldric',
+              employerId: 'binsol'
+            }
+          }
+        }
+      }
+    }
+  }
+  let query = `query {
+    user(username: "abcdef") {
+      name
+      employerId
+      employerCompany {
+        name
+        ceoUsername 
+        ceoUser {
+          name
+        }
+      }
+    }
+  }`
+  return OasGraph.createGraphQlSchema(oas, options)
+  .then(({schema}) => {
+    let ast = parse(query)
+    let errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(result).toEqual({
+        "data": {
+          "user": {
+            "name": "Jenifer Aldric",
+            "employerId": "binsol",
+            "employerCompany": {
+              "name": "Binary Solutions",
+              "ceoUsername": "johnny",
+              "ceoUser": {
+                "name": "Jenifer Aldric"
+              }
+            }
+          }
+        }
+      })
+    })
+  })
+})
+
+test('Option customResolver using resolver arguments', () => {
+  let options = {
+    customResolvers: {
+      'Example API': {
+        '/users/{username}': {
+          'get': (obj, args, context, info) => {
+            return {
+              name: args.username
+            }
+          }
+        }
+      }
+    }
+  }
+  let query = `query {
+    user(username: "abcdef") {
+      name
+    }
+  }`
+  return OasGraph.createGraphQlSchema(oas, options)
+  .then(({schema}) => {
+    let ast = parse(query)
+    let errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(result).toEqual({
+        "data": {
+          "user": {
+            "name": "abcdef"
+          }
+        }
+      })
+    })
+  })
+})
+
+test('Option customResolver using resolver arguments that are sanitized', () => {
+  let options = {
+    customResolvers: {
+      'Example API': {
+        '/products/{product-id}': {
+          'get': (obj, args, context, info) => {
+            console.log(args)
+            return {
+              // Note that the argument name is sanitized
+              productName: 'abcdef'
+            }
+          }
+        }
+      }
+    }
+  }
+  let query = `{
+    productWithId (productId: "123" productTag: "blah") {
+      productName
+    }
+  }`
+  return OasGraph.createGraphQlSchema(oas, options)
+  .then(({schema}) => {
+    let ast = parse(query)
+    let errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(result).toEqual({
+        data: {
+          'productWithId': {
+            'productName': 'abcdef'
+          }
         }
       })
     })

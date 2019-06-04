@@ -11,7 +11,7 @@ const Oas3Tools = require("./oas_3_tools");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const preprocessor_1 = require("./preprocessor");
-const log = debug_1.default('translation');
+const translationLog = debug_1.default('translation');
 /**
  * Load the field object in the appropriate root object
  *
@@ -55,7 +55,7 @@ function createAndLoadViewer(queryFields, data, isMutation = false, oass) {
                         typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
                         culprit: String(scheme),
                         data,
-                        log
+                        log: translationLog
                     });
             }
         }

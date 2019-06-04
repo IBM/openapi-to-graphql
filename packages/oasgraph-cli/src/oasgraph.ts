@@ -84,8 +84,8 @@ Promise.all(filePaths.map(filePath => {
 /**
 * Returns content of read JSON/YAML file.
 *
-* @param  {String} path Path to file to read
-* @return {Object}      Content of read file
+* @param  {string} path Path to file to read
+* @return {object}      Content of read file
 */
 function readFile (path) {
   try {
@@ -127,7 +127,7 @@ function readFile (path) {
 
 /**
  * generates a GraphQL schema and starts the GraphQL server on the specified port
- * @param {Object} oas the OAS specification file
+ * @param {object} oas the OAS specification file
  * @param {number} port the port number to listen on on this server
  */
 function startGraphQLServer(oas, port) {

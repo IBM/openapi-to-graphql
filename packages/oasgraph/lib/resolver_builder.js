@@ -11,7 +11,8 @@ const querystring = require("querystring");
 const JSONPath = require("jsonpath-plus");
 const debug_1 = require("debug");
 const graphql_1 = require("graphql");
-const log = debug_1.debug('http');
+const translationLog = debug_1.debug('translation');
+const httpLog = debug_1.debug('http');
 /**
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
@@ -20,6 +21,18 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
     // determine the appropriate URL:
     if (typeof baseUrl === 'undefined') {
         baseUrl = Oas3Tools.getBaseUrl(operation);
+    }
+    // return custom resolver if it is defined
+    const customResolvers = data.options.customResolvers;
+    const title = operation.oas.info.title;
+    const path = operation.path;
+    const method = operation.method;
+    if (typeof customResolvers === 'object' &&
+        typeof customResolvers[title] === 'object' &&
+        typeof customResolvers[title][path] === 'object' &&
+        typeof customResolvers[title][path][method] === 'function') {
+        translationLog(`Use custom resolver for ${title} ${method.toLocaleUpperCase()} ${path}`);
+        return customResolvers[title][path][method];
     }
     // return resolve function:
     return (root, args, ctx, info = {}) => {
@@ -200,16 +213,16 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
         resolveData.usedRequestOptions = options;
         resolveData.usedStatusCode = operation.statusCode;
         // make the call
-        log(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}` +
+        httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}` +
             `headers:${JSON.stringify(options.headers)}`);
         return new Promise((resolve, reject) => {
             NodeRequest(options, (err, response, body) => {
                 if (err) {
-                    log(err);
+                    httpLog(err);
                     reject(err);
                 }
                 else if (response.statusCode > 299) {
-                    log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
+                    httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
                     const operationString = `${operation.method.toUpperCase()} ${operation.path}`;
                     const errorString = `Could not invoke operation ${operationString}`;
                     if (data.options.provideErrorExtensions) {
@@ -227,7 +240,7 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
                     }
                 }
                 else {
-                    log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
+                    httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
                     if (response.headers['content-type']) {
                         // if the response body is type JSON, then parse it
                         //
@@ -238,7 +251,7 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
                         }
                     }
                     else {
-                        log('Warning: response does not have a Content-Type property');
+                        httpLog('Warning: response does not have a Content-Type property');
                     }
                     resolveData.responseHeaders = response.headers;
                     // deal with the fact that the server might send unsanitized data
@@ -300,7 +313,7 @@ function extractToken(data, ctx) {
         };
     }
     else {
-        log(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`);
+        httpLog(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`);
         return {};
     }
 }
@@ -323,7 +336,7 @@ function createOAuthHeader(data, ctx) {
         };
     }
     else {
-        log(`Warning: could not extract OAuth token from context at ` +
+        httpLog(`Warning: could not extract OAuth token from context at ` +
             `'${tokenJSONpath}'`);
         return {};
     }
@@ -447,7 +460,7 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
                 return tokens[0];
             }
             else {
-                log(`Warning: could not extract parameter ${paramName} from link`);
+                httpLog(`Warning: could not extract parameter ${paramName} from link`);
             }
             // CASE: parameter in previous query parameter
         }
@@ -484,7 +497,7 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
                 return tokens[0];
             }
             else {
-                log(`Warning: could not extract parameter ${paramName} from link`);
+                httpLog(`Warning: could not extract parameter ${paramName} from link`);
             }
             // CASE: parameter in query parameter
         }

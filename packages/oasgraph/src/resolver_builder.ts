@@ -21,9 +21,10 @@ import * as JSONPath from 'jsonpath-plus'
 import { debug } from 'debug'
 import { GraphQLError } from 'graphql'
 
-const log = debug('http')
-// Type definitions & exports:
+const translationLog = debug('translation')
+const httpLog = debug('http')
 
+// Type definitions & exports:
 type AuthReqAndProtcolName = {
   authRequired: boolean,
   beautifiedSecurityRequirement?: string
@@ -60,6 +61,22 @@ export function getResolver({
   // determine the appropriate URL:
   if (typeof baseUrl === 'undefined') {
     baseUrl = Oas3Tools.getBaseUrl(operation)
+  }
+
+  // return custom resolver if it is defined
+  const customResolvers = data.options.customResolvers
+  const title = operation.oas.info.title
+  const path = operation.path
+  const method = operation.method
+
+  if (typeof customResolvers === 'object' &&
+    typeof customResolvers[title] === 'object' &&
+    typeof customResolvers[title][path] === 'object' &&
+    typeof customResolvers[title][path][method] === 'function') {
+      
+    translationLog(`Use custom resolver for ${title} ${method.toLocaleUpperCase()} ${path}`)
+
+    return customResolvers[title][path][method]
   }
 
   // return resolve function:
@@ -259,15 +276,15 @@ export function getResolver({
     resolveData.usedStatusCode = operation.statusCode
 
     // make the call
-    log(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}` +
+    httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}` +
     `headers:${JSON.stringify(options.headers)}`)
     return new Promise((resolve, reject) => {
       NodeRequest(options, (err, response, body) => {
         if (err) {
-          log(err)
+          httpLog(err)
           reject(err)
         } else if (response.statusCode > 299) {
-          log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
+          httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
           const operationString = `${operation.method.toUpperCase()} ${operation.path}`
           const errorString = `Could not invoke operation ${operationString}`
@@ -286,7 +303,7 @@ export function getResolver({
           }
 
         } else {
-          log(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
+          httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
           if (response.headers['content-type']) {
             // if the response body is type JSON, then parse it
@@ -297,7 +314,7 @@ export function getResolver({
               body = JSON.parse(body)
             }
           } else {
-            log('Warning: response does not have a Content-Type property')
+            httpLog('Warning: response does not have a Content-Type property')
           }
 
           resolveData.responseHeaders = response.headers
@@ -353,11 +370,11 @@ export function getResolver({
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
-function createOAuthQS ( data: PreprocessingData, ctx: Object ): { [key: string]: string } {
+function createOAuthQS ( data: PreprocessingData, ctx: object ): { [key: string]: string } {
   return (typeof data.options.tokenJSONpath !== 'string') ? {} : extractToken(data, ctx)
 }
 
-function extractToken(data: PreprocessingData, ctx: Object) {
+function extractToken(data: PreprocessingData, ctx: object) {
   let tokenJSONpath = data.options.tokenJSONpath
   let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
   if (Array.isArray(tokens) && tokens.length > 0) {
@@ -366,7 +383,7 @@ function extractToken(data: PreprocessingData, ctx: Object) {
       access_token: token
     }
   } else {
-    log(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`)
+    httpLog(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`)
     return {}
   }
 }
@@ -377,7 +394,7 @@ function extractToken(data: PreprocessingData, ctx: Object) {
  */
 function createOAuthHeader (
   data: PreprocessingData,
-  ctx: Object
+  ctx: object
 ): { [key: string]: string } {
   if (typeof data.options.tokenJSONpath !== 'string') {
     return {}
@@ -393,7 +410,7 @@ function createOAuthHeader (
       'User-Agent': 'oasgraph'
     }
   } else {
-    log(`Warning: could not extract OAuth token from context at ` +
+    httpLog(`Warning: could not extract OAuth token from context at ` +
       `'${tokenJSONpath}'`)
     return {}
   }
@@ -533,7 +550,7 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
-        log(`Warning: could not extract parameter ${paramName} from link`)
+        httpLog(`Warning: could not extract parameter ${paramName} from link`)
       }
 
       // CASE: parameter in previous query parameter
@@ -569,7 +586,7 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
-        log(`Warning: could not extract parameter ${paramName} from link`)
+        httpLog(`Warning: could not extract parameter ${paramName} from link`)
       }
 
       // CASE: parameter in query parameter

@@ -17,9 +17,9 @@ const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const logHttp = debug_1.default('http');
-const logPre = debug_1.default('preprocessing');
-const log = debug_1.default('translation');
+const httpLog = debug_1.default('http');
+const preprocessingLog = debug_1.default('preprocessing');
+const translationLog = debug_1.default('translation');
 // OAS constants
 exports.OAS_OPERATIONS = ['get', 'put', 'post', 'patch', 'delete', 'options', 'head'];
 exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
@@ -32,19 +32,19 @@ function getValidOAS3(spec) {
         // CASE: translate
         if (typeof spec.swagger === 'string'
             && spec.swagger === '2.0') {
-            logPre(`Received OpenAPI Specification 2.0 - going to translate...`);
+            preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`);
             let result = yield Swagger2OpenAPI.convertObj(spec, {});
             return result.openapi;
             // CASE: validate
         }
         else if (typeof spec.openapi === 'string'
             && /^3/.test(spec.openapi)) {
-            logPre(`Received OpenAPI Specification 3.0.x - going to validate...`);
+            preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`);
             let valid = OASValidator.validateSync(spec, {});
             if (!valid) {
                 throw new Error(`Validation of OpenAPI Specification failed.`);
             }
-            logPre(`OpenAPI Specification is validated`);
+            preprocessingLog(`OpenAPI Specification is validated`);
             return spec;
         }
         else {
@@ -149,7 +149,7 @@ function getBaseUrl(operation) {
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
         let url = buildUrl(operation.servers[0]);
         if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-            logHttp(`Warning: Randomly selected first server ${url}`);
+            httpLog(`Warning: Randomly selected first server ${url}`);
         }
         return url.replace(/\/$/, '');
     }
@@ -157,7 +157,7 @@ function getBaseUrl(operation) {
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
         let url = buildUrl(oas.servers[0]);
         if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-            logHttp(`Warning: Randomly selected first server ${url}`);
+            httpLog(`Warning: Randomly selected first server ${url}`);
         }
         return url.replace(/\/$/, '');
     }
@@ -279,12 +279,12 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
                         headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `;
                         break;
                     default:
-                        logHttp(`Warning: The parameter location "${param.in}" in the ` +
+                        httpLog(`Warning: The parameter location "${param.in}" in the ` +
                             `parameter "${param.name}" of operation "${path}" is not supported`);
                 }
             }
             else {
-                logHttp(`Warning: The parameter "${param.name}" of operation "${path}" ` +
+                httpLog(`Warning: The parameter "${param.name}" of operation "${path}" ` +
                     `could not be found`);
             }
         }
@@ -570,7 +570,7 @@ function getResponseStatusCode(path, method, oas, data) {
                 culprit: `${method.toUpperCase()} ${path}`,
                 solution: `${successCodes[0]}`,
                 data,
-                log
+                log: translationLog
             });
             return successCodes[0];
         }
@@ -623,7 +623,7 @@ exports.getEndpointLinks = getEndpointLinks;
 function getParameters(path, method, oas) {
     let parameters = [];
     if (!isOperation(method)) {
-        log(`Warning: attempted to get parameters for ${method} ${path}, ` +
+        translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
             `which is not an operation.`);
         return parameters;
     }
@@ -809,7 +809,7 @@ function beautifyAndStore(str, mapping) {
     }
     else if (clean !== str) {
         if (clean in mapping && str !== mapping[clean]) {
-            log(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
+            translationLog(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
                 `to ${clean} - collusion possible. Desanitize to ${str}.`);
         }
         mapping[clean] = str;

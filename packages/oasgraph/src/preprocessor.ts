@@ -22,7 +22,7 @@ import { handleWarning, getCommonPropertyNames } from './utils'
 import { getGraphQLType } from './schema_builder'
 import * as mergeAllOf from 'json-schema-merge-allof'
 
-const log = debug('preprocessing')
+const preprocessingLog = debug('preprocessing')
 
 /**
  * Extract information from the OAS and put it inside a data structure that
@@ -60,7 +60,7 @@ export function preprocessOas (
         culprit: propertyName,
         solution: currentSecurity[propertyName].oas.info.title,
         data,
-        log
+        log: preprocessingLog
       })
     })
 
@@ -117,7 +117,7 @@ export function preprocessOas (
             typeKey: 'MISSING_RESPONSE_SCHEMA',
             culprit: `${oas.info.title} ${method.toUpperCase()} ${path}`,
             data,
-            log
+            log: preprocessingLog
           })
           continue
         }
@@ -182,7 +182,7 @@ export function preprocessOas (
             culprit: operationId,
             solution: operation.oas.info.title,
             data,
-            log
+            log: preprocessingLog
           })
         }
 
@@ -200,14 +200,14 @@ export function preprocessOas (
  *
  * Here is the structure of the data:
  * {
- *   {String} [beautified name] { Contains information about the security protocol
- *     {String} rawName           Stores the raw security protocol name
- *     {Object} def               Definition provided by OAS
- *     {Object} parameters        Stores the names of the authentication credentials
+ *   {string} [beautified name] { Contains information about the security protocol
+ *     {string} rawName           Stores the raw security protocol name
+ *     {object} def               Definition provided by OAS
+ *     {object} parameters        Stores the names of the authentication credentials
  *                                  NOTE: Structure will depend on the type of the protocol
  *                                    (e.g. basic authentication, API key, etc.)
  *                                  NOTE: Mainly used for the AnyAuth viewers
- *     {Object} schema            Stores the GraphQL schema to create the viewers
+ *     {object} schema            Stores the GraphQL schema to create the viewers
  *   }
  * }
  *
@@ -309,7 +309,7 @@ function getProcessedSecuritySchemes (
               typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
               culprit: `${String(protocol.scheme)}`,
               data,
-              log
+              log: preprocessingLog
             })
         }
         break
@@ -323,7 +323,7 @@ function getProcessedSecuritySchemes (
           typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
           culprit: `${String(protocol.scheme)}`,
           data,
-          log
+          log: preprocessingLog
         })
     }
 
@@ -389,7 +389,7 @@ export function createDataDef (
               typeKey: 'DUPLICATE_LINK_KEY',
               culprit: linkKey,
               data,
-              log
+              log: preprocessingLog
             })
           }
         })
@@ -424,7 +424,7 @@ export function createDataDef (
         typeKey: 'INVALID_SCHEMA_TYPE',
         culprit: JSON.stringify(schema),
         data,
-        log
+        log: preprocessingLog
       })
     }
 
@@ -457,7 +457,7 @@ export function createDataDef (
             typeKey: 'UNRESOLVABLE_REFERENCE',
             culprit: undefined,
             data,
-            log
+            log: preprocessingLog
           })
         }
       }
@@ -483,7 +483,7 @@ export function createDataDef (
               typeKey: 'UNRESOLVABLE_REFERENCE',
               culprit: undefined,
               data,
-              log
+              log: preprocessingLog
             })
           }
         }

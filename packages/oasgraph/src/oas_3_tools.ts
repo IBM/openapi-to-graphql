@@ -61,10 +61,10 @@ export type ResponseSchemaAndNames = {
   statusCode?: string
 }
 
-const logHttp = debug('http')
-const logPre = debug('preprocessing')
+const httpLog = debug('http')
+const preprocessingLog = debug('preprocessing')
 
-const log = debug('translation')
+const translationLog = debug('translation')
 
 // OAS constants
 export const OAS_OPERATIONS = ['get', 'put', 'post', 'patch', 'delete', 'options', 'head']
@@ -78,18 +78,18 @@ export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
   // CASE: translate
   if (typeof (spec as Oas2).swagger === 'string'
     && (spec as Oas2).swagger === '2.0') {
-    logPre(`Received OpenAPI Specification 2.0 - going to translate...`)
+    preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`)
     let result: { openapi: Oas3 } = await Swagger2OpenAPI.convertObj(spec, {})
     return (result.openapi as Oas3)
     // CASE: validate
   } else if (typeof (spec as Oas3).openapi === 'string'
     && /^3/.test((spec as Oas3).openapi)) {
-    logPre(`Received OpenAPI Specification 3.0.x - going to validate...`)
+    preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`)
     let valid = OASValidator.validateSync(spec, {})
     if (!valid) {
       throw new Error(`Validation of OpenAPI Specification failed.`)
     }
-    logPre(`OpenAPI Specification is validated`)
+    preprocessingLog(`OpenAPI Specification is validated`)
     return (spec as Oas3)
   } else {
     throw new Error(`Invalid specification provided`)
@@ -162,7 +162,7 @@ export function countOperationsWithPayload (oas: Oas3): number {
  */
 export function resolveRef (
   ref: string,
-  obj: Object,
+  obj: object,
   parts?: string[]
 ): any {
   if (typeof parts === 'undefined') {
@@ -201,7 +201,7 @@ export function getBaseUrl (
     let url = buildUrl(operation.servers[0])
 
     if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-      logHttp(`Warning: Randomly selected first server ${url}`)
+      httpLog(`Warning: Randomly selected first server ${url}`)
     }
 
     return url.replace(/\/$/, '')
@@ -213,7 +213,7 @@ export function getBaseUrl (
     let url = buildUrl(oas.servers[0])
 
     if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-      logHttp(`Warning: Randomly selected first server ${url}`)
+      httpLog(`Warning: Randomly selected first server ${url}`)
     }
 
     return url.replace(/\/$/, '')
@@ -245,16 +245,16 @@ function buildUrl (server: ServerObject): string {
  * exceptions are not sanitized.
  */
 export function sanitizeObjKeys (
-  obj: Object | Array<any>,
+  obj: object | Array<any>,
   exceptions: string[] = []
-): Object | Array<any> {
-  const cleanKeys = (obj: Object | Array<any>): Object | Array<any> => {
+): object | Array<any> {
+  const cleanKeys = (obj: object | Array<any>): object | Array<any> => {
     if (obj === null || typeof obj === 'undefined') {
       return null
     } else if (Array.isArray(obj)) {
       return obj.map(cleanKeys)
     } else if (typeof obj === 'object') {
-      let res: Object = {}
+      let res: object = {}
       for (let key in obj) {
         if (!exceptions.includes(key)) {
           let saneKey = beautify(key)
@@ -278,9 +278,9 @@ export function sanitizeObjKeys (
  * the given mapping.
  */
 export function desanitizeObjKeys (
-  obj: Object | Array<any>,
-  mapping: Object = {}
-): Object | Array<any> {
+  obj: object | Array<any>,
+  mapping: object = {}
+): object | Array<any> {
   const replaceKeys = (obj) => {
     if (Array.isArray(obj)) {
       return obj.map(replaceKeys)
@@ -311,7 +311,7 @@ export function desanitizeObjKeys (
 export function instantiatePathAndGetQuery (
   path: string,
   parameters: ParameterObject[],
-  args: Object // NOTE: argument keys are sanitized!
+  args: object // NOTE: argument keys are sanitized!
 ): {
   path: string,
   query: { [key: string]: string },
@@ -353,11 +353,11 @@ export function instantiatePathAndGetQuery (
             break
 
           default:
-            logHttp(`Warning: The parameter location "${param.in}" in the ` +
+            httpLog(`Warning: The parameter location "${param.in}" in the ` +
               `parameter "${param.name}" of operation "${path}" is not supported`)
         }
       } else {
-        logHttp(`Warning: The parameter "${param.name}" of operation "${path}" ` +
+        httpLog(`Warning: The parameter "${param.name}" of operation "${path}" ` +
           `could not be found`)
       }
     }
@@ -697,7 +697,7 @@ export function getResponseStatusCode (
         culprit: `${method.toUpperCase()} ${path}`,
         solution: `${successCodes[0]}`,
         data,
-        log
+        log: translationLog
       })
       return successCodes[0]
     }
@@ -763,7 +763,7 @@ export function getParameters (
   let parameters = []
 
   if (!isOperation(method)) {
-    log(`Warning: attempted to get parameters for ${method} ${path}, ` +
+    translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
       `which is not an operation.`)
     return parameters
   }
@@ -978,7 +978,7 @@ export function beautifyAndStore (
     throw new Error(`Cannot beautifyAndStore ${str}`)
   } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
-      log(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
+      translationLog(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
         `to ${clean} - collusion possible. Desanitize to ${str}.`)
     }
     mapping[clean] = str

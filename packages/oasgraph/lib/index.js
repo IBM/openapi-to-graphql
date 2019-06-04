@@ -22,7 +22,7 @@ const Oas3Tools = require("./oas_3_tools");
 const auth_builder_1 = require("./auth_builder");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const log = debug_1.default('translation');
+const translationLog = debug_1.default('translation');
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
@@ -86,7 +86,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions }) {
+function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers }) {
     return __awaiter(this, void 0, void 0, function* () {
         let options = {
             headers,
@@ -100,9 +100,10 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             operationIdFieldNames,
             report,
             requestOptions,
-            provideErrorExtensions
+            provideErrorExtensions,
+            customResolvers
         };
-        log(`Options: ${JSON.stringify(options)}`);
+        translationLog(`Options: ${JSON.stringify(options)}`);
         /**
          * Extract information from the OASs and put it inside a data structure that
          * is easier for OASGraph to use
@@ -125,7 +126,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
              */
             .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
             .forEach(([operationId, operation]) => {
-            log(`Process operation "${operationId}"...`);
+            translationLog(`Process operation "${operationId}"...`);
             let field = getFieldForOperation(operation, options.baseUrl, data, oass, requestOptions);
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
@@ -144,7 +145,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
                                 typeKey: 'DUPLICATE_FIELD_NAME',
                                 culprit: fieldName,
                                 data,
-                                log
+                                log: translationLog
                             });
                         }
                         authQueryFields[securityRequirement][fieldName] = field;
@@ -161,7 +162,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
                             typeKey: 'DUPLICATE_FIELD_NAME',
                             culprit: fieldName,
                             data,
-                            log
+                            log: translationLog
                         });
                     }
                     queryFields[fieldName] = field;
@@ -181,7 +182,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
                                 typeKey: 'DUPLICATE_FIELD_NAME',
                                 culprit: saneFieldName,
                                 data,
-                                log
+                                log: translationLog
                             });
                         }
                         authMutationFields[securityRequirement][saneFieldName] = field;
@@ -193,7 +194,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
                             typeKey: 'DUPLICATE_FIELD_NAME',
                             culprit: saneFieldName,
                             data,
-                            log
+                            log: translationLog
                         });
                     }
                     mutationFields[saneFieldName] = field;
@@ -279,9 +280,6 @@ function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
     // create resolve function:
     let payloadSchemaName = operation.payloadDefinition
         ? operation.payloadDefinition.iotName
-        : null;
-    let payloadSchema = operation.payloadDefinition
-        ? operation.payloadDefinition.schema
         : null;
     let resolve = resolver_builder_1.getResolver({
         operation,
