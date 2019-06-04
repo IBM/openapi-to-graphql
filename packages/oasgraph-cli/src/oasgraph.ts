@@ -30,12 +30,11 @@ program
   .parse(process.argv)
 
 // Select the port on which to host the GraphQL server
-let portNumber: number | string = 3000
-if (program.port) {
-  portNumber = program.port
-}
+const portNumber: number | string = program.port ?
+  program.port : 
+  3000
 
-let filePaths = program.args
+const filePaths = program.args
 
 if (typeof filePaths === 'undefined' || filePaths.length === 0) {
   console.error('No path(s) provided')
@@ -76,7 +75,7 @@ Promise.all(filePaths.map(filePath => {
   startGraphQLServer(oass, portNumber)
 })
 .catch(filePath => {
-  console.error(`OASGraph cannot read file. File '${filePath}' does not exist.`)
+  console.error(`OASGraph cannot read file. File "${filePath}" does not exist.`)
   process.exit(1)
 })
 
@@ -89,15 +88,12 @@ Promise.all(filePaths.map(filePath => {
 */
 function readFile (path) {
   try {
-    let doc
-    if (/json$/.test(path)) {
-      doc = JSON.parse(fs.readFileSync(path, 'utf8'))
-    } else if (/yaml$|yml$/.test(path)) {
-      doc = yaml.safeLoad(fs.readFileSync(path, 'utf8'))
-    }
+    const doc = /json$/.test(path) ?
+      JSON.parse(fs.readFileSync(path, 'utf8')) :
+      yaml.safeLoad(fs.readFileSync(path, 'utf8'))
     return doc
   } catch (e) {
-    console.error('Error: failed to parse YAML/JSON: ' + e)
+    console.error('Error: failed to parse YAML/JSON')
     return null
   }
 }
@@ -140,33 +136,33 @@ function startGraphQLServer(oas, port) {
     operationIdFieldNames: program.operationIdFieldNames,
     provideErrorExtensions: program.extensions
   })
-     .then(({schema, report}) => {
-      console.log(JSON.stringify(report, null, 2))
+  .then(({schema, report}) => {
+    console.log(JSON.stringify(report, null, 2))
 
-      // save local file if required
-      if (program.save) {
-        writeSchema(schema);
-      } else {
-        // Enable CORS
-        if (program.cors) {
-          app.use(cors());
-        }
-
-        // mounting graphql endpoint using the middleware express-graphql
-        app.use('/graphql', graphqlHTTP({
-          schema: schema,
-          graphiql: true
-        }))
-
-        // initiating the server on the port specified by user or the default one
-        app.listen(port, () => {
-          console.log(`GraphQL accessible at: http://localhost:${port}/graphql`)
-        })
+    // save local file if required
+    if (program.save) {
+      writeSchema(schema);
+    } else {
+      // Enable CORS
+      if (program.cors) {
+        app.use(cors());
       }
-    })
-    .catch(err => {
-       console.log('OASGraph creation event error: ', err.message)
-     })
+
+      // mounting graphql endpoint using the middleware express-graphql
+      app.use('/graphql', graphqlHTTP({
+        schema: schema,
+        graphiql: true
+      }))
+
+      // initiating the server on the port specified by user or the default one
+      app.listen(port, () => {
+        console.log(`GraphQL accessible at: http://localhost:${port}/graphql`)
+      })
+    }
+  })
+  .catch(err => {
+    console.log('OASGraph creation event error: ', err.message)
+  })
 }
 
 

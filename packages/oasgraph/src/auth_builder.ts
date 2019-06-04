@@ -57,13 +57,13 @@ export function createAndLoadViewer (
    * The key is the security scheme type (apiKey or BasicAuth) and the value is
    * a list of the names for the viewers for that security scheme type.
    */
-  let usedViewerNames: {[key: string]: string[]} = {}
+  const usedViewerNames: {[key: string]: string[]} = {}
 
   /**
    * Used to collect all fields in the given querFields object, no matter which
    * protocol. Used to populate anyAuthViewer.
    */
-  let anyAuthFields = {}
+  const anyAuthFields = {}
 
   for (let protocolName in queryFields) {
     Object.assign(anyAuthFields, queryFields[protocolName])
@@ -98,13 +98,9 @@ export function createAndLoadViewer (
     }
 
     // create name for the viewer
-    let viewerName
-
-    if (!isMutation) {
-      viewerName = Oas3Tools.beautify(`viewer ${type}`)
-    } else {
-      viewerName = Oas3Tools.beautify(`mutation viewer ${type}`)
-    }
+    let viewerName = !isMutation ?
+      Oas3Tools.beautify(`viewer ${type}`) :
+      Oas3Tools.beautify(`mutation viewer ${type}`)
 
     if (!(type in usedViewerNames)) {
       usedViewerNames[type] = []
@@ -120,13 +116,9 @@ export function createAndLoadViewer (
   }
 
   // create name for the AnyAuth viewer
-  let anyAuthObjectName
-
-  if (!isMutation) {
-    anyAuthObjectName = 'viewerAnyAuth'
-  } else {
-    anyAuthObjectName = 'mutationViewerAnyAuth'
-  }
+  let anyAuthObjectName = !isMutation ?
+    'viewerAnyAuth' :
+    'mutationViewerAnyAuth'
 
   // Add the AnyAuth object type to the specified root query object type
   results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data, oass)
@@ -145,11 +137,11 @@ const getViewerOT = (
   data: PreprocessingData,
   oass: Oas3[]
 ): Viewer => {
-  let scheme: ProcessedSecurityScheme = data.security[protocolName]
+  const scheme: ProcessedSecurityScheme = data.security[protocolName]
 
   // resolve function:
-  let resolve = (root, args, ctx) => {
-    let security = {}
+  const resolve = (root, args, ctx) => {
+    const security = {}
     security[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = args
 
     /**
@@ -164,7 +156,7 @@ const getViewerOT = (
   }
 
   // arguments:
-  let args = {}
+  const args = {}
   if (typeof scheme === 'object') {
     for (let parameterName in scheme.parameters) {
       args[parameterName] = { type: new GraphQLNonNull(GraphQLString) }
@@ -176,11 +168,11 @@ const getViewerOT = (
   let typeDescription
   let description
   if (oass.length === 1) {
-    typeDescription = `A viewer for the security protocol: '${scheme.rawName}'`
+    typeDescription = `A viewer for the security protocol: "${scheme.rawName}"`
     description = `A viewer that wraps all operations authenticated via ${type}`
 
   } else {
-    typeDescription = `A viewer for the security protocol '${scheme.rawName}' ` +
+    typeDescription = `A viewer for the security protocol "${scheme.rawName}" ` +
       `in ${scheme.oas.info.title}`
 
     description = `A viewer that wraps all operations authenticated via ${type}\n\n` +
@@ -216,9 +208,9 @@ const getViewerAnyAuthOT = (
     // TODO: This is bad. We don't pass an operation, which is needed for
     // creating the GraphQLType, though.
 
-    let def = createDataDef({ fromRef: protocolName }, data.security[protocolName].schema, true, data)
+    const def = createDataDef({ fromRef: protocolName }, data.security[protocolName].schema, true, data)
 
-    let type = getGraphQLType({
+    const type = getGraphQLType({
       def,
       data,
       oass,
@@ -230,7 +222,7 @@ const getViewerAnyAuthOT = (
   args = sortObject(args)
 
   // pass object containing security information to fields
-  let resolve = (root, args, ctx) => {
+  const resolve = (root, args, ctx) => {
     return {
       _oasgraph: {
         security: args

@@ -89,7 +89,7 @@ export function getResolver({
       typeof root === 'object' &&
       typeof root._oasgraph === 'object' &&
       typeof root._oasgraph.data === 'object') {
-      let parentIdentifier = getParentIdentifier(info)
+      const parentIdentifier = getParentIdentifier(info)
       if (!(parentIdentifier.length === 0) && parentIdentifier in root._oasgraph.data) {
         // resolving link params may change the usedParams, but these changes
         // should not be present in the parent _oasgraph, therefore copy the object
@@ -114,7 +114,7 @@ export function getResolver({
      * the user.
      */
     operation.parameters.forEach(param => {
-      let paramName = Oas3Tools.beautify(param.name)
+      const paramName = Oas3Tools.beautify(param.name)
       if (typeof args[paramName] === 'undefined' && param.schema && typeof param.schema === 'object') {
         let schema = param.schema
         if (schema && schema.$ref && typeof schema.$ref === 'string') {
@@ -148,7 +148,7 @@ export function getResolver({
         args[paramNameWithoutLocation] = (isRuntimeExpression(value)) ? resolveLinkParameter(paramName, value, resolveData, root, args) : value
       } else {
         // replace link parameters with appropriate values
-        let linkParams = value.match(/{([^}]*)}/g)
+        const linkParams = value.match(/{([^}]*)}/g)
         linkParams.forEach((linkParam) => {
           value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args))
         })
@@ -160,11 +160,11 @@ export function getResolver({
     resolveData.usedParams = Object.assign(resolveData.usedParams, args)
 
     // build URL (i.e., fill in path parameters):
-    let { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(
+    const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(
       operation.path,
       operation.parameters,
       args)
-    let url = baseUrl + path
+    const url = baseUrl + path
 
     // The Content-type and accept property should not be changed because the
     // object type has already been created and unlike these properties, it
@@ -205,11 +205,11 @@ export function getResolver({
      */
     resolveData.usedPayload = undefined
     if (payloadName && typeof payloadName === 'string') {
-      let sanePayloadName = Oas3Tools.beautify(payloadName)
+      const sanePayloadName = Oas3Tools.beautify(payloadName)
       if (sanePayloadName in args) {
         if (typeof args[sanePayloadName] === 'object') {
           // we need to desanitize the payload so the API understands it:
-          let rawPayload = JSON.stringify(Oas3Tools.desanitizeObjKeys(
+          const rawPayload = JSON.stringify(Oas3Tools.desanitizeObjKeys(
             args[sanePayloadName], data.saneMap))
 
           options.body = rawPayload
@@ -217,7 +217,7 @@ export function getResolver({
 
         } else {
           // payload is not an object (stored as an application/json)
-          let rawPayload = args[sanePayloadName]
+          const rawPayload = args[sanePayloadName]
 
           options.body = rawPayload
           resolveData.usedPayload = rawPayload
@@ -232,14 +232,14 @@ export function getResolver({
       // headers:
       if (typeof data.options.headers === 'object') {
         for (let header in data.options.headers) {
-          let val = data.options.headers[header]
+          const val = data.options.headers[header]
           options.headers[header] = val
         }
       }
       // query string:
       if (typeof data.options.qs === 'object') {
         for (let query in data.options.qs) {
-          let val = data.options.qs[query]
+          const val = data.options.qs[query]
           options.qs[query] = val
         }
       }
@@ -249,7 +249,7 @@ export function getResolver({
     if (root &&
       typeof root === 'object' &&
       typeof root._oasgraph == 'object') {
-      let { authHeaders, authQs, authCookie } = getAuthOptions(operation, root._oasgraph, data)
+      const { authHeaders, authQs, authCookie } = getAuthOptions(operation, root._oasgraph, data)
 
       // ...and pass them to the options
       Object.assign(options.headers, authHeaders)
@@ -265,10 +265,10 @@ export function getResolver({
 
     // extract OAuth token from context (if available)
     if (data.options.sendOAuthTokenInQuery) {
-      let oauthQueryObj = createOAuthQS(data, ctx)
+      const oauthQueryObj = createOAuthQS(data, ctx)
       Object.assign(options.qs, oauthQueryObj)
     } else {
-      let oauthHeader = createOAuthHeader(data, ctx)
+      const oauthHeader = createOAuthHeader(data, ctx)
       Object.assign(options.headers, oauthHeader)
     }
 
@@ -321,7 +321,7 @@ export function getResolver({
 
           // deal with the fact that the server might send unsanitized data
           // let saneData: any = Oas3Tools.sanitizeObjKeys(body)
-          let saneData: any = Oas3Tools.sanitizeObjKeys(body)
+          const saneData: any = Oas3Tools.sanitizeObjKeys(body)
 
           // pass on _oasgraph to subsequent resolvers
           if (saneData &&
@@ -375,15 +375,15 @@ function createOAuthQS ( data: PreprocessingData, ctx: object ): { [key: string]
 }
 
 function extractToken(data: PreprocessingData, ctx: object) {
-  let tokenJSONpath = data.options.tokenJSONpath
-  let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
+  const tokenJSONpath = data.options.tokenJSONpath
+  const tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
   if (Array.isArray(tokens) && tokens.length > 0) {
-    let token = tokens[0]
+    const token = tokens[0]
     return {
       access_token: token
     }
   } else {
-    httpLog(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`)
+    httpLog(`Warning: could not extract OAuth token from context at "${tokenJSONpath}"`)
     return {}
   }
 }
@@ -401,17 +401,17 @@ function createOAuthHeader (
   }
 
   // extract token
-  let tokenJSONpath = data.options.tokenJSONpath
-  let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
+  const tokenJSONpath = data.options.tokenJSONpath
+  const tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
   if (Array.isArray(tokens) && tokens.length > 0) {
-    let token = tokens[0]
+    const token = tokens[0]
     return {
       Authorization: `Bearer ${token}`,
       'User-Agent': 'oasgraph'
     }
   } else {
     httpLog(`Warning: could not extract OAuth token from context at ` +
-      `'${tokenJSONpath}'`)
+      `"${tokenJSONpath}"`)
     return {}
   }
 }
@@ -427,15 +427,15 @@ function getAuthOptions (
   _oasgraph: any,
   data: PreprocessingData
 ): AuthOptions {
-  let authHeaders = {}
-  let authQs = {}
+  const authHeaders = {}
+  const authQs = {}
   let authCookie = null
 
   // determine if authentication is required, and which protocol (if any) we
   // can use
-  let { authRequired, beautifiedSecurityRequirement } = getAuthReqAndProtcolName(
+  const { authRequired, beautifiedSecurityRequirement } = getAuthReqAndProtcolName(
     operation, _oasgraph)
-  let securityRequirement = data.saneMap[beautifiedSecurityRequirement]
+  const securityRequirement = data.saneMap[beautifiedSecurityRequirement]
 
   // possibly, we don't need to do anything:
   if (!authRequired) {
@@ -448,10 +448,10 @@ function getAuthOptions (
   }
 
   if (typeof securityRequirement === 'string') {
-    let security = data.security[securityRequirement]
+    const security = data.security[securityRequirement]
     switch (security.def.type) {
       case 'apiKey':
-        let apiKey = _oasgraph.security[beautifiedSecurityRequirement].apiKey
+        const apiKey = _oasgraph.security[beautifiedSecurityRequirement].apiKey
         if ('in' in security.def) {
           if (typeof security.def.name === 'string') {
             if (security.def.in === 'header') {
@@ -462,7 +462,7 @@ function getAuthOptions (
               authCookie = NodeRequest.cookie(`${security.def.name}=${apiKey}`)
             }
           } else {
-            throw new Error(`Cannot send apiKey in '${JSON.stringify(security.def.in)}'`)
+            throw new Error(`Cannot send API key in "${JSON.stringify(security.def.in)}"`)
           }
         }
         break
@@ -477,7 +477,7 @@ function getAuthOptions (
             break
           default:
             throw new Error(`Cannot recognize http security scheme ` +
-              `'${JSON.stringify(security.def.scheme)}'`)
+              `"${JSON.stringify(security.def.scheme)}"`)
         }
         break
 
@@ -488,7 +488,7 @@ function getAuthOptions (
         break
 
       default:
-        throw new Error(`Cannot recognize security type '${security.def.type}'`)
+        throw new Error(`Cannot recognize security type "${security.def.type}"`)
     }
   }
   return { authHeaders, authQs, authCookie }
@@ -509,7 +509,7 @@ function getAuthReqAndProtcolName(
     authRequired = true
 
     for (let securityRequirement of operation.securityRequirements) {
-      let beautifiedSecurityRequirement = Oas3Tools.beautify(securityRequirement)
+      const beautifiedSecurityRequirement = Oas3Tools.beautify(securityRequirement)
       if (typeof _oasgraph.security[beautifiedSecurityRequirement] === 'object') {
         return {
           authRequired,
@@ -546,11 +546,11 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
 
       // CASE: parameter in previous body
     } else if (value.startsWith('$request.body#')) {
-      let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: resolveData.usedPayload })
+      const tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: resolveData.usedPayload })
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
-        httpLog(`Warning: could not extract parameter ${paramName} from link`)
+        httpLog(`Warning: could not extract parameter "${paramName}" from link`)
       }
 
       // CASE: parameter in previous query parameter
@@ -572,7 +572,7 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
     // a JSON object and OASGraph does not create GraphQL objects for non-JSON
     // data and links can only exists between objects. 
     if (value === '$response.body') {
-      let result = JSON.parse(JSON.stringify(root))
+      const result = JSON.parse(JSON.stringify(root))
       /**
        * _oasgraph contains data used by OASGraph to create the GraphQL interface 
        * and should not be exposed
@@ -582,11 +582,11 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
 
       // CASE: parameter in body
     } else if (value.startsWith('$response.body#')) {
-      let tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root })
+      const tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root })
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
-        httpLog(`Warning: could not extract parameter ${paramName} from link`)
+        httpLog(`Warning: could not extract parameter "${paramName}" from link`)
       }
 
       // CASE: parameter in query parameter
@@ -612,7 +612,7 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
  * Check if a string is a runtime expression in the context of link parameters
  */
 function isRuntimeExpression(str: string): boolean {
-  let references = ['header.', 'query.', 'path.', 'body']
+  const references = ['header.', 'query.', 'path.', 'body']
 
   if (str === '$url' || str === '$method' || str === '$statusCode') {
     return true

@@ -78,19 +78,24 @@ export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
   // CASE: translate
   if (typeof (spec as Oas2).swagger === 'string'
     && (spec as Oas2).swagger === '2.0') {
+    
     preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`)
-    let result: { openapi: Oas3 } = await Swagger2OpenAPI.convertObj(spec, {})
+    const result: { openapi: Oas3 } = await Swagger2OpenAPI.convertObj(spec, {})
     return (result.openapi as Oas3)
+  
     // CASE: validate
   } else if (typeof (spec as Oas3).openapi === 'string'
     && /^3/.test((spec as Oas3).openapi)) {
+    
     preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`)
-    let valid = OASValidator.validateSync(spec, {})
+    const valid = OASValidator.validateSync(spec, {})
     if (!valid) {
       throw new Error(`Validation of OpenAPI Specification failed.`)
     }
+    
     preprocessingLog(`OpenAPI Specification is validated`)
     return (spec as Oas3)
+  
   } else {
     throw new Error(`Invalid specification provided`)
   }
@@ -173,7 +178,7 @@ export function resolveRef (
     return obj
   }
 
-  let firstElement = parts.splice(0, 1)[0]
+  const firstElement = parts.splice(0, 1)[0]
   if (firstElement === '#') {
     return resolveRef(ref, obj, parts)
   }
@@ -188,7 +193,7 @@ export function resolveRef (
  * Returns the base URL to use for the given operation.
  */
 export function getBaseUrl (
-  operation: Operation,
+  operation: Operation
 ): string {
   // check for servers:
   if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
@@ -198,22 +203,22 @@ export function getBaseUrl (
 
   // check for local servers
   if (Array.isArray(operation.servers) && operation.servers.length > 0) {
-    let url = buildUrl(operation.servers[0])
+    const url = buildUrl(operation.servers[0])
 
     if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-      httpLog(`Warning: Randomly selected first server ${url}`)
+      httpLog(`Warning: Randomly selected first server "${url}"`)
     }
 
     return url.replace(/\/$/, '')
   }
 
-  let oas = operation.oas
+  const oas = operation.oas
 
   if (Array.isArray(oas.servers) && oas.servers.length > 0) {
-    let url = buildUrl(oas.servers[0])
+    const url = buildUrl(oas.servers[0])
 
     if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-      httpLog(`Warning: Randomly selected first server ${url}`)
+      httpLog(`Warning: Randomly selected first server "${url}"`)
     }
 
     return url.replace(/\/$/, '')
@@ -254,10 +259,10 @@ export function sanitizeObjKeys (
     } else if (Array.isArray(obj)) {
       return obj.map(cleanKeys)
     } else if (typeof obj === 'object') {
-      let res: object = {}
+      const res: object = {}
       for (let key in obj) {
         if (!exceptions.includes(key)) {
-          let saneKey = beautify(key)
+          const saneKey = beautify(key)
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
             res[saneKey] = cleanKeys(obj[key])
           }
@@ -285,10 +290,10 @@ export function desanitizeObjKeys (
     if (Array.isArray(obj)) {
       return obj.map(replaceKeys)
     } else if (typeof obj === 'object') {
-      let res = {}
+      const res = {}
       for (let key in obj) {
         if (key in mapping) {
-          let rawKey = mapping[key]
+          const rawKey = mapping[key]
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
             res[rawKey] = replaceKeys(obj[key])
           }
@@ -317,15 +322,15 @@ export function instantiatePathAndGetQuery (
   query: { [key: string]: string },
   headers: { [key: string]: string }
 } {
-  let query = {}
-  let headers = {}
+  const query = {}
+  const headers = {}
 
   // case: nothing to do
   if (Array.isArray(parameters)) {
     // iterate parameters:
     for (let param of parameters) {
 
-      let sanitizedParamName = beautify(param.name)
+      const sanitizedParamName = beautify(param.name)
       if (sanitizedParamName && sanitizedParamName in args) {
         switch (param.in) {
           // path parameters
@@ -424,10 +429,10 @@ export function getSchemaType (schema: SchemaObject): string | null {
  */
 export function inferResourceNameFromPath (path: string): string {
   let name = ''
-  let parts = path.split('/')
+  const parts = path.split('/')
   parts.forEach((part, i) => {
     if (!/{|}/g.test(part)) {
-      let partClean = sanitize(parts[i])
+      const partClean = sanitize(parts[i])
       if (i === 0) {
         name += partClean
       } else {
@@ -458,7 +463,7 @@ export function getRequestSchema (
     }
 
     if (typeof requestBody.content === 'object') {
-      let content: MediaTypesObject = requestBody.content
+      const content: MediaTypesObject = requestBody.content
 
       // Prioritizes content-type JSON
       if (Object.keys(content).includes('application/json')) {
@@ -486,7 +491,7 @@ export function getRequestSchemaAndNames (
   method: string,
   oas: Oas3
 ): RequestSchemaAndNames {
-  let endpoint: OperationObject = oas.paths[path][method]
+  const endpoint: OperationObject = oas.paths[path][method]
   let payloadRequired = false
   let payloadSchemaNames: any = {}
   let { payloadContentType, payloadSchema } = getRequestSchema(endpoint, oas)
@@ -519,7 +524,7 @@ export function getRequestSchemaAndNames (
     // interpret the request body as a string
     if (payloadContentType !== 'application/json') {
       let saneContentTypeName: string = ''
-      let terms = payloadContentType.split('/')
+      const terms = payloadContentType.split('/')
       for (let index in terms) {
         saneContentTypeName += terms[index].charAt(0).toUpperCase() + terms[index].slice(1)
       }
@@ -531,7 +536,7 @@ export function getRequestSchemaAndNames (
       let description = payloadContentType + ' request placeholder object'
 
       if ('description' in payloadSchema && typeof (payloadSchema['description']) === 'string') {
-        description += `\n\nOriginal top level description: ${payloadSchema['description']}`
+        description += `\n\nOriginal top level description: "${payloadSchema['description']}"`
       }
 
       payloadSchema = {
@@ -562,7 +567,7 @@ export function getResponseSchema (
   oas: Oas3
 ): { responseContentType: string, responseSchema: SchemaObject } | null {
   if (typeof endpoint.responses === 'object') {
-    let responses: ResponsesObject = endpoint.responses
+    const responses: ResponsesObject = endpoint.responses
     if (typeof responses[statusCode] === 'object') {
       let response: ResponseObject | ReferenceObject = responses[statusCode]
 
@@ -574,7 +579,7 @@ export function getResponseSchema (
       }
 
       if (response.content && typeof response.content !== 'undefined') {
-        let content: MediaTypesObject = response.content
+        const content: MediaTypesObject = response.content
 
         // Prioritizes content-type JSON
         if (Object.keys(content).includes('application/json')) {
@@ -604,9 +609,9 @@ export function getResponseSchemaAndNames (
   data: PreprocessingData,
   options: InternalOptions
 ): ResponseSchemaAndNames {
-  let endpoint: OperationObject = oas.paths[path][method]
-  let responseSchemaNames: any = {}
-  let statusCode = getResponseStatusCode(path, method, oas, data)
+  const endpoint: OperationObject = oas.paths[path][method]
+  const responseSchemaNames: any = {}
+  const statusCode = getResponseStatusCode(path, method, oas, data)
   if (!statusCode) {
     return {}
   }
@@ -630,7 +635,7 @@ export function getResponseSchemaAndNames (
         'response bodies'
 
       if ('description' in responseSchema && typeof (responseSchema['description']) === 'string') {
-        description += `\n\nOriginal top level description: ${responseSchema['description']}`
+        description += `\n\nOriginal top level description: "${responseSchema['description']}"`
       }
 
       responseSchema = {
@@ -682,11 +687,11 @@ export function getResponseStatusCode (
   oas: Oas3,
   data: PreprocessingData
 ): string | void {
-  let endpoint: OperationObject = oas.paths[path][method]
+  const endpoint: OperationObject = oas.paths[path][method]
 
   if (typeof endpoint.responses === 'object') {
-    let codes = Object.keys(endpoint.responses)
-    let successCodes = codes.filter(code => {
+    const codes = Object.keys(endpoint.responses)
+    const successCodes = codes.filter(code => {
       return SUCCESS_STATUS_RX.test(code)
     })
     if (successCodes.length === 1) {
@@ -714,14 +719,14 @@ export function getEndpointLinks (
   oas: Oas3,
   data: PreprocessingData
 ): { [key: string]: LinkObject } {
-  let links = {}
-  let endpoint: OperationObject = oas.paths[path][method]
-  let statusCode = getResponseStatusCode(path, method, oas, data)
+  const links = {}
+  const endpoint: OperationObject = oas.paths[path][method]
+  const statusCode = getResponseStatusCode(path, method, oas, data)
   if (!statusCode) {
     return links
   }
   if (typeof endpoint.responses === 'object') {
-    let responses: ResponsesObject = endpoint.responses
+    const responses: ResponsesObject = endpoint.responses
     if (typeof responses[statusCode] === 'object') {
       let response: ResponseObject | ReferenceObject = responses[statusCode]
 
@@ -733,7 +738,7 @@ export function getEndpointLinks (
       response = ((response as any) as ResponseObject)
 
       if (typeof response.links === 'object') {
-        let epLinks: LinksObject = response.links
+        const epLinks: LinksObject = response.links
         for (let linkKey in epLinks) {
           let link: LinkObject | ReferenceObject = epLinks[linkKey]
 
@@ -768,13 +773,12 @@ export function getParameters (
     return parameters
   }
 
-  let pathItemObject: PathItemObject = oas.paths[path]
-
-  let pathParams = pathItemObject.parameters
+  const pathItemObject: PathItemObject = oas.paths[path]
+  const pathParams = pathItemObject.parameters
 
   // first, consider parameters in Path Item Object:
   if (Array.isArray(pathParams)) {
-    let pathItemParameters: ParameterObject[] = pathParams.map(p => {
+    const pathItemParameters: ParameterObject[] = pathParams.map(p => {
       if (typeof (p as ReferenceObject).$ref === 'string') {
         // here we know we have a parameter object:
         return (resolveRef(p['$ref'], oas) as ParameterObject)
@@ -787,12 +791,11 @@ export function getParameters (
   }
 
   // second, consider parameters in Operation Object:
-  let opObject: OperationObject = oas.paths[path][method]
-
-  let opObjectParameters = opObject.parameters
+  const opObject: OperationObject = oas.paths[path][method]
+  const opObjectParameters = opObject.parameters
 
   if (Array.isArray(opObjectParameters)) {
-    let opParameters: ParameterObject[] = opObjectParameters.map(p => {
+    const opParameters: ParameterObject[] = opObjectParameters.map(p => {
       if (typeof (p as ReferenceObject).$ref === 'string') {
         // here we know we have a parameter object:
         return (resolveRef(p['$ref'], oas) as ParameterObject)
@@ -825,13 +828,13 @@ export function getServers (
   }
 
   // path item server definitions override global:
-  let pathItem = oas.paths[path]
+  const pathItem = oas.paths[path]
   if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
     servers = pathItem.servers
   }
 
   // operation server definitions override path item:
-  let operationObj = pathItem[method]
+  const operationObj = pathItem[method]
   if (Array.isArray(operationObj.servers) && operationObj.servers.length > 0) {
     servers = operationObj.servers
   }
@@ -855,11 +858,11 @@ export function getSecuritySchemes (
   oas: Oas3
 ): { [key: string]: SecuritySchemeObject } {
   // collect all security schemes:
-  let securitySchemes: { [key: string]: SecuritySchemeObject } = {}
+  const securitySchemes: { [key: string]: SecuritySchemeObject } = {}
   if (typeof oas.components === 'object' &&
     typeof oas.components.securitySchemes === 'object') {
     for (let schemeKey in oas.components.securitySchemes) {
-      let obj = oas.components.securitySchemes[schemeKey]
+      const obj = oas.components.securitySchemes[schemeKey]
 
       // ensure we have actual SecuritySchemeObject:
       if (typeof (obj as ReferenceObject).$ref === 'string') {
@@ -885,10 +888,10 @@ export function getSecurityRequirements (
   securitySchemes: { [key: string]: ProcessedSecurityScheme },
   oas: Oas3
 ): string[] {
-  let results: string[] = []
+  const results: string[] = []
 
   // first, consider global requirements:
-  let globalSecurity: SecurityRequirementObject[] = oas.security
+  const globalSecurity: SecurityRequirementObject[] = oas.security
   if (globalSecurity && typeof globalSecurity !== 'undefined') {
     for (let secReq of globalSecurity) {
       for (let schemaKey in secReq) {
@@ -902,8 +905,8 @@ export function getSecurityRequirements (
   }
 
   // local:
-  let operation: OperationObject = oas.paths[path][method]
-  let localSecurity: SecurityRequirementObject[] = operation.security
+  const operation: OperationObject = oas.paths[path][method]
+  const localSecurity: SecurityRequirementObject[] = operation.security
   if (localSecurity && typeof localSecurity !== 'undefined') {
     for (let secReq of localSecurity) {
       for (let schemaKey in secReq) {
@@ -932,10 +935,10 @@ export function beautify (
     throw new Error(`Cannot beautify "${str}" of type "${typeof str}"`)
   }
 
-  let charToRemove = '_'
+  const charToRemove = '_'
   let sanitized = sanitize(str)
   while (sanitized.indexOf(charToRemove) !== -1) {
-    let pos = sanitized.indexOf(charToRemove)
+    const pos = sanitized.indexOf(charToRemove)
     if (sanitized.length >= pos + 2) {
       sanitized = sanitized.slice(0, pos) +
         sanitized.charAt(pos + 1).toUpperCase() +
@@ -973,9 +976,9 @@ export function beautifyAndStore (
   if (!(typeof mapping === 'object')) {
     throw new Error(`No/invalid mapping passed to beautifyAndStore`)
   }
-  let clean = beautify(str)
+  const clean = beautify(str)
   if (!clean) {
-    throw new Error(`Cannot beautifyAndStore ${str}`)
+    throw new Error(`Cannot beautifyAndStore "${str}"`)
   } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
       translationLog(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
@@ -1002,8 +1005,7 @@ export function beautifyObjectKeys (obj: object): object {
  * Object Type.
  */
 function sanitize (str: string): string {
-  let clean = str.replace(/[^_a-zA-Z0-9]/g, '_')
-  return clean
+  return str.replace(/[^_a-zA-Z0-9]/g, '_')
 }
 
 /**

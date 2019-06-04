@@ -120,7 +120,7 @@ export async function createGraphQlSchema (
     oass = [await Oas3Tools.getValidOAS3(spec)]
   }
 
-  let { schema, report } = await translateOpenApiToGraphQL(oass, options as InternalOptions)
+  const { schema, report } = await translateOpenApiToGraphQL(oass, options as InternalOptions)
   return {
     schema,
     report
@@ -148,7 +148,7 @@ async function translateOpenApiToGraphQL (
     customResolvers
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema, report: Report }> {
-  let options = {
+  const options = {
     headers,
     qs,
     viewer,
@@ -169,7 +169,7 @@ async function translateOpenApiToGraphQL (
    * Extract information from the OASs and put it inside a data structure that
    * is easier for OASGraph to use
    */
-  let data: PreprocessingData = preprocessOas(oass, options)
+  const data: PreprocessingData = preprocessOas(oass, options)
 
   /**
    * Create GraphQL fields for every operation and structure them based on their
@@ -363,7 +363,7 @@ function getFieldForOperation (
   requestOptions: NodeRequest.OptionsWithUrl
 ): Field {
   // create GraphQL Type for response:
-  let type = getGraphQLType({
+  const type = getGraphQLType({
     def: operation.responseDefinition,
     data,
     operation,
@@ -371,11 +371,11 @@ function getFieldForOperation (
   })
 
   // create resolve function:
-  let payloadSchemaName = operation.payloadDefinition
+  const payloadSchemaName = operation.payloadDefinition
     ? operation.payloadDefinition.iotName
     : null
 
-  let resolve = getResolver({
+  const resolve = getResolver({
     operation,
     payloadName: payloadSchemaName,
     data,
@@ -384,7 +384,7 @@ function getFieldForOperation (
   })
 
   // create args:
-  let args: Args = getArgs({
+  const args: Args = getArgs({
     def: operation.payloadDefinition,
     parameters: operation.parameters,
     operation,
