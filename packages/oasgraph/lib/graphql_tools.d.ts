@@ -1,12 +1,15 @@
 /**
  * Utilities related to GraphQL.
  */
-import { GraphQLObjectType as GQObjectType, GraphQLInputObjectType as GQInputObjectType } from 'graphql';
+import {
+  GraphQLObjectType as GQObjectType,
+  GraphQLInputObjectType as GQInputObjectType
+} from 'graphql'
 /**
  * Returns empty GraphQLObjectType.
  */
-export declare function getEmptyObjectType(name: string): GQObjectType;
+export declare function getEmptyObjectType(name: string): GQObjectType
 /**
  * Returns empty GraphQLInputObjectType.
  */
-export declare function getEmptyInputObjectType(): GQInputObjectType;
+export declare function getEmptyInputObjectType(): GQInputObjectType

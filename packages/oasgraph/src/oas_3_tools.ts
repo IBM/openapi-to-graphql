@@ -27,7 +27,10 @@ import {
   SecuritySchemeObject,
   SecurityRequirementObject
 } from './types/oas3.js'
-import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data'
+import {
+  PreprocessingData,
+  ProcessedSecurityScheme
+} from './types/preprocessing_data'
 import { InternalOptions } from './types/options'
 
 // Imports:
@@ -38,26 +41,26 @@ import { handleWarning } from './utils'
 
 // Type definitions & exports:
 export type SchemaNames = {
-  fromPath?: string,
-  fromSchema?: string,
-  fromRef?: string,
+  fromPath?: string
+  fromSchema?: string
+  fromRef?: string
 
-  // Used when the preferred name is known, i.e. a new data def does not 
+  // Used when the preferred name is known, i.e. a new data def does not
   // need to be created
   preferred?: string
 }
 
 export type RequestSchemaAndNames = {
-  payloadContentType?: string,
-  payloadSchema?: SchemaObject | ReferenceObject,
-  payloadSchemaNames?: SchemaNames,
+  payloadContentType?: string
+  payloadSchema?: SchemaObject | ReferenceObject
+  payloadSchemaNames?: SchemaNames
   payloadRequired: boolean
 }
 
 export type ResponseSchemaAndNames = {
-  responseContentType?: string,
-  responseSchema?: SchemaObject | ReferenceObject,
-  responseSchemaNames?: SchemaNames,
+  responseContentType?: string
+  responseSchema?: SchemaObject | ReferenceObject
+  responseSchemaNames?: SchemaNames
   statusCode?: string
 }
 
@@ -67,30 +70,42 @@ const logPre = debug('preprocessing')
 const log = debug('translation')
 
 // OAS constants
-export const OAS_OPERATIONS = ['get', 'put', 'post', 'patch', 'delete', 'options', 'head']
+export const OAS_OPERATIONS = [
+  'get',
+  'put',
+  'post',
+  'patch',
+  'delete',
+  'options',
+  'head'
+]
 export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
 
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
+export async function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
   // CASE: translate
-  if (typeof (spec as Oas2).swagger === 'string'
-    && (spec as Oas2).swagger === '2.0') {
+  if (
+    typeof (spec as Oas2).swagger === 'string' &&
+    (spec as Oas2).swagger === '2.0'
+  ) {
     logPre(`Received OpenAPI Specification 2.0 - going to translate...`)
     let result: { openapi: Oas3 } = await Swagger2OpenAPI.convertObj(spec, {})
-    return (result.openapi as Oas3)
+    return result.openapi as Oas3
     // CASE: validate
-  } else if (typeof (spec as Oas3).openapi === 'string'
-    && /^3/.test((spec as Oas3).openapi)) {
+  } else if (
+    typeof (spec as Oas3).openapi === 'string' &&
+    /^3/.test((spec as Oas3).openapi)
+  ) {
     logPre(`Received OpenAPI Specification 3.0.x - going to validate...`)
     let valid = OASValidator.validateSync(spec, {})
     if (!valid) {
       throw new Error(`Validation of OpenAPI Specification failed.`)
     }
     logPre(`OpenAPI Specification is validated`)
-    return (spec as Oas3)
+    return spec as Oas3
   } else {
     throw new Error(`Invalid specification provided`)
   }
@@ -99,7 +114,7 @@ export async function getValidOAS3 (spec: Oas2 | Oas3): Promise<Oas3> {
 /**
  * Counts the number of operations in an OAS.
  */
-export function countOperations (oas: Oas3): number {
+export function countOperations(oas: Oas3): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -114,7 +129,7 @@ export function countOperations (oas: Oas3): number {
 /**
  * Counts the number of operations that translate to queries in an OAS.
  */
-export function countOperationsQuery (oas: Oas3): number {
+export function countOperationsQuery(oas: Oas3): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -129,7 +144,7 @@ export function countOperationsQuery (oas: Oas3): number {
 /**
  * Counts the number of operations that translate to mutations in an OAS.
  */
-export function countOperationsMutation (oas: Oas3): number {
+export function countOperationsMutation(oas: Oas3): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -144,12 +159,14 @@ export function countOperationsMutation (oas: Oas3): number {
 /**
  * Counts the number of operations with a payload definition in an OAS.
  */
-export function countOperationsWithPayload (oas: Oas3): number {
+export function countOperationsWithPayload(oas: Oas3): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
-      if (isOperation(method) &&
-        typeof oas.paths[path][method].requestBody === 'object') {
+      if (
+        isOperation(method) &&
+        typeof oas.paths[path][method].requestBody === 'object'
+      ) {
         numOps++
       }
     }
@@ -160,11 +177,7 @@ export function countOperationsWithPayload (oas: Oas3): number {
 /**
  * Resolves the given reference in the given object.
  */
-export function resolveRef (
-  ref: string,
-  obj: Object,
-  parts?: string[]
-): any {
+export function resolveRef(ref: string, obj: Object, parts?: string[]): any {
   if (typeof parts === 'undefined') {
     parts = ref.split('/')
   }
@@ -187,13 +200,12 @@ export function resolveRef (
 /**
  * Returns the base URL to use for the given operation.
  */
-export function getBaseUrl (
-  operation: Operation,
-): string {
+export function getBaseUrl(operation: Operation): string {
   // check for servers:
   if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
-    throw new Error(`No servers defined for operation ` +
-      `"${operation.operationId}"`)
+    throw new Error(
+      `No servers defined for operation ` + `"${operation.operationId}"`
+    )
   }
 
   // check for local servers
@@ -225,15 +237,19 @@ export function getBaseUrl (
 /**
  * Returns the default URL for a given OAS server object.
  */
-function buildUrl (server: ServerObject): string {
+function buildUrl(server: ServerObject): string {
   let url = server.url
   // necessary?
-  if (typeof server.variables === 'object' &&
-    Object.keys(server.variables).length > 0) {
+  if (
+    typeof server.variables === 'object' &&
+    Object.keys(server.variables).length > 0
+  ) {
     for (let variableKey in server.variables) {
       // check for default? Would be invalid OAS
-      url = url.replace(`{${variableKey}}`,
-        server.variables[variableKey].default.toString())
+      url = url.replace(
+        `{${variableKey}}`,
+        server.variables[variableKey].default.toString()
+      )
     }
   }
 
@@ -244,7 +260,7 @@ function buildUrl (server: ServerObject): string {
  * Returns object | array where all object keys are sanitized. Keys passed in
  * exceptions are not sanitized.
  */
-export function sanitizeObjKeys (
+export function sanitizeObjKeys(
   obj: Object | Array<any>,
   exceptions: string[] = []
 ): Object | Array<any> {
@@ -277,11 +293,11 @@ export function sanitizeObjKeys (
  * Desanitizes keys in given object by replacing them with the keys stored in
  * the given mapping.
  */
-export function desanitizeObjKeys (
+export function desanitizeObjKeys(
   obj: Object | Array<any>,
   mapping: Object = {}
 ): Object | Array<any> {
-  const replaceKeys = (obj) => {
+  const replaceKeys = obj => {
     if (Array.isArray(obj)) {
       return obj.map(replaceKeys)
     } else if (typeof obj === 'object') {
@@ -308,13 +324,13 @@ export function desanitizeObjKeys (
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-export function instantiatePathAndGetQuery (
+export function instantiatePathAndGetQuery(
   path: string,
   parameters: ParameterObject[],
   args: Object // NOTE: argument keys are sanitized!
 ): {
-  path: string,
-  query: { [key: string]: string },
+  path: string
+  query: { [key: string]: string }
   headers: { [key: string]: string }
 } {
   let query = {}
@@ -324,7 +340,6 @@ export function instantiatePathAndGetQuery (
   if (Array.isArray(parameters)) {
     // iterate parameters:
     for (let param of parameters) {
-
       let sanitizedParamName = beautify(param.name)
       if (sanitizedParamName && sanitizedParamName in args) {
         switch (param.in) {
@@ -353,12 +368,18 @@ export function instantiatePathAndGetQuery (
             break
 
           default:
-            logHttp(`Warning: The parameter location "${param.in}" in the ` +
-              `parameter "${param.name}" of operation "${path}" is not supported`)
+            logHttp(
+              `Warning: The parameter location "${param.in}" in the ` +
+                `parameter "${
+                  param.name
+                }" of operation "${path}" is not supported`
+            )
         }
       } else {
-        logHttp(`Warning: The parameter "${param.name}" of operation "${path}" ` +
-          `could not be found`)
+        logHttp(
+          `Warning: The parameter "${param.name}" of operation "${path}" ` +
+            `could not be found`
+        )
       }
     }
   }
@@ -370,7 +391,7 @@ export function instantiatePathAndGetQuery (
  * Returns the "type" of the given JSON schema. Makes best guesses if the type
  * is not explicitly defined.
  */
-export function getSchemaType (schema: SchemaObject): string | null {
+export function getSchemaType(schema: SchemaObject): string | null {
   // CASE: enum
   if (Array.isArray(schema.enum)) {
     return 'enum'
@@ -384,14 +405,16 @@ export function getSchemaType (schema: SchemaObject): string | null {
     }
 
     // if there are no properties:
-    if (typeof schema.properties === 'undefined' ||
-      Object.keys(schema.properties).length === 0) {
+    if (
+      typeof schema.properties === 'undefined' ||
+      Object.keys(schema.properties).length === 0
+    ) {
       return null
     }
 
     return 'object'
   }
-  
+
   if ('properties' in schema) {
     return 'object'
   }
@@ -422,7 +445,7 @@ export function getSchemaType (schema: SchemaObject): string | null {
 /**
  * Determines an approximate name for the resource at the given path.
  */
-export function inferResourceNameFromPath (path: string): string {
+export function inferResourceNameFromPath(path: string): string {
   let name = ''
   let parts = path.split('/')
   parts.forEach((part, i) => {
@@ -443,18 +466,21 @@ export function inferResourceNameFromPath (path: string): string {
  * Returns JSON-compatible schema required by the given endpoint - or null if it
  * does not exist.
  */
-export function getRequestSchema (
+export function getRequestSchema(
   endpoint: OperationObject,
   oas: Oas3
-): { payloadContentType: string, payloadSchema: SchemaObject } | null {
+): { payloadContentType: string; payloadSchema: SchemaObject } | null {
   if (typeof endpoint.requestBody === 'object') {
     let requestBody: RequestBodyObject | ReferenceObject = endpoint.requestBody
 
     // make sure we have a RequestBodyObject:
     if (typeof (requestBody as ReferenceObject).$ref === 'string') {
-      requestBody = (resolveRef((requestBody as ReferenceObject).$ref, oas) as RequestBodyObject)
+      requestBody = resolveRef(
+        (requestBody as ReferenceObject).$ref,
+        oas
+      ) as RequestBodyObject
     } else {
-      requestBody = ((requestBody as any) as RequestBodyObject)
+      requestBody = (requestBody as any) as RequestBodyObject
     }
 
     if (typeof requestBody.content === 'object') {
@@ -462,12 +488,17 @@ export function getRequestSchema (
 
       // Prioritizes content-type JSON
       if (Object.keys(content).includes('application/json')) {
-        return { payloadContentType: 'application/json', payloadSchema: content['application/json'].schema as SchemaObject }
+        return {
+          payloadContentType: 'application/json',
+          payloadSchema: content['application/json'].schema as SchemaObject
+        }
       } else {
-
         // Picks a random content type
         for (let contentType in content) {
-          return { payloadContentType: contentType, payloadSchema: content[contentType].schema as SchemaObject }
+          return {
+            payloadContentType: contentType,
+            payloadSchema: content[contentType].schema as SchemaObject
+          }
         }
       }
     }
@@ -475,13 +506,12 @@ export function getRequestSchema (
   return { payloadContentType: null, payloadSchema: null }
 }
 
-
 /**
  * Returns the request schema (if any) for endpoint at given path and method, a
  * dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
  */
-export function getRequestSchemaAndNames (
+export function getRequestSchemaAndNames(
   path: string,
   method: string,
   oas: Oas3
@@ -521,7 +551,8 @@ export function getRequestSchemaAndNames (
       let saneContentTypeName: string = ''
       let terms = payloadContentType.split('/')
       for (let index in terms) {
-        saneContentTypeName += terms[index].charAt(0).toUpperCase() + terms[index].slice(1)
+        saneContentTypeName +=
+          terms[index].charAt(0).toUpperCase() + terms[index].slice(1)
       }
 
       payloadSchemaNames = {
@@ -530,8 +561,13 @@ export function getRequestSchemaAndNames (
 
       let description = payloadContentType + ' request placeholder object'
 
-      if ('description' in payloadSchema && typeof (payloadSchema['description']) === 'string') {
-        description += `\n\nOriginal top level description: ${payloadSchema['description']}`
+      if (
+        'description' in payloadSchema &&
+        typeof payloadSchema['description'] === 'string'
+      ) {
+        description += `\n\nOriginal top level description: ${
+          payloadSchema['description']
+        }`
       }
 
       payloadSchema = {
@@ -556,11 +592,11 @@ export function getRequestSchemaAndNames (
  * Returns JSON-compatible schema produced by the given endpoint - or null if it
  * does not exist.
  */
-export function getResponseSchema (
+export function getResponseSchema(
   endpoint: OperationObject,
   statusCode: string,
   oas: Oas3
-): { responseContentType: string, responseSchema: SchemaObject } | null {
+): { responseContentType: string; responseSchema: SchemaObject } | null {
   if (typeof endpoint.responses === 'object') {
     let responses: ResponsesObject = endpoint.responses
     if (typeof responses[statusCode] === 'object') {
@@ -568,9 +604,12 @@ export function getResponseSchema (
 
       // make sure we have a ResponseObject:
       if (typeof (response as ReferenceObject).$ref === 'string') {
-        response = (resolveRef((response as ReferenceObject).$ref, oas) as ResponseObject)
+        response = resolveRef(
+          (response as ReferenceObject).$ref,
+          oas
+        ) as ResponseObject
       } else {
-        response = ((response as any) as ResponseObject)
+        response = (response as any) as ResponseObject
       }
 
       if (response.content && typeof response.content !== 'undefined') {
@@ -578,12 +617,17 @@ export function getResponseSchema (
 
         // Prioritizes content-type JSON
         if (Object.keys(content).includes('application/json')) {
-          return { responseContentType: 'application/json', responseSchema: content['application/json'].schema as SchemaObject }
+          return {
+            responseContentType: 'application/json',
+            responseSchema: content['application/json'].schema as SchemaObject
+          }
         } else {
-
           // Picks a random content type
           for (let contentType in content) {
-            return { responseContentType: contentType, responseSchema: content[contentType].schema as SchemaObject }
+            return {
+              responseContentType: contentType,
+              responseSchema: content[contentType].schema as SchemaObject
+            }
           }
         }
       }
@@ -597,7 +641,7 @@ export function getResponseSchema (
  * the given status code, and a dictionary of names from different sources (if
  * available).
  */
-export function getResponseSchemaAndNames (
+export function getResponseSchemaAndNames(
   path: string,
   method: string,
   oas: Oas3,
@@ -610,7 +654,11 @@ export function getResponseSchemaAndNames (
   if (!statusCode) {
     return {}
   }
-  let { responseContentType, responseSchema } = getResponseSchema(endpoint, statusCode, oas)
+  let { responseContentType, responseSchema } = getResponseSchema(
+    endpoint,
+    statusCode,
+    oas
+  )
 
   if (responseSchema) {
     responseSchemaNames.fromPath = inferResourceNameFromPath(path)
@@ -626,11 +674,16 @@ export function getResponseSchemaAndNames (
     // if request body content-type is not application/json, do not parse.
     // interpret the request body as a string
     if (responseContentType !== 'application/json') {
-      let description = 'Placeholder object to access non-application/json ' +
-        'response bodies'
+      let description =
+        'Placeholder object to access non-application/json ' + 'response bodies'
 
-      if ('description' in responseSchema && typeof (responseSchema['description']) === 'string') {
-        description += `\n\nOriginal top level description: ${responseSchema['description']}`
+      if (
+        'description' in responseSchema &&
+        typeof responseSchema['description'] === 'string'
+      ) {
+        description += `\n\nOriginal top level description: ${
+          responseSchema['description']
+        }`
       }
 
       responseSchema = {
@@ -646,23 +699,23 @@ export function getResponseSchemaAndNames (
       statusCode
     }
   } else {
-
     /**
-     * 204 is a special case in which a successful call does not return a 
+     * 204 is a special case in which a successful call does not return a
      * response. GraphQL does not support that kind of functionality so by
      * default, these operations will be ignored.
-     * 
+     *
      * However, if the following condition is true, then OASGraph will inject
-     * a placeholder response schema. 
+     * a placeholder response schema.
      */
     if (statusCode === '204' && options.fillEmptyResponses) {
       return {
         responseSchemaNames: {
-          fromPath: inferResourceNameFromPath(path),
+          fromPath: inferResourceNameFromPath(path)
         },
         responseContentType: 'application/json',
         responseSchema: {
-          description: 'Placeholder object to support operations with no response schema',
+          description:
+            'Placeholder object to support operations with no response schema',
           type: 'string'
         }
       }
@@ -676,7 +729,7 @@ export function getResponseSchemaAndNames (
  * Returns the success status code for the operation at the given path and
  * method (or null).
  */
-export function getResponseStatusCode (
+export function getResponseStatusCode(
   path: string,
   method: string,
   oas: Oas3,
@@ -708,7 +761,7 @@ export function getResponseStatusCode (
 /**
  * Returns an hash containing the links defined in the given endpoint.
  */
-export function getEndpointLinks (
+export function getEndpointLinks(
   path: string,
   method: string,
   oas: Oas3,
@@ -726,11 +779,14 @@ export function getEndpointLinks (
       let response: ResponseObject | ReferenceObject = responses[statusCode]
 
       if (typeof (response as ReferenceObject).$ref === 'string') {
-        response = (resolveRef((response as ReferenceObject).$ref, oas) as ResponseObject)
+        response = resolveRef(
+          (response as ReferenceObject).$ref,
+          oas
+        ) as ResponseObject
       }
 
       // here, we can be certain we have a ResponseObject:
-      response = ((response as any) as ResponseObject)
+      response = (response as any) as ResponseObject
 
       if (typeof response.links === 'object') {
         let epLinks: LinksObject = response.links
@@ -741,7 +797,7 @@ export function getEndpointLinks (
           if (typeof (link as ReferenceObject).$ref === 'string') {
             link = resolveRef(link['$ref'], oas)
           } else {
-            link = ((link as any) as LinkObject)
+            link = (link as any) as LinkObject
           }
           links[linkKey] = link
         }
@@ -755,7 +811,7 @@ export function getEndpointLinks (
  * Returns the list of parameters for the endpoint at the given method and path.
  * Resolves possible references.
  */
-export function getParameters (
+export function getParameters(
   path: string,
   method: string,
   oas: Oas3
@@ -763,8 +819,10 @@ export function getParameters (
   let parameters = []
 
   if (!isOperation(method)) {
-    log(`Warning: attempted to get parameters for ${method} ${path}, ` +
-      `which is not an operation.`)
+    log(
+      `Warning: attempted to get parameters for ${method} ${path}, ` +
+        `which is not an operation.`
+    )
     return parameters
   }
 
@@ -777,10 +835,10 @@ export function getParameters (
     let pathItemParameters: ParameterObject[] = pathParams.map(p => {
       if (typeof (p as ReferenceObject).$ref === 'string') {
         // here we know we have a parameter object:
-        return (resolveRef(p['$ref'], oas) as ParameterObject)
+        return resolveRef(p['$ref'], oas) as ParameterObject
       } else {
         // here we know we have a parameter object:
-        return ((p as any) as ParameterObject)
+        return (p as any) as ParameterObject
       }
     })
     parameters = parameters.concat(pathItemParameters)
@@ -795,10 +853,10 @@ export function getParameters (
     let opParameters: ParameterObject[] = opObjectParameters.map(p => {
       if (typeof (p as ReferenceObject).$ref === 'string') {
         // here we know we have a parameter object:
-        return (resolveRef(p['$ref'], oas) as ParameterObject)
+        return resolveRef(p['$ref'], oas) as ParameterObject
       } else {
         // here we know we have a parameter object:
-        return ((p as any) as ParameterObject)
+        return (p as any) as ParameterObject
       }
     })
     parameters = parameters.concat(opParameters)
@@ -813,7 +871,7 @@ export function getParameters (
  * definitions at the path item, definitions at the operation, or the OAS
  * default.
  */
-export function getServers (
+export function getServers(
   path: string,
   method: string,
   oas: Oas3
@@ -851,24 +909,28 @@ export function getServers (
  * Returns a map of Security Scheme definitions, identified by keys. Resolves
  * possible references.
  */
-export function getSecuritySchemes (
+export function getSecuritySchemes(
   oas: Oas3
 ): { [key: string]: SecuritySchemeObject } {
   // collect all security schemes:
   let securitySchemes: { [key: string]: SecuritySchemeObject } = {}
-  if (typeof oas.components === 'object' &&
-    typeof oas.components.securitySchemes === 'object') {
+  if (
+    typeof oas.components === 'object' &&
+    typeof oas.components.securitySchemes === 'object'
+  ) {
     for (let schemeKey in oas.components.securitySchemes) {
       let obj = oas.components.securitySchemes[schemeKey]
 
       // ensure we have actual SecuritySchemeObject:
       if (typeof (obj as ReferenceObject).$ref === 'string') {
         // result of resolution will be SecuritySchemeObject:
-        securitySchemes[schemeKey] =
-          (resolveRef((obj as ReferenceObject).$ref, oas) as SecuritySchemeObject)
+        securitySchemes[schemeKey] = resolveRef(
+          (obj as ReferenceObject).$ref,
+          oas
+        ) as SecuritySchemeObject
       } else {
         // we already have a SecuritySchemeObject:
-        securitySchemes[schemeKey] = ((obj as any) as SecuritySchemeObject)
+        securitySchemes[schemeKey] = (obj as any) as SecuritySchemeObject
       }
     }
   }
@@ -879,7 +941,7 @@ export function getSecuritySchemes (
  * Returns the list of BEAUTIFIED keys of NON-OAUTH 2 security schemes
  * required by the operation at the given path and method.
  */
-export function getSecurityRequirements (
+export function getSecurityRequirements(
   path: string,
   method: string,
   securitySchemes: { [key: string]: ProcessedSecurityScheme },
@@ -892,9 +954,11 @@ export function getSecurityRequirements (
   if (globalSecurity && typeof globalSecurity !== 'undefined') {
     for (let secReq of globalSecurity) {
       for (let schemaKey in secReq) {
-        if (securitySchemes[schemaKey] &&
+        if (
+          securitySchemes[schemaKey] &&
           typeof securitySchemes[schemaKey] === 'object' &&
-          securitySchemes[schemaKey].def.type !== 'oauth2') {
+          securitySchemes[schemaKey].def.type !== 'oauth2'
+        ) {
           results.push(schemaKey)
         }
       }
@@ -907,9 +971,11 @@ export function getSecurityRequirements (
   if (localSecurity && typeof localSecurity !== 'undefined') {
     for (let secReq of localSecurity) {
       for (let schemaKey in secReq) {
-        if (securitySchemes[schemaKey] &&
+        if (
+          securitySchemes[schemaKey] &&
           typeof securitySchemes[schemaKey] === 'object' &&
-          securitySchemes[schemaKey].def.type !== 'oauth2') {
+          securitySchemes[schemaKey].def.type !== 'oauth2'
+        ) {
           if (!results.includes(schemaKey)) {
             results.push(schemaKey)
           }
@@ -923,7 +989,7 @@ export function getSecurityRequirements (
 /**
  * First sanitizes given string and then also camel-cases it.
  */
-export function beautify (
+export function beautify(
   str: string,
   lowercaseFirstChar: boolean = true
 ): string {
@@ -937,12 +1003,13 @@ export function beautify (
   while (sanitized.indexOf(charToRemove) !== -1) {
     let pos = sanitized.indexOf(charToRemove)
     if (sanitized.length >= pos + 2) {
-      sanitized = sanitized.slice(0, pos) +
+      sanitized =
+        sanitized.slice(0, pos) +
         sanitized.charAt(pos + 1).toUpperCase() +
         sanitized.slice(pos + 2, sanitized.length)
     } else if (sanitized.length === pos + 1) {
-      sanitized = sanitized.slice(0, pos) +
-        sanitized.charAt(pos + 1).toUpperCase()
+      sanitized =
+        sanitized.slice(0, pos) + sanitized.charAt(pos + 1).toUpperCase()
     } else {
       sanitized = sanitized.slice(0, pos)
     }
@@ -955,8 +1022,8 @@ export function beautify (
 
   // first character should be lowercase
   if (lowercaseFirstChar) {
-    sanitized = sanitized.charAt(0).toLowerCase() +
-      sanitized.slice(1, sanitized.length)
+    sanitized =
+      sanitized.charAt(0).toLowerCase() + sanitized.slice(1, sanitized.length)
   }
 
   return sanitized
@@ -966,7 +1033,7 @@ export function beautify (
  * Beautifies the given string and stores the sanitized-to-original mapping in
  * the given mapping.
  */
-export function beautifyAndStore (
+export function beautifyAndStore(
   str: string,
   mapping: { [key: string]: string }
 ): string {
@@ -978,8 +1045,10 @@ export function beautifyAndStore (
     throw new Error(`Cannot beautifyAndStore ${str}`)
   } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
-      log(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
-        `to ${clean} - collusion possible. Desanitize to ${str}.`)
+      log(
+        `Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
+          `to ${clean} - collusion possible. Desanitize to ${str}.`
+      )
     }
     mapping[clean] = str
   }
@@ -987,10 +1056,10 @@ export function beautifyAndStore (
 }
 
 /**
- * Return an object similar to the input object except the keys are all 
+ * Return an object similar to the input object except the keys are all
  * beautified
  */
-export function beautifyObjectKeys (obj: object): object {
+export function beautifyObjectKeys(obj: object): object {
   return Object.keys(obj).reduce((acc, key) => {
     acc[beautify(key)] = obj[key]
     return acc
@@ -1001,7 +1070,7 @@ export function beautifyObjectKeys (obj: object): object {
  * Sanitizes the given string so that it can be used as the name for a GraphQL
  * Object Type.
  */
-function sanitize (str: string): string {
+function sanitize(str: string): string {
   let clean = str.replace(/[^_a-zA-Z0-9]/g, '_')
   return clean
 }
@@ -1009,7 +1078,7 @@ function sanitize (str: string): string {
 /**
  * Stringifies and possibly trims the given string to the provided length.
  */
-export function trim (str: string, length: number): string {
+export function trim(str: string, length: number): string {
   if (typeof str !== 'string') {
     str = JSON.stringify(str)
   }
@@ -1025,7 +1094,7 @@ export function trim (str: string, length: number): string {
  * Determines if the given "method" is indeed an operation. Alternatively, the
  * method could point to other types of information (e.g., parameters, servers).
  */
-export function isOperation (method: string): boolean {
+export function isOperation(method: string): boolean {
   return OAS_OPERATIONS.includes(method.toLowerCase())
 }
 

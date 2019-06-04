@@ -5,6 +5,6 @@
  * translate it to Oas3 immediately anyways.
  */
 export declare type Oas2 = {
-    swagger: string;
-    [key: string]: any;
-};
+  swagger: string
+  [key: string]: any
+}

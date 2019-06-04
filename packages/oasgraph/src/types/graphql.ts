@@ -12,17 +12,18 @@ import {
   GraphQLScalarType,
   GraphQLInputObjectType,
   GraphQLList,
-  GraphQLEnumType,
+  GraphQLEnumType
 } from 'graphql'
 
-export type GraphQLType = GraphQLScalarType 
-  | GraphQLObjectType 
-  | GraphQLEnumType 
-  | GraphQLInputObjectType 
+export type GraphQLType =
+  | GraphQLScalarType
+  | GraphQLObjectType
+  | GraphQLEnumType
+  | GraphQLInputObjectType
   | GraphQLList<any>
 
 type Arg = {
-  type: any,
+  type: any
   description?: string
 }
 
@@ -30,13 +31,16 @@ export type Args = {
   [key: string]: Arg
 }
 
-export type ResolveFunction =
-  (root: Object, args: Object, ctx: Object) => Promise<any> | any
+export type ResolveFunction = (
+  root: Object,
+  args: Object,
+  ctx: Object
+) => Promise<any> | any
 
 // export type FieldsType = Thunk<GraphQLFieldConfigMap<Object, Object>>
 export type Field = {
-  type: GraphQLType,
-  resolve?: ResolveFunction,
-  args?: Args,
+  type: GraphQLType
+  resolve?: ResolveFunction
+  args?: Args
   description: string
 }

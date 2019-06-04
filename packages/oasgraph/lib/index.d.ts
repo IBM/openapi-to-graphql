@@ -24,16 +24,19 @@
  *   credentials and pass them on using the _oasgraph object to other resolve
  *   functions.
  */
-import { Options, Report } from './types/options';
-import { Oas3 } from './types/oas3';
-import { Oas2 } from './types/oas2';
-import { GraphQLSchema } from 'graphql';
+import { Options, Report } from './types/options'
+import { Oas3 } from './types/oas3'
+import { Oas2 } from './types/oas2'
+import { GraphQLSchema } from 'graphql'
 declare type Result = {
-    schema: GraphQLSchema;
-    report: Report;
-};
+  schema: GraphQLSchema
+  report: Report
+}
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export declare function createGraphQlSchema(spec: Oas3 | Oas2 | (Oas3 | Oas2)[], options?: Options): Promise<Result>;
-export {};
+export declare function createGraphQlSchema(
+  spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
+  options?: Options
+): Promise<Result>
+export {}

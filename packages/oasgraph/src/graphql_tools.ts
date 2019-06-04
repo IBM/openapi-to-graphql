@@ -18,7 +18,7 @@ import {
 /**
  * Returns empty GraphQLObjectType.
  */
-export function getEmptyObjectType (name: string): GQObjectType {
+export function getEmptyObjectType(name: string): GQObjectType {
   return new GraphQLObjectType({
     name: name + 'Placeholder',
     fields: {
@@ -35,7 +35,7 @@ export function getEmptyObjectType (name: string): GQObjectType {
 /**
  * Returns empty GraphQLInputObjectType.
  */
-export function getEmptyInputObjectType (): GQInputObjectType {
+export function getEmptyInputObjectType(): GQInputObjectType {
   return new GraphQLInputObjectType({
     name: 'placeholder',
     fields: {

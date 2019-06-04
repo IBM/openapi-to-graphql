@@ -28,7 +28,7 @@ const log = debug('preprocessing')
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OASGraph to use
  */
-export function preprocessOas (
+export function preprocessOas(
   oass: Oas3[],
   options: InternalOptions
 ): PreprocessingData {
@@ -44,7 +44,7 @@ export function preprocessOas (
     options
   }
 
-  oass.forEach((oas) => {
+  oass.forEach(oas => {
     // store stats on OAS:
     data.options.report.numOps += Oas3Tools.countOperations(oas)
     data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas)
@@ -52,9 +52,12 @@ export function preprocessOas (
 
     // Get security schemes
     let currentSecurity = getProcessedSecuritySchemes(oas, data, oass)
-    let commonSecurityPropertyName = getCommonPropertyNames(data.security, currentSecurity)
+    let commonSecurityPropertyName = getCommonPropertyNames(
+      data.security,
+      currentSecurity
+    )
     Object.assign(data.security, currentSecurity)
-    commonSecurityPropertyName.forEach((propertyName) => {
+    commonSecurityPropertyName.forEach(propertyName => {
       handleWarning({
         typeKey: 'SECURITY_SCHEME',
         culprit: propertyName,
@@ -76,11 +79,13 @@ export function preprocessOas (
 
         // Determine description
         let description = endpoint.description
-        if ((typeof description !== 'string' || description === '') &&
-          typeof endpoint.summary === 'string') {
+        if (
+          (typeof description !== 'string' || description === '') &&
+          typeof endpoint.summary === 'string'
+        ) {
           description = endpoint.summary
         }
-        
+
         if (typeof description !== 'string') {
           description = 'No description available.'
         }
@@ -88,7 +93,9 @@ export function preprocessOas (
         if (oass.length === 1) {
           description += `\n\nEquivalent to ${method.toUpperCase()} ${path}`
         } else {
-          description += `\n\nEquivalent to ${oas.info.title} ${method.toUpperCase()} ${path}`
+          description += `\n\nEquivalent to ${
+            oas.info.title
+          } ${method.toUpperCase()} ${path}`
         }
 
         // Hold on to the operationId
@@ -100,17 +107,38 @@ export function preprocessOas (
         }
 
         // Request schema
-        let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } =
-          Oas3Tools.getRequestSchemaAndNames(path, method, oas)
+        let {
+          payloadContentType,
+          payloadSchema,
+          payloadSchemaNames,
+          payloadRequired
+        } = Oas3Tools.getRequestSchemaAndNames(path, method, oas)
 
         let payloadDefinition
         if (payloadSchema && typeof payloadSchema !== 'undefined') {
-          payloadDefinition = createDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), true, data, undefined, oas)
+          payloadDefinition = createDataDef(
+            payloadSchemaNames,
+            payloadSchema as SchemaObject,
+            true,
+            data,
+            undefined,
+            oas
+          )
         }
 
         // Response schema
-        let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(
-          path, method, oas, data, options)
+        let {
+          responseContentType,
+          responseSchema,
+          responseSchemaNames,
+          statusCode
+        } = Oas3Tools.getResponseSchemaAndNames(
+          path,
+          method,
+          oas,
+          data,
+          options
+        )
 
         if (!responseSchema || typeof responseSchema !== 'object') {
           handleWarning({
@@ -123,12 +151,11 @@ export function preprocessOas (
         }
 
         // Links
-        let links = Oas3Tools.getEndpointLinks(
-          path, method, oas, data)
+        let links = Oas3Tools.getEndpointLinks(path, method, oas, data)
 
         let responseDefinition = createDataDef(
           responseSchemaNames,
-          (responseSchema as SchemaObject),
+          responseSchema as SchemaObject,
           false,
           data,
           links,
@@ -142,15 +169,19 @@ export function preprocessOas (
         let securityRequirements = []
         if (options.viewer) {
           securityRequirements = Oas3Tools.getSecurityRequirements(
-            path, method, data.security, oas)
+            path,
+            method,
+            data.security,
+            oas
+          )
         }
 
         // servers
         let servers = Oas3Tools.getServers(path, method, oas)
 
         // whether to place this operation into an authentication viewer
-        let inViewer = securityRequirements.length > 0 &&
-          data.options.viewer !== false
+        let inViewer =
+          securityRequirements.length > 0 && data.options.viewer !== false
 
         let isMutation = method.toLowerCase() !== 'get'
 
@@ -232,11 +263,11 @@ export function preprocessOas (
  *   }
  * }
  */
-function getProcessedSecuritySchemes (
+function getProcessedSecuritySchemes(
   oas: Oas3,
   data: PreprocessingData,
   oass: Oas3[]
-): {[key: string]: ProcessedSecurityScheme} {
+): { [key: string]: ProcessedSecurityScheme } {
   let result = {}
   let security = Oas3Tools.getSecuritySchemes(oas)
 
@@ -254,7 +285,7 @@ function getProcessedSecuritySchemes (
     let parameters = {}
     let description
     switch (protocol.type) {
-      case ('apiKey'):
+      case 'apiKey':
         description = `API key credentials for the security protocol '${key}' `
         if (oass.length > 1) {
           description += `in ${oas.info.title}`
@@ -275,16 +306,16 @@ function getProcessedSecuritySchemes (
         }
         break
 
-      case ('http'):
+      case 'http':
         switch (protocol.scheme) {
           // HTTP a number of authentication types (see
           // http://www.iana.org/assignments/http-authschemes/
           // http-authschemes.xhtml)
-            case ('basic'):
-              description = `Basic auth credentials for security protocol '${key}' `
-              if (oass.length > 1) {
-                description += `in ${oas.info.title}`
-              }
+          case 'basic':
+            description = `Basic auth credentials for security protocol '${key}' `
+            if (oass.length > 1) {
+              description += `in ${oas.info.title}`
+            }
 
             parameters = {
               username: Oas3Tools.beautify(`${key}_username`),
@@ -315,7 +346,7 @@ function getProcessedSecuritySchemes (
         break
 
       // TODO: Implement
-      case ('openIdConnect'):
+      case 'openIdConnect':
         break
 
       default:
@@ -346,10 +377,10 @@ function getProcessedSecuritySchemes (
  * (= String to use as the name for Input Object Types). Eventually, data
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
- * 
- * Either names or preferredName should exist. 
+ *
+ * Either names or preferredName should exist.
  */
-export function createDataDef (
+export function createDataDef(
   names: Oas3Tools.SchemaNames,
   schema: SchemaObject,
   isInputObjectType: boolean,
@@ -359,8 +390,10 @@ export function createDataDef (
 ): DataDefinition {
   // Do a basic validation check
   if (!schema || typeof schema === 'undefined') {
-    throw new Error(`Cannot create data definition for invalid schema ` +
-      `"${String(schema)}"`)
+    throw new Error(
+      `Cannot create data definition for invalid schema ` +
+        `"${String(schema)}"`
+    )
   }
 
   const preferredName = getPreferredName(names)
@@ -382,9 +415,8 @@ export function createDataDef (
     if (typeof links !== 'undefined') {
       if (typeof existingDataDef.links !== 'undefined') {
         // Check if there are any overlapping links
-        Object.keys(existingDataDef.links)
-        .forEach((linkKey) => {
-          if (!(deepEqual(existingDataDef[linkKey], links[linkKey]))) {
+        Object.keys(existingDataDef.links).forEach(linkKey => {
+          if (!deepEqual(existingDataDef[linkKey], links[linkKey])) {
             handleWarning({
               typeKey: 'DUPLICATE_LINK_KEY',
               culprit: linkKey,
@@ -396,7 +428,6 @@ export function createDataDef (
 
         // Collapse the links
         Object.assign(existingDataDef.links, links)
-        
       } else {
         // No preexisting links, so simply assign the links
         existingDataDef.links = links
@@ -404,7 +435,6 @@ export function createDataDef (
     }
 
     return existingDataDef
-
   } else {
     // Else, define a new name, store the def, and return it
     const name = getSchemaName(data.usedOTNames, names)
@@ -426,7 +456,7 @@ export function createDataDef (
         data,
         log
       })
-    }  
+    }
 
     const def: DataDefinition = {
       preferredName,
@@ -459,13 +489,19 @@ export function createDataDef (
             data,
             log
           })
-        }       
+        }
       }
 
-      let subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, isInputObjectType, data, undefined, oas)
+      let subDefinition = createDataDef(
+        { fromRef: itemsName },
+        itemsSchema as SchemaObject,
+        isInputObjectType,
+        data,
+        undefined,
+        oas
+      )
       // Add list item reference
       def.subDefinitions = subDefinition
-
     } else if (type === 'object') {
       def.subDefinitions = {}
 
@@ -485,10 +521,17 @@ export function createDataDef (
               data,
               log
             })
-          }       
+          }
         }
 
-        let subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, isInputObjectType, data, undefined, oas)
+        let subDefinition = createDataDef(
+          { fromRef: propSchemaName },
+          propSchema as SchemaObject,
+          isInputObjectType,
+          data,
+          undefined,
+          oas
+        )
         // Add field type references
         def.subDefinitions[propSchemaName] = subDefinition
       }
@@ -500,10 +543,10 @@ export function createDataDef (
 
 /**
  * Returns the index of the data definition object in the given list that
- * contains the same schema and preferred name as the given one. Returns -1 if 
+ * contains the same schema and preferred name as the given one. Returns -1 if
  * that schema could not be found.
  */
-function getSchemaIndex (
+function getSchemaIndex(
   preferredName: string,
   schema: SchemaObject,
   dataDefs: DataDefinition[]
@@ -523,34 +566,32 @@ function getSchemaIndex (
 
 /**
  * Determines the preferred name to use for schema regardless of name collisions.
- * 
+ *
  * In other words, determines the ideal name for a schema.
- * 
- * Similar to getSchemaName() except it does not check if the name has already 
+ *
+ * Similar to getSchemaName() except it does not check if the name has already
  * been taken.
  */
-function getPreferredName (
-  names: Oas3Tools.SchemaNames
-): string {
+function getPreferredName(names: Oas3Tools.SchemaNames): string {
   let schemaName
 
   // CASE: preferred name already known
   if (typeof names.preferred === 'string') {
     schemaName = names.preferred
 
-  // CASE: name from reference
+    // CASE: name from reference
   } else if (typeof names.fromRef === 'string') {
     schemaName = names.fromRef
 
-  // CASE: name from schema (i.e., "title" property in schema)
+    // CASE: name from schema (i.e., "title" property in schema)
   } else if (typeof names.fromSchema === 'string') {
     schemaName = names.fromSchema
 
-  // CASE: name from path
+    // CASE: name from path
   } else if (typeof names.fromPath === 'string') {
     schemaName = names.fromPath
 
-  // CASE: placeholder name
+    // CASE: placeholder name
   } else {
     schemaName = 'RandomName'
   }
@@ -562,16 +603,21 @@ function getPreferredName (
  * Determines name to use for schema from previously determined schemaNames and
  * considering not reusing existing names.
  */
-function getSchemaName (
+function getSchemaName(
   usedNames: string[],
   names?: Oas3Tools.SchemaNames
 ): string {
-  if (!names || typeof names === 'undefined' ) {
+  if (!names || typeof names === 'undefined') {
     throw new Error(`Cannot create data definition without name(s).`)
 
-  // Cannot create a schema name from only preferred name
-  } else if (Object.keys(names).length === 1 && typeof names.preferred === 'string') {
-    throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`)
+    // Cannot create a schema name from only preferred name
+  } else if (
+    Object.keys(names).length === 1 &&
+    typeof names.preferred === 'string'
+  ) {
+    throw new Error(
+      `Cannot create data definition without name(s), excluding the preferred name.`
+    )
   }
 
   let schemaName
@@ -602,10 +648,15 @@ function getSchemaName (
 
   // CASE: all names are already used - create approximate name
   if (!schemaName) {
-    let tempName = Oas3Tools.beautify(typeof names.fromRef === 'string'
-      ? names.fromRef : (typeof names.fromSchema === 'string'
-      ? names.fromSchema : (typeof names.fromPath === 'string'
-      ? names.fromPath : 'RandomName')))
+    let tempName = Oas3Tools.beautify(
+      typeof names.fromRef === 'string'
+        ? names.fromRef
+        : typeof names.fromSchema === 'string'
+        ? names.fromSchema
+        : typeof names.fromPath === 'string'
+        ? names.fromPath
+        : 'RandomName'
+    )
     let appendix = 2
 
     /**

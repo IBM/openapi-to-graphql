@@ -8,7 +8,7 @@
  */
 
 type ExternalDocumentationObject = {
-  description?: string,
+  description?: string
   url: string
 }
 
@@ -31,61 +31,61 @@ export type SchemaObject = {
 }
 
 export type ReferenceObject = {
-  '$ref': string
+  $ref: string
 }
 
 type ExampleObject = {
-  summary?: string,
-  description?: string,
-  value?: any,
+  summary?: string
+  description?: string
+  value?: any
   externalValue?: string
 }
 
 type HeaderObject = {
-  name?: string,
-  in?: 'query' | 'header' | 'path' | 'cookie',
-  description?: string,
-  required?: boolean,
-  deprecated?: boolean,
+  name?: string
+  in?: 'query' | 'header' | 'path' | 'cookie'
+  description?: string
+  required?: boolean
+  deprecated?: boolean
   allowEmptyValue?: boolean
 }
 
 type EncodingObject = {
-  contentType?: string,
+  contentType?: string
   headers?: {
     [key: string]: HeaderObject | ReferenceObject
-  },
-  style?: string,
-  explode?: boolean,
+  }
+  style?: string
+  explode?: boolean
   allowReserved?: boolean
 }
 
 export type MediaTypeObject = {
-  schema?: SchemaObject | ReferenceObject,
-  example?: any,
+  schema?: SchemaObject | ReferenceObject
+  example?: any
   examples?: {
     [key: string]: ExampleObject | ReferenceObject
-  },
+  }
   encoding?: {
     [key: string]: EncodingObject
   }
 }
 
 export type ParameterObject = {
-  name: string,
-  in: 'query' | 'header' | 'path' | 'cookie',
-  description?: string,
-  required?: boolean,
-  deprecated?: boolean,
-  allowEmptyValue?: boolean,
-  style?: 'form' | 'simple',
-  explode?: boolean,
-  allowReserved?: boolean,
-  schema?: SchemaObject | ReferenceObject,
-  example?: any,
+  name: string
+  in: 'query' | 'header' | 'path' | 'cookie'
+  description?: string
+  required?: boolean
+  deprecated?: boolean
+  allowEmptyValue?: boolean
+  style?: 'form' | 'simple'
+  explode?: boolean
+  allowReserved?: boolean
+  schema?: SchemaObject | ReferenceObject
+  example?: any
   examples?: {
     [key: string]: ExampleObject | ReferenceObject
-  },
+  }
   content?: {
     [key: string]: MediaTypeObject
   }
@@ -96,27 +96,27 @@ export type MediaTypesObject = {
 }
 
 export type ServerObject = {
-  url: string,
-  description?: string,
+  url: string
+  description?: string
   variables?: Object // TODO: extend
 }
 
 export type RequestBodyObject = {
-  description?: string,
+  description?: string
   content: {
     [key: string]: MediaTypeObject
-  },
+  }
   required?: boolean
 }
 
 export type LinkObject = {
-  operationRef?: string,
-  operationId?: string,
+  operationRef?: string
+  operationId?: string
   parameters?: {
     [key: string]: any
-  },
-  requestBody?: any,
-  description?: string,
+  }
+  requestBody?: any
+  description?: string
   server?: ServerObject
 }
 
@@ -125,11 +125,11 @@ export type LinksObject = {
 }
 
 export type ResponseObject = {
-  description: string,
+  description: string
   headers?: {
     [key: string]: HeaderObject | ReferenceObject
-  },
-  content?: MediaTypesObject,
+  }
+  content?: MediaTypesObject
   links?: LinksObject
 }
 
@@ -142,26 +142,26 @@ export type SecurityRequirementObject = {
 }
 
 export type OperationObject = {
-  tags?: string[],
-  summary?: string,
-  description?: string,
-  externalDocs?: ExternalDocumentationObject,
-  operationId?: string,
-  parameters?: Array<ParameterObject | ReferenceObject>,
-  requestBody?: RequestBodyObject | ReferenceObject,
-  responses?: ResponsesObject,
-  callbacks?: any, // TODO: extend?
-  deprecated?: boolean,
-  security?: SecurityRequirementObject[],
+  tags?: string[]
+  summary?: string
+  description?: string
+  externalDocs?: ExternalDocumentationObject
+  operationId?: string
+  parameters?: Array<ParameterObject | ReferenceObject>
+  requestBody?: RequestBodyObject | ReferenceObject
+  responses?: ResponsesObject
+  callbacks?: any // TODO: extend?
+  deprecated?: boolean
+  security?: SecurityRequirementObject[]
   servers?: ServerObject[]
 }
 
 export type PathItemObject = {
-  '$ref'?: string,
-  summary?: string,
+  $ref?: string
+  summary?: string
   description: string
-  [key: string]: any,
-  servers?: ServerObject[],
+  [key: string]: any
+  servers?: ServerObject[]
   parameters?: [ParameterObject | ReferenceObject]
 }
 
@@ -170,29 +170,30 @@ type PathsObject = {
 }
 
 type OAuthFlowObject = {
-  authorizationUrl?: string, // optional, beacause applies only to certain flows
-  tokenUrl?: string, // optional, beacause applies only to certain flows
-  refreshUrl?: string, // optional, beacause applies only to certain flows
-  scopes?: { // optional, beacause applies only to certain flows
+  authorizationUrl?: string // optional, beacause applies only to certain flows
+  tokenUrl?: string // optional, beacause applies only to certain flows
+  refreshUrl?: string // optional, beacause applies only to certain flows
+  scopes?: {
+    // optional, beacause applies only to certain flows
     [key: string]: string
   }
 }
 
 type OAuthFlowsObject = {
-  implicit?: OAuthFlowObject,
-  password?: OAuthFlowObject,
-  clientCredentials?: OAuthFlowObject,
+  implicit?: OAuthFlowObject
+  password?: OAuthFlowObject
+  clientCredentials?: OAuthFlowObject
   authorizationCode?: OAuthFlowObject
 }
 
 export type SecuritySchemeObject = {
-  type: 'apiKey' | 'basicAuth' | 'http' | 'oauth2' | 'openIdConnect',
-  description?: string,
-  name?: string, // optional, because applies only to apiKey
-  in?: string, // optional, because applies only to apiKey
-  scheme?: string,  // optional, because applies only to http
-  bearerFormat?: string,
-  flows?: OAuthFlowsObject,  // optional, because applies only to oauth2
+  type: 'apiKey' | 'basicAuth' | 'http' | 'oauth2' | 'openIdConnect'
+  description?: string
+  name?: string // optional, because applies only to apiKey
+  in?: string // optional, because applies only to apiKey
+  scheme?: string // optional, because applies only to http
+  bearerFormat?: string
+  flows?: OAuthFlowsObject // optional, because applies only to oauth2
   openIdConnectUrl?: string // // optional, because applies only to openIdConnect
 }
 
@@ -203,54 +204,54 @@ export type SecuritySchemesObject = {
 type ComponentsObject = {
   schemas?: {
     [key: string]: SchemaObject | ReferenceObject
-  },
-  responses?: ResponsesObject,
+  }
+  responses?: ResponsesObject
   parameters?: {
     [key: string]: ParameterObject | ReferenceObject
-  },
+  }
   examples?: {
     [key: string]: ExampleObject | ReferenceObject
-  },
+  }
   requestBodies?: {
     [key: string]: RequestBodyObject | ReferenceObject
-  },
+  }
   headers?: {
     [key: string]: HeaderObject | ReferenceObject
-  },
-  securitySchemes?: SecuritySchemesObject,
-  links?: LinksObject,
+  }
+  securitySchemes?: SecuritySchemesObject
+  links?: LinksObject
   callbacks?: {
     [key: string]: Object | ReferenceObject
   }
 }
 
 type TagObject = {
-  name: string,
-  description?: string,
+  name: string
+  description?: string
   externalDocs?: ExternalDocumentationObject
 }
 
 export type Oas3 = {
-  openapi: string,
+  openapi: string
   info: {
-    title: string,
-    description?: string,
-    termsOfService?: string,
+    title: string
+    description?: string
+    termsOfService?: string
     contact?: {
-      name?: string,
-      url?: string,
-      email?: string
-    },
-    license?: {
-      name: string,
+      name?: string
       url?: string
-    },
+      email?: string
+    }
+    license?: {
+      name: string
+      url?: string
+    }
     version: string
-  },
-  servers?: ServerObject[],
-  paths: PathsObject,
-  components?: ComponentsObject,
-  security?: SecurityRequirementObject[],
-  tags?: TagObject[],
+  }
+  servers?: ServerObject[]
+  paths: PathsObject
+  components?: ComponentsObject
+  security?: SecurityRequirementObject[]
+  tags?: TagObject[]
   externalDocs?: ExternalDocumentationObject
 }
