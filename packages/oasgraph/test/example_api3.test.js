@@ -18,19 +18,19 @@ const api2 = require('./example_api3_server')
 
 let createdSchema
 let oas = require('./fixtures/example_oas.json')
-let oas2 = require('./fixtures/example_oas3.json')
+let oas3 = require('./fixtures/example_oas3.json')
 const PORT = 3005
 const PORT2 = 3006
 // update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
-oas2.servers[0].variables.port.default = String(PORT2)
+oas3.servers[0].variables.port.default = String(PORT2)
 
 /**
  * Set up the schema first and run example API server
  */
 beforeAll(() => {
   return Promise.all([
-    OasGraph.createGraphQlSchema([oas, oas2], {
+    OasGraph.createGraphQlSchema([oas, oas3], {
       addSubOperations: true,
       fillEmptyResponses: true
     })
@@ -294,6 +294,148 @@ test('Two APIs with AnyAuth viewer and interrelated links', () => {
           }
         }
       }
+    })
+  })
+})
+
+test('Option customResolver with two APIs', () => {
+  let options = {
+    customResolvers: {
+      'Example API': {
+        '/users/{username}': {
+          'get': () => {
+            return {
+              name: 'Jenifer Aldric'
+            }
+          }
+        }
+      },
+      'Example API 3': {
+        '/authors/{authorId}': {
+          'get': () => {
+            return {
+              name: 'Jenifer Aldric, the author'
+            }
+          }
+        }
+      }
+    }
+  }
+  let query = `query {
+    user(username: "abcdef") {
+      name
+    }
+    author(authorId: "abcdef") {
+      name
+    }
+  }`
+  return OasGraph.createGraphQlSchema([oas, oas3], options)
+  .then(({schema}) => {
+    let ast = parse(query)
+    let errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(result).toEqual({
+        "data": {
+          "user": {
+            "name": "Jenifer Aldric"
+          },
+          "author": {
+            "name": "Jenifer Aldric, the author"
+          }
+        }
+      })
+    })
+  })
+})
+
+test('Option customResolver with two APIs and interrelated links', () => {
+  let options = {
+    customResolvers: {
+      'Example API': {
+        '/users/{username}': {
+          'get': () => {
+            return {
+              name: 'Jenifer Aldric',
+              employerId: 'binsol'
+            }
+          }
+        }
+      },
+      'Example API 3': {
+        '/authors/{authorId}': {
+          'get': () => {
+            return {
+              name: 'Jenifer Aldric, the author',
+              masterpieceTitle: 'A collection of stories'
+            }
+          }
+        },
+        '/books/{bookId}': {
+          'get': () => {
+            return {
+              title: 'A collection of stories for babies',
+              authorName: 'Jenifer Aldric, yet another author'
+            }
+          }
+        }
+      }
+    }
+  }
+  let query = `query {
+    author(authorId: "abcdef") {
+      name
+      employee{
+        name
+        employerCompany{
+          name
+        }
+        author{
+          name
+          masterpiece{
+            title
+            author{
+              name
+              employee{
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }`
+  return OasGraph.createGraphQlSchema([oas, oas3], options)
+  .then(({schema}) => {
+    let ast = parse(query)
+    let errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(result).toEqual({
+        "data": {
+          "author": {
+            "name": "Jenifer Aldric, the author",
+            "employee": {
+              "name": "Jenifer Aldric",
+              "employerCompany": {
+                "name": "Binary Solutions"
+              },
+              "author": {
+                "name": "Jenifer Aldric, the author",
+                "masterpiece": {
+                  "title": "A collection of stories for babies",
+                  "author": {
+                    "name": "Jenifer Aldric, the author",
+                    "employee": {
+                      "name": "Jenifer Aldric"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      })
     })
   })
 })

@@ -12,7 +12,7 @@ const resolver_builder_1 = require("./resolver_builder");
 const preprocessor_1 = require("./preprocessor");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const log = debug_1.default('translation');
+const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
@@ -81,14 +81,14 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
     // CASE: query - create or reuse OT
     if (!isMutation) {
         if (def.ot && typeof def.ot !== 'undefined') {
-            log(`Reuse Object Type "${def.otName}"` +
+            translationLog(`Reuse Object Type "${def.otName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
             return def.ot;
         }
         else {
-            log(`Create Object Type "${def.otName}"` +
+            translationLog(`Create Object Type "${def.otName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
@@ -115,14 +115,14 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
     }
     else {
         if (typeof def.iot !== 'undefined') {
-            log(`Reuse Input Object Type "${def.iotName}"` +
+            translationLog(`Reuse Input Object Type "${def.iotName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
             return def.iot;
         }
         else {
-            log(`Create Input Object Type "${def.iotName}"` +
+            translationLog(`Create Input Object Type "${def.iotName}"` +
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
@@ -155,15 +155,15 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
     const name = isMutation ? def.iotName : def.otName;
     // try to reuse existing Object Type
     if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
-        log(`Reuse GraphQLList "${def.otName}"`);
+        translationLog(`Reuse GraphQLList "${def.otName}"`);
         return def.ot;
     }
     else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
-        log(`Reuse GraphQLList "${def.iotName}"`);
+        translationLog(`Reuse GraphQLList "${def.iotName}"`);
         return def.iot;
     }
     // create new List Object Type
-    log(`Create GraphQLList "${def.otName}"`);
+    translationLog(`Create GraphQLList "${def.otName}"`);
     // Get definition of the list item, which should be in the sub definitions
     const itemDef = def.subDefinitions;
     // Equivalent to schema.items
@@ -195,7 +195,7 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
             culprit: `List item '${itemsName}' in list '${name}' with schema: ` +
                 `${JSON.stringify(itemsSchema)}`,
             data,
-            log
+            log: translationLog
         });
         return new graphql_1.GraphQLList(graphql_1.GraphQLString);
     }
@@ -206,11 +206,11 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
 function reuseOrCreateEnum({ def, data }) {
     // try to reuse existing Enum Type
     if (def.ot && typeof def.ot !== 'undefined') {
-        log(`Reuse  GraphQLEnumType "${def.otName}"`);
+        translationLog(`Reuse  GraphQLEnumType "${def.otName}"`);
         return def.ot;
     }
     else {
-        log(`Create GraphQLEnumType "${def.otName}"`);
+        translationLog(`Create GraphQLEnumType "${def.otName}"`);
         let values = {};
         def.schema.enum.forEach(e => {
             values[Oas3Tools.beautify(e, false)] = {
@@ -251,7 +251,7 @@ function getScalarType({ def, data, }) {
                 typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
                 culprit: `Unknown JSON scalar type '${type}'`,
                 data,
-                log
+                log: translationLog
             });
             def.ot = graphql_1.GraphQLString;
             break;
@@ -298,7 +298,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
         !isMutation // only if we are not talking INPUT object type
     ) {
         for (let linkKey in links) {
-            log(`Create link "${linkKey}"...`);
+            translationLog(`Create link "${linkKey}"...`);
             let link = links[linkKey];
             // get linked operation
             let linkedOpId;
@@ -374,7 +374,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                     typeKey: 'UNRESOLVABLE_LINK',
                     culprit: linkKey,
                     data,
-                    log
+                    log: translationLog
                 });
             }
         }
@@ -420,7 +420,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                         typeKey: 'AMBIGUOUS_LINK',
                         culprit: operationRef,
                         data,
-                        log
+                        log: translationLog
                     });
                 }
                 linkLocation = operationRef.substring(0, firstPathIndex);
@@ -433,7 +433,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                     culprit: `Link '${linkKey}' has not relative path in operationRef ` +
                         `'${operationRef}'`,
                     data,
-                    log
+                    log: translationLog
                 });
                 return;
             }
@@ -465,7 +465,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                             culprit: `Method '${linkMethod}' in operationRef ` +
                                 `'${operationRef}' is invalid`,
                             data,
-                            log
+                            log: translationLog
                         });
                         return;
                     }
@@ -477,7 +477,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                         culprit: `No valid method targeted by operationRef ` +
                             `'${operationRef}'`,
                         data,
-                        log
+                        log: translationLog
                     });
                     return;
                 }
@@ -519,7 +519,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                                 culprit: `Could not find operationId '${linkedOpId}' in link ` +
                                     `'${linkKey}'`,
                                 data,
-                                log
+                                log: translationLog
                             });
                         }
                         // path and method could not be found
@@ -530,7 +530,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                             culprit: `Could not find path and/or method from operationRef ` +
                                 `'${operationRef}' in link '${linkKey}'`,
                             data,
-                            log
+                            log: translationLog
                         });
                     }
                     // external link could not be resolved
@@ -541,7 +541,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                         culprit: `OAS of external link '${link.operationRef}' could not ` +
                             `be identified`,
                         data,
-                        log
+                        log: translationLog
                     });
                 }
                 // Cannot split relative path into path and method sections
@@ -552,7 +552,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                     culprit: `Could not extract path and/or method from operationRef ` +
                         `'${operationRef}' in link '${linkKey}'`,
                     data,
-                    log
+                    log: translationLog
                 });
             }
             // Cannot extract relative path from absolute path
@@ -563,7 +563,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 culprit: `Could not extract relative path from operationRef ` +
                     `'${operationRef}' in link '${linkKey}'`,
                 data,
-                log
+                log: translationLog
             });
         }
     }
@@ -582,7 +582,7 @@ function getArgs({ def, parameters, operation, data, oass }) {
                 typeKey: 'UNNAMED_PARAMETER',
                 culprit: JSON.stringify(parameter),
                 data,
-                log
+                log: translationLog
             });
             continue;
         }
@@ -698,7 +698,7 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
                     culprit: `Multiple OASs share the same title '${linkLocation}' in ` +
                         `the operationRef '${link.operationRef}'`,
                     data,
-                    log
+                    log: translationLog
                 });
             }
             else {
@@ -708,7 +708,7 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
                     culprit: `No OAS has the title '${linkLocation}' in the ` +
                         `operationRef '${link.operationRef}`,
                     data,
-                    log
+                    log: translationLog
                 });
             }
             break;
@@ -727,7 +727,7 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
                     `'${link.operationRef}' is currently not supported\n` +
                     `Currently only the title of the OAS is supported`,
                 data,
-                log
+                log: translationLog
             });
     }
 }

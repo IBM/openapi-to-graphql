@@ -10,7 +10,7 @@ declare type Arg = {
 export declare type Args = {
     [key: string]: Arg;
 };
-export declare type ResolveFunction = (root: Object, args: Object, ctx: Object) => Promise<any> | any;
+export declare type ResolveFunction = (root: object, args: object, ctx: object, info: object) => Promise<any> | any;
 export declare type Field = {
     type: GraphQLType;
     resolve?: ResolveFunction;

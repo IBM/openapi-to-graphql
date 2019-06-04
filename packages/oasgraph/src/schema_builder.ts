@@ -99,7 +99,7 @@ type LinkOpRefToOpIdParams = {
   oass: Oas3[]
 }
 
-const log = debug('translation')
+const translationLog = debug('translation')
 
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
@@ -187,13 +187,13 @@ function createOrReuseOt ({
   // CASE: query - create or reuse OT
   if (!isMutation) { 
     if (def.ot && typeof def.ot !== 'undefined') {
-      log(`Reuse Object Type "${def.otName}"` +
+      translationLog(`Reuse Object Type "${def.otName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
       return def.ot as (GraphQLObjectType | GraphQLInputObjectType | GraphQLScalarType)
     } else {
-      log(`Create Object Type "${def.otName}"` +
+      translationLog(`Create Object Type "${def.otName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
@@ -221,13 +221,13 @@ function createOrReuseOt ({
   // CASE: mutation - create or reuse IOT
   } else {
     if (typeof def.iot !== 'undefined') {
-      log(`Reuse Input Object Type "${def.iotName}"` +
+      translationLog(`Reuse Input Object Type "${def.iotName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
       return def.iot as GraphQLInputObjectType
     } else {
-      log(`Create Input Object Type "${def.iotName}"` +
+      translationLog(`Create Input Object Type "${def.iotName}"` +
         (typeof operation === 'object'
           ? ` (for operation "${operation.operationId}")`
           : ''))
@@ -272,15 +272,15 @@ function reuseOrCreateList ({
 
   // try to reuse existing Object Type
   if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
-    log(`Reuse GraphQLList "${def.otName}"`)
+    translationLog(`Reuse GraphQLList "${def.otName}"`)
     return def.ot as GraphQLList<any>
   } else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
-    log(`Reuse GraphQLList "${def.iotName}"`)
+    translationLog(`Reuse GraphQLList "${def.iotName}"`)
     return def.iot as GraphQLList<any>
   }
 
   // create new List Object Type
-  log(`Create GraphQLList "${def.otName}"`)
+  translationLog(`Create GraphQLList "${def.otName}"`)
 
   // Get definition of the list item, which should be in the sub definitions
   const itemDef = def.subDefinitions as DataDefinition
@@ -316,7 +316,7 @@ function reuseOrCreateList ({
       culprit: `List item '${itemsName}' in list '${name}' with schema: ` +
         `${JSON.stringify(itemsSchema)}`,
       data,
-      log
+      log: translationLog
     })
     return new GraphQLList(GraphQLString)
   }
@@ -331,10 +331,10 @@ function reuseOrCreateEnum ({
 }: ReuseOrCreateEnum): GraphQLEnumType {
   // try to reuse existing Enum Type
   if (def.ot && typeof def.ot !== 'undefined') {
-    log(`Reuse  GraphQLEnumType "${def.otName}"`)
+    translationLog(`Reuse  GraphQLEnumType "${def.otName}"`)
     return def.ot as GraphQLEnumType
   } else {
-    log(`Create GraphQLEnumType "${def.otName}"`)
+    translationLog(`Create GraphQLEnumType "${def.otName}"`)
     let values = {}
     def.schema.enum.forEach(e => {
       values[Oas3Tools.beautify(e, false)] = {
@@ -381,7 +381,7 @@ function getScalarType ({
         typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
         culprit: `Unknown JSON scalar type '${type}'`,
         data,
-        log
+        log: translationLog
       })
       def.ot = GraphQLString
       break
@@ -445,7 +445,7 @@ function createFields ({
     !isMutation // only if we are not talking INPUT object type
   ) {
     for (let linkKey in links) {
-      log(`Create link "${linkKey}"...`)
+      translationLog(`Create link "${linkKey}"...`)
       let link = links[linkKey]
 
       // get linked operation
@@ -531,7 +531,7 @@ function createFields ({
           typeKey: 'UNRESOLVABLE_LINK',
           culprit: linkKey,
           data,
-          log
+          log: translationLog
         })
       }
     }
@@ -589,7 +589,7 @@ function linkOpRefToOpId ({
             typeKey: 'AMBIGUOUS_LINK',
             culprit: operationRef,
             data,
-            log
+            log: translationLog
           })
         }
 
@@ -603,7 +603,7 @@ function linkOpRefToOpId ({
           culprit: `Link '${linkKey}' has not relative path in operationRef ` +
             `'${operationRef}'`,
           data,
-          log
+          log: translationLog
         })
         return
       }
@@ -640,7 +640,7 @@ function linkOpRefToOpId ({
               culprit: `Method '${linkMethod}' in operationRef ` +
                 `'${operationRef}' is invalid`,
               data,
-              log
+              log: translationLog
             })
             return
           }
@@ -651,7 +651,7 @@ function linkOpRefToOpId ({
             culprit: `No valid method targeted by operationRef ` +
               `'${operationRef}'`,
             data,
-            log
+            log: translationLog
           })
           return
         }
@@ -698,7 +698,7 @@ function linkOpRefToOpId ({
                 culprit: `Could not find operationId '${linkedOpId}' in link ` +
                   `'${linkKey}'`,
                 data,
-                log
+                log: translationLog
               })
             }
   
@@ -709,7 +709,7 @@ function linkOpRefToOpId ({
               culprit: `Could not find path and/or method from operationRef ` +
                 `'${operationRef}' in link '${linkKey}'`,
               data,
-              log
+              log: translationLog
             })
           }
 
@@ -720,7 +720,7 @@ function linkOpRefToOpId ({
             culprit: `OAS of external link '${link.operationRef}' could not ` +
               `be identified`,
             data,
-            log
+            log: translationLog
           })
         }
 
@@ -731,7 +731,7 @@ function linkOpRefToOpId ({
           culprit: `Could not extract path and/or method from operationRef ` +
             `'${operationRef}' in link '${linkKey}'`,
           data,
-          log
+          log: translationLog
         })
       }
 
@@ -742,7 +742,7 @@ function linkOpRefToOpId ({
         culprit: `Could not extract relative path from operationRef ` +
           `'${operationRef}' in link '${linkKey}'`,
         data,
-        log
+        log: translationLog
       })
     }
   }
@@ -769,7 +769,7 @@ export function getArgs ({
         typeKey: 'UNNAMED_PARAMETER',
         culprit: JSON.stringify(parameter),
         data,
-        log
+        log: translationLog
       })
       continue
     }
@@ -898,7 +898,7 @@ function getOasFromLinkLocation (linkLocation: string, link: LinkObject, data: P
           culprit: `Multiple OASs share the same title '${linkLocation}' in ` +
             `the operationRef '${link.operationRef}'`,
           data,
-          log
+          log: translationLog
         })
 
       } else {
@@ -908,7 +908,7 @@ function getOasFromLinkLocation (linkLocation: string, link: LinkObject, data: P
           culprit: `No OAS has the title '${linkLocation}' in the ` + 
             `operationRef '${link.operationRef}`,
           data,
-          log
+          log: translationLog
         })
       }
 
@@ -931,7 +931,7 @@ function getOasFromLinkLocation (linkLocation: string, link: LinkObject, data: P
       `'${link.operationRef}' is currently not supported\n` +
       `Currently only the title of the OAS is supported`,
       data,
-      log
+      log: translationLog
     })
   }
 }

@@ -5,6 +5,7 @@
 
 // Type imports:
 import * as NodeRequest from 'request'
+import { ResolveFunction } from './graphql'
 
 /**
  * Type definition of the options that users can pass to OASGraph.
@@ -104,6 +105,27 @@ export type Options = {
    * This option prevents the extensions from being created. 
    */
   provideErrorExtensions?: boolean
+
+  /**
+   * Allows to define custom resolvers for fields on the query/mutation root
+   * operation type. 
+   * 
+   * In other words, instead of resolving on an operation (REST call) defined in
+   * the OAS, the field will resolve on the custom resolver. Note that this will 
+   * also affect the behavior of links. 
+   * 
+   * The field is identifed first by the title of the OAS, then the path of the
+   * operation, and lastly the method of the operation.
+   * 
+   * Use cases include the resolution of complex relationships between types, 
+   * implementing performance improvements like caching, or dealing with 
+   * non-standard authentication requirements.
+   */
+  customResolvers?: { [title: string]: 
+    { [path: string]: 
+      { [method: string]: ResolveFunction }
+    } 
+  }
 }
 
 
@@ -192,4 +214,25 @@ export type InternalOptions = {
    * This option prevents the extensions from being created. 
    */
   provideErrorExtensions: boolean
+
+  /**
+   * Allows to define custom resolvers for fields on the query/mutation root
+   * operation type. 
+   * 
+   * In other words, instead of resolving on an operation (REST call) defined in
+   * the OAS, the field will resolve on the custom resolver. Note that this will 
+   * also affect the behavior of links. 
+   * 
+   * The field is identifed first by the title of the OAS, then the path of the
+   * operation, and lastly the method of the operation.
+   * 
+   * Use cases include the resolution of complex relationships between types, 
+   * implementing performance improvements like caching, or dealing with 
+   * non-standard authentication requirements.
+   */
+  customResolvers?: { [title: string]: 
+    { [path: string]: 
+      { [method: string]: ResolveFunction }
+    } 
+  }
 }

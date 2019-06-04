@@ -11,7 +11,7 @@ const deepEqual = require("deep-equal");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const mergeAllOf = require("json-schema-merge-allof");
-const log = debug_1.default('preprocessing');
+const preprocessingLog = debug_1.default('preprocessing');
 /**
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OASGraph to use
@@ -43,7 +43,7 @@ function preprocessOas(oass, options) {
                 culprit: propertyName,
                 solution: currentSecurity[propertyName].oas.info.title,
                 data,
-                log
+                log: preprocessingLog
             });
         });
         // Process all operations
@@ -88,7 +88,7 @@ function preprocessOas(oass, options) {
                         typeKey: 'MISSING_RESPONSE_SCHEMA',
                         culprit: `${oas.info.title} ${method.toUpperCase()} ${path}`,
                         data,
-                        log
+                        log: preprocessingLog
                     });
                     continue;
                 }
@@ -135,7 +135,7 @@ function preprocessOas(oass, options) {
                         culprit: operationId,
                         solution: operation.oas.info.title,
                         data,
-                        log
+                        log: preprocessingLog
                     });
                 }
                 data.operations[operationId] = operation;
@@ -151,14 +151,14 @@ exports.preprocessOas = preprocessOas;
  *
  * Here is the structure of the data:
  * {
- *   {String} [beautified name] { Contains information about the security protocol
- *     {String} rawName           Stores the raw security protocol name
- *     {Object} def               Definition provided by OAS
- *     {Object} parameters        Stores the names of the authentication credentials
+ *   {string} [beautified name] { Contains information about the security protocol
+ *     {string} rawName           Stores the raw security protocol name
+ *     {object} def               Definition provided by OAS
+ *     {object} parameters        Stores the names of the authentication credentials
  *                                  NOTE: Structure will depend on the type of the protocol
  *                                    (e.g. basic authentication, API key, etc.)
  *                                  NOTE: Mainly used for the AnyAuth viewers
- *     {Object} schema            Stores the GraphQL schema to create the viewers
+ *     {object} schema            Stores the GraphQL schema to create the viewers
  *   }
  * }
  *
@@ -248,7 +248,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
                             typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
                             culprit: `${String(protocol.scheme)}`,
                             data,
-                            log
+                            log: preprocessingLog
                         });
                 }
                 break;
@@ -260,7 +260,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
                     typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
                     culprit: `${String(protocol.scheme)}`,
                     data,
-                    log
+                    log: preprocessingLog
                 });
         }
         // Add protocol data to the output
@@ -313,7 +313,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                             typeKey: 'DUPLICATE_LINK_KEY',
                             culprit: linkKey,
                             data,
-                            log
+                            log: preprocessingLog
                         });
                     }
                 });
@@ -343,7 +343,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 typeKey: 'INVALID_SCHEMA_TYPE',
                 culprit: JSON.stringify(schema),
                 data,
-                log
+                log: preprocessingLog
             });
         }
         const def = {
@@ -374,7 +374,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                         typeKey: 'UNRESOLVABLE_REFERENCE',
                         culprit: undefined,
                         data,
-                        log
+                        log: preprocessingLog
                     });
                 }
             }
@@ -398,7 +398,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                             typeKey: 'UNRESOLVABLE_REFERENCE',
                             culprit: undefined,
                             data,
-                            log
+                            log: preprocessingLog
                         });
                     }
                 }
