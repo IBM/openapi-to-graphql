@@ -33,14 +33,14 @@ function getValidOAS3(spec) {
         if (typeof spec.swagger === 'string'
             && spec.swagger === '2.0') {
             preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`);
-            let result = yield Swagger2OpenAPI.convertObj(spec, {});
+            const result = yield Swagger2OpenAPI.convertObj(spec, {});
             return result.openapi;
             // CASE: validate
         }
         else if (typeof spec.openapi === 'string'
             && /^3/.test(spec.openapi)) {
             preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`);
-            let valid = OASValidator.validateSync(spec, {});
+            const valid = OASValidator.validateSync(spec, {});
             if (!valid) {
                 throw new Error(`Validation of OpenAPI Specification failed.`);
             }
@@ -124,7 +124,7 @@ function resolveRef(ref, obj, parts) {
     if (parts.length === 0) {
         return obj;
     }
-    let firstElement = parts.splice(0, 1)[0];
+    const firstElement = parts.splice(0, 1)[0];
     if (firstElement === '#') {
         return resolveRef(ref, obj, parts);
     }
@@ -147,17 +147,17 @@ function getBaseUrl(operation) {
     }
     // check for local servers
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
-        let url = buildUrl(operation.servers[0]);
+        const url = buildUrl(operation.servers[0]);
         if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-            httpLog(`Warning: Randomly selected first server ${url}`);
+            httpLog(`Warning: Randomly selected first server "${url}"`);
         }
         return url.replace(/\/$/, '');
     }
-    let oas = operation.oas;
+    const oas = operation.oas;
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
-        let url = buildUrl(oas.servers[0]);
+        const url = buildUrl(oas.servers[0]);
         if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-            httpLog(`Warning: Randomly selected first server ${url}`);
+            httpLog(`Warning: Randomly selected first server "${url}"`);
         }
         return url.replace(/\/$/, '');
     }
@@ -192,10 +192,10 @@ function sanitizeObjKeys(obj, exceptions = []) {
             return obj.map(cleanKeys);
         }
         else if (typeof obj === 'object') {
-            let res = {};
+            const res = {};
             for (let key in obj) {
                 if (!exceptions.includes(key)) {
-                    let saneKey = beautify(key);
+                    const saneKey = beautify(key);
                     if (Object.prototype.hasOwnProperty.call(obj, key)) {
                         res[saneKey] = cleanKeys(obj[key]);
                     }
@@ -223,10 +223,10 @@ function desanitizeObjKeys(obj, mapping = {}) {
             return obj.map(replaceKeys);
         }
         else if (typeof obj === 'object') {
-            let res = {};
+            const res = {};
             for (let key in obj) {
                 if (key in mapping) {
-                    let rawKey = mapping[key];
+                    const rawKey = mapping[key];
                     if (Object.prototype.hasOwnProperty.call(obj, key)) {
                         res[rawKey] = replaceKeys(obj[key]);
                     }
@@ -250,13 +250,13 @@ exports.desanitizeObjKeys = desanitizeObjKeys;
  */
 function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument keys are sanitized!
 ) {
-    let query = {};
-    let headers = {};
+    const query = {};
+    const headers = {};
     // case: nothing to do
     if (Array.isArray(parameters)) {
         // iterate parameters:
         for (let param of parameters) {
-            let sanitizedParamName = beautify(param.name);
+            const sanitizedParamName = beautify(param.name);
             if (sanitizedParamName && sanitizedParamName in args) {
                 switch (param.in) {
                     // path parameters
@@ -341,10 +341,10 @@ exports.getSchemaType = getSchemaType;
  */
 function inferResourceNameFromPath(path) {
     let name = '';
-    let parts = path.split('/');
+    const parts = path.split('/');
     parts.forEach((part, i) => {
         if (!/{|}/g.test(part)) {
-            let partClean = sanitize(parts[i]);
+            const partClean = sanitize(parts[i]);
             if (i === 0) {
                 name += partClean;
             }
@@ -371,7 +371,7 @@ function getRequestSchema(endpoint, oas) {
             requestBody = requestBody;
         }
         if (typeof requestBody.content === 'object') {
-            let content = requestBody.content;
+            const content = requestBody.content;
             // Prioritizes content-type JSON
             if (Object.keys(content).includes('application/json')) {
                 return { payloadContentType: 'application/json', payloadSchema: content['application/json'].schema };
@@ -393,7 +393,7 @@ exports.getRequestSchema = getRequestSchema;
  * request schema is required for the endpoint.
  */
 function getRequestSchemaAndNames(path, method, oas) {
-    let endpoint = oas.paths[path][method];
+    const endpoint = oas.paths[path][method];
     let payloadRequired = false;
     let payloadSchemaNames = {};
     let { payloadContentType, payloadSchema } = getRequestSchema(endpoint, oas);
@@ -421,7 +421,7 @@ function getRequestSchemaAndNames(path, method, oas) {
         // interpret the request body as a string
         if (payloadContentType !== 'application/json') {
             let saneContentTypeName = '';
-            let terms = payloadContentType.split('/');
+            const terms = payloadContentType.split('/');
             for (let index in terms) {
                 saneContentTypeName += terms[index].charAt(0).toUpperCase() + terms[index].slice(1);
             }
@@ -430,7 +430,7 @@ function getRequestSchemaAndNames(path, method, oas) {
             };
             let description = payloadContentType + ' request placeholder object';
             if ('description' in payloadSchema && typeof (payloadSchema['description']) === 'string') {
-                description += `\n\nOriginal top level description: ${payloadSchema['description']}`;
+                description += `\n\nOriginal top level description: "${payloadSchema['description']}"`;
             }
             payloadSchema = {
                 description: description,
@@ -455,7 +455,7 @@ exports.getRequestSchemaAndNames = getRequestSchemaAndNames;
  */
 function getResponseSchema(endpoint, statusCode, oas) {
     if (typeof endpoint.responses === 'object') {
-        let responses = endpoint.responses;
+        const responses = endpoint.responses;
         if (typeof responses[statusCode] === 'object') {
             let response = responses[statusCode];
             // make sure we have a ResponseObject:
@@ -466,7 +466,7 @@ function getResponseSchema(endpoint, statusCode, oas) {
                 response = response;
             }
             if (response.content && typeof response.content !== 'undefined') {
-                let content = response.content;
+                const content = response.content;
                 // Prioritizes content-type JSON
                 if (Object.keys(content).includes('application/json')) {
                     return { responseContentType: 'application/json', responseSchema: content['application/json'].schema };
@@ -489,9 +489,9 @@ exports.getResponseSchema = getResponseSchema;
  * available).
  */
 function getResponseSchemaAndNames(path, method, oas, data, options) {
-    let endpoint = oas.paths[path][method];
-    let responseSchemaNames = {};
-    let statusCode = getResponseStatusCode(path, method, oas, data);
+    const endpoint = oas.paths[path][method];
+    const responseSchemaNames = {};
+    const statusCode = getResponseStatusCode(path, method, oas, data);
     if (!statusCode) {
         return {};
     }
@@ -511,7 +511,7 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
             let description = 'Placeholder object to access non-application/json ' +
                 'response bodies';
             if ('description' in responseSchema && typeof (responseSchema['description']) === 'string') {
-                description += `\n\nOriginal top level description: ${responseSchema['description']}`;
+                description += `\n\nOriginal top level description: "${responseSchema['description']}"`;
             }
             responseSchema = {
                 description: description,
@@ -555,10 +555,10 @@ exports.getResponseSchemaAndNames = getResponseSchemaAndNames;
  * method (or null).
  */
 function getResponseStatusCode(path, method, oas, data) {
-    let endpoint = oas.paths[path][method];
+    const endpoint = oas.paths[path][method];
     if (typeof endpoint.responses === 'object') {
-        let codes = Object.keys(endpoint.responses);
-        let successCodes = codes.filter(code => {
+        const codes = Object.keys(endpoint.responses);
+        const successCodes = codes.filter(code => {
             return exports.SUCCESS_STATUS_RX.test(code);
         });
         if (successCodes.length === 1) {
@@ -582,14 +582,14 @@ exports.getResponseStatusCode = getResponseStatusCode;
  * Returns an hash containing the links defined in the given endpoint.
  */
 function getEndpointLinks(path, method, oas, data) {
-    let links = {};
-    let endpoint = oas.paths[path][method];
-    let statusCode = getResponseStatusCode(path, method, oas, data);
+    const links = {};
+    const endpoint = oas.paths[path][method];
+    const statusCode = getResponseStatusCode(path, method, oas, data);
     if (!statusCode) {
         return links;
     }
     if (typeof endpoint.responses === 'object') {
-        let responses = endpoint.responses;
+        const responses = endpoint.responses;
         if (typeof responses[statusCode] === 'object') {
             let response = responses[statusCode];
             if (typeof response.$ref === 'string') {
@@ -598,7 +598,7 @@ function getEndpointLinks(path, method, oas, data) {
             // here, we can be certain we have a ResponseObject:
             response = response;
             if (typeof response.links === 'object') {
-                let epLinks = response.links;
+                const epLinks = response.links;
                 for (let linkKey in epLinks) {
                     let link = epLinks[linkKey];
                     // make sure we have LinkObjects:
@@ -627,11 +627,11 @@ function getParameters(path, method, oas) {
             `which is not an operation.`);
         return parameters;
     }
-    let pathItemObject = oas.paths[path];
-    let pathParams = pathItemObject.parameters;
+    const pathItemObject = oas.paths[path];
+    const pathParams = pathItemObject.parameters;
     // first, consider parameters in Path Item Object:
     if (Array.isArray(pathParams)) {
-        let pathItemParameters = pathParams.map(p => {
+        const pathItemParameters = pathParams.map(p => {
             if (typeof p.$ref === 'string') {
                 // here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
@@ -644,10 +644,10 @@ function getParameters(path, method, oas) {
         parameters = parameters.concat(pathItemParameters);
     }
     // second, consider parameters in Operation Object:
-    let opObject = oas.paths[path][method];
-    let opObjectParameters = opObject.parameters;
+    const opObject = oas.paths[path][method];
+    const opObjectParameters = opObject.parameters;
     if (Array.isArray(opObjectParameters)) {
-        let opParameters = opObjectParameters.map(p => {
+        const opParameters = opObjectParameters.map(p => {
             if (typeof p.$ref === 'string') {
                 // here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
@@ -675,12 +675,12 @@ function getServers(path, method, oas) {
         servers = oas.servers;
     }
     // path item server definitions override global:
-    let pathItem = oas.paths[path];
+    const pathItem = oas.paths[path];
     if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
         servers = pathItem.servers;
     }
     // operation server definitions override path item:
-    let operationObj = pathItem[method];
+    const operationObj = pathItem[method];
     if (Array.isArray(operationObj.servers) && operationObj.servers.length > 0) {
         servers = operationObj.servers;
     }
@@ -700,11 +700,11 @@ exports.getServers = getServers;
  */
 function getSecuritySchemes(oas) {
     // collect all security schemes:
-    let securitySchemes = {};
+    const securitySchemes = {};
     if (typeof oas.components === 'object' &&
         typeof oas.components.securitySchemes === 'object') {
         for (let schemeKey in oas.components.securitySchemes) {
-            let obj = oas.components.securitySchemes[schemeKey];
+            const obj = oas.components.securitySchemes[schemeKey];
             // ensure we have actual SecuritySchemeObject:
             if (typeof obj.$ref === 'string') {
                 // result of resolution will be SecuritySchemeObject:
@@ -725,9 +725,9 @@ exports.getSecuritySchemes = getSecuritySchemes;
  * required by the operation at the given path and method.
  */
 function getSecurityRequirements(path, method, securitySchemes, oas) {
-    let results = [];
+    const results = [];
     // first, consider global requirements:
-    let globalSecurity = oas.security;
+    const globalSecurity = oas.security;
     if (globalSecurity && typeof globalSecurity !== 'undefined') {
         for (let secReq of globalSecurity) {
             for (let schemaKey in secReq) {
@@ -740,8 +740,8 @@ function getSecurityRequirements(path, method, securitySchemes, oas) {
         }
     }
     // local:
-    let operation = oas.paths[path][method];
-    let localSecurity = operation.security;
+    const operation = oas.paths[path][method];
+    const localSecurity = operation.security;
     if (localSecurity && typeof localSecurity !== 'undefined') {
         for (let secReq of localSecurity) {
             for (let schemaKey in secReq) {
@@ -766,10 +766,10 @@ function beautify(str, lowercaseFirstChar = true) {
     if (typeof str !== 'string') {
         throw new Error(`Cannot beautify "${str}" of type "${typeof str}"`);
     }
-    let charToRemove = '_';
+    const charToRemove = '_';
     let sanitized = sanitize(str);
     while (sanitized.indexOf(charToRemove) !== -1) {
-        let pos = sanitized.indexOf(charToRemove);
+        const pos = sanitized.indexOf(charToRemove);
         if (sanitized.length >= pos + 2) {
             sanitized = sanitized.slice(0, pos) +
                 sanitized.charAt(pos + 1).toUpperCase() +
@@ -803,9 +803,9 @@ function beautifyAndStore(str, mapping) {
     if (!(typeof mapping === 'object')) {
         throw new Error(`No/invalid mapping passed to beautifyAndStore`);
     }
-    let clean = beautify(str);
+    const clean = beautify(str);
     if (!clean) {
-        throw new Error(`Cannot beautifyAndStore ${str}`);
+        throw new Error(`Cannot beautifyAndStore "${str}"`);
     }
     else if (clean !== str) {
         if (clean in mapping && str !== mapping[clean]) {
@@ -833,8 +833,7 @@ exports.beautifyObjectKeys = beautifyObjectKeys;
  * Object Type.
  */
 function sanitize(str) {
-    let clean = str.replace(/[^_a-zA-Z0-9]/g, '_');
-    return clean;
+    return str.replace(/[^_a-zA-Z0-9]/g, '_');
 }
 /**
  * Stringifies and possibly trims the given string to the provided length.

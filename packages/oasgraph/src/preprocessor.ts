@@ -12,8 +12,6 @@ import {
   ProcessedSecurityScheme
 } from './types/preprocessing_data'
 
-// Type definitions & exports:
-
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
 import * as deepEqual from 'deep-equal'
@@ -32,10 +30,10 @@ export function preprocessOas (
   oass: Oas3[],
   options: InternalOptions
 ): PreprocessingData {
-  let data: PreprocessingData = {
+  const data: PreprocessingData = {
     usedOTNames: [
-      'query', // used by OASGraph for root-level element
-      'mutation' // used by OASGraph for root-level element
+      'Query', // used by OASGraph for root-level element
+      'Mutation' // used by OASGraph for root-level element
     ],
     defs: [],
     operations: {},
@@ -51,8 +49,8 @@ export function preprocessOas (
     data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas)
 
     // Get security schemes
-    let currentSecurity = getProcessedSecuritySchemes(oas, data, oass)
-    let commonSecurityPropertyName = getCommonPropertyNames(data.security, currentSecurity)
+    const currentSecurity = getProcessedSecuritySchemes(oas, data, oass)
+    const commonSecurityPropertyName = getCommonPropertyNames(data.security, currentSecurity)
     Object.assign(data.security, currentSecurity)
     commonSecurityPropertyName.forEach((propertyName) => {
       handleWarning({
@@ -72,7 +70,7 @@ export function preprocessOas (
           continue
         }
 
-        let endpoint = oas.paths[path][method]
+        const endpoint = oas.paths[path][method]
 
         // Determine description
         let description = endpoint.description
@@ -92,24 +90,20 @@ export function preprocessOas (
         }
 
         // Hold on to the operationId
-        let operationId = endpoint.operationId
-
-        // Fill in possibly missing operationId
-        if (typeof operationId === 'undefined') {
-          operationId = Oas3Tools.generateOperationId(method, path)
-        }
+        const operationId = typeof endpoint.operationId !== 'undefined' ?
+          endpoint.operationId : 
+          Oas3Tools.generateOperationId(method, path)
 
         // Request schema
-        let { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } =
+        const { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } =
           Oas3Tools.getRequestSchemaAndNames(path, method, oas)
 
-        let payloadDefinition
-        if (payloadSchema && typeof payloadSchema !== 'undefined') {
-          payloadDefinition = createDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), true, data, undefined, oas)
-        }
+        const payloadDefinition = payloadSchema && typeof payloadSchema !== 'undefined' ?
+          createDataDef(payloadSchemaNames, (payloadSchema as SchemaObject), true, data, undefined, oas) :
+          undefined
 
         // Response schema
-        let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(
+        const { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(
           path, method, oas, data, options)
 
         if (!responseSchema || typeof responseSchema !== 'object') {
@@ -123,10 +117,10 @@ export function preprocessOas (
         }
 
         // Links
-        let links = Oas3Tools.getEndpointLinks(
+        const links = Oas3Tools.getEndpointLinks(
           path, method, oas, data)
 
-        let responseDefinition = createDataDef(
+        const responseDefinition = createDataDef(
           responseSchemaNames,
           (responseSchema as SchemaObject),
           false,
@@ -136,26 +130,24 @@ export function preprocessOas (
         )
 
         // Parameters
-        let parameters = Oas3Tools.getParameters(path, method, oas)
+        const parameters = Oas3Tools.getParameters(path, method, oas)
 
         // Security protocols
-        let securityRequirements = []
-        if (options.viewer) {
-          securityRequirements = Oas3Tools.getSecurityRequirements(
-            path, method, data.security, oas)
-        }
+        const securityRequirements = options.viewer ? 
+          Oas3Tools.getSecurityRequirements(path, method, data.security, oas) :
+          []
 
         // servers
-        let servers = Oas3Tools.getServers(path, method, oas)
+        const servers = Oas3Tools.getServers(path, method, oas)
 
         // whether to place this operation into an authentication viewer
-        let inViewer = securityRequirements.length > 0 &&
+        const inViewer = securityRequirements.length > 0 &&
           data.options.viewer !== false
 
-        let isMutation = method.toLowerCase() !== 'get'
+        const isMutation = method.toLowerCase() !== 'get'
 
         // Store determined information for operation
-        let operation: Operation = {
+        const operation: Operation = {
           operationId,
           description,
           path,
@@ -237,12 +229,12 @@ function getProcessedSecuritySchemes (
   data: PreprocessingData,
   oass: Oas3[]
 ): {[key: string]: ProcessedSecurityScheme} {
-  let result = {}
-  let security = Oas3Tools.getSecuritySchemes(oas)
+  const result = {}
+  const security = Oas3Tools.getSecuritySchemes(oas)
 
   // Loop through all the security protocols
   for (let key in security) {
-    let protocol = security[key]
+    const protocol = security[key]
 
     // We use a separate mechanisms to handle OAuth 2.0:
     if (protocol.type === 'oauth2') {
@@ -255,9 +247,9 @@ function getProcessedSecuritySchemes (
     let description
     switch (protocol.type) {
       case ('apiKey'):
-        description = `API key credentials for the security protocol '${key}' `
+        description = `API key credentials for the security protocol "${key}"`
         if (oass.length > 1) {
-          description += `in ${oas.info.title}`
+          description += ` in ${oas.info.title}`
         }
 
         parameters = {
@@ -281,9 +273,9 @@ function getProcessedSecuritySchemes (
           // http://www.iana.org/assignments/http-authschemes/
           // http-authschemes.xhtml)
             case ('basic'):
-              description = `Basic auth credentials for security protocol '${key}' `
+              description = `Basic auth credentials for security protocol "${key}"`
               if (oass.length > 1) {
-                description += `in ${oas.info.title}`
+                description += ` in ${oas.info.title}`
               }
 
             parameters = {
@@ -374,7 +366,7 @@ export function createDataDef (
   const index = getSchemaIndex(preferredName, schema, data.defs)
   if (index !== -1) {
     // Found existing data definition. Fetch it
-    let existingDataDef = data.defs[index]
+    const existingDataDef = data.defs[index]
 
     // Collapse links if possible
     // I.e. if the current operation has links, combine them with the prexisting
@@ -462,7 +454,7 @@ export function createDataDef (
         }
       }
 
-      let subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, isInputObjectType, data, undefined, oas)
+      const subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, isInputObjectType, data, undefined, oas)
       // Add list item reference
       def.subDefinitions = subDefinition
 
@@ -488,7 +480,7 @@ export function createDataDef (
           }
         }
 
-        let subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, isInputObjectType, data, undefined, oas)
+        const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, isInputObjectType, data, undefined, oas)
         // Add field type references
         def.subDefinitions[propSchemaName] = subDefinition
       }
@@ -578,7 +570,7 @@ function getSchemaName (
 
   // CASE: name from reference
   if (typeof names.fromRef === 'string') {
-    let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromRef))
+    const saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromRef))
     if (!usedNames.includes(saneName)) {
       schemaName = names.fromRef
     }
@@ -586,7 +578,7 @@ function getSchemaName (
 
   // CASE: name from schema (i.e., "title" property in schema)
   if (!schemaName && typeof names.fromSchema === 'string') {
-    let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromSchema))
+    const saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromSchema))
     if (!usedNames.includes(saneName)) {
       schemaName = names.fromSchema
     }
@@ -594,7 +586,7 @@ function getSchemaName (
 
   // CASE: name from path
   if (!schemaName && typeof names.fromPath === 'string') {
-    let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromPath))
+    const saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromPath))
     if (!usedNames.includes(saneName)) {
       schemaName = names.fromPath
     }
@@ -602,7 +594,7 @@ function getSchemaName (
 
   // CASE: all names are already used - create approximate name
   if (!schemaName) {
-    let tempName = Oas3Tools.capitalize(Oas3Tools.beautify(typeof names.fromRef === 'string'
+    const tempName = Oas3Tools.capitalize(Oas3Tools.beautify(typeof names.fromRef === 'string'
       ? names.fromRef : (typeof names.fromSchema === 'string'
       ? names.fromSchema : (typeof names.fromPath === 'string'
       ? names.fromPath : 'RandomName'))))

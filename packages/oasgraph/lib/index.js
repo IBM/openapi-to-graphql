@@ -75,7 +75,7 @@ function createGraphQlSchema(spec, options) {
              */
             oass = [yield Oas3Tools.getValidOAS3(spec)];
         }
-        let { schema, report } = yield translateOpenApiToGraphQL(oass, options);
+        const { schema, report } = yield translateOpenApiToGraphQL(oass, options);
         return {
             schema,
             report
@@ -88,7 +88,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
  */
 function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers }) {
     return __awaiter(this, void 0, void 0, function* () {
-        let options = {
+        const options = {
             headers,
             qs,
             viewer,
@@ -108,7 +108,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
          * Extract information from the OASs and put it inside a data structure that
          * is easier for OASGraph to use
          */
-        let data = preprocessor_1.preprocessOas(oass, options);
+        const data = preprocessor_1.preprocessOas(oass, options);
         /**
          * Create GraphQL fields for every operation and structure them based on their
          * characteristics (query vs. mutation, auth vs. non-auth).
@@ -271,17 +271,17 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
  */
 function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
     // create GraphQL Type for response:
-    let type = schema_builder_1.getGraphQLType({
+    const type = schema_builder_1.getGraphQLType({
         def: operation.responseDefinition,
         data,
         operation,
         oass,
     });
     // create resolve function:
-    let payloadSchemaName = operation.payloadDefinition
+    const payloadSchemaName = operation.payloadDefinition
         ? operation.payloadDefinition.iotName
         : null;
-    let resolve = resolver_builder_1.getResolver({
+    const resolve = resolver_builder_1.getResolver({
         operation,
         payloadName: payloadSchemaName,
         data,
@@ -289,7 +289,7 @@ function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
         requestOptions
     });
     // create args:
-    let args = schema_builder_1.getArgs({
+    const args = schema_builder_1.getArgs({
         def: operation.payloadDefinition,
         parameters: operation.parameters,
         operation,

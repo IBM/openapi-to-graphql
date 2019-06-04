@@ -290,7 +290,7 @@ function reuseOrCreateList ({
   // Equivalent to `${name}ListItem`
   const itemsName = itemDef.otName
 
-  let itemsType = getGraphQLType({
+  const itemsType = getGraphQLType({
     def: itemDef,
     data,
     operation,
@@ -300,7 +300,7 @@ function reuseOrCreateList ({
   })
 
   if (itemsType !== null) {
-    let listObjectType = new GraphQLList(itemsType)
+    const listObjectType = new GraphQLList(itemsType)
 
     // store newly created List Object Type
     if (!isMutation) {
@@ -313,8 +313,8 @@ function reuseOrCreateList ({
   } else {
     handleWarning({
       typeKey: 'INVALID_SCHEMA_TYPE_LIST_ITEM',
-      culprit: `List item '${itemsName}' in list '${name}' with schema: ` +
-        `${JSON.stringify(itemsSchema)}`,
+      culprit: `List item "${itemsName}" in list "${name}" with schema: ` +
+        `"${JSON.stringify(itemsSchema)}"`,
       data,
       log: translationLog
     })
@@ -335,7 +335,7 @@ function reuseOrCreateEnum ({
     return def.ot as GraphQLEnumType
   } else {
     translationLog(`Create GraphQLEnumType "${def.otName}"`)
-    let values = {}
+    const values = {}
     def.schema.enum.forEach(e => {
       values[Oas3Tools.beautify(e, false)] = {
         value: e
@@ -379,7 +379,7 @@ function getScalarType ({
     default:
       handleWarning({
         typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
-        culprit: `Unknown JSON scalar type '${type}'`,
+        culprit: `Unknown JSON scalar type "${type}"`,
         data,
         log: translationLog
       })
@@ -412,7 +412,7 @@ function createFields ({
     const schema = fieldTypeDefinition.schema
 
     // get object type describing the property
-    let objectType = getGraphQLType({
+    const objectType = getGraphQLType({
       def: fieldTypeDefinition,
       operation,
       data,
@@ -422,13 +422,13 @@ function createFields ({
     })
 
     // determine if this property is required in mutations
-    let reqMutationProp = (isMutation &&
+    const reqMutationProp = (isMutation &&
       ('required' in schema) &&
       schema.required.includes(fieldTypeKey))
 
     // finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
-      let sanePropName = Oas3Tools.beautifyAndStore(fieldTypeKey, data.saneMap)
+      const sanePropName = Oas3Tools.beautifyAndStore(fieldTypeKey, data.saneMap)
       fields[sanePropName] = {
         type: reqMutationProp ? new GraphQLNonNull(objectType) : objectType as GraphQLOutputType,
 
@@ -446,7 +446,7 @@ function createFields ({
   ) {
     for (let linkKey in links) {
       translationLog(`Create link "${linkKey}"...`)
-      let link = links[linkKey]
+      const link = links[linkKey]
 
       // get linked operation
       let linkedOpId
@@ -468,7 +468,7 @@ function createFields ({
       // linkedOpId may not be initialized because operationRef may lead to an
       // operation object that does not have an operationId
       if (typeof linkedOpId === 'string' && linkedOpId in data.operations) {
-        let linkedOp = data.operations[linkedOpId]
+        const linkedOp = data.operations[linkedOpId]
 
         // determine parameters provided via link
         let argsFromLink = link.parameters
@@ -484,7 +484,7 @@ function createFields ({
         }
 
         // get resolve function for link
-        let linkResolver = getResolver({
+        const linkResolver = getResolver({
           operation: linkedOp,
           argsFromLink: Oas3Tools.beautifyObjectKeys(argsFromLink) as { [key: string]: string },
           data,
@@ -492,7 +492,7 @@ function createFields ({
         })
 
         // get args for link
-        let args = getArgs({
+        const args = getArgs({
           parameters: dynamicParams,
           operation,
           data,
@@ -504,7 +504,7 @@ function createFields ({
          * use the reference here
          * OT will be built up some other time
          */
-        let resObjectType = linkedOp.responseDefinition.ot
+        const resObjectType = linkedOp.responseDefinition.ot
 
         let description = link.description
 
@@ -519,7 +519,7 @@ function createFields ({
         }
 
         // finally, add the object type to the fields (using sanitized field name)
-        let saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap)
+        const saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap)
         fields[saneLinkKey] = {
           type: resObjectType,
           resolve: linkResolver,
@@ -557,19 +557,18 @@ function linkOpRefToOpId ({
   data,
   oass
 }: LinkOpRefToOpIdParams): string {
-  let link = links[linkKey]
+  const link = links[linkKey]
 
   let linkedOpId
   if (typeof link.operationRef === 'string') {
     // TODO: external refs
 
-    let operationRef = link.operationRef
+    const operationRef = link.operationRef
     let linkLocation
     let linkRelativePathAndMethod
 
     // example relative path: '#/paths/~12.0~1repositories~1{username}/get'
     // example absolute path: 'https://na2.gigantic-server.com/#/paths/~12.0~1repositories~1{username}/get'
-    //
     // extract relative path from relative path
     if (operationRef.substring(0, 8) === '#/paths/') {
       linkRelativePathAndMethod = operationRef
@@ -578,12 +577,12 @@ function linkOpRefToOpId ({
     } else {
       // '#' may exist in other places in the path
       // '/#/' is more likely to point to the beginning of the path
-      let firstPathIndex = operationRef.indexOf('#/paths/')
+      const firstPathIndex = operationRef.indexOf('#/paths/')
 
       // found a relative path candidate
       if (firstPathIndex !== -1) {
         // check to see if there are other relative path candidates
-        let lastPathIndex = operationRef.lastIndexOf('#/paths/')
+        const lastPathIndex = operationRef.lastIndexOf('#/paths/')
         if (firstPathIndex !== lastPathIndex) {
           handleWarning({
             typeKey: 'AMBIGUOUS_LINK',
@@ -600,8 +599,8 @@ function linkOpRefToOpId ({
       } else {
         handleWarning({
           typeKey: 'UNRESOLVABLE_LINK',
-          culprit: `Link '${linkKey}' has not relative path in operationRef ` +
-            `'${operationRef}'`,
+          culprit: `Link "${linkKey}" has not relative path in operationRef ` +
+            `"${operationRef}"`,
           data,
           log: translationLog
         })
@@ -623,7 +622,7 @@ function linkOpRefToOpId ({
 
       // linkPath should be the path followed by the method
       // find the slash that divides the path from the method
-      let pivotSlashIndex = linkRelativePathAndMethod.lastIndexOf('/')
+      const pivotSlashIndex = linkRelativePathAndMethod.lastIndexOf('/')
 
       // check if there are any '/' in the linkPath
       if (pivotSlashIndex !== -1) {
@@ -637,8 +636,8 @@ function linkOpRefToOpId ({
           if (!(Oas3Tools.OAS_OPERATIONS.includes(linkMethod))) {
             handleWarning({
               typeKey: 'UNRESOLVABLE_LINK',
-              culprit: `Method '${linkMethod}' in operationRef ` +
-                `'${operationRef}' is invalid`,
+              culprit: `Method "${linkMethod}" in operationRef ` +
+                `"${operationRef}" is invalid`,
               data,
               log: translationLog
             })
@@ -649,7 +648,7 @@ function linkOpRefToOpId ({
           handleWarning({
             typeKey: 'UNRESOLVABLE_LINK',
             culprit: `No valid method targeted by operationRef ` +
-              `'${operationRef}'`,
+              `"${operationRef}"`,
             data,
             log: translationLog
           })
@@ -668,18 +667,15 @@ function linkOpRefToOpId ({
         linkPath = linkPath.replace(/~1/g, "/")
 
         // find the right oas
-        let oas: Oas3
-        if (typeof linkLocation === 'undefined') {
-          oas = operation.oas
-        } else {
-          oas = getOasFromLinkLocation(linkLocation, link, data, oass)
-        }
+        const oas = typeof linkLocation === 'undefined' ?
+          operation.oas :
+          getOasFromLinkLocation(linkLocation, link, data, oass)
 
         // if the link was external, make sure that an OAS could be identified
         if (typeof oas !== 'undefined') {
           if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
             if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
-              let linkedOpObject = oas.paths[linkPath][linkMethod]
+              const linkedOpObject = oas.paths[linkPath][linkMethod]
   
               if ('operationId' in linkedOpObject) {
                 linkedOpId = linkedOpObject.operationId
@@ -695,8 +691,8 @@ function linkOpRefToOpId ({
             } else {
               handleWarning({
                 typeKey: 'UNRESOLVABLE_LINK',
-                culprit: `Could not find operationId '${linkedOpId}' in link ` +
-                  `'${linkKey}'`,
+                culprit: `Could not find operationId "${linkedOpId}" in link ` +
+                  `"${linkKey}"`,
                 data,
                 log: translationLog
               })
@@ -707,7 +703,7 @@ function linkOpRefToOpId ({
             handleWarning({
               typeKey: 'UNRESOLVABLE_LINK',
               culprit: `Could not find path and/or method from operationRef ` +
-                `'${operationRef}' in link '${linkKey}'`,
+                `"${operationRef}" in link "${linkKey}"`,
               data,
               log: translationLog
             })
@@ -717,7 +713,7 @@ function linkOpRefToOpId ({
         } else {
           handleWarning({
             typeKey: 'UNRESOLVABLE_LINK',
-            culprit: `OAS of external link '${link.operationRef}' could not ` +
+            culprit: `OAS of external link "${link.operationRef}" could not ` +
               `be identified`,
             data,
             log: translationLog
@@ -729,7 +725,7 @@ function linkOpRefToOpId ({
         handleWarning({
           typeKey: 'UNRESOLVABLE_LINK',
           culprit: `Could not extract path and/or method from operationRef ` +
-            `'${operationRef}' in link '${linkKey}'`,
+            `"${operationRef}" in link "${linkKey}"`,
           data,
           log: translationLog
         })
@@ -740,7 +736,7 @@ function linkOpRefToOpId ({
       handleWarning({
         typeKey: 'UNRESOLVABLE_LINK',
         culprit: `Could not extract relative path from operationRef ` +
-          `'${operationRef}' in link '${linkKey}'`,
+          `"${operationRef}" in link "${linkKey}"`,
         data,
         log: translationLog
       })
@@ -796,7 +792,7 @@ export function getArgs ({
       }
 
       // TODO: remove
-      let paramDef = createDataDef({ fromRef: parameter.name }, schema as SchemaObject, true, data)
+      const paramDef = createDataDef({ fromRef: parameter.name }, schema as SchemaObject, true, data)
 
       // @ts-ignore
       type = getGraphQLType({
@@ -812,7 +808,7 @@ export function getArgs ({
     // sanitize the argument name
     // NOTE: when matching these parameters back to requests, we need to again
     // use the real parameter name
-    let saneName = Oas3Tools.beautify(parameter.name)
+    const saneName = Oas3Tools.beautify(parameter.name)
 
     // parameters are not required when a default exists:
     let hasDefault = false
@@ -825,7 +821,7 @@ export function getArgs ({
         hasDefault = true
       }
     }
-    let paramRequired = parameter.required && !hasDefault
+    const paramRequired = parameter.required && !hasDefault
 
     args[saneName] = {
       type: paramRequired ? new GraphQLNonNull(type) : type,
@@ -835,7 +831,7 @@ export function getArgs ({
 
   // handle request schema (if present):
   if (typeof def === 'object') {
-    let reqObjectType = getGraphQLType({
+    const reqObjectType = getGraphQLType({
       def,
       data,
       operation,
@@ -844,7 +840,7 @@ export function getArgs ({
     })
 
     // sanitize the argument name
-    let saneName = Oas3Tools.beautify(def.iotName)
+    const saneName = Oas3Tools.beautify(def.iotName)
     let reqRequired = false
     if (operation && typeof operation === 'object' &&
       typeof operation.payloadRequired === 'boolean') {
@@ -882,7 +878,7 @@ function getOasFromLinkLocation (linkLocation: string, link: LinkObject, data: P
   switch (getLinkLocationType(linkLocation)) {
     case 'title': 
       // get the possible 
-      let possibleOass = oass.filter((oas) => {
+      const possibleOass = oass.filter((oas) => {
         return oas.info.title === linkLocation
       })
 
@@ -895,8 +891,8 @@ function getOasFromLinkLocation (linkLocation: string, link: LinkObject, data: P
         // some ambiguity
         handleWarning({
           typeKey: 'AMBIGUOUS_LINK',
-          culprit: `Multiple OASs share the same title '${linkLocation}' in ` +
-            `the operationRef '${link.operationRef}'`,
+          culprit: `Multiple OASs share the same title "${linkLocation}" in ` +
+            `the operationRef "${link.operationRef}"`,
           data,
           log: translationLog
         })
@@ -905,8 +901,8 @@ function getOasFromLinkLocation (linkLocation: string, link: LinkObject, data: P
         // no OAS had the expected title
         handleWarning({
           typeKey: 'UNRESOLVABLE_LINK',
-          culprit: `No OAS has the title '${linkLocation}' in the ` + 
-            `operationRef '${link.operationRef}`,
+          culprit: `No OAS has the title "${linkLocation}" in the ` + 
+            `operationRef "${link.operationRef}"`,
           data,
           log: translationLog
         })
@@ -928,7 +924,7 @@ function getOasFromLinkLocation (linkLocation: string, link: LinkObject, data: P
     handleWarning({
       typeKey: 'UNRESOLVABLE_LINK',
       culprit: `The link location of the operationRef ` + 
-      `'${link.operationRef}' is currently not supported\n` +
+      `"${link.operationRef}" is currently not supported\n` +
       `Currently only the title of the OAS is supported`,
       data,
       log: translationLog
