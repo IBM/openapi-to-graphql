@@ -21,7 +21,15 @@ const httpLog = debug_1.default('http');
 const preprocessingLog = debug_1.default('preprocessing');
 const translationLog = debug_1.default('translation');
 // OAS constants
-exports.OAS_OPERATIONS = ['get', 'put', 'post', 'patch', 'delete', 'options', 'head'];
+exports.OAS_OPERATIONS = [
+    'get',
+    'put',
+    'post',
+    'patch',
+    'delete',
+    'options',
+    'head'
+];
 exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
@@ -30,15 +38,15 @@ exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
 function getValidOAS3(spec) {
     return __awaiter(this, void 0, void 0, function* () {
         // CASE: translate
-        if (typeof spec.swagger === 'string'
-            && spec.swagger === '2.0') {
+        if (typeof spec.swagger === 'string' &&
+            spec.swagger === '2.0') {
             preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`);
             const result = yield Swagger2OpenAPI.convertObj(spec, {});
             return result.openapi;
             // CASE: validate
         }
-        else if (typeof spec.openapi === 'string'
-            && /^3/.test(spec.openapi)) {
+        else if (typeof spec.openapi === 'string' &&
+            /^3/.test(spec.openapi)) {
             preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`);
             const valid = OASValidator.validateSync(spec, {});
             if (!valid) {
@@ -142,8 +150,7 @@ exports.resolveRef = resolveRef;
 function getBaseUrl(operation) {
     // check for servers:
     if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
-        throw new Error(`No servers defined for operation ` +
-            `"${operation.operationId}"`);
+        throw new Error(`No servers defined for operation ` + `"${operation.operationId}"`);
     }
     // check for local servers
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
@@ -218,7 +225,7 @@ exports.sanitizeObjKeys = sanitizeObjKeys;
  * the given mapping.
  */
 function desanitizeObjKeys(obj, mapping = {}) {
-    const replaceKeys = (obj) => {
+    const replaceKeys = obj => {
         if (Array.isArray(obj)) {
             return obj.map(replaceKeys);
         }
@@ -374,12 +381,18 @@ function getRequestSchema(endpoint, oas) {
             const content = requestBody.content;
             // Prioritizes content-type JSON
             if (Object.keys(content).includes('application/json')) {
-                return { payloadContentType: 'application/json', payloadSchema: content['application/json'].schema };
+                return {
+                    payloadContentType: 'application/json',
+                    payloadSchema: content['application/json'].schema
+                };
             }
             else {
                 // Picks a random content type
                 for (let contentType in content) {
-                    return { payloadContentType: contentType, payloadSchema: content[contentType].schema };
+                    return {
+                        payloadContentType: contentType,
+                        payloadSchema: content[contentType].schema
+                    };
                 }
             }
         }
@@ -423,13 +436,15 @@ function getRequestSchemaAndNames(path, method, oas) {
             let saneContentTypeName = '';
             const terms = payloadContentType.split('/');
             for (let index in terms) {
-                saneContentTypeName += terms[index].charAt(0).toUpperCase() + terms[index].slice(1);
+                saneContentTypeName +=
+                    terms[index].charAt(0).toUpperCase() + terms[index].slice(1);
             }
             payloadSchemaNames = {
                 fromPath: saneContentTypeName
             };
             let description = payloadContentType + ' request placeholder object';
-            if ('description' in payloadSchema && typeof (payloadSchema['description']) === 'string') {
+            if ('description' in payloadSchema &&
+                typeof payloadSchema['description'] === 'string') {
                 description += `\n\nOriginal top level description: "${payloadSchema['description']}"`;
             }
             payloadSchema = {
@@ -469,12 +484,18 @@ function getResponseSchema(endpoint, statusCode, oas) {
                 const content = response.content;
                 // Prioritizes content-type JSON
                 if (Object.keys(content).includes('application/json')) {
-                    return { responseContentType: 'application/json', responseSchema: content['application/json'].schema };
+                    return {
+                        responseContentType: 'application/json',
+                        responseSchema: content['application/json'].schema
+                    };
                 }
                 else {
                     // Picks a random content type
                     for (let contentType in content) {
-                        return { responseContentType: contentType, responseSchema: content[contentType].schema };
+                        return {
+                            responseContentType: contentType,
+                            responseSchema: content[contentType].schema
+                        };
                     }
                 }
             }
@@ -508,9 +529,9 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
         // if request body content-type is not application/json, do not parse.
         // interpret the request body as a string
         if (responseContentType !== 'application/json') {
-            let description = 'Placeholder object to access non-application/json ' +
-                'response bodies';
-            if ('description' in responseSchema && typeof (responseSchema['description']) === 'string') {
+            let description = 'Placeholder object to access non-application/json ' + 'response bodies';
+            if ('description' in responseSchema &&
+                typeof responseSchema['description'] === 'string') {
                 description += `\n\nOriginal top level description: "${responseSchema['description']}"`;
             }
             responseSchema = {
@@ -537,7 +558,7 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
         if (statusCode === '204' && options.fillEmptyResponses) {
             return {
                 responseSchemaNames: {
-                    fromPath: inferResourceNameFromPath(path),
+                    fromPath: inferResourceNameFromPath(path)
                 },
                 responseContentType: 'application/json',
                 responseSchema: {
@@ -708,8 +729,7 @@ function getSecuritySchemes(oas) {
             // ensure we have actual SecuritySchemeObject:
             if (typeof obj.$ref === 'string') {
                 // result of resolution will be SecuritySchemeObject:
-                securitySchemes[schemeKey] =
-                    resolveRef(obj.$ref, oas);
+                securitySchemes[schemeKey] = resolveRef(obj.$ref, oas);
             }
             else {
                 // we already have a SecuritySchemeObject:
@@ -771,13 +791,14 @@ function beautify(str, lowercaseFirstChar = true) {
     while (sanitized.indexOf(charToRemove) !== -1) {
         const pos = sanitized.indexOf(charToRemove);
         if (sanitized.length >= pos + 2) {
-            sanitized = sanitized.slice(0, pos) +
-                sanitized.charAt(pos + 1).toUpperCase() +
-                sanitized.slice(pos + 2, sanitized.length);
+            sanitized =
+                sanitized.slice(0, pos) +
+                    sanitized.charAt(pos + 1).toUpperCase() +
+                    sanitized.slice(pos + 2, sanitized.length);
         }
         else if (sanitized.length === pos + 1) {
-            sanitized = sanitized.slice(0, pos) +
-                sanitized.charAt(pos + 1).toUpperCase();
+            sanitized =
+                sanitized.slice(0, pos) + sanitized.charAt(pos + 1).toUpperCase();
         }
         else {
             sanitized = sanitized.slice(0, pos);
@@ -789,8 +810,8 @@ function beautify(str, lowercaseFirstChar = true) {
     }
     // first character should be lowercase
     if (lowercaseFirstChar) {
-        sanitized = sanitized.charAt(0).toLowerCase() +
-            sanitized.slice(1, sanitized.length);
+        sanitized =
+            sanitized.charAt(0).toLowerCase() + sanitized.slice(1, sanitized.length);
     }
     return sanitized;
 }

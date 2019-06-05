@@ -93,7 +93,8 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
             const description = typeof schema.description !== 'undefined'
-                ? schema.description : 'No description available.';
+                ? schema.description
+                : 'No description available.';
             def.ot = new graphql_1.GraphQLObjectType({
                 name: def.otName,
                 description,
@@ -126,8 +127,10 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
                 (typeof operation === 'object'
                     ? ` (for operation "${operation.operationId}")`
                     : ''));
-            schema.description = typeof schema.description !== 'undefined'
-                ? schema.description : 'No description available.';
+            schema.description =
+                typeof schema.description !== 'undefined'
+                    ? schema.description
+                    : 'No description available.';
             def.iot = new graphql_1.GraphQLInputObjectType({
                 name: def.iotName,
                 description: schema.description,
@@ -228,7 +231,7 @@ function reuseOrCreateEnum({ def, data }) {
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType({ def, data, }) {
+function getScalarType({ def, data }) {
     const type = def.type;
     switch (type) {
         case 'string':
@@ -278,22 +281,26 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
             isMutation
         });
         // determine if this property is required in mutations
-        const reqMutationProp = (isMutation &&
-            ('required' in schema) &&
-            schema.required.includes(fieldTypeKey));
+        const reqMutationProp = isMutation &&
+            'required' in schema &&
+            schema.required.includes(fieldTypeKey);
         // finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const sanePropName = Oas3Tools.beautifyAndStore(fieldTypeKey, data.saneMap);
             fields[sanePropName] = {
-                type: reqMutationProp ? new graphql_1.GraphQLNonNull(objectType) : objectType,
+                type: reqMutationProp
+                    ? new graphql_1.GraphQLNonNull(objectType)
+                    : objectType,
                 description: typeof def.schema.description === 'undefined'
-                    ? 'No description available.' : def.schema.description
+                    ? 'No description available.'
+                    : def.schema.description
             };
         }
     }
     // create fields for links
     if (iteration === 0 && // only for operation-level object types
-        operation && typeof operation === 'object' && // operation is provided
+        operation &&
+        typeof operation === 'object' && // operation is provided
         typeof links === 'object' && // links are present
         !isMutation // only if we are not talking INPUT object type
     ) {
@@ -327,7 +334,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                     dynamicParams = dynamicParams.filter(p => {
                         // here, we know argsFromLink is present:
                         argsFromLink = argsFromLink;
-                        return (typeof argsFromLink[p.name] === 'undefined');
+                        return typeof argsFromLink[p.name] === 'undefined';
                     });
                 }
                 // get resolve function for link
@@ -458,7 +465,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                     // start at +1 because we do not want the starting '/'
                     linkMethod = linkRelativePathAndMethod.substring(pivotSlashIndex + 1);
                     // check if method is a valid method
-                    if (!(Oas3Tools.OAS_OPERATIONS.includes(linkMethod))) {
+                    if (!Oas3Tools.OAS_OPERATIONS.includes(linkMethod)) {
                         utils_1.handleWarning({
                             typeKey: 'UNRESOLVABLE_LINK',
                             culprit: `Method "${linkMethod}" in operationRef ` +
@@ -473,8 +480,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 else {
                     utils_1.handleWarning({
                         typeKey: 'UNRESOLVABLE_LINK',
-                        culprit: `No valid method targeted by operationRef ` +
-                            `"${operationRef}"`,
+                        culprit: `No valid method targeted by operationRef ` + `"${operationRef}"`,
                         data,
                         log: translationLog
                     });
@@ -488,11 +494,11 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 // linkPath is currently a JSON Pointer
                 // revert the escaped '/', represented by '~1', to form intended
                 // path
-                linkPath = linkPath.replace(/~1/g, "/");
+                linkPath = linkPath.replace(/~1/g, '/');
                 // find the right oas
-                const oas = typeof linkLocation === 'undefined' ?
-                    operation.oas :
-                    getOasFromLinkLocation(linkLocation, link, data, oass);
+                const oas = typeof linkLocation === 'undefined'
+                    ? operation.oas
+                    : getOasFromLinkLocation(linkLocation, link, data, oass);
                 // if the link was external, make sure that an OAS could be identified
                 if (typeof oas !== 'undefined') {
                     if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
@@ -644,14 +650,16 @@ function getArgs({ def, parameters, operation, data, oass }) {
         // sanitize the argument name
         const saneName = Oas3Tools.beautify(def.iotName);
         let reqRequired = false;
-        if (operation && typeof operation === 'object' &&
+        if (operation &&
+            typeof operation === 'object' &&
             typeof operation.payloadRequired === 'boolean') {
             reqRequired = operation.payloadRequired;
         }
         args[saneName] = {
             type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : reqObjectType,
             description: typeof def.schema.description === 'undefined'
-                ? 'No description available.' : def.schema.description
+                ? 'No description available.'
+                : def.schema.description
         };
     }
     args = utils_1.sortObject(args);
@@ -677,8 +685,8 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
     // may be an external reference
     switch (getLinkLocationType(linkLocation)) {
         case 'title':
-            // get the possible 
-            const possibleOass = oass.filter((oas) => {
+            // get the possible
+            const possibleOass = oass.filter(oas => {
                 return oas.info.title === linkLocation;
             });
             // check if there are an ambiguous OASs
@@ -708,13 +716,13 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
             }
             break;
         // // TODO
-        // case 'url': 
+        // case 'url':
         //   break
         // // TODO
-        // case 'file': 
+        // case 'file':
         //   break
         // TODO: should title be default?
-        // In cases of names like api.io 
+        // In cases of names like api.io
         default:
             utils_1.handleWarning({
                 typeKey: 'UNRESOLVABLE_LINK',

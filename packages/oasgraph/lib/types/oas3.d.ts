@@ -23,7 +23,7 @@ export declare type SchemaObject = {
     enum?: string[];
 };
 export declare type ReferenceObject = {
-    '$ref': string;
+    $ref: string;
 };
 declare type ExampleObject = {
     summary?: string;
@@ -134,7 +134,7 @@ export declare type OperationObject = {
     servers?: ServerObject[];
 };
 export declare type PathItemObject = {
-    '$ref'?: string;
+    $ref?: string;
     summary?: string;
     description: string;
     [key: string]: any;

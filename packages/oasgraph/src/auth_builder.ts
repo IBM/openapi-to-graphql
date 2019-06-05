@@ -15,7 +15,8 @@ import {
   GraphQLString,
   GraphQLObjectType,
   GraphQLNonNull,
-  GraphQLFieldConfigMap} from 'graphql'
+  GraphQLFieldConfigMap
+} from 'graphql'
 import { Args, ResolveFunction } from './types/graphql'
 import {
   PreprocessingData,
@@ -31,9 +32,9 @@ import { createDataDef } from './preprocessor'
 
 // Type definitions & exports:
 type Viewer = {
-  type: GQObjectType,
-  resolve: ResolveFunction,
-  args: Args,
+  type: GQObjectType
+  resolve: ResolveFunction
+  args: Args
   description: string
 }
 
@@ -45,19 +46,19 @@ const translationLog = debug('translation')
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-export function createAndLoadViewer (
-    queryFields: object,
-    data: PreprocessingData,
-    isMutation: boolean = false,
-    oass: Oas3[]
-): {[key: string]: Viewer} {
+export function createAndLoadViewer(
+  queryFields: object,
+  data: PreprocessingData,
+  isMutation: boolean = false,
+  oass: Oas3[]
+): { [key: string]: Viewer } {
   let results = {}
   /**
    * Object that contains all previously defined viewer object names.
    * The key is the security scheme type (apiKey or BasicAuth) and the value is
    * a list of the names for the viewers for that security scheme type.
    */
-  const usedViewerNames: {[key: string]: string[]} = {}
+  const usedViewerNames: { [key: string]: string[] } = {}
 
   /**
    * Used to collect all fields in the given querFields object, no matter which
@@ -98,30 +99,41 @@ export function createAndLoadViewer (
     }
 
     // create name for the viewer
-    let viewerName = !isMutation ?
-      Oas3Tools.beautify(`viewer ${type}`) :
-      Oas3Tools.beautify(`mutation viewer ${type}`)
+    let viewerName = !isMutation
+      ? Oas3Tools.beautify(`viewer ${type}`)
+      : Oas3Tools.beautify(`mutation viewer ${type}`)
 
     if (!(type in usedViewerNames)) {
       usedViewerNames[type] = []
     }
     if (usedViewerNames[type].indexOf(viewerName) !== -1) {
-      viewerName += (usedViewerNames[type].length + 1)
+      viewerName += usedViewerNames[type].length + 1
     }
     usedViewerNames[type].push(viewerName)
 
     // Add the viewer object type to the specified root query object type
     results[viewerName] = getViewerOT(
-      viewerName, protocolName, type, queryFields[protocolName], data, oass)
+      viewerName,
+      protocolName,
+      type,
+      queryFields[protocolName],
+      data,
+      oass
+    )
   }
 
   // create name for the AnyAuth viewer
-  let anyAuthObjectName = !isMutation ?
-    'viewerAnyAuth' :
-    'mutationViewerAnyAuth'
+  let anyAuthObjectName = !isMutation
+    ? 'viewerAnyAuth'
+    : 'mutationViewerAnyAuth'
 
   // Add the AnyAuth object type to the specified root query object type
-  results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data, oass)
+  results[anyAuthObjectName] = getViewerAnyAuthOT(
+    anyAuthObjectName,
+    anyAuthFields,
+    data,
+    oass
+  )
 
   return results
 }
@@ -163,19 +175,20 @@ const getViewerOT = (
     }
   }
   // Do not sort because they are already "sorted" in preprocessing
-  // Otherwise, for basic auth, "password" will appear before "username" 
-  
+  // Otherwise, for basic auth, "password" will appear before "username"
+
   let typeDescription
   let description
   if (oass.length === 1) {
     typeDescription = `A viewer for the security protocol: "${scheme.rawName}"`
     description = `A viewer that wraps all operations authenticated via ${type}`
-
   } else {
-    typeDescription = `A viewer for the security protocol "${scheme.rawName}" ` +
+    typeDescription =
+      `A viewer for the security protocol "${scheme.rawName}" ` +
       `in ${scheme.oas.info.title}`
 
-    description = `A viewer that wraps all operations authenticated via ${type}\n\n` +
+    description =
+      `A viewer that wraps all operations authenticated via ${type}\n\n` +
       `For the security scheme: ${scheme.oas.info.title} ${protocolName}`
   }
 
@@ -208,7 +221,12 @@ const getViewerAnyAuthOT = (
     // TODO: This is bad. We don't pass an operation, which is needed for
     // creating the GraphQLType, though.
 
-    const def = createDataDef({ fromRef: protocolName }, data.security[protocolName].schema, true, data)
+    const def = createDataDef(
+      { fromRef: protocolName },
+      data.security[protocolName].schema,
+      true,
+      data
+    )
 
     const type = getGraphQLType({
       def,
@@ -238,7 +256,8 @@ const getViewerAnyAuthOT = (
     }),
     resolve,
     args,
-    description: `A viewer that wraps operations for all available ` +
+    description:
+      `A viewer that wraps operations for all available ` +
       `authentication mechanisms`
   }
 }

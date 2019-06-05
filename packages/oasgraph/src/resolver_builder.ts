@@ -26,23 +26,23 @@ const httpLog = debug('http')
 
 // Type definitions & exports:
 type AuthReqAndProtcolName = {
-  authRequired: boolean,
+  authRequired: boolean
   beautifiedSecurityRequirement?: string
 }
 
 type AuthOptions = {
-  authHeaders: { [key: string]: string },
-  authQs: { [key: string]: string },
+  authHeaders: { [key: string]: string }
+  authQs: { [key: string]: string }
   authCookie: NodeRequest.Cookie
 }
 
 type GetResolverParams = {
-  operation: Operation,
-  argsFromLink?: { [key: string]: string },
-  argsFromParent?: string[],
-  payloadName?: string,
-  data: PreprocessingData,
-  baseUrl?: string,
+  operation: Operation
+  argsFromLink?: { [key: string]: string }
+  argsFromParent?: string[]
+  payloadName?: string
+  data: PreprocessingData
+  baseUrl?: string
   requestOptions?: NodeRequest.OptionsWithUrl
 }
 /**
@@ -69,12 +69,15 @@ export function getResolver({
   const path = operation.path
   const method = operation.method
 
-  if (typeof customResolvers === 'object' &&
+  if (
+    typeof customResolvers === 'object' &&
     typeof customResolvers[title] === 'object' &&
     typeof customResolvers[title][path] === 'object' &&
-    typeof customResolvers[title][path][method] === 'function') {
-      
-    translationLog(`Use custom resolver for ${title} ${method.toLocaleUpperCase()} ${path}`)
+    typeof customResolvers[title][path][method] === 'function'
+  ) {
+    translationLog(
+      `Use custom resolver for ${title} ${method.toLocaleUpperCase()} ${path}`
+    )
 
     return customResolvers[title][path][method]
   }
@@ -85,15 +88,22 @@ export function getResolver({
     // NOTE: _oasgraph is an object used to pass security info and data from
     // previous resolvers
     let resolveData: any = {}
-    if (root &&
+    if (
+      root &&
       typeof root === 'object' &&
       typeof root._oasgraph === 'object' &&
-      typeof root._oasgraph.data === 'object') {
+      typeof root._oasgraph.data === 'object'
+    ) {
       const parentIdentifier = getParentIdentifier(info)
-      if (!(parentIdentifier.length === 0) && parentIdentifier in root._oasgraph.data) {
+      if (
+        !(parentIdentifier.length === 0) &&
+        parentIdentifier in root._oasgraph.data
+      ) {
         // resolving link params may change the usedParams, but these changes
         // should not be present in the parent _oasgraph, therefore copy the object
-        resolveData = JSON.parse(JSON.stringify(root._oasgraph.data[parentIdentifier]))
+        resolveData = JSON.parse(
+          JSON.stringify(root._oasgraph.data[parentIdentifier])
+        )
       }
     }
 
@@ -115,13 +125,20 @@ export function getResolver({
      */
     operation.parameters.forEach(param => {
       const paramName = Oas3Tools.beautify(param.name)
-      if (typeof args[paramName] === 'undefined' && param.schema && typeof param.schema === 'object') {
+      if (
+        typeof args[paramName] === 'undefined' &&
+        param.schema &&
+        typeof param.schema === 'object'
+      ) {
         let schema = param.schema
         if (schema && schema.$ref && typeof schema.$ref === 'string') {
           schema = Oas3Tools.resolveRef(schema.$ref, operation.oas)
         }
-        if (schema && (schema as SchemaObject).default &&
-         typeof (schema as SchemaObject).default !== 'undefined') {
+        if (
+          schema &&
+          (schema as SchemaObject).default &&
+          typeof (schema as SchemaObject).default !== 'undefined'
+        ) {
           args[paramName] = (schema as SchemaObject).default
         }
       }
@@ -145,12 +162,23 @@ export function getResolver({
        * abc_{$response.body#/employerId}
        */
       if (value.search(/{|}/) === -1) {
-        args[paramNameWithoutLocation] = (isRuntimeExpression(value)) ? resolveLinkParameter(paramName, value, resolveData, root, args) : value
+        args[paramNameWithoutLocation] = isRuntimeExpression(value)
+          ? resolveLinkParameter(paramName, value, resolveData, root, args)
+          : value
       } else {
         // replace link parameters with appropriate values
         const linkParams = value.match(/{([^}]*)}/g)
-        linkParams.forEach((linkParam) => {
-          value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args))
+        linkParams.forEach(linkParam => {
+          value = value.replace(
+            linkParam,
+            resolveLinkParameter(
+              paramName,
+              linkParam.substring(1, linkParam.length - 1),
+              resolveData,
+              root,
+              args
+            )
+          )
         })
         args[paramNameWithoutLocation] = value
       }
@@ -163,7 +191,8 @@ export function getResolver({
     const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(
       operation.path,
       operation.parameters,
-      args)
+      args
+    )
     const url = baseUrl + path
 
     // The Content-type and accept property should not be changed because the
@@ -171,8 +200,14 @@ export function getResolver({
     // cannot be easily changed
     //
     // NOTE: This may cause the user to encounter unexpected changes
-    headers['content-type'] = typeof (operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json'
-    headers['accept'] = typeof (operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json'
+    headers['content-type'] =
+      typeof operation.payloadContentType !== 'undefined'
+        ? operation.payloadContentType
+        : 'application/json'
+    headers['accept'] =
+      typeof operation.responseContentType !== 'undefined'
+        ? operation.responseContentType
+        : 'application/json'
 
     let options: NodeRequest.OptionsWithUrl
     if (requestOptions) {
@@ -209,12 +244,12 @@ export function getResolver({
       if (sanePayloadName in args) {
         if (typeof args[sanePayloadName] === 'object') {
           // we need to desanitize the payload so the API understands it:
-          const rawPayload = JSON.stringify(Oas3Tools.desanitizeObjKeys(
-            args[sanePayloadName], data.saneMap))
+          const rawPayload = JSON.stringify(
+            Oas3Tools.desanitizeObjKeys(args[sanePayloadName], data.saneMap)
+          )
 
           options.body = rawPayload
           resolveData.usedPayload = rawPayload
-
         } else {
           // payload is not an object (stored as an application/json)
           const rawPayload = args[sanePayloadName]
@@ -246,10 +281,12 @@ export function getResolver({
     }
 
     // get authentication headers and query parameters
-    if (root &&
-      typeof root === 'object' &&
-      typeof root._oasgraph == 'object') {
-      const { authHeaders, authQs, authCookie } = getAuthOptions(operation, root._oasgraph, data)
+    if (root && typeof root === 'object' && typeof root._oasgraph == 'object') {
+      const { authHeaders, authQs, authCookie } = getAuthOptions(
+        operation,
+        root._oasgraph,
+        data
+      )
 
       // ...and pass them to the options
       Object.assign(options.headers, authHeaders)
@@ -276,8 +313,12 @@ export function getResolver({
     resolveData.usedStatusCode = operation.statusCode
 
     // make the call
-    httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}` +
-    `headers:${JSON.stringify(options.headers)}`)
+    httpLog(
+      `Call ${options.method.toUpperCase()} ${
+        options.url
+      }?${querystring.stringify(options.qs)}` +
+        `headers:${JSON.stringify(options.headers)}`
+    )
     return new Promise((resolve, reject) => {
       NodeRequest(options, (err, response, body) => {
         if (err) {
@@ -286,12 +327,14 @@ export function getResolver({
         } else if (response.statusCode > 299) {
           httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
-          const operationString = `${operation.method.toUpperCase()} ${operation.path}`
+          const operationString = `${operation.method.toUpperCase()} ${
+            operation.path
+          }`
           const errorString = `Could not invoke operation ${operationString}`
           if (data.options.provideErrorExtensions) {
             const extensions = {
               method: operation.method,
-              path: operation.path, 
+              path: operation.path,
 
               statusCode: response.statusCode,
               responseHeaders: response.headers,
@@ -301,7 +344,6 @@ export function getResolver({
           } else {
             reject(new Error(errorString))
           }
-
         } else {
           httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
@@ -324,19 +366,20 @@ export function getResolver({
           const saneData: any = Oas3Tools.sanitizeObjKeys(body)
 
           // pass on _oasgraph to subsequent resolvers
-          if (saneData &&
-            typeof saneData === 'object') {
+          if (saneData && typeof saneData === 'object') {
             if (Array.isArray(saneData)) {
-              saneData.forEach((element) => {
+              saneData.forEach(element => {
                 if (typeof element._oasgraph === 'undefined') {
                   element._oasgraph = {
                     data: {}
                   }
                 }
 
-                if (root &&
+                if (
+                  root &&
                   typeof root === 'object' &&
-                  typeof root._oasgraph == 'object') {
+                  typeof root._oasgraph == 'object'
+                ) {
                   Object.assign(element._oasgraph, root._oasgraph)
                 }
 
@@ -349,9 +392,11 @@ export function getResolver({
                 }
               }
 
-              if (root &&
+              if (
+                root &&
                 typeof root === 'object' &&
-                typeof root._oasgraph == 'object') {
+                typeof root._oasgraph == 'object'
+              ) {
                 Object.assign(saneData._oasgraph, root._oasgraph)
               }
 
@@ -370,8 +415,13 @@ export function getResolver({
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
-function createOAuthQS ( data: PreprocessingData, ctx: object ): { [key: string]: string } {
-  return (typeof data.options.tokenJSONpath !== 'string') ? {} : extractToken(data, ctx)
+function createOAuthQS(
+  data: PreprocessingData,
+  ctx: object
+): { [key: string]: string } {
+  return typeof data.options.tokenJSONpath !== 'string'
+    ? {}
+    : extractToken(data, ctx)
 }
 
 function extractToken(data: PreprocessingData, ctx: object) {
@@ -383,7 +433,9 @@ function extractToken(data: PreprocessingData, ctx: object) {
       access_token: token
     }
   } else {
-    httpLog(`Warning: could not extract OAuth token from context at "${tokenJSONpath}"`)
+    httpLog(
+      `Warning: could not extract OAuth token from context at "${tokenJSONpath}"`
+    )
     return {}
   }
 }
@@ -392,7 +444,7 @@ function extractToken(data: PreprocessingData, ctx: object) {
  * Attempts to create an OAuth authorization header by extracting an OAuth token
  * from the ctx based on the JSON path provided in the options.
  */
-function createOAuthHeader (
+function createOAuthHeader(
   data: PreprocessingData,
   ctx: object
 ): { [key: string]: string } {
@@ -410,8 +462,10 @@ function createOAuthHeader (
       'User-Agent': 'oasgraph'
     }
   } else {
-    httpLog(`Warning: could not extract OAuth token from context at ` +
-      `"${tokenJSONpath}"`)
+    httpLog(
+      `Warning: could not extract OAuth token from context at ` +
+        `"${tokenJSONpath}"`
+    )
     return {}
   }
 }
@@ -422,7 +476,7 @@ function createOAuthHeader (
  * which hold headers and query parameters respectively to authentication a
  * request.
  */
-function getAuthOptions (
+function getAuthOptions(
   operation: Operation,
   _oasgraph: any,
   data: PreprocessingData
@@ -433,8 +487,10 @@ function getAuthOptions (
 
   // determine if authentication is required, and which protocol (if any) we
   // can use
-  const { authRequired, beautifiedSecurityRequirement } = getAuthReqAndProtcolName(
-    operation, _oasgraph)
+  const {
+    authRequired,
+    beautifiedSecurityRequirement
+  } = getAuthReqAndProtcolName(operation, _oasgraph)
   const securityRequirement = data.saneMap[beautifiedSecurityRequirement]
 
   // possibly, we don't need to do anything:
@@ -462,7 +518,9 @@ function getAuthOptions (
               authCookie = NodeRequest.cookie(`${security.def.name}=${apiKey}`)
             }
           } else {
-            throw new Error(`Cannot send API key in "${JSON.stringify(security.def.in)}"`)
+            throw new Error(
+              `Cannot send API key in "${JSON.stringify(security.def.in)}"`
+            )
           }
         }
         break
@@ -470,14 +528,20 @@ function getAuthOptions (
       case 'http':
         switch (security.def.scheme) {
           case 'basic':
-            const username = _oasgraph.security[beautifiedSecurityRequirement].username
-            const password = _oasgraph.security[beautifiedSecurityRequirement].password
+            const username =
+              _oasgraph.security[beautifiedSecurityRequirement].username
+            const password =
+              _oasgraph.security[beautifiedSecurityRequirement].password
             const credentials = `${username}:${password}`
-            authHeaders['Authorization'] = `Basic ${Buffer.from(credentials).toString('base64')}`
+            authHeaders['Authorization'] = `Basic ${Buffer.from(
+              credentials
+            ).toString('base64')}`
             break
           default:
-            throw new Error(`Cannot recognize http security scheme ` +
-              `"${JSON.stringify(security.def.scheme)}"`)
+            throw new Error(
+              `Cannot recognize http security scheme ` +
+                `"${JSON.stringify(security.def.scheme)}"`
+            )
         }
         break
 
@@ -504,13 +568,19 @@ function getAuthReqAndProtcolName(
   _oasgraph
 ): AuthReqAndProtcolName {
   let authRequired = false
-  if (Array.isArray(operation.securityRequirements) &&
-    operation.securityRequirements.length > 0) {
+  if (
+    Array.isArray(operation.securityRequirements) &&
+    operation.securityRequirements.length > 0
+  ) {
     authRequired = true
 
     for (let securityRequirement of operation.securityRequirements) {
-      const beautifiedSecurityRequirement = Oas3Tools.beautify(securityRequirement)
-      if (typeof _oasgraph.security[beautifiedSecurityRequirement] === 'object') {
+      const beautifiedSecurityRequirement = Oas3Tools.beautify(
+        securityRequirement
+      )
+      if (
+        typeof _oasgraph.security[beautifiedSecurityRequirement] === 'object'
+      ) {
         return {
           authRequired,
           beautifiedSecurityRequirement
@@ -525,20 +595,23 @@ function getAuthReqAndProtcolName(
 
 /**
  * Given a link parameter, determine the value
- * 
- * The link parameter is a reference to data contained in the 
+ *
+ * The link parameter is a reference to data contained in the
  * url/method/statuscode or response/request body/query/path/header
  */
-function resolveLinkParameter(paramName: string, value: string, resolveData: any, root: any, args: any): any {
+function resolveLinkParameter(
+  paramName: string,
+  value: string,
+  resolveData: any,
+  root: any,
+  args: any
+): any {
   if (value === '$url') {
     return resolveData.usedRequestOptions.url
-
   } else if (value === '$method') {
     return resolveData.usedRequestOptions.method
-
   } else if (value === '$statusCode') {
     return resolveData.usedStatusCode
-
   } else if (value.startsWith('$request.')) {
     // CASE: parameter is previous body
     if (value === '$request.body') {
@@ -546,7 +619,10 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
 
       // CASE: parameter in previous body
     } else if (value.startsWith('$request.body#')) {
-      const tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: resolveData.usedPayload })
+      const tokens = JSONPath.JSONPath({
+        path: value.split('body#/')[1],
+        json: resolveData.usedPayload
+      })
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
@@ -555,7 +631,9 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
 
       // CASE: parameter in previous query parameter
     } else if (value.startsWith('$request.query')) {
-      return resolveData.usedParams[Oas3Tools.beautify(value.split('query.')[1])]
+      return resolveData.usedParams[
+        Oas3Tools.beautify(value.split('query.')[1])
+      ]
 
       // CASE: parameter in previous path parameter
     } else if (value.startsWith('$request.path')) {
@@ -565,16 +643,15 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
     } else if (value.startsWith('$request.header')) {
       return resolveData.usedRequestOptions.headers[value.split('header.')[1]]
     }
-
   } else if (value.startsWith('$response.')) {
     // CASE: parameter is body
     // NOTE: may not be used because it implies that the operation does not return
     // a JSON object and OASGraph does not create GraphQL objects for non-JSON
-    // data and links can only exists between objects. 
+    // data and links can only exists between objects.
     if (value === '$response.body') {
       const result = JSON.parse(JSON.stringify(root))
       /**
-       * _oasgraph contains data used by OASGraph to create the GraphQL interface 
+       * _oasgraph contains data used by OASGraph to create the GraphQL interface
        * and should not be exposed
        */
       result._oasgraph = undefined
@@ -582,7 +659,10 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
 
       // CASE: parameter in body
     } else if (value.startsWith('$response.body#')) {
-      const tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root })
+      const tokens = JSONPath.JSONPath({
+        path: value.split('body#/')[1],
+        json: root
+      })
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
@@ -592,7 +672,9 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
       // CASE: parameter in query parameter
     } else if (value.startsWith('$response.query')) {
       // NOTE: handled the same way $request.query is handled
-      return resolveData.usedParams[Oas3Tools.beautify(value.split('query.')[1])]
+      return resolveData.usedParams[
+        Oas3Tools.beautify(value.split('query.')[1])
+      ]
 
       // CASE: parameter in path parameter
     } else if (value.startsWith('$response.path')) {
@@ -605,7 +687,9 @@ function resolveLinkParameter(paramName: string, value: string, resolveData: any
     }
   }
 
-  throw new Error(`Cannot create link because "${value}" is an invalid runtime expression`)
+  throw new Error(
+    `Cannot create link because "${value}" is an invalid runtime expression`
+  )
 }
 
 /**
@@ -616,14 +700,12 @@ function isRuntimeExpression(str: string): boolean {
 
   if (str === '$url' || str === '$method' || str === '$statusCode') {
     return true
-
   } else if (str.startsWith('$request.')) {
     for (let i = 0; i < references.length; i++) {
       if (str.startsWith(`$request.${references[i]}`)) {
         return true
       }
     }
-
   } else if (str.startsWith('$response.')) {
     for (let i = 0; i < references.length; i++) {
       if (str.startsWith(`$response.${references[i]}`)) {
@@ -638,7 +720,7 @@ function isRuntimeExpression(str: string): boolean {
 /**
  * From the info object provided by the resolver, get a unique identifier, which
  * is the path formed from the nested field names (or aliases if provided)
- * 
+ *
  * Used to store and retrieve the _oasgraph of parent field
  */
 function getIdentifier(info): string {
@@ -652,17 +734,22 @@ function getIdentifier(info): string {
 function getParentIdentifier(info): string {
   return getIdentifierRecursive(info.path.prev)
 }
- 
+
 /**
  * Get the path of nested field names (or aliases if provided)
  */
 function getIdentifierRecursive(path): string {
-  return (typeof path.prev === 'undefined') ? path.key : `${path.key}/${getIdentifierRecursive(path.prev)}`
+  return typeof path.prev === 'undefined'
+    ? path.key
+    : `${path.key}/${getIdentifierRecursive(path.prev)}`
 }
 
 /**
  * Create a new GraphQLError with an extensions field
  */
-function graphQLErrorWithExtensions(message: string, extensions: { [key: string]: any }): GraphQLError {
+function graphQLErrorWithExtensions(
+  message: string,
+  extensions: { [key: string]: any }
+): GraphQLError {
   return new GraphQLError(message, null, null, null, null, null, extensions)
 }

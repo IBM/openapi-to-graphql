@@ -142,14 +142,16 @@ exports.handleWarning = handleWarning;
 // Code provided by codename- from StackOverflow
 // Link: https://stackoverflow.com/a/29622653
 function sortObject(o) {
-    return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
+    return Object.keys(o)
+        .sort()
+        .reduce((r, k) => ((r[k] = o[k]), r), {});
 }
 exports.sortObject = sortObject;
 /**
  * Finds the common property names between two objects
  */
 function getCommonPropertyNames(object1, object2) {
-    return Object.keys(object1).filter((propertyName) => {
+    return Object.keys(object1).filter(propertyName => {
         return propertyName in object2;
     });
 }
