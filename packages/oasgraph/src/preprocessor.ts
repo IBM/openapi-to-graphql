@@ -80,7 +80,7 @@ export function preprocessOas (
           typeof endpoint.summary === 'string') {
           description = endpoint.summary
         }
-        
+
         if (typeof description !== 'string') {
           description = 'No description available.'
         }
@@ -346,8 +346,8 @@ function getProcessedSecuritySchemes (
  * (= String to use as the name for Input Object Types). Eventually, data
  * definitions also hold an ot (= the Object Type for the schema) and an iot
  * (= the Input Object Type for the schema).
- * 
- * Either names or preferredName should exist. 
+ *
+ * Either names or preferredName should exist.
  */
 export function createDataDef (
   names: Oas3Tools.SchemaNames,
@@ -396,7 +396,7 @@ export function createDataDef (
 
         // Collapse the links
         Object.assign(existingDataDef.links, links)
-        
+
       } else {
         // No preexisting links, so simply assign the links
         existingDataDef.links = links
@@ -410,8 +410,8 @@ export function createDataDef (
     const name = getSchemaName(data.usedOTNames, names)
 
     // Store and beautify the name
-    const saneName = Oas3Tools.beautifyAndStore(name, data.saneMap)
-    const saneInputName = saneName + 'Input'
+    const saneName = Oas3Tools.capitalize(Oas3Tools.beautifyAndStore(name, data.saneMap))
+    const saneInputName = Oas3Tools.capitalize(saneName + 'Input')
 
     // Add the names to the master list
     data.usedOTNames.push(saneName)
@@ -426,7 +426,7 @@ export function createDataDef (
         data,
         log
       })
-    }  
+    }
 
     const def: DataDefinition = {
       preferredName,
@@ -434,8 +434,8 @@ export function createDataDef (
       type,
       subDefinitions: undefined,
       links,
-      otName: Oas3Tools.capitalize(saneName),
-      iotName: Oas3Tools.capitalize(saneInputName)
+      otName: saneName,
+      iotName: saneInputName
     }
 
     // Add the def to the master list
@@ -459,7 +459,7 @@ export function createDataDef (
             data,
             log
           })
-        }       
+        }
       }
 
       let subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema as SchemaObject, isInputObjectType, data, undefined, oas)
@@ -485,7 +485,7 @@ export function createDataDef (
               data,
               log
             })
-          }       
+          }
         }
 
         let subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema as SchemaObject, isInputObjectType, data, undefined, oas)
@@ -500,7 +500,7 @@ export function createDataDef (
 
 /**
  * Returns the index of the data definition object in the given list that
- * contains the same schema and preferred name as the given one. Returns -1 if 
+ * contains the same schema and preferred name as the given one. Returns -1 if
  * that schema could not be found.
  */
 function getSchemaIndex (
@@ -523,10 +523,10 @@ function getSchemaIndex (
 
 /**
  * Determines the preferred name to use for schema regardless of name collisions.
- * 
+ *
  * In other words, determines the ideal name for a schema.
- * 
- * Similar to getSchemaName() except it does not check if the name has already 
+ *
+ * Similar to getSchemaName() except it does not check if the name has already
  * been taken.
  */
 function getPreferredName (
@@ -578,7 +578,7 @@ function getSchemaName (
 
   // CASE: name from reference
   if (typeof names.fromRef === 'string') {
-    let saneName = Oas3Tools.beautify(names.fromRef)
+    let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromRef))
     if (!usedNames.includes(saneName)) {
       schemaName = names.fromRef
     }
@@ -586,7 +586,7 @@ function getSchemaName (
 
   // CASE: name from schema (i.e., "title" property in schema)
   if (!schemaName && typeof names.fromSchema === 'string') {
-    let saneName = Oas3Tools.beautify(names.fromSchema)
+    let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromSchema))
     if (!usedNames.includes(saneName)) {
       schemaName = names.fromSchema
     }
@@ -594,7 +594,7 @@ function getSchemaName (
 
   // CASE: name from path
   if (!schemaName && typeof names.fromPath === 'string') {
-    let saneName = Oas3Tools.beautify(names.fromPath)
+    let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromPath))
     if (!usedNames.includes(saneName)) {
       schemaName = names.fromPath
     }
@@ -602,10 +602,10 @@ function getSchemaName (
 
   // CASE: all names are already used - create approximate name
   if (!schemaName) {
-    let tempName = Oas3Tools.beautify(typeof names.fromRef === 'string'
+    let tempName = Oas3Tools.capitalize(Oas3Tools.beautify(typeof names.fromRef === 'string'
       ? names.fromRef : (typeof names.fromSchema === 'string'
       ? names.fromSchema : (typeof names.fromPath === 'string'
-      ? names.fromPath : 'RandomName')))
+      ? names.fromPath : 'RandomName'))))
     let appendix = 2
 
     /**

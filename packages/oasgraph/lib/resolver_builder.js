@@ -4,8 +4,8 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+const NodeRequest = require("request");
 // Imports:
-const request = require("request");
 const Oas3Tools = require("./oas_3_tools");
 const querystring = require("querystring");
 const JSONPath = require("jsonpath-plus");
@@ -18,10 +18,6 @@ const log = debug_1.debug('http');
 function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloadName, data, baseUrl, requestOptions }) {
     // determine the appropriate URL:
     if (typeof baseUrl === 'undefined') {
-        /**
-         * get the base URL from the server object of the OAS if the base URL is not
-         * specified as an option
-         */
         baseUrl = Oas3Tools.getBaseUrl(operation);
     }
     // return resolve function:
@@ -32,8 +28,8 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
         let resolveData = {};
         if (root &&
             typeof root === 'object' &&
-            typeof root._oasgraph == 'object' &&
-            typeof root._oasgraph.data == 'object') {
+            typeof root._oasgraph === 'object' &&
+            typeof root._oasgraph.data === 'object') {
             let parentIdentifier = getParentIdentifier(info);
             if (!(parentIdentifier.length === 0) && parentIdentifier in root._oasgraph.data) {
                 // resolving link params may change the usedParams, but these changes
@@ -57,26 +53,24 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
          */
         operation.parameters.forEach(param => {
             let paramName = Oas3Tools.beautify(param.name);
-            if (typeof args[paramName] === 'undefined' &&
-                param.schema && typeof param.schema === 'object') {
+            if (typeof args[paramName] === 'undefined' && param.schema && typeof param.schema === 'object') {
                 let schema = param.schema;
                 if (schema && schema.$ref && typeof schema.$ref === 'string') {
                     schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
                 }
-                if (schema && schema.default
-                    && typeof schema.default !== 'undefined') {
+                if (schema && schema.default &&
+                    typeof schema.default !== 'undefined') {
                     args[paramName] = schema.default;
                 }
             }
         });
         // handle arguments provided by links
         for (let paramName in argsFromLink) {
+            let value = argsFromLink[paramName];
             let paramNameWithoutLocation = paramName;
             if (paramName.indexOf('.') !== -1) {
                 paramNameWithoutLocation = paramName.split('.')[1];
             }
-            // link parameter
-            let value = argsFromLink[paramName];
             /**
              * see if the link parameter contains constants that are appended to the link parameter
              *
@@ -87,12 +81,7 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
              * abc_{$response.body#/employerId}
              */
             if (value.search(/{|}/) === -1) {
-                if (isRuntimeExpression(value)) {
-                    args[paramNameWithoutLocation] = resolveLinkParameter(paramName, value, resolveData, root, args);
-                }
-                else {
-                    args[paramNameWithoutLocation] = value;
-                }
+                args[paramNameWithoutLocation] = (isRuntimeExpression(value)) ? resolveLinkParameter(paramName, value, resolveData, root, args) : value;
             }
             else {
                 // replace link parameters with appropriate values
@@ -187,10 +176,16 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
         if (root &&
             typeof root === 'object' &&
             typeof root._oasgraph == 'object') {
-            let { authHeaders, authQs } = getAuthOptions(operation, root._oasgraph, data);
+            let { authHeaders, authQs, authCookie } = getAuthOptions(operation, root._oasgraph, data);
             // ...and pass them to the options
             Object.assign(options.headers, authHeaders);
             Object.assign(options.qs, authQs);
+            // add authentication cookie if created
+            if (authCookie !== null) {
+                const j = NodeRequest.jar();
+                j.setCookie(authCookie, options.url);
+                options.jar = j;
+            }
         }
         // extract OAuth token from context (if available)
         if (data.options.sendOAuthTokenInQuery) {
@@ -204,11 +199,10 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
         resolveData.usedRequestOptions = options;
         resolveData.usedStatusCode = operation.statusCode;
         // make the call
-        log(`Call ${options.method.toUpperCase()} ${options.url}` +
-            `?${querystring.stringify(options.qs)} ` +
+        log(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}` +
             `headers:${JSON.stringify(options.headers)}`);
         return new Promise((resolve, reject) => {
-            request(options, (err, response, body) => {
+            NodeRequest(options, (err, response, body) => {
                 if (err) {
                     log(err);
                     reject(err);
@@ -279,10 +273,9 @@ exports.getResolver = getResolver;
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
 function createOAuthQS(data, ctx) {
-    if (typeof data.options.tokenJSONpath !== 'string') {
-        return {};
-    }
-    // extract token:
+    return (typeof data.options.tokenJSONpath !== 'string') ? {} : extractToken(data, ctx);
+}
+function extractToken(data, ctx) {
     let tokenJSONpath = data.options.tokenJSONpath;
     let tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx });
     if (Array.isArray(tokens) && tokens.length > 0) {
@@ -292,8 +285,7 @@ function createOAuthQS(data, ctx) {
         };
     }
     else {
-        log(`Warning: could not extract OAuth token from context at ` +
-            `'${tokenJSONpath}'`);
+        log(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`);
         return {};
     }
 }
@@ -330,13 +322,14 @@ function createOAuthHeader(data, ctx) {
 function getAuthOptions(operation, _oasgraph, data) {
     let authHeaders = {};
     let authQs = {};
+    let authCookie = null;
     // determine if authentication is required, and which protocol (if any) we
     // can use
     let { authRequired, beautifiedSecurityRequirement } = getAuthReqAndProtcolName(operation, _oasgraph);
     let securityRequirement = data.saneMap[beautifiedSecurityRequirement];
     // possibly, we don't need to do anything:
     if (!authRequired) {
-        return { authHeaders, authQs };
+        return { authHeaders, authQs, authCookie };
     }
     // if authentication is required, but we can't fulfill the protocol, throw:
     if (authRequired && typeof securityRequirement !== 'string') {
@@ -348,27 +341,29 @@ function getAuthOptions(operation, _oasgraph, data) {
             case 'apiKey':
                 let apiKey = _oasgraph.security[beautifiedSecurityRequirement].apiKey;
                 if ('in' in security.def) {
-                    if (security.def.in === 'header' &&
-                        typeof security.def.name === 'string') {
-                        authHeaders[security.def.name] = apiKey;
-                    }
-                    else if (security.def.in === 'query' &&
-                        typeof security.def.name === 'string') {
-                        authQs[security.def.name] = apiKey;
+                    if (typeof security.def.name === 'string') {
+                        if (security.def.in === 'header') {
+                            authHeaders[security.def.name] = apiKey;
+                        }
+                        else if (security.def.in === 'query') {
+                            authQs[security.def.name] = apiKey;
+                        }
+                        else if (security.def.in === 'cookie') {
+                            authCookie = NodeRequest.cookie(`${security.def.name}=${apiKey}`);
+                        }
                     }
                     else {
-                        throw new Error(`Cannot send apiKey in ` +
-                            `'${JSON.stringify(security.def.in)}'`);
+                        throw new Error(`Cannot send apiKey in '${JSON.stringify(security.def.in)}'`);
                     }
                 }
                 break;
             case 'http':
                 switch (security.def.scheme) {
                     case 'basic':
-                        let username = _oasgraph.security[beautifiedSecurityRequirement].username;
-                        let password = _oasgraph.security[beautifiedSecurityRequirement].password;
-                        authHeaders['Authorization'] = 'Basic ' +
-                            Buffer.from(username + ':' + password).toString('base64');
+                        const username = _oasgraph.security[beautifiedSecurityRequirement].username;
+                        const password = _oasgraph.security[beautifiedSecurityRequirement].password;
+                        const credentials = `${username}:${password}`;
+                        authHeaders['Authorization'] = `Basic ${Buffer.from(credentials).toString('base64')}`;
                         break;
                     default:
                         throw new Error(`Cannot recognize http security scheme ` +
@@ -383,7 +378,7 @@ function getAuthOptions(operation, _oasgraph, data) {
                 throw new Error(`Cannot recognize security type '${security.def.type}'`);
         }
     }
-    return { authHeaders, authQs };
+    return { authHeaders, authQs, authCookie };
 }
 /**
  * Determines whether given operation requires authentication, and which of the
@@ -528,21 +523,16 @@ function getIdentifier(info) {
     return getIdentifierRecursive(info.path);
 }
 /**
- * Get the path of nested field names (or aliases if provided)
- */
-function getIdentifierRecursive(path) {
-    if (typeof path.prev === 'undefined') {
-        return path.key;
-    }
-    else {
-        return `${path.key}/${getIdentifierRecursive(path.prev)}`;
-    }
-}
-/**
  * From the info object provided by the resolver, get the unique identifier of
  * the parent object
  */
 function getParentIdentifier(info) {
     return getIdentifierRecursive(info.path.prev);
+}
+/**
+ * Get the path of nested field names (or aliases if provided)
+ */
+function getIdentifierRecursive(path) {
+    return (typeof path.prev === 'undefined') ? path.key : `${path.key}/${getIdentifierRecursive(path.prev)}`;
 }
 //# sourceMappingURL=resolver_builder.js.map

@@ -331,8 +331,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         // Else, define a new name, store the def, and return it
         const name = getSchemaName(data.usedOTNames, names);
         // Store and beautify the name
-        const saneName = Oas3Tools.beautifyAndStore(name, data.saneMap);
-        const saneInputName = saneName + 'Input';
+        const saneName = Oas3Tools.capitalize(Oas3Tools.beautifyAndStore(name, data.saneMap));
+        const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
         // Add the names to the master list
         data.usedOTNames.push(saneName);
         data.usedOTNames.push(saneInputName);
@@ -352,8 +352,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
             type,
             subDefinitions: undefined,
             links,
-            otName: Oas3Tools.capitalize(saneName),
-            iotName: Oas3Tools.capitalize(saneInputName)
+            otName: saneName,
+            iotName: saneInputName
         };
         // Add the def to the master list
         data.defs.push(def);
@@ -474,31 +474,31 @@ function getSchemaName(usedNames, names) {
     let schemaName;
     // CASE: name from reference
     if (typeof names.fromRef === 'string') {
-        let saneName = Oas3Tools.beautify(names.fromRef);
+        let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromRef));
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromRef;
         }
     }
     // CASE: name from schema (i.e., "title" property in schema)
     if (!schemaName && typeof names.fromSchema === 'string') {
-        let saneName = Oas3Tools.beautify(names.fromSchema);
+        let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromSchema));
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromSchema;
         }
     }
     // CASE: name from path
     if (!schemaName && typeof names.fromPath === 'string') {
-        let saneName = Oas3Tools.beautify(names.fromPath);
+        let saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromPath));
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromPath;
         }
     }
     // CASE: all names are already used - create approximate name
     if (!schemaName) {
-        let tempName = Oas3Tools.beautify(typeof names.fromRef === 'string'
+        let tempName = Oas3Tools.capitalize(Oas3Tools.beautify(typeof names.fromRef === 'string'
             ? names.fromRef : (typeof names.fromSchema === 'string'
             ? names.fromSchema : (typeof names.fromPath === 'string'
-            ? names.fromPath : 'RandomName')));
+            ? names.fromPath : 'RandomName'))));
         let appendix = 2;
         /**
          * GraphQL Objects cannot share the name so if the name already exists in
