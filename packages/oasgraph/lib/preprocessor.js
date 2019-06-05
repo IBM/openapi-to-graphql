@@ -27,7 +27,7 @@ function preprocessOas(oass, options) {
         security: {},
         options
     };
-    oass.forEach((oas) => {
+    oass.forEach(oas => {
         // store stats on OAS:
         data.options.report.numOps += Oas3Tools.countOperations(oas);
         data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas);
@@ -36,7 +36,7 @@ function preprocessOas(oass, options) {
         const currentSecurity = getProcessedSecuritySchemes(oas, data, oass);
         const commonSecurityPropertyName = utils_1.getCommonPropertyNames(data.security, currentSecurity);
         Object.assign(data.security, currentSecurity);
-        commonSecurityPropertyName.forEach((propertyName) => {
+        commonSecurityPropertyName.forEach(propertyName => {
             utils_1.handleWarning({
                 typeKey: 'SECURITY_SCHEME',
                 culprit: propertyName,
@@ -69,14 +69,14 @@ function preprocessOas(oass, options) {
                     description += `\n\nEquivalent to ${oas.info.title} ${method.toUpperCase()} ${path}`;
                 }
                 // Hold on to the operationId
-                const operationId = typeof endpoint.operationId !== 'undefined' ?
-                    endpoint.operationId :
-                    Oas3Tools.generateOperationId(method, path);
+                const operationId = typeof endpoint.operationId !== 'undefined'
+                    ? endpoint.operationId
+                    : Oas3Tools.generateOperationId(method, path);
                 // Request schema
                 const { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas);
-                const payloadDefinition = payloadSchema && typeof payloadSchema !== 'undefined' ?
-                    createDataDef(payloadSchemaNames, payloadSchema, true, data, undefined, oas) :
-                    undefined;
+                const payloadDefinition = payloadSchema && typeof payloadSchema !== 'undefined'
+                    ? createDataDef(payloadSchemaNames, payloadSchema, true, data, undefined, oas)
+                    : undefined;
                 // Response schema
                 const { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options);
                 if (!responseSchema || typeof responseSchema !== 'object') {
@@ -94,14 +94,13 @@ function preprocessOas(oass, options) {
                 // Parameters
                 const parameters = Oas3Tools.getParameters(path, method, oas);
                 // Security protocols
-                const securityRequirements = options.viewer ?
-                    Oas3Tools.getSecurityRequirements(path, method, data.security, oas) :
-                    [];
+                const securityRequirements = options.viewer
+                    ? Oas3Tools.getSecurityRequirements(path, method, data.security, oas)
+                    : [];
                 // servers
                 const servers = Oas3Tools.getServers(path, method, oas);
                 // whether to place this operation into an authentication viewer
-                const inViewer = securityRequirements.length > 0 &&
-                    data.options.viewer !== false;
+                const inViewer = securityRequirements.length > 0 && data.options.viewer !== false;
                 const isMutation = method.toLowerCase() !== 'get';
                 // Store determined information for operation
                 const operation = {
@@ -193,7 +192,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
         let parameters = {};
         let description;
         switch (protocol.type) {
-            case ('apiKey'):
+            case 'apiKey':
                 description = `API key credentials for the security protocol "${key}"`;
                 if (oass.length > 1) {
                     description += ` in ${oas.info.title}`;
@@ -211,12 +210,12 @@ function getProcessedSecuritySchemes(oas, data, oass) {
                     }
                 };
                 break;
-            case ('http'):
+            case 'http':
                 switch (protocol.scheme) {
                     // HTTP a number of authentication types (see
                     // http://www.iana.org/assignments/http-authschemes/
                     // http-authschemes.xhtml)
-                    case ('basic'):
+                    case 'basic':
                         description = `Basic auth credentials for security protocol "${key}"`;
                         if (oass.length > 1) {
                             description += ` in ${oas.info.title}`;
@@ -248,7 +247,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
                 }
                 break;
             // TODO: Implement
-            case ('openIdConnect'):
+            case 'openIdConnect':
                 break;
             default:
                 utils_1.handleWarning({
@@ -301,9 +300,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         if (typeof links !== 'undefined') {
             if (typeof existingDataDef.links !== 'undefined') {
                 // Check if there are any overlapping links
-                Object.keys(existingDataDef.links)
-                    .forEach((linkKey) => {
-                    if (!(deepEqual(existingDataDef[linkKey], links[linkKey]))) {
+                Object.keys(existingDataDef.links).forEach(linkKey => {
+                    if (!deepEqual(existingDataDef[linkKey], links[linkKey])) {
                         utils_1.handleWarning({
                             typeKey: 'DUPLICATE_LINK_KEY',
                             culprit: linkKey,
@@ -463,7 +461,8 @@ function getSchemaName(usedNames, names) {
         throw new Error(`Cannot create data definition without name(s).`);
         // Cannot create a schema name from only preferred name
     }
-    else if (Object.keys(names).length === 1 && typeof names.preferred === 'string') {
+    else if (Object.keys(names).length === 1 &&
+        typeof names.preferred === 'string') {
         throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`);
     }
     let schemaName;
@@ -491,9 +490,12 @@ function getSchemaName(usedNames, names) {
     // CASE: all names are already used - create approximate name
     if (!schemaName) {
         const tempName = Oas3Tools.capitalize(Oas3Tools.beautify(typeof names.fromRef === 'string'
-            ? names.fromRef : (typeof names.fromSchema === 'string'
-            ? names.fromSchema : (typeof names.fromPath === 'string'
-            ? names.fromPath : 'RandomName'))));
+            ? names.fromRef
+            : typeof names.fromSchema === 'string'
+                ? names.fromSchema
+                : typeof names.fromPath === 'string'
+                    ? names.fromPath
+                    : 'RandomName'));
         let appendix = 2;
         /**
          * GraphQL Objects cannot share the name so if the name already exists in

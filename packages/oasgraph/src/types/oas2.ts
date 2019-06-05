@@ -11,6 +11,6 @@
  */
 
 export type Oas2 = {
-  swagger: string,
+  swagger: string
   [key: string]: any
 }

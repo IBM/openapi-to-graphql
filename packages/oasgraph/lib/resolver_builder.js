@@ -45,7 +45,8 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
             typeof root._oasgraph === 'object' &&
             typeof root._oasgraph.data === 'object') {
             const parentIdentifier = getParentIdentifier(info);
-            if (!(parentIdentifier.length === 0) && parentIdentifier in root._oasgraph.data) {
+            if (!(parentIdentifier.length === 0) &&
+                parentIdentifier in root._oasgraph.data) {
                 // resolving link params may change the usedParams, but these changes
                 // should not be present in the parent _oasgraph, therefore copy the object
                 resolveData = JSON.parse(JSON.stringify(root._oasgraph.data[parentIdentifier]));
@@ -67,12 +68,15 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
          */
         operation.parameters.forEach(param => {
             const paramName = Oas3Tools.beautify(param.name);
-            if (typeof args[paramName] === 'undefined' && param.schema && typeof param.schema === 'object') {
+            if (typeof args[paramName] === 'undefined' &&
+                param.schema &&
+                typeof param.schema === 'object') {
                 let schema = param.schema;
                 if (schema && schema.$ref && typeof schema.$ref === 'string') {
                     schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
                 }
-                if (schema && schema.default &&
+                if (schema &&
+                    schema.default &&
                     typeof schema.default !== 'undefined') {
                     args[paramName] = schema.default;
                 }
@@ -95,12 +99,14 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
              * abc_{$response.body#/employerId}
              */
             if (value.search(/{|}/) === -1) {
-                args[paramNameWithoutLocation] = (isRuntimeExpression(value)) ? resolveLinkParameter(paramName, value, resolveData, root, args) : value;
+                args[paramNameWithoutLocation] = isRuntimeExpression(value)
+                    ? resolveLinkParameter(paramName, value, resolveData, root, args)
+                    : value;
             }
             else {
                 // replace link parameters with appropriate values
                 const linkParams = value.match(/{([^}]*)}/g);
-                linkParams.forEach((linkParam) => {
+                linkParams.forEach(linkParam => {
                     value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args));
                 });
                 args[paramNameWithoutLocation] = value;
@@ -116,8 +122,14 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
         // cannot be easily changed
         //
         // NOTE: This may cause the user to encounter unexpected changes
-        headers['content-type'] = typeof (operation.payloadContentType) !== 'undefined' ? operation.payloadContentType : 'application/json';
-        headers['accept'] = typeof (operation.responseContentType) !== 'undefined' ? operation.responseContentType : 'application/json';
+        headers['content-type'] =
+            typeof operation.payloadContentType !== 'undefined'
+                ? operation.payloadContentType
+                : 'application/json';
+        headers['accept'] =
+            typeof operation.responseContentType !== 'undefined'
+                ? operation.responseContentType
+                : 'application/json';
         let options;
         if (requestOptions) {
             options = Object.assign({}, requestOptions);
@@ -187,9 +199,7 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
             }
         }
         // get authentication headers and query parameters
-        if (root &&
-            typeof root === 'object' &&
-            typeof root._oasgraph == 'object') {
+        if (root && typeof root === 'object' && typeof root._oasgraph == 'object') {
             const { authHeaders, authQs, authCookie } = getAuthOptions(operation, root._oasgraph, data);
             // ...and pass them to the options
             Object.assign(options.headers, authHeaders);
@@ -258,10 +268,9 @@ function getResolver({ operation, argsFromLink = {}, argsFromParent = [], payloa
                     // let saneData: any = Oas3Tools.sanitizeObjKeys(body)
                     const saneData = Oas3Tools.sanitizeObjKeys(body);
                     // pass on _oasgraph to subsequent resolvers
-                    if (saneData &&
-                        typeof saneData === 'object') {
+                    if (saneData && typeof saneData === 'object') {
                         if (Array.isArray(saneData)) {
-                            saneData.forEach((element) => {
+                            saneData.forEach(element => {
                                 if (typeof element._oasgraph === 'undefined') {
                                     element._oasgraph = {
                                         data: {}
@@ -301,7 +310,9 @@ exports.getResolver = getResolver;
  * OAuth token from the ctx based on the JSON path provided in the options.
  */
 function createOAuthQS(data, ctx) {
-    return (typeof data.options.tokenJSONpath !== 'string') ? {} : extractToken(data, ctx);
+    return typeof data.options.tokenJSONpath !== 'string'
+        ? {}
+        : extractToken(data, ctx);
 }
 function extractToken(data, ctx) {
     const tokenJSONpath = data.options.tokenJSONpath;
@@ -455,7 +466,10 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
             // CASE: parameter in previous body
         }
         else if (value.startsWith('$request.body#')) {
-            const tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: resolveData.usedPayload });
+            const tokens = JSONPath.JSONPath({
+                path: value.split('body#/')[1],
+                json: resolveData.usedPayload
+            });
             if (Array.isArray(tokens) && tokens.length > 0) {
                 return tokens[0];
             }
@@ -480,7 +494,7 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
         // CASE: parameter is body
         // NOTE: may not be used because it implies that the operation does not return
         // a JSON object and OASGraph does not create GraphQL objects for non-JSON
-        // data and links can only exists between objects. 
+        // data and links can only exists between objects.
         if (value === '$response.body') {
             const result = JSON.parse(JSON.stringify(root));
             /**
@@ -492,7 +506,10 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
             // CASE: parameter in body
         }
         else if (value.startsWith('$response.body#')) {
-            const tokens = JSONPath.JSONPath({ path: value.split('body#/')[1], json: root });
+            const tokens = JSONPath.JSONPath({
+                path: value.split('body#/')[1],
+                json: root
+            });
             if (Array.isArray(tokens) && tokens.length > 0) {
                 return tokens[0];
             }
@@ -561,7 +578,9 @@ function getParentIdentifier(info) {
  * Get the path of nested field names (or aliases if provided)
  */
 function getIdentifierRecursive(path) {
-    return (typeof path.prev === 'undefined') ? path.key : `${path.key}/${getIdentifierRecursive(path.prev)}`;
+    return typeof path.prev === 'undefined'
+        ? path.key
+        : `${path.key}/${getIdentifierRecursive(path.prev)}`;
 }
 /**
  * Create a new GraphQLError with an extensions field

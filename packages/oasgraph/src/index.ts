@@ -37,10 +37,7 @@ import { Oas2 } from './types/oas2'
 import { Args, Field, GraphQLType } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-} from 'graphql'
+import { GraphQLSchema, GraphQLObjectType } from 'graphql'
 import * as NodeRequest from 'request'
 
 // Imports:
@@ -55,7 +52,7 @@ import { GraphQLSchemaConfig } from 'graphql/type/schema'
 import { sortObject, handleWarning } from './utils'
 
 type Result = {
-  schema: GraphQLSchema,
+  schema: GraphQLSchema
   report: Report
 }
 
@@ -64,7 +61,7 @@ const translationLog = debug('translation')
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export async function createGraphQlSchema (
+export async function createGraphQlSchema(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options?: Options
 ): Promise<Result> {
@@ -73,24 +70,24 @@ export async function createGraphQlSchema (
   }
 
   // Setting default options
-  options.strict = typeof options.strict === 'boolean'
-    ? options.strict
-    : false
-  options.viewer = typeof options.viewer === 'boolean'
-    ? options.viewer
-    : true
-  options.sendOAuthTokenInQuery = typeof options.sendOAuthTokenInQuery === 'boolean'
-    ? options.sendOAuthTokenInQuery
-    : false
-  options.fillEmptyResponses = typeof options.fillEmptyResponses === 'boolean'
-    ? options.fillEmptyResponses
-    : false
-  options.operationIdFieldNames = typeof options.operationIdFieldNames === 'boolean'
-    ? options.operationIdFieldNames
-    : false
-  options.provideErrorExtensions = typeof options.provideErrorExtensions === 'boolean'
-    ? options.provideErrorExtensions
-    : true
+  options.strict = typeof options.strict === 'boolean' ? options.strict : false
+  options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
+  options.sendOAuthTokenInQuery =
+    typeof options.sendOAuthTokenInQuery === 'boolean'
+      ? options.sendOAuthTokenInQuery
+      : false
+  options.fillEmptyResponses =
+    typeof options.fillEmptyResponses === 'boolean'
+      ? options.fillEmptyResponses
+      : false
+  options.operationIdFieldNames =
+    typeof options.operationIdFieldNames === 'boolean'
+      ? options.operationIdFieldNames
+      : false
+  options.provideErrorExtensions =
+    typeof options.provideErrorExtensions === 'boolean'
+      ? options.provideErrorExtensions
+      : true
 
   options['report'] = {
     warnings: [],
@@ -107,10 +104,11 @@ export async function createGraphQlSchema (
     /**
      * Convert all non-OAS 3.0.x into OAS 3.0.x
      */
-    oass = await Promise.all(spec.map((ele) => {
-      return Oas3Tools.getValidOAS3(ele)
-    }))
-
+    oass = await Promise.all(
+      spec.map(ele => {
+        return Oas3Tools.getValidOAS3(ele)
+      })
+    )
   } else {
     /**
      * Check if the spec is a valid OAS 3.0.x
@@ -120,7 +118,10 @@ export async function createGraphQlSchema (
     oass = [await Oas3Tools.getValidOAS3(spec)]
   }
 
-  const { schema, report } = await translateOpenApiToGraphQL(oass, options as InternalOptions)
+  const { schema, report } = await translateOpenApiToGraphQL(
+    oass,
+    options as InternalOptions
+  )
   return {
     schema,
     report
@@ -130,7 +131,7 @@ export async function createGraphQlSchema (
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-async function translateOpenApiToGraphQL (
+async function translateOpenApiToGraphQL(
   oass: Oas3[],
   {
     strict,
@@ -147,7 +148,7 @@ async function translateOpenApiToGraphQL (
     provideErrorExtensions,
     customResolvers
   }: InternalOptions
-): Promise<{ schema: GraphQLSchema, report: Report }> {
+): Promise<{ schema: GraphQLSchema; report: Report }> {
   const options = {
     headers,
     qs,
@@ -182,24 +183,34 @@ async function translateOpenApiToGraphQL (
   Object.entries(data.operations)
     /**
      * Start with operations that return objects rather than arrays
-     * 
+     *
      * First, build up the GraphQL object so that operations that return arrays
      * can use them
      */
     .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
     .forEach(([operationId, operation]) => {
       translationLog(`Process operation "${operationId}"...`)
-      let field = getFieldForOperation(operation, options.baseUrl, data, oass, requestOptions)
+      let field = getFieldForOperation(
+        operation,
+        options.baseUrl,
+        data,
+        oass,
+        requestOptions
+      )
       if (!operation.isMutation) {
-        let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName)
+        let fieldName = Oas3Tools.uncapitalize(
+          operation.responseDefinition.otName
+        )
         if (operation.inViewer) {
           for (let securityRequirement of operation.securityRequirements) {
             if (typeof authQueryFields[securityRequirement] !== 'object') {
               authQueryFields[securityRequirement] = {}
             }
             // Avoid overwriting fields that return the same data:
-            if (fieldName in authQueryFields[securityRequirement] ||
-              operationIdFieldNames) {
+            if (
+              fieldName in authQueryFields[securityRequirement] ||
+              operationIdFieldNames
+            ) {
               fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
             }
 
@@ -216,8 +227,7 @@ async function translateOpenApiToGraphQL (
           }
         } else {
           // Avoid overwriting fields that return the same data:
-          if (fieldName in queryFields ||
-            operationIdFieldNames) {
+          if (fieldName in queryFields || operationIdFieldNames) {
             fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
           }
 
@@ -235,7 +245,10 @@ async function translateOpenApiToGraphQL (
       } else {
         // Use operationId to avoid problems differentiating operations with the
         // same path but differnet methods
-        let saneFieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+        let saneFieldName = Oas3Tools.beautifyAndStore(
+          operationId,
+          data.saneMap
+        )
         if (operation.inViewer) {
           for (let securityRequirement of operation.securityRequirements) {
             if (typeof authMutationFields[securityRequirement] !== 'object') {
@@ -268,15 +281,15 @@ async function translateOpenApiToGraphQL (
       }
     })
 
-  // Sorting fields 
+  // Sorting fields
   queryFields = sortObject(queryFields)
   mutationFields = sortObject(mutationFields)
   authQueryFields = sortObject(authQueryFields)
-  Object.keys(authQueryFields).forEach((key) => {
+  Object.keys(authQueryFields).forEach(key => {
     authQueryFields[key] = sortObject(authQueryFields[key])
   })
   authMutationFields = sortObject(authMutationFields)
-  Object.keys(authMutationFields).forEach((key) => {
+  Object.keys(authMutationFields).forEach(key => {
     authMutationFields[key] = sortObject(authMutationFields[key])
   })
 
@@ -299,41 +312,39 @@ async function translateOpenApiToGraphQL (
    * Organize created queries / mutations into viewer objects.
    */
   if (Object.keys(authQueryFields).length > 0) {
-    Object.assign(queryFields, createAndLoadViewer(
-      authQueryFields,
-      data,
-      false,
-      oass
-    ))
+    Object.assign(
+      queryFields,
+      createAndLoadViewer(authQueryFields, data, false, oass)
+    )
   }
 
   if (Object.keys(authMutationFields).length > 0) {
-    Object.assign(mutationFields, createAndLoadViewer(
-      authMutationFields,
-      data,
-      true,
-      oass
-    ))
+    Object.assign(
+      mutationFields,
+      createAndLoadViewer(authMutationFields, data, true, oass)
+    )
   }
 
   /**
    * Build up the schema
    */
   const schemaConfig: GraphQLSchemaConfig = {
-    query: Object.keys(queryFields).length > 0
-      ? new GraphQLObjectType({
-        name: 'Query',
-        description: 'The start of any query',
-        fields: queryFields
-      })
-      : GraphQLTools.getEmptyObjectType('query'),
-    mutation: Object.keys(mutationFields).length > 0
-      ? new GraphQLObjectType({
-        name: 'Mutation',
-        description: 'The start of any mutation',
-        fields: mutationFields
-      })
-      : null
+    query:
+      Object.keys(queryFields).length > 0
+        ? new GraphQLObjectType({
+            name: 'Query',
+            description: 'The start of any query',
+            fields: queryFields
+          })
+        : GraphQLTools.getEmptyObjectType('query'),
+    mutation:
+      Object.keys(mutationFields).length > 0
+        ? new GraphQLObjectType({
+            name: 'Mutation',
+            description: 'The start of any mutation',
+            fields: mutationFields
+          })
+        : null
   }
 
   // Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
@@ -341,9 +352,9 @@ async function translateOpenApiToGraphQL (
   // and if a field references an undefined Object Types, GraphQL will throw.
   Object.entries(data.operations).forEach(([opId, operation]) => {
     if (typeof operation.responseDefinition.ot === 'undefined') {
-
-      operation.responseDefinition.ot = GraphQLTools
-        .getEmptyObjectType(operation.responseDefinition.otName)
+      operation.responseDefinition.ot = GraphQLTools.getEmptyObjectType(
+        operation.responseDefinition.otName
+      )
     }
   })
 
@@ -355,7 +366,7 @@ async function translateOpenApiToGraphQL (
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation (
+function getFieldForOperation(
   operation: Operation,
   baseUrl: string,
   data: PreprocessingData,
@@ -367,7 +378,7 @@ function getFieldForOperation (
     def: operation.responseDefinition,
     data,
     operation,
-    oass,
+    oass
   })
 
   // create resolve function:
@@ -402,36 +413,35 @@ function getFieldForOperation (
 
 /**
  * Helper function for sorting operations based on the return type and method
- * 
+ *
  * You cannot define links for operations that return arrays in the OAS
- * 
+ *
  * These links are instead created by reusing the return type from other
  * operations
- * 
+ *
  * Therefore, operations that return objects should be created first
- * 
+ *
  * In addition, process GET operations first because their field names are based
  * on the return type (so long as there are no naming collisions).
  */
-function sortOperations (op1: Operation, op2: Operation): number {
+function sortOperations(op1: Operation, op2: Operation): number {
   // Sort by object/array type
-  if (op1.responseDefinition.schema.type === 'array' && 
-    op2.responseDefinition.schema.type !== 'array') {
+  if (
+    op1.responseDefinition.schema.type === 'array' &&
+    op2.responseDefinition.schema.type !== 'array'
+  ) {
     return 1
-
-  } else if (op1.responseDefinition.schema.type !== 'array' && 
-  op2.responseDefinition.schema.type === 'array') {
-    return -1 
-
+  } else if (
+    op1.responseDefinition.schema.type !== 'array' &&
+    op2.responseDefinition.schema.type === 'array'
+  ) {
+    return -1
   } else {
-
     // Sort by GET/non-GET method
     if (op1.method === 'get' && op2.method !== 'get') {
       return -1
-
     } else if (op1.method !== 'get' && op2.method === 'get') {
       return 1
-
     } else {
       return 0
     }

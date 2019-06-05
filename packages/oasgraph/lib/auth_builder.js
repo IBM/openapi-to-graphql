@@ -60,23 +60,23 @@ function createAndLoadViewer(queryFields, data, isMutation = false, oass) {
             }
         }
         // create name for the viewer
-        let viewerName = !isMutation ?
-            Oas3Tools.beautify(`viewer ${type}`) :
-            Oas3Tools.beautify(`mutation viewer ${type}`);
+        let viewerName = !isMutation
+            ? Oas3Tools.beautify(`viewer ${type}`)
+            : Oas3Tools.beautify(`mutation viewer ${type}`);
         if (!(type in usedViewerNames)) {
             usedViewerNames[type] = [];
         }
         if (usedViewerNames[type].indexOf(viewerName) !== -1) {
-            viewerName += (usedViewerNames[type].length + 1);
+            viewerName += usedViewerNames[type].length + 1;
         }
         usedViewerNames[type].push(viewerName);
         // Add the viewer object type to the specified root query object type
         results[viewerName] = getViewerOT(viewerName, protocolName, type, queryFields[protocolName], data, oass);
     }
     // create name for the AnyAuth viewer
-    let anyAuthObjectName = !isMutation ?
-        'viewerAnyAuth' :
-        'mutationViewerAnyAuth';
+    let anyAuthObjectName = !isMutation
+        ? 'viewerAnyAuth'
+        : 'mutationViewerAnyAuth';
     // Add the AnyAuth object type to the specified root query object type
     results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data, oass);
     return results;
@@ -109,7 +109,7 @@ const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
         }
     }
     // Do not sort because they are already "sorted" in preprocessing
-    // Otherwise, for basic auth, "password" will appear before "username" 
+    // Otherwise, for basic auth, "password" will appear before "username"
     let typeDescription;
     let description;
     if (oass.length === 1) {
@@ -117,10 +117,12 @@ const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
         description = `A viewer that wraps all operations authenticated via ${type}`;
     }
     else {
-        typeDescription = `A viewer for the security protocol "${scheme.rawName}" ` +
-            `in ${scheme.oas.info.title}`;
-        description = `A viewer that wraps all operations authenticated via ${type}\n\n` +
-            `For the security scheme: ${scheme.oas.info.title} ${protocolName}`;
+        typeDescription =
+            `A viewer for the security protocol "${scheme.rawName}" ` +
+                `in ${scheme.oas.info.title}`;
+        description =
+            `A viewer that wraps all operations authenticated via ${type}\n\n` +
+                `For the security scheme: ${scheme.oas.info.title} ${protocolName}`;
     }
     return {
         type: new graphql_1.GraphQLObjectType({

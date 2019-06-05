@@ -32,24 +32,24 @@ function createGraphQlSchema(spec, options) {
             options = {};
         }
         // Setting default options
-        options.strict = typeof options.strict === 'boolean'
-            ? options.strict
-            : false;
-        options.viewer = typeof options.viewer === 'boolean'
-            ? options.viewer
-            : true;
-        options.sendOAuthTokenInQuery = typeof options.sendOAuthTokenInQuery === 'boolean'
-            ? options.sendOAuthTokenInQuery
-            : false;
-        options.fillEmptyResponses = typeof options.fillEmptyResponses === 'boolean'
-            ? options.fillEmptyResponses
-            : false;
-        options.operationIdFieldNames = typeof options.operationIdFieldNames === 'boolean'
-            ? options.operationIdFieldNames
-            : false;
-        options.provideErrorExtensions = typeof options.provideErrorExtensions === 'boolean'
-            ? options.provideErrorExtensions
-            : true;
+        options.strict = typeof options.strict === 'boolean' ? options.strict : false;
+        options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true;
+        options.sendOAuthTokenInQuery =
+            typeof options.sendOAuthTokenInQuery === 'boolean'
+                ? options.sendOAuthTokenInQuery
+                : false;
+        options.fillEmptyResponses =
+            typeof options.fillEmptyResponses === 'boolean'
+                ? options.fillEmptyResponses
+                : false;
+        options.operationIdFieldNames =
+            typeof options.operationIdFieldNames === 'boolean'
+                ? options.operationIdFieldNames
+                : false;
+        options.provideErrorExtensions =
+            typeof options.provideErrorExtensions === 'boolean'
+                ? options.provideErrorExtensions
+                : true;
         options['report'] = {
             warnings: [],
             numOps: 0,
@@ -63,7 +63,7 @@ function createGraphQlSchema(spec, options) {
             /**
              * Convert all non-OAS 3.0.x into OAS 3.0.x
              */
-            oass = yield Promise.all(spec.map((ele) => {
+            oass = yield Promise.all(spec.map(ele => {
                 return Oas3Tools.getValidOAS3(ele);
             }));
         }
@@ -153,8 +153,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
                 }
                 else {
                     // Avoid overwriting fields that return the same data:
-                    if (fieldName in queryFields ||
-                        operationIdFieldNames) {
+                    if (fieldName in queryFields || operationIdFieldNames) {
                         fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap);
                     }
                     if (fieldName in queryFields) {
@@ -201,15 +200,15 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
                 }
             }
         });
-        // Sorting fields 
+        // Sorting fields
         queryFields = utils_1.sortObject(queryFields);
         mutationFields = utils_1.sortObject(mutationFields);
         authQueryFields = utils_1.sortObject(authQueryFields);
-        Object.keys(authQueryFields).forEach((key) => {
+        Object.keys(authQueryFields).forEach(key => {
             authQueryFields[key] = utils_1.sortObject(authQueryFields[key]);
         });
         authMutationFields = utils_1.sortObject(authMutationFields);
-        Object.keys(authMutationFields).forEach((key) => {
+        Object.keys(authMutationFields).forEach(key => {
             authMutationFields[key] = utils_1.sortObject(authMutationFields[key]);
         });
         /**
@@ -258,8 +257,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
         // and if a field references an undefined Object Types, GraphQL will throw.
         Object.entries(data.operations).forEach(([opId, operation]) => {
             if (typeof operation.responseDefinition.ot === 'undefined') {
-                operation.responseDefinition.ot = GraphQLTools
-                    .getEmptyObjectType(operation.responseDefinition.otName);
+                operation.responseDefinition.ot = GraphQLTools.getEmptyObjectType(operation.responseDefinition.otName);
             }
         });
         const schema = new graphql_1.GraphQLSchema(schemaConfig);
@@ -275,7 +273,7 @@ function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
         def: operation.responseDefinition,
         data,
         operation,
-        oass,
+        oass
     });
     // create resolve function:
     const payloadSchemaName = operation.payloadDefinition

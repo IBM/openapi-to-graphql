@@ -21,31 +21,35 @@ import {
   GraphQLObjectType,
   GraphQLInputObjectType,
   GraphQLList,
-  GraphQLEnumType,
+  GraphQLEnumType
 } from 'graphql'
 
 export type DataDefinition = {
-  preferredName: string,
-  schema: SchemaObject,
+  preferredName: string
+  schema: SchemaObject
 
-  type: string,
+  type: string
 
   /**
-   * Data definitions of subschemas in the schema 
-   * 
+   * Data definitions of subschemas in the schema
+   *
    * I.e. If the dataDef is a list type, the subDefinition is a reference to the
    * list item type
-   * 
-   * Or if the dataDef is an object type, the subDefinitions are references to 
+   *
+   * Or if the dataDef is an object type, the subDefinitions are references to
    * the field types
    */
-  subDefinitions: DataDefinition | {[fieldName: string]: DataDefinition},
+  subDefinitions: DataDefinition | { [fieldName: string]: DataDefinition }
 
-  links: { [key: string]: LinkObject },
+  links: { [key: string]: LinkObject }
 
-  otName: string,
-  iotName: string,
-  ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType,
+  otName: string
+  iotName: string
+  ot?:
+    | GraphQLObjectType
+    | GraphQLScalarType
+    | GraphQLList<any>
+    | GraphQLEnumType
   iot?: GraphQLInputObjectType | GraphQLList<any>
 }
 
@@ -53,52 +57,52 @@ export type Operation = {
   /**
    * Identifier of the operation - may be created by concatenating method & path
    */
-  operationId: string,
+  operationId: string
 
   /**
    * Human-readable description of the operation
    */
-  description: string,
+  description: string
 
   /**
    * URL path of this operation
    */
-  path: string,
+  path: string
 
   /**
    * HTTP method for this operation
    */
-  method: string,
+  method: string
 
   /**
    * Content-type of the request payload
    */
-  payloadContentType?: string,
+  payloadContentType?: string
 
   /**
    * Information about the request payload (if any)
    */
-  payloadDefinition?: DataDefinition,
+  payloadDefinition?: DataDefinition
 
   /**
    * Determines wheter request payload is required for the request
    */
-  payloadRequired: boolean,
+  payloadRequired: boolean
 
   /**
    * Content-type of the request payload
    */
-  responseContentType?: string,
+  responseContentType?: string
 
   /**
    * Information about the response payload
    */
-  responseDefinition: DataDefinition,
+  responseDefinition: DataDefinition
 
   /**
    * List of parameters of the operation
    */
-  parameters: ParameterObject[],
+  parameters: ParameterObject[]
 
   /**
    * List of keys of security schemes required by this operation
@@ -106,12 +110,12 @@ export type Operation = {
    * NOTE: Keys are beautified
    * NOTE: Does not contain OAuth 2.0-related security schemes
    */
-  securityRequirements: string[],
+  securityRequirements: string[]
 
   /**
    * (Local) server definitions of the operation.
    */
-  servers: ServerObject[],
+  servers: ServerObject[]
 
   /**
    * List of operations which are nested based on their path.
@@ -135,7 +139,7 @@ export type Operation = {
   statusCode: string
 
   /**
-   * The OAS which this operation originated from 
+   * The OAS which this operation originated from
    */
   oas: Oas3
 }

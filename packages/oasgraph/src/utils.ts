@@ -3,12 +3,8 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {
-  PreprocessingData
-} from './types/preprocessing_data'
-import {
-  Warning
-} from './types/options'
+import { PreprocessingData } from './types/preprocessing_data'
+import { Warning } from './types/options'
 
 export const WarningTypes: {
   [key: string]: (culprit: string, solution: string) => Warning
@@ -26,7 +22,8 @@ export const WarningTypes: {
   MULTIPLE_RESPONSES: (culprit: string, solution: string) => {
     return {
       type: 'MultipleResponses',
-      message: `Operation "${culprit}" has more than one success status ` +
+      message:
+        `Operation "${culprit}" has more than one success status ` +
         `codes (200 - 299).`,
       mitigation: `Will select response for status code "${solution}".`
     }
@@ -34,9 +31,10 @@ export const WarningTypes: {
   MISSING_RESPONSE_SCHEMA: (culprit: string, solution: string) => {
     return {
       type: 'MissingResponseSchema',
-      message: `Operation "${culprit}" has no (valid) response schema. ` + 
-      `If this operation has a 204 HTTP code, you can create a placeholder ` +
-      `schema using the fillEmptyResponses option.`,
+      message:
+        `Operation "${culprit}" has no (valid) response schema. ` +
+        `If this operation has a 204 HTTP code, you can create a placeholder ` +
+        `schema using the fillEmptyResponses option.`,
       mitigation: `Ignore operation`
     }
   },
@@ -78,7 +76,8 @@ export const WarningTypes: {
   LINK_NAME_COLLISION: (culprit: string, solution: string) => {
     return {
       type: 'LinkNameCollision',
-      message: `Cannot create link "${culprit}" because Object Type already ` +
+      message:
+        `Cannot create link "${culprit}" because Object Type already ` +
         `contains field of the same name.`,
       mitigation: `Ignore link`
     }
@@ -131,17 +130,17 @@ export const WarningTypes: {
 /**
  * Utilities that are specific to OASGraph
  */
-export function handleWarning ({
+export function handleWarning({
   typeKey,
   culprit,
   solution = '',
   data,
   log
 }: {
-  typeKey: string, // eslint-disable-line
-  culprit: string,
-  solution?: string,
-  data: PreprocessingData,
+  typeKey: string // eslint-disable-line
+  culprit: string
+  solution?: string
+  data: PreprocessingData
   log?: Function
 }) {
   const warning = WarningTypes[typeKey](culprit, solution)
@@ -162,14 +161,16 @@ export function handleWarning ({
 // Code provided by codename- from StackOverflow
 // Link: https://stackoverflow.com/a/29622653
 export function sortObject(o) {
-  return Object.keys(o).sort().reduce((r, k) => (r[k] = o[k], r), {});
+  return Object.keys(o)
+    .sort()
+    .reduce((r, k) => ((r[k] = o[k]), r), {})
 }
 
 /**
  * Finds the common property names between two objects
  */
 export function getCommonPropertyNames(object1, object2): string[] {
-  return Object.keys(object1).filter((propertyName) => {
+  return Object.keys(object1).filter(propertyName => {
     return propertyName in object2
   })
 }
