@@ -27,7 +27,8 @@ exports.WarningTypes = {
         return {
             type: 'MissingResponseSchema',
             message: `Operation '${culprit}' has no (valid) response schema. ` +
-                `You can create placeholder schemas using the fillEmptyResponses option.`,
+                `If this operation has a 204 HTTP code, you can create a placeholder ` +
+                `schema using the fillEmptyResponses option.`,
             mitigation: `Ignore operation`
         };
     },
