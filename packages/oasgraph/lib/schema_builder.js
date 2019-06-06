@@ -304,86 +304,97 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
         typeof links === 'object' && // links are present
         !isMutation // only if we are not talking INPUT object type
     ) {
-        for (let linkKey in links) {
-            translationLog(`Create link '${linkKey}'...`);
-            const link = links[linkKey];
-            // get linked operation
-            let linkedOpId;
-            // TODO: href is yet another alternative to operationRef and operationId
-            if (typeof link.operationId === 'string') {
-                linkedOpId = link.operationId;
-            }
-            else if (typeof link.operationRef === 'string') {
-                linkedOpId = linkOpRefToOpId({
-                    links,
-                    linkKey,
-                    operation,
-                    data,
-                    oass
-                });
-            }
-            // linkedOpId may not be initialized because operationRef may lead to an
-            // operation object that does not have an operationId
-            if (typeof linkedOpId === 'string' && linkedOpId in data.operations) {
-                const linkedOp = data.operations[linkedOpId];
-                // determine parameters provided via link
-                let argsFromLink = link.parameters;
-                // remove argsFromLinks from operation parameters
-                let dynamicParams = linkedOp.parameters;
-                if (typeof argsFromLink === 'object') {
-                    dynamicParams = dynamicParams.filter(p => {
-                        // here, we know argsFromLink is present:
-                        argsFromLink = argsFromLink;
-                        return typeof argsFromLink[p.name] === 'undefined';
-                    });
-                }
-                // get resolve function for link
-                const linkResolver = resolver_builder_1.getResolver({
-                    operation: linkedOp,
-                    argsFromLink: Oas3Tools.beautifyObjectKeys(argsFromLink),
-                    data,
-                    baseUrl: data.options.baseUrl
-                });
-                // get args for link
-                const args = getArgs({
-                    parameters: dynamicParams,
-                    operation,
-                    data,
-                    oass
-                });
-                /**
-                 * get response object type
-                 * use the reference here
-                 * OT will be built up some other time
-                 */
-                const resObjectType = linkedOp.responseDefinition.ot;
-                let description = link.description;
-                if (typeof description !== 'string') {
-                    description = 'No description available.';
-                }
-                if (oass.length === 1) {
-                    description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
-                }
-                else {
-                    description += `\n\nEquivalent to ${operation.oas.info.title} ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
-                }
-                // finally, add the object type to the fields (using sanitized field name)
-                const saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap);
-                // TODO: check if fields already has this field name
-                fields[saneLinkKey] = {
-                    type: resObjectType,
-                    resolve: linkResolver,
-                    args,
-                    description
-                };
-            }
-            else {
+        for (let saneLinkKey in links) {
+            translationLog(`Create link '${saneLinkKey}'...`);
+            // check if key is already in fields
+            if (saneLinkKey in fields) {
                 utils_1.handleWarning({
-                    typeKey: 'UNRESOLVABLE_LINK',
-                    culprit: linkKey,
+                    typeKey: 'LINK_NAME_COLLISION',
+                    culprit: saneLinkKey,
                     data,
                     log: translationLog
                 });
+            }
+            else {
+                const link = links[saneLinkKey];
+                // get linked operation
+                let linkedOpId;
+                // TODO: href is yet another alternative to operationRef and operationId
+                if (typeof link.operationId === 'string') {
+                    linkedOpId = link.operationId;
+                }
+                else if (typeof link.operationRef === 'string') {
+                    linkedOpId = linkOpRefToOpId({
+                        links,
+                        linkKey: saneLinkKey,
+                        operation,
+                        data,
+                        oass
+                    });
+                }
+                // linkedOpId may not be initialized because operationRef may lead to an
+                // operation object that does not have an operationId
+                if (typeof linkedOpId === 'string' && linkedOpId in data.operations) {
+                    const linkedOp = data.operations[linkedOpId];
+                    // determine parameters provided via link
+                    let argsFromLink = link.parameters;
+                    // remove argsFromLinks from operation parameters
+                    let dynamicParams = linkedOp.parameters;
+                    if (typeof argsFromLink === 'object') {
+                        dynamicParams = dynamicParams.filter(p => {
+                            // here, we know argsFromLink is present:
+                            argsFromLink = argsFromLink;
+                            return typeof argsFromLink[p.name] === 'undefined';
+                        });
+                    }
+                    // get resolve function for link
+                    const linkResolver = resolver_builder_1.getResolver({
+                        operation: linkedOp,
+                        argsFromLink: Oas3Tools.beautifyObjectKeys(argsFromLink),
+                        data,
+                        baseUrl: data.options.baseUrl
+                    });
+                    // get args for link
+                    const args = getArgs({
+                        parameters: dynamicParams,
+                        operation,
+                        data,
+                        oass
+                    });
+                    /**
+                     * get response object type
+                     * use the reference here
+                     * OT will be built up some other time
+                     */
+                    const resObjectType = linkedOp.responseDefinition.ot;
+                    let description = link.description;
+                    if (typeof description !== 'string') {
+                        description = 'No description available.';
+                    }
+                    if (oass.length === 1) {
+                        description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
+                    }
+                    else {
+                        description += `\n\nEquivalent to ${operation.oas.info.title} ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
+                    }
+                    // finally, add the object type to the fields (using sanitized field name)
+                    Oas3Tools.beautifyAndStore(saneLinkKey, data.saneMap);
+                    // TODO: check if fields already has this field name
+                    fields[saneLinkKey] = {
+                        type: resObjectType,
+                        resolve: linkResolver,
+                        args,
+                        description
+                    };
+                }
+                else {
+                    utils_1.handleWarning({
+                        typeKey: 'UNRESOLVABLE_LINK',
+                        culprit: saneLinkKey,
+                        data,
+                        log: translationLog
+                    });
+                }
             }
         }
     }

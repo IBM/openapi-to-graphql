@@ -38,10 +38,3 @@ test('All Instagram query endpoints present', () => {
   ).length
   expect(gqlTypes).toEqual(oasGetCount)
 })
-
-test('Strict mode throws exception', () => {
-  return OasGraph.createGraphQlSchema(oas, {strict: true})
-    .catch(e =>
-    expect(e.message).toMatch(`LinkNameCollision - Cannot create link 'usersPagingResponse' because Object Type already contains field of the same name.`)
-  )
-})

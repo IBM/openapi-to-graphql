@@ -392,10 +392,10 @@ export function createDataDef(
   }
 
   const preferredName = getPreferredName(names)
-  
+
   const saneLinks = {}
   if (typeof links === 'object') {
-    Object.keys(links).forEach((linkKey) => {
+    Object.keys(links).forEach(linkKey => {
       saneLinks[Oas3Tools.beautify(linkKey)] = links[linkKey]
     })
   }
@@ -413,11 +413,17 @@ export function createDataDef(
       if (typeof existingDataDef.links !== 'undefined') {
         // Check if there are any overlapping links
         Object.keys(existingDataDef.links).forEach(saneLinkKey => {
-          if (typeof saneLinks[saneLinkKey] !== 'undefined' 
-          && !deepEqual(existingDataDef.links[saneLinkKey], saneLinks[saneLinkKey])) {
+          if (
+            typeof saneLinks[saneLinkKey] !== 'undefined' &&
+            !deepEqual(
+              existingDataDef.links[saneLinkKey],
+              saneLinks[saneLinkKey]
+            )
+          ) {
             handleWarning({
               typeKey: 'DUPLICATE_LINK_KEY',
-              culprit: `Multiple operations with the same response body share the same sanitized ` + 
+              culprit:
+                `Multiple operations with the same response body share the same sanitized ` +
                 `link key '${saneLinkKey}' but have different link definitions ` +
                 `'${JSON.stringify(existingDataDef.links[saneLinkKey])}' and ` +
                 `'${JSON.stringify(saneLinks[saneLinkKey])}'.`,
