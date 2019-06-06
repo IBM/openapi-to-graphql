@@ -114,7 +114,7 @@ export const WarningTypes: {
     return {
       type: 'duplicateLinkKey',
       message: culprit,
-      mitigation: `The latter link definition will replace the previous one.`,
+      mitigation: `The latter link definition will replace the previous one.`
     }
   },
   UNRESOLVABLE_REFERENCE: (culprit: string, solution: string) => {

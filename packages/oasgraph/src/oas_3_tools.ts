@@ -376,7 +376,7 @@ export function instantiatePathAndGetQuery(
           default:
             httpLog(
               `Warning: The parameter location '${param.in}' in the ` +
-                `parameter '${param.name}' of operation '${path}' is not ` + 
+                `parameter '${param.name}' of operation '${path}' is not ` +
                 `supported`
             )
         }

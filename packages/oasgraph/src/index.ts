@@ -453,16 +453,22 @@ function sortOperations(op1: Operation, op2: Operation): number {
 /**
  * Ensures that the options are valid
  */
-function preliminaryChecks(options: InternalOptions, data: PreprocessingData, oass: Oas3[]): void {
+function preliminaryChecks(
+  options: InternalOptions,
+  data: PreprocessingData,
+  oass: Oas3[]
+): void {
   // Check if OASs have unique titles
-  const titles = oass.map((oas) => {
+  const titles = oass.map(oas => {
     return oas.info.title
   })
 
   // Find duplicates among titles
-  new Set(titles.filter((title, index) => {
-    return titles.indexOf(title) !== index
-  })).forEach((title) => {
+  new Set(
+    titles.filter((title, index) => {
+      return titles.indexOf(title) !== index
+    })
+  ).forEach(title => {
     handleWarning({
       typeKey: 'MULTIPLE_OAS_SAME_TITLE',
       culprit: title,
@@ -474,32 +480,35 @@ function preliminaryChecks(options: InternalOptions, data: PreprocessingData, oa
   // Check customResolvers
   if (typeof options.customResolvers === 'object') {
     // Check that all OASs that are referenced in the customResolvers are provided
-    Object.keys(options.customResolvers).filter((title) => {
-      // If no OAS contains this title
-      return !oass.some((oas) => {
-        return title === oas.info.title
+    Object.keys(options.customResolvers)
+      .filter(title => {
+        // If no OAS contains this title
+        return !oass.some(oas => {
+          return title === oas.info.title
+        })
       })
-    }).forEach((title) => {
-      handleWarning({
-        typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
-        culprit: title,
-        data,
-        log: translationLog
+      .forEach(title => {
+        handleWarning({
+          typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
+          culprit: title,
+          data,
+          log: translationLog
+        })
       })
-    })
 
-    Object.keys(options.customResolvers).forEach((title) => {
-
+    Object.keys(options.customResolvers).forEach(title => {
       // Get all operations from a particular OAS
-      const operations = Object.values(data.operations).filter((operation) => {
+      const operations = Object.values(data.operations).filter(operation => {
         return title === operation.oas.info.title
       })
 
-      Object.keys(options.customResolvers[title]).forEach((path) => {
-        Object.keys(options.customResolvers[title][path]).forEach((method) => {
-          if (!operations.some((operation) => {
-            return path === operation.path && method === operation.method
-          })) {
+      Object.keys(options.customResolvers[title]).forEach(path => {
+        Object.keys(options.customResolvers[title][path]).forEach(method => {
+          if (
+            !operations.some(operation => {
+              return path === operation.path && method === operation.method
+            })
+          ) {
             handleWarning({
               typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
               culprit: `A custom resolver references an operation with path '${path}' and method '${method}' but no such operation exists in OAS with title '${title}'`,
@@ -507,8 +516,8 @@ function preliminaryChecks(options: InternalOptions, data: PreprocessingData, oa
               log: translationLog
             })
           }
-        }) 
-      }) 
+        })
+      })
     })
   }
 }

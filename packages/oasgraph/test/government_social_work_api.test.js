@@ -75,10 +75,3 @@ test('Get resource', () => {
   let errors = validate(createdSchema, ast)
   expect(errors).toEqual([])
 })
-
-test('Strict mode throws exception', () => {
-  return OasGraph.createGraphQlSchema(oas, {strict: true})
-    .catch(e =>
-    expect(e.message).toMatch(`LinkNameCollision - Cannot create link 'caseCaseAssessments' because Object Type already contains field of the same name.`)
-  )
-})
