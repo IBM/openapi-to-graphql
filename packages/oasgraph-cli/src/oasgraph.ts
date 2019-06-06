@@ -97,7 +97,7 @@ Promise.all(
   })
   .catch(filePath => {
     console.error(
-      `OASGraph cannot read file. File "${filePath}" does not exist.`
+      `OASGraph cannot read file. File '${filePath}' does not exist.`
     )
     process.exit(1)
   })

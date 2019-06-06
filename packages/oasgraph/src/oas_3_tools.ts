@@ -199,7 +199,7 @@ export function resolveRef(ref: string, obj: object, parts?: string[]): any {
   if (firstElement in obj) {
     return resolveRef(ref, obj[firstElement], parts)
   } else {
-    throw new Error(`Could not resolve reference "${ref}"`)
+    throw new Error(`Could not resolve reference '${ref}'`)
   }
 }
 
@@ -210,7 +210,7 @@ export function getBaseUrl(operation: Operation): string {
   // check for servers:
   if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
     throw new Error(
-      `No servers defined for operation ` + `"${operation.operationId}"`
+      `No servers defined for operation '${operation.operationId}'`
     )
   }
 
@@ -219,7 +219,7 @@ export function getBaseUrl(operation: Operation): string {
     const url = buildUrl(operation.servers[0])
 
     if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-      httpLog(`Warning: Randomly selected first server "${url}"`)
+      httpLog(`Warning: Randomly selected first server '${url}'`)
     }
 
     return url.replace(/\/$/, '')
@@ -231,7 +231,7 @@ export function getBaseUrl(operation: Operation): string {
     const url = buildUrl(oas.servers[0])
 
     if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-      httpLog(`Warning: Randomly selected first server "${url}"`)
+      httpLog(`Warning: Randomly selected first server '${url}'`)
     }
 
     return url.replace(/\/$/, '')
@@ -375,15 +375,14 @@ export function instantiatePathAndGetQuery(
 
           default:
             httpLog(
-              `Warning: The parameter location "${param.in}" in the ` +
-                `parameter "${
-                  param.name
-                }" of operation "${path}" is not supported`
+              `Warning: The parameter location '${param.in}' in the ` +
+                `parameter '${param.name}' of operation '${path}' is not ` + 
+                `supported`
             )
         }
       } else {
         httpLog(
-          `Warning: The parameter "${param.name}" of operation "${path}" ` +
+          `Warning: The parameter '${param.name}' of operation '${path}' ` +
             `could not be found`
         )
       }
@@ -571,9 +570,9 @@ export function getRequestSchemaAndNames(
         'description' in payloadSchema &&
         typeof payloadSchema['description'] === 'string'
       ) {
-        description += `\n\nOriginal top level description: "${
+        description += `\n\nOriginal top level description: '${
           payloadSchema['description']
-        }"`
+        }'`
       }
 
       payloadSchema = {
@@ -687,9 +686,9 @@ export function getResponseSchemaAndNames(
         'description' in responseSchema &&
         typeof responseSchema['description'] === 'string'
       ) {
-        description += `\n\nOriginal top level description: "${
+        description += `\n\nOriginal top level description: '${
           responseSchema['description']
-        }"`
+        }'`
       }
 
       responseSchema = {
@@ -999,7 +998,7 @@ export function beautify(
 ): string {
   // only apply to strings:
   if (typeof str !== 'string') {
-    throw new Error(`Cannot beautify "${str}" of type "${typeof str}"`)
+    throw new Error(`Cannot beautify '${str}' of type '${typeof str}'`)
   }
 
   const charToRemove = '_'
@@ -1046,12 +1045,12 @@ export function beautifyAndStore(
   }
   const clean = beautify(str)
   if (!clean) {
-    throw new Error(`Cannot beautifyAndStore "${str}"`)
+    throw new Error(`Cannot beautifyAndStore '${str}'`)
   } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
       translationLog(
-        `Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
-          `to ${clean} - collusion possible. Desanitize to ${str}.`
+        `Warning: '${str}' and '${mapping[clean]}' both sanitize ` +
+          `to '${clean}' - collision possible. Desanitize to '${str}'.`
       )
     }
     mapping[clean] = str

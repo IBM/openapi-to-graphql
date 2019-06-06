@@ -276,7 +276,7 @@ function getProcessedSecuritySchemes(
     let description
     switch (protocol.type) {
       case 'apiKey':
-        description = `API key credentials for the security protocol "${key}"`
+        description = `API key credentials for the security protocol '${key}'`
         if (oass.length > 1) {
           description += ` in ${oas.info.title}`
         }
@@ -302,7 +302,7 @@ function getProcessedSecuritySchemes(
           // http://www.iana.org/assignments/http-authschemes/
           // http-authschemes.xhtml)
           case 'basic':
-            description = `Basic auth credentials for security protocol "${key}"`
+            description = `Basic auth credentials for security protocol '${key}'`
             if (oass.length > 1) {
               description += ` in ${oas.info.title}`
             }
@@ -382,7 +382,7 @@ export function createDataDef(
   if (!schema || typeof schema === 'undefined') {
     throw new Error(
       `Cannot create data definition for invalid schema ` +
-        `"${String(schema)}"`
+        `'${JSON.stringify(schema)}'`
     )
   }
 

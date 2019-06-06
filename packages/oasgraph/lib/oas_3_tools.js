@@ -140,7 +140,7 @@ function resolveRef(ref, obj, parts) {
         return resolveRef(ref, obj[firstElement], parts);
     }
     else {
-        throw new Error(`Could not resolve reference "${ref}"`);
+        throw new Error(`Could not resolve reference '${ref}'`);
     }
 }
 exports.resolveRef = resolveRef;
@@ -150,13 +150,13 @@ exports.resolveRef = resolveRef;
 function getBaseUrl(operation) {
     // check for servers:
     if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
-        throw new Error(`No servers defined for operation ` + `"${operation.operationId}"`);
+        throw new Error(`No servers defined for operation '${operation.operationId}'`);
     }
     // check for local servers
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
         const url = buildUrl(operation.servers[0]);
         if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-            httpLog(`Warning: Randomly selected first server "${url}"`);
+            httpLog(`Warning: Randomly selected first server '${url}'`);
         }
         return url.replace(/\/$/, '');
     }
@@ -164,7 +164,7 @@ function getBaseUrl(operation) {
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
         const url = buildUrl(oas.servers[0]);
         if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-            httpLog(`Warning: Randomly selected first server "${url}"`);
+            httpLog(`Warning: Randomly selected first server '${url}'`);
         }
         return url.replace(/\/$/, '');
     }
@@ -286,12 +286,13 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
                         headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `;
                         break;
                     default:
-                        httpLog(`Warning: The parameter location "${param.in}" in the ` +
-                            `parameter "${param.name}" of operation "${path}" is not supported`);
+                        httpLog(`Warning: The parameter location '${param.in}' in the ` +
+                            `parameter '${param.name}' of operation '${path}' is not ` +
+                            `supported`);
                 }
             }
             else {
-                httpLog(`Warning: The parameter "${param.name}" of operation "${path}" ` +
+                httpLog(`Warning: The parameter '${param.name}' of operation '${path}' ` +
                     `could not be found`);
             }
         }
@@ -445,7 +446,7 @@ function getRequestSchemaAndNames(path, method, oas) {
             let description = payloadContentType + ' request placeholder object';
             if ('description' in payloadSchema &&
                 typeof payloadSchema['description'] === 'string') {
-                description += `\n\nOriginal top level description: "${payloadSchema['description']}"`;
+                description += `\n\nOriginal top level description: '${payloadSchema['description']}'`;
             }
             payloadSchema = {
                 description: description,
@@ -532,7 +533,7 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
             let description = 'Placeholder object to access non-application/json ' + 'response bodies';
             if ('description' in responseSchema &&
                 typeof responseSchema['description'] === 'string') {
-                description += `\n\nOriginal top level description: "${responseSchema['description']}"`;
+                description += `\n\nOriginal top level description: '${responseSchema['description']}'`;
             }
             responseSchema = {
                 description: description,
@@ -784,7 +785,7 @@ exports.getSecurityRequirements = getSecurityRequirements;
 function beautify(str, lowercaseFirstChar = true) {
     // only apply to strings:
     if (typeof str !== 'string') {
-        throw new Error(`Cannot beautify "${str}" of type "${typeof str}"`);
+        throw new Error(`Cannot beautify '${str}' of type '${typeof str}'`);
     }
     const charToRemove = '_';
     let sanitized = sanitize(str);
@@ -826,12 +827,12 @@ function beautifyAndStore(str, mapping) {
     }
     const clean = beautify(str);
     if (!clean) {
-        throw new Error(`Cannot beautifyAndStore "${str}"`);
+        throw new Error(`Cannot beautifyAndStore '${str}'`);
     }
     else if (clean !== str) {
         if (clean in mapping && str !== mapping[clean]) {
-            translationLog(`Warning: "${str}" and "${mapping[clean]}" both sanitize ` +
-                `to ${clean} - collusion possible. Desanitize to ${str}.`);
+            translationLog(`Warning: '${str}' and '${mapping[clean]}' both sanitize ` +
+                `to '${clean}' - collision possible. Desanitize to '${str}'.`);
         }
         mapping[clean] = str;
     }

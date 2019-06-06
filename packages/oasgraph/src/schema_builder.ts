@@ -195,9 +195,9 @@ function createOrReuseOt({
   if (!isMutation) {
     if (def.ot && typeof def.ot !== 'undefined') {
       translationLog(
-        `Reuse Object Type "${def.otName}"` +
+        `Reuse Object Type '${def.otName}'` +
           (typeof operation === 'object'
-            ? ` (for operation "${operation.operationId}")`
+            ? ` (for operation '${operation.operationId}')`
             : '')
       )
       return def.ot as (
@@ -206,9 +206,9 @@ function createOrReuseOt({
         | GraphQLScalarType)
     } else {
       translationLog(
-        `Create Object Type "${def.otName}"` +
+        `Create Object Type '${def.otName}'` +
           (typeof operation === 'object'
-            ? ` (for operation "${operation.operationId}")`
+            ? ` (for operation '${operation.operationId}')`
             : '')
       )
 
@@ -238,17 +238,17 @@ function createOrReuseOt({
   } else {
     if (typeof def.iot !== 'undefined') {
       translationLog(
-        `Reuse Input Object Type "${def.iotName}"` +
+        `Reuse Input Object Type '${def.iotName}'` +
           (typeof operation === 'object'
-            ? ` (for operation "${operation.operationId}")`
+            ? ` (for operation '${operation.operationId}')`
             : '')
       )
       return def.iot as GraphQLInputObjectType
     } else {
       translationLog(
-        `Create Input Object Type "${def.iotName}"` +
+        `Create Input Object Type '${def.iotName}'` +
           (typeof operation === 'object'
-            ? ` (for operation "${operation.operationId}")`
+            ? ` (for operation '${operation.operationId}')`
             : '')
       )
 
@@ -294,15 +294,15 @@ function reuseOrCreateList({
 
   // try to reuse existing Object Type
   if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
-    translationLog(`Reuse GraphQLList "${def.otName}"`)
+    translationLog(`Reuse GraphQLList '${def.otName}'`)
     return def.ot as GraphQLList<any>
   } else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
-    translationLog(`Reuse GraphQLList "${def.iotName}"`)
+    translationLog(`Reuse GraphQLList '${def.iotName}'`)
     return def.iot as GraphQLList<any>
   }
 
   // create new List Object Type
-  translationLog(`Create GraphQLList "${def.otName}"`)
+  translationLog(`Create GraphQLList '${def.otName}'`)
 
   // Get definition of the list item, which should be in the sub definitions
   const itemDef = def.subDefinitions as DataDefinition
@@ -335,8 +335,8 @@ function reuseOrCreateList({
     handleWarning({
       typeKey: 'INVALID_SCHEMA_TYPE_LIST_ITEM',
       culprit:
-        `List item "${itemsName}" in list "${name}" with schema: ` +
-        `"${JSON.stringify(itemsSchema)}"`,
+        `List item '${itemsName}' in list '${name}' with schema: ` +
+        `'${JSON.stringify(itemsSchema)}'`,
       data,
       log: translationLog
     })
@@ -350,10 +350,10 @@ function reuseOrCreateList({
 function reuseOrCreateEnum({ def, data }: ReuseOrCreateEnum): GraphQLEnumType {
   // try to reuse existing Enum Type
   if (def.ot && typeof def.ot !== 'undefined') {
-    translationLog(`Reuse  GraphQLEnumType "${def.otName}"`)
+    translationLog(`Reuse  GraphQLEnumType '${def.otName}'`)
     return def.ot as GraphQLEnumType
   } else {
-    translationLog(`Create GraphQLEnumType "${def.otName}"`)
+    translationLog(`Create GraphQLEnumType '${def.otName}'`)
     const values = {}
     def.schema.enum.forEach(e => {
       values[Oas3Tools.beautify(e, false)] = {
@@ -395,7 +395,7 @@ function getScalarType({ def, data }: ReuseOrCreateScalar): GraphQLScalarType {
     default:
       handleWarning({
         typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
-        culprit: `Unknown JSON scalar type "${type}"`,
+        culprit: `Unknown JSON scalar type '${type}'`,
         data,
         log: translationLog
       })
@@ -473,7 +473,7 @@ function createFields({
     !isMutation // only if we are not talking INPUT object type
   ) {
     for (let linkKey in links) {
-      translationLog(`Create link "${linkKey}"...`)
+      translationLog(`Create link '${linkKey}'...`)
       const link = links[linkKey]
 
       // get linked operation
@@ -632,8 +632,8 @@ function linkOpRefToOpId({
         handleWarning({
           typeKey: 'UNRESOLVABLE_LINK',
           culprit:
-            `Link "${linkKey}" has not relative path in operationRef ` +
-            `"${operationRef}"`,
+            `Link '${linkKey}' has not relative path in operationRef ` +
+            `'${operationRef}'`,
           data,
           log: translationLog
         })
@@ -670,8 +670,8 @@ function linkOpRefToOpId({
             handleWarning({
               typeKey: 'UNRESOLVABLE_LINK',
               culprit:
-                `Method "${linkMethod}" in operationRef ` +
-                `"${operationRef}" is invalid`,
+                `Method '${linkMethod}' in operationRef ` +
+                `'${operationRef}' is invalid`,
               data,
               log: translationLog
             })
@@ -682,7 +682,7 @@ function linkOpRefToOpId({
           handleWarning({
             typeKey: 'UNRESOLVABLE_LINK',
             culprit:
-              `No valid method targeted by operationRef ` + `"${operationRef}"`,
+              `No valid method targeted by operationRef ` + `'${operationRef}'`,
             data,
             log: translationLog
           })
@@ -727,8 +727,8 @@ function linkOpRefToOpId({
               handleWarning({
                 typeKey: 'UNRESOLVABLE_LINK',
                 culprit:
-                  `Could not find operationId "${linkedOpId}" in link ` +
-                  `"${linkKey}"`,
+                  `Could not find operationId '${linkedOpId}' in link ` +
+                  `'${linkKey}'`,
                 data,
                 log: translationLog
               })
@@ -740,7 +740,7 @@ function linkOpRefToOpId({
               typeKey: 'UNRESOLVABLE_LINK',
               culprit:
                 `Could not find path and/or method from operationRef ` +
-                `"${operationRef}" in link "${linkKey}"`,
+                `'${operationRef}' in link '${linkKey}'`,
               data,
               log: translationLog
             })
@@ -751,7 +751,7 @@ function linkOpRefToOpId({
           handleWarning({
             typeKey: 'UNRESOLVABLE_LINK',
             culprit:
-              `OAS of external link "${link.operationRef}" could not ` +
+              `OAS of external link '${link.operationRef}' could not ` +
               `be identified`,
             data,
             log: translationLog
@@ -764,7 +764,7 @@ function linkOpRefToOpId({
           typeKey: 'UNRESOLVABLE_LINK',
           culprit:
             `Could not extract path and/or method from operationRef ` +
-            `"${operationRef}" in link "${linkKey}"`,
+            `'${operationRef}' in link '${linkKey}'`,
           data,
           log: translationLog
         })
@@ -776,7 +776,7 @@ function linkOpRefToOpId({
         typeKey: 'UNRESOLVABLE_LINK',
         culprit:
           `Could not extract relative path from operationRef ` +
-          `"${operationRef}" in link "${linkKey}"`,
+          `'${operationRef}' in link '${linkKey}'`,
         data,
         log: translationLog
       })
@@ -949,8 +949,8 @@ function getOasFromLinkLocation(
         handleWarning({
           typeKey: 'AMBIGUOUS_LINK',
           culprit:
-            `Multiple OASs share the same title "${linkLocation}" in ` +
-            `the operationRef "${link.operationRef}"`,
+            `Multiple OASs share the same title '${linkLocation}' in ` +
+            `the operationRef '${link.operationRef}'`,
           data,
           log: translationLog
         })
@@ -959,8 +959,8 @@ function getOasFromLinkLocation(
         handleWarning({
           typeKey: 'UNRESOLVABLE_LINK',
           culprit:
-            `No OAS has the title "${linkLocation}" in the ` +
-            `operationRef "${link.operationRef}"`,
+            `No OAS has the title '${linkLocation}' in the ` +
+            `operationRef '${link.operationRef}'`,
           data,
           log: translationLog
         })
@@ -983,7 +983,7 @@ function getOasFromLinkLocation(
         typeKey: 'UNRESOLVABLE_LINK',
         culprit:
           `The link location of the operationRef ` +
-          `"${link.operationRef}" is currently not supported\n` +
+          `'${link.operationRef}' is currently not supported\n` +
           `Currently only the title of the OAS is supported`,
         data,
         log: translationLog

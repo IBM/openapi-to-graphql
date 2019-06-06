@@ -180,11 +180,11 @@ const getViewerOT = (
   let typeDescription
   let description
   if (oass.length === 1) {
-    typeDescription = `A viewer for the security protocol: "${scheme.rawName}"`
+    typeDescription = `A viewer for the security protocol: '${scheme.rawName}'`
     description = `A viewer that wraps all operations authenticated via ${type}`
   } else {
     typeDescription =
-      `A viewer for the security protocol "${scheme.rawName}" ` +
+      `A viewer for the security protocol '${scheme.rawName}' ` +
       `in ${scheme.oas.info.title}`
 
     description =

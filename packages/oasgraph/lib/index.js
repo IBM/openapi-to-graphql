@@ -127,7 +127,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
              */
             .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
             .forEach(([operationId, operation]) => {
-            translationLog(`Process operation "${operationId}"...`);
+            translationLog(`Process operation '${operationId}'...`);
             let field = getFieldForOperation(operation, options.baseUrl, data, oass, requestOptions);
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
@@ -385,7 +385,7 @@ function preliminaryChecks(options, data, oass) {
                     })) {
                         utils_1.handleWarning({
                             typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
-                            culprit: `A custom resolver references an operation with path "${path}" and method "${method}" but no such operation exists in OAS with title "${title}"`,
+                            culprit: `A custom resolver references an operation with path '${path}' and method '${method}' but no such operation exists in OAS with title '${title}'`,
                             data,
                             log: translationLog
                         });

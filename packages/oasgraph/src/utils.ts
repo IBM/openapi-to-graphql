@@ -15,7 +15,7 @@ export const WarningTypes: {
   UNSUPPORTED_HTTP_AUTH_SCHEME: (culprit: string, solution: string) => {
     return {
       type: 'UnsupportedHTTPAuthScheme',
-      message: `Unsupported HTTP authentication scheme "${culprit}".`,
+      message: `Unsupported HTTP authentication scheme '${culprit}'.`,
       mitigation: `Ignore operation`
     }
   },
@@ -23,16 +23,16 @@ export const WarningTypes: {
     return {
       type: 'MultipleResponses',
       message:
-        `Operation "${culprit}" has more than one success status ` +
+        `Operation '${culprit}' has more than one success status ` +
         `codes (200 - 299).`,
-      mitigation: `Will select response for status code "${solution}".`
+      mitigation: `Will select response for status code '${solution}'.`
     }
   },
   MISSING_RESPONSE_SCHEMA: (culprit: string, solution: string) => {
     return {
       type: 'MissingResponseSchema',
       message:
-        `Operation "${culprit}" has no (valid) response schema. ` +
+        `Operation '${culprit}' has no (valid) response schema. ` +
         `If this operation has a 204 HTTP code, you can create a placeholder ` +
         `schema using the fillEmptyResponses option.`,
       mitigation: `Ignore operation`
@@ -41,43 +41,43 @@ export const WarningTypes: {
   INVALID_SCHEMA_TYPE: (culprit: string, solution: string) => {
     return {
       type: 'InvalidSchemaType',
-      message: `Request / response schema has no (valid) type "${culprit}".`,
+      message: `Request / response schema has no (valid) type '${culprit}'.`,
       mitigation: `Fall back to type 'GraphQL String'`
     }
   },
   INVALID_SCHEMA_TYPE_LIST_ITEM: (culprit: string, solution: string) => {
     return {
       type: 'InvalidSchemaTypeListItem',
-      message: `Request / response schema has no (valid) type "${culprit}".`,
+      message: `Request / response schema has no (valid) type '${culprit}'.`,
       mitigation: `Fall back to type 'GraphQL String'`
     }
   },
   INVALID_SCHEMA_TYPE_SCALAR: (culprit: string, solution: string) => {
     return {
       type: 'InvalidSchemaTypeScalar',
-      message: `Request / response schema has no (valid) type "${culprit}".`,
+      message: `Request / response schema has no (valid) type '${culprit}'.`,
       mitigation: `Fall back to type 'GraphQL String'`
     }
   },
   UNRESOLVABLE_LINK: (culprit: string, solution: string) => {
     return {
       type: 'UnresolvableLink',
-      message: `Cannot resolve target of link "${culprit}".`,
+      message: `Cannot resolve target of link '${culprit}'.`,
       mitigation: `Ignore link`
     }
   },
   AMBIGUOUS_LINK: (culprit: string, solution: string) => {
     return {
       type: 'AmbiguousLink',
-      message: `Cannot unambiguously resolve operationRef "${culprit}" in link.`,
-      mitigation: `Use first occurance of "#/" - may cause runtime errors.`
+      message: `Cannot unambiguously resolve operationRef '${culprit}' in link.`,
+      mitigation: `Use first occurance of '#/' - may cause runtime errors.`
     }
   },
   LINK_NAME_COLLISION: (culprit: string, solution: string) => {
     return {
       type: 'LinkNameCollision',
       message:
-        `Cannot create link "${culprit}" because Object Type already ` +
+        `Cannot create link '${culprit}' because Object Type already ` +
         `contains field of the same name.`,
       mitigation: `Ignore link`
     }
@@ -85,35 +85,35 @@ export const WarningTypes: {
   UNNAMED_PARAMETER: (culprit: string, solution: string) => {
     return {
       type: 'UnnamedParameter',
-      message: `Missing "name" property in "${culprit}".`,
+      message: `Missing 'name' property in '${culprit}'.`,
       mitigation: `Ignore parameter`
     }
   },
   DUPLICATE_FIELD_NAME: (culprit: string, solution: string) => {
     return {
       type: 'duplicateFieldName',
-      message: `Field name "${culprit}" is already present in the object.`,
+      message: `Field name '${culprit}' is already present in the object.`,
       mitigation: `Ignore duplicate field`
     }
   },
   DUPLICATE_OPERATION: (culprit: string, solution: string) => {
     return {
       type: 'duplicateOperation',
-      message: `Multiple OASs share operations with the same operationId "${culprit}".`,
-      mitigation: `The operation from the OAS "${solution}" will replace the previous one.`
+      message: `Multiple OASs share operations with the same operationId '${culprit}'.`,
+      mitigation: `The operation from the OAS '${solution}' will replace the previous one.`
     }
   },
   DUPLICATE_SECURITY_SCHEME: (culprit: string, solution: string) => {
     return {
       type: 'duplicateSecurity',
-      message: `Multiple OASs share security schemes with the same name "${culprit}".`,
-      mitigation: `The security scheme from the OAS "${solution}" will replace the previous one.`
+      message: `Multiple OASs share security schemes with the same name '${culprit}'.`,
+      mitigation: `The security scheme from the OAS '${solution}' will replace the previous one.`
     }
   },
   DUPLICATE_LINK_KEY: (culprit: string, solution: string) => {
     return {
       type: 'duplicateLinkKey',
-      message: `Multiple operations with the same response body schema share the same link key "${culprit}".`,
+      message: `Multiple operations with the same response body schema share the same link key '${culprit}'.`,
       // TODO: improve mitigation message
       mitigation: `The link will replace the previous one.`
     }
@@ -128,14 +128,14 @@ export const WarningTypes: {
   MULTIPLE_OAS_SAME_TITLE: (culprit: string, solution: string) => {
     return {
       type: 'multipleOasSameTitle',
-      message: `Multiple OASs share the same title "${culprit}"`,
+      message: `Multiple OASs share the same title '${culprit}'`,
       mitigation: `Continue as is - may break other features`
     }
   },
   CUSTOM_RESOLVER_UNKNOWN_OAS: (culprit: string, solution: string) => {
     return {
       type: 'customResolverUnknownOAS',
-      message: `Some custom resolvers reference OAS with title "${culprit}" but no OAS with such title is provided`,
+      message: `Some custom resolvers reference OAS with title '${culprit}' but no OAS with such title is provided`,
       mitigation: `Ignore this set of custom resolvers`
     }
   },
