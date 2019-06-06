@@ -1,8 +1,8 @@
 {
-  "name": "oasgraph-root",
+  "name": "openapi-to-graphql-root",
   "private": true,
   "scripts": {
-    "test": "cd packages/oasgraph/ && npm test"
+    "test": "cd packages/openapi-to-graphql/ && npm test"
   },
   "devDependencies": {
     "graphql": "^14.0.2",
