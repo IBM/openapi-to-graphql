@@ -23,7 +23,7 @@ export const WarningTypes: {
     return {
       type: 'MultipleResponses',
       message:
-        `Operation '${culprit}' has more than one success status ` +
+        `Operation ${culprit} has more than one success status ` +
         `codes (200 - 299).`,
       mitigation: `Will select response for status code '${solution}'.`
     }
@@ -32,7 +32,7 @@ export const WarningTypes: {
     return {
       type: 'MissingResponseSchema',
       message:
-        `Operation '${culprit}' has no (valid) response schema. ` +
+        `Operation ${culprit} has no (valid) response schema. ` +
         `If this operation has a 204 HTTP code, you can create a placeholder ` +
         `schema using the fillEmptyResponses option.`,
       mitigation: `Ignore operation`
@@ -113,9 +113,8 @@ export const WarningTypes: {
   DUPLICATE_LINK_KEY: (culprit: string, solution: string) => {
     return {
       type: 'duplicateLinkKey',
-      message: `Multiple operations with the same response body schema share the same link key '${culprit}'.`,
-      // TODO: improve mitigation message
-      mitigation: `The link will replace the previous one.`
+      message: culprit,
+      mitigation: `The latter link definition will replace the previous one.`,
     }
   },
   UNRESOLVABLE_REFERENCE: (culprit: string, solution: string) => {

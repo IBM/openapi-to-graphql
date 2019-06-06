@@ -284,10 +284,16 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         throw new Error(`Cannot create data definition for invalid schema ` +
             `'${JSON.stringify(schema)}'`);
     }
-    const preferredName = getPreferredName(names);
     // resolve allOf element in schema if applicable
     if ('allOf' in schema) {
         schema = mergeAllOf(schema);
+    }
+    const preferredName = getPreferredName(names);
+    const saneLinks = {};
+    if (typeof links === 'object') {
+        Object.keys(links).forEach((linkKey) => {
+            saneLinks[Oas3Tools.beautify(linkKey)] = links[linkKey];
+        });
     }
     // Determine the index of possible existing data definition
     const index = getSchemaIndex(preferredName, schema, data.defs);
@@ -297,25 +303,29 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         // Collapse links if possible
         // I.e. if the current operation has links, combine them with the prexisting
         // ones
-        if (typeof links !== 'undefined') {
+        if (typeof saneLinks !== 'undefined') {
             if (typeof existingDataDef.links !== 'undefined') {
                 // Check if there are any overlapping links
-                Object.keys(existingDataDef.links).forEach(linkKey => {
-                    if (!deepEqual(existingDataDef[linkKey], links[linkKey])) {
+                Object.keys(existingDataDef.links).forEach(saneLinkKey => {
+                    if (typeof saneLinks[saneLinkKey] !== 'undefined'
+                        && !deepEqual(existingDataDef.links[saneLinkKey], saneLinks[saneLinkKey])) {
                         utils_1.handleWarning({
                             typeKey: 'DUPLICATE_LINK_KEY',
-                            culprit: linkKey,
+                            culprit: `Multiple operations with the same response body share the same sanitized ` +
+                                `link key '${saneLinkKey}' but have different link definitions ` +
+                                `'${JSON.stringify(existingDataDef.links[saneLinkKey])}' and ` +
+                                `'${JSON.stringify(saneLinks[saneLinkKey])}'.`,
                             data,
                             log: preprocessingLog
                         });
                     }
                 });
                 // Collapse the links
-                Object.assign(existingDataDef.links, links);
+                Object.assign(existingDataDef.links, saneLinks);
             }
             else {
                 // No preexisting links, so simply assign the links
-                existingDataDef.links = links;
+                existingDataDef.links = saneLinks;
             }
         }
         return existingDataDef;
@@ -344,7 +354,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
             schema,
             type,
             subDefinitions: undefined,
-            links,
+            links: saneLinks,
             otName: saneName,
             iotName: saneInputName
         };

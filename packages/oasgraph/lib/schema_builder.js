@@ -369,6 +369,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                 }
                 // finally, add the object type to the fields (using sanitized field name)
                 const saneLinkKey = Oas3Tools.beautifyAndStore(linkKey, data.saneMap);
+                // TODO: check if fields already has this field name
                 fields[saneLinkKey] = {
                     type: resObjectType,
                     resolve: linkResolver,
