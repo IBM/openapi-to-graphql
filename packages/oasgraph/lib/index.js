@@ -109,6 +109,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
          * is easier for OASGraph to use
          */
         const data = preprocessor_1.preprocessOas(oass, options);
+        preliminaryChecks(options, data, oass);
         /**
          * Create GraphQL fields for every operation and structure them based on their
          * characteristics (query vs. mutation, auth vs. non-auth).
@@ -335,6 +336,63 @@ function sortOperations(op1, op2) {
         else {
             return 0;
         }
+    }
+}
+/**
+ * Ensures that the options are valid
+ */
+function preliminaryChecks(options, data, oass) {
+    // Check if OASs have unique titles
+    const titles = oass.map((oas) => {
+        return oas.info.title;
+    });
+    // Find duplicates among titles
+    new Set(titles.filter((title, index) => {
+        return titles.indexOf(title) !== index;
+    })).forEach((title) => {
+        utils_1.handleWarning({
+            typeKey: 'MULTIPLE_OAS_SAME_TITLE',
+            culprit: title,
+            data,
+            log: translationLog
+        });
+    });
+    // Check customResolvers
+    if (typeof options.customResolvers === 'object') {
+        // Check that all OASs that are referenced in the customResolvers are provided
+        Object.keys(options.customResolvers).filter((title) => {
+            // If no OAS contains this title
+            return !oass.some((oas) => {
+                return title === oas.info.title;
+            });
+        }).forEach((title) => {
+            utils_1.handleWarning({
+                typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
+                culprit: title,
+                data,
+                log: translationLog
+            });
+        });
+        Object.keys(options.customResolvers).forEach((title) => {
+            // Get all operations from a particular OAS
+            const operations = Object.values(data.operations).filter((operation) => {
+                return title === operation.oas.info.title;
+            });
+            Object.keys(options.customResolvers[title]).forEach((path) => {
+                Object.keys(options.customResolvers[title][path]).forEach((method) => {
+                    if (!operations.some((operation) => {
+                        return path === operation.path && method === operation.method;
+                    })) {
+                        utils_1.handleWarning({
+                            typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
+                            culprit: `A custom resolver references an operation with path "${path}" and method "${method}" but no such operation exists in OAS with title "${title}"`,
+                            data,
+                            log: translationLog
+                        });
+                    }
+                });
+            });
+        });
     }
 }
 //# sourceMappingURL=index.js.map

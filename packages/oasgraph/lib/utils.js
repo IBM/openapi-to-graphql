@@ -117,6 +117,28 @@ exports.WarningTypes = {
             message: `A schema reference could not be resolved due to unknown OAS origin.`,
             mitigation: `The schema will not be resolved, which may cause issues.`
         };
+    },
+    MULTIPLE_OAS_SAME_TITLE: (culprit, solution) => {
+        return {
+            type: 'multipleOasSameTitle',
+            message: `Multiple OASs share the same title "${culprit}"`,
+            mitigation: `Continue as is - may break other features`
+        };
+    },
+    CUSTOM_RESOLVER_UNKNOWN_OAS: (culprit, solution) => {
+        return {
+            type: 'customResolverUnknownOAS',
+            message: `Some custom resolvers reference OAS with title "${culprit}" but no OAS with such title is provided`,
+            mitigation: `Ignore this set of custom resolvers`
+        };
+    },
+    CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD: (culprit, solution) => {
+        return {
+            type: 'customResolverUnknownOperation',
+            // TODO: improve message
+            message: culprit,
+            mitigation: `Ignore this set of custom resolvers`
+        };
     }
 };
 /**
