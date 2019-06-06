@@ -81,16 +81,16 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
     // CASE: query - create or reuse OT
     if (!isMutation) {
         if (def.ot && typeof def.ot !== 'undefined') {
-            translationLog(`Reuse Object Type "${def.otName}"` +
+            translationLog(`Reuse Object Type '${def.otName}'` +
                 (typeof operation === 'object'
-                    ? ` (for operation "${operation.operationId}")`
+                    ? ` (for operation '${operation.operationId}')`
                     : ''));
             return def.ot;
         }
         else {
-            translationLog(`Create Object Type "${def.otName}"` +
+            translationLog(`Create Object Type '${def.otName}'` +
                 (typeof operation === 'object'
-                    ? ` (for operation "${operation.operationId}")`
+                    ? ` (for operation '${operation.operationId}')`
                     : ''));
             const description = typeof schema.description !== 'undefined'
                 ? schema.description
@@ -116,16 +116,16 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
     }
     else {
         if (typeof def.iot !== 'undefined') {
-            translationLog(`Reuse Input Object Type "${def.iotName}"` +
+            translationLog(`Reuse Input Object Type '${def.iotName}'` +
                 (typeof operation === 'object'
-                    ? ` (for operation "${operation.operationId}")`
+                    ? ` (for operation '${operation.operationId}')`
                     : ''));
             return def.iot;
         }
         else {
-            translationLog(`Create Input Object Type "${def.iotName}"` +
+            translationLog(`Create Input Object Type '${def.iotName}'` +
                 (typeof operation === 'object'
-                    ? ` (for operation "${operation.operationId}")`
+                    ? ` (for operation '${operation.operationId}')`
                     : ''));
             schema.description =
                 typeof schema.description !== 'undefined'
@@ -158,15 +158,15 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
     const name = isMutation ? def.iotName : def.otName;
     // try to reuse existing Object Type
     if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
-        translationLog(`Reuse GraphQLList "${def.otName}"`);
+        translationLog(`Reuse GraphQLList '${def.otName}'`);
         return def.ot;
     }
     else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
-        translationLog(`Reuse GraphQLList "${def.iotName}"`);
+        translationLog(`Reuse GraphQLList '${def.iotName}'`);
         return def.iot;
     }
     // create new List Object Type
-    translationLog(`Create GraphQLList "${def.otName}"`);
+    translationLog(`Create GraphQLList '${def.otName}'`);
     // Get definition of the list item, which should be in the sub definitions
     const itemDef = def.subDefinitions;
     // Equivalent to schema.items
@@ -195,8 +195,8 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
     else {
         utils_1.handleWarning({
             typeKey: 'INVALID_SCHEMA_TYPE_LIST_ITEM',
-            culprit: `List item "${itemsName}" in list "${name}" with schema: ` +
-                `"${JSON.stringify(itemsSchema)}"`,
+            culprit: `List item '${itemsName}' in list '${name}' with schema: ` +
+                `'${JSON.stringify(itemsSchema)}'`,
             data,
             log: translationLog
         });
@@ -209,11 +209,11 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
 function reuseOrCreateEnum({ def, data }) {
     // try to reuse existing Enum Type
     if (def.ot && typeof def.ot !== 'undefined') {
-        translationLog(`Reuse  GraphQLEnumType "${def.otName}"`);
+        translationLog(`Reuse  GraphQLEnumType '${def.otName}'`);
         return def.ot;
     }
     else {
-        translationLog(`Create GraphQLEnumType "${def.otName}"`);
+        translationLog(`Create GraphQLEnumType '${def.otName}'`);
         const values = {};
         def.schema.enum.forEach(e => {
             values[Oas3Tools.beautify(e, false)] = {
@@ -252,7 +252,7 @@ function getScalarType({ def, data }) {
         default:
             utils_1.handleWarning({
                 typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
-                culprit: `Unknown JSON scalar type "${type}"`,
+                culprit: `Unknown JSON scalar type '${type}'`,
                 data,
                 log: translationLog
             });
@@ -305,7 +305,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
         !isMutation // only if we are not talking INPUT object type
     ) {
         for (let linkKey in links) {
-            translationLog(`Create link "${linkKey}"...`);
+            translationLog(`Create link '${linkKey}'...`);
             const link = links[linkKey];
             // get linked operation
             let linkedOpId;
@@ -436,8 +436,8 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
             else {
                 utils_1.handleWarning({
                     typeKey: 'UNRESOLVABLE_LINK',
-                    culprit: `Link "${linkKey}" has not relative path in operationRef ` +
-                        `"${operationRef}"`,
+                    culprit: `Link '${linkKey}' has not relative path in operationRef ` +
+                        `'${operationRef}'`,
                     data,
                     log: translationLog
                 });
@@ -468,8 +468,8 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                     if (!Oas3Tools.OAS_OPERATIONS.includes(linkMethod)) {
                         utils_1.handleWarning({
                             typeKey: 'UNRESOLVABLE_LINK',
-                            culprit: `Method "${linkMethod}" in operationRef ` +
-                                `"${operationRef}" is invalid`,
+                            culprit: `Method '${linkMethod}' in operationRef ` +
+                                `'${operationRef}' is invalid`,
                             data,
                             log: translationLog
                         });
@@ -480,7 +480,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 else {
                     utils_1.handleWarning({
                         typeKey: 'UNRESOLVABLE_LINK',
-                        culprit: `No valid method targeted by operationRef ` + `"${operationRef}"`,
+                        culprit: `No valid method targeted by operationRef ` + `'${operationRef}'`,
                         data,
                         log: translationLog
                     });
@@ -517,8 +517,8 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                         else {
                             utils_1.handleWarning({
                                 typeKey: 'UNRESOLVABLE_LINK',
-                                culprit: `Could not find operationId "${linkedOpId}" in link ` +
-                                    `"${linkKey}"`,
+                                culprit: `Could not find operationId '${linkedOpId}' in link ` +
+                                    `'${linkKey}'`,
                                 data,
                                 log: translationLog
                             });
@@ -529,7 +529,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                         utils_1.handleWarning({
                             typeKey: 'UNRESOLVABLE_LINK',
                             culprit: `Could not find path and/or method from operationRef ` +
-                                `"${operationRef}" in link "${linkKey}"`,
+                                `'${operationRef}' in link '${linkKey}'`,
                             data,
                             log: translationLog
                         });
@@ -539,7 +539,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 else {
                     utils_1.handleWarning({
                         typeKey: 'UNRESOLVABLE_LINK',
-                        culprit: `OAS of external link "${link.operationRef}" could not ` +
+                        culprit: `OAS of external link '${link.operationRef}' could not ` +
                             `be identified`,
                         data,
                         log: translationLog
@@ -551,7 +551,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 utils_1.handleWarning({
                     typeKey: 'UNRESOLVABLE_LINK',
                     culprit: `Could not extract path and/or method from operationRef ` +
-                        `"${operationRef}" in link "${linkKey}"`,
+                        `'${operationRef}' in link '${linkKey}'`,
                     data,
                     log: translationLog
                 });
@@ -562,7 +562,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
             utils_1.handleWarning({
                 typeKey: 'UNRESOLVABLE_LINK',
                 culprit: `Could not extract relative path from operationRef ` +
-                    `"${operationRef}" in link "${linkKey}"`,
+                    `'${operationRef}' in link '${linkKey}'`,
                 data,
                 log: translationLog
             });
@@ -698,8 +698,8 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
                 // some ambiguity
                 utils_1.handleWarning({
                     typeKey: 'AMBIGUOUS_LINK',
-                    culprit: `Multiple OASs share the same title "${linkLocation}" in ` +
-                        `the operationRef "${link.operationRef}"`,
+                    culprit: `Multiple OASs share the same title '${linkLocation}' in ` +
+                        `the operationRef '${link.operationRef}'`,
                     data,
                     log: translationLog
                 });
@@ -708,8 +708,8 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
                 // no OAS had the expected title
                 utils_1.handleWarning({
                     typeKey: 'UNRESOLVABLE_LINK',
-                    culprit: `No OAS has the title "${linkLocation}" in the ` +
-                        `operationRef "${link.operationRef}"`,
+                    culprit: `No OAS has the title '${linkLocation}' in the ` +
+                        `operationRef '${link.operationRef}'`,
                     data,
                     log: translationLog
                 });
@@ -727,7 +727,7 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
             utils_1.handleWarning({
                 typeKey: 'UNRESOLVABLE_LINK',
                 culprit: `The link location of the operationRef ` +
-                    `"${link.operationRef}" is currently not supported\n` +
+                    `'${link.operationRef}' is currently not supported\n` +
                     `Currently only the title of the OAS is supported`,
                 data,
                 log: translationLog

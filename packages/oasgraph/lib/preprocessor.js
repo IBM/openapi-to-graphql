@@ -193,7 +193,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
         let description;
         switch (protocol.type) {
             case 'apiKey':
-                description = `API key credentials for the security protocol "${key}"`;
+                description = `API key credentials for the security protocol '${key}'`;
                 if (oass.length > 1) {
                     description += ` in ${oas.info.title}`;
                 }
@@ -216,7 +216,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
                     // http://www.iana.org/assignments/http-authschemes/
                     // http-authschemes.xhtml)
                     case 'basic':
-                        description = `Basic auth credentials for security protocol "${key}"`;
+                        description = `Basic auth credentials for security protocol '${key}'`;
                         if (oass.length > 1) {
                             description += ` in ${oas.info.title}`;
                         }
@@ -282,7 +282,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     // Do a basic validation check
     if (!schema || typeof schema === 'undefined') {
         throw new Error(`Cannot create data definition for invalid schema ` +
-            `"${String(schema)}"`);
+            `'${JSON.stringify(schema)}'`);
     }
     const preferredName = getPreferredName(names);
     // resolve allOf element in schema if applicable

@@ -434,7 +434,7 @@ function extractToken(data: PreprocessingData, ctx: object) {
     }
   } else {
     httpLog(
-      `Warning: could not extract OAuth token from context at "${tokenJSONpath}"`
+      `Warning: could not extract OAuth token from context at '${tokenJSONpath}'`
     )
     return {}
   }
@@ -464,7 +464,7 @@ function createOAuthHeader(
   } else {
     httpLog(
       `Warning: could not extract OAuth token from context at ` +
-        `"${tokenJSONpath}"`
+        `'${tokenJSONpath}'`
     )
     return {}
   }
@@ -519,7 +519,7 @@ function getAuthOptions(
             }
           } else {
             throw new Error(
-              `Cannot send API key in "${JSON.stringify(security.def.in)}"`
+              `Cannot send API key in '${JSON.stringify(security.def.in)}'`
             )
           }
         }
@@ -540,7 +540,7 @@ function getAuthOptions(
           default:
             throw new Error(
               `Cannot recognize http security scheme ` +
-                `"${JSON.stringify(security.def.scheme)}"`
+                `'${JSON.stringify(security.def.scheme)}'`
             )
         }
         break
@@ -552,7 +552,7 @@ function getAuthOptions(
         break
 
       default:
-        throw new Error(`Cannot recognize security type "${security.def.type}"`)
+        throw new Error(`Cannot recognize security type '${security.def.type}'`)
     }
   }
   return { authHeaders, authQs, authCookie }
@@ -626,7 +626,7 @@ function resolveLinkParameter(
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
-        httpLog(`Warning: could not extract parameter "${paramName}" from link`)
+        httpLog(`Warning: could not extract parameter '${paramName}' from link`)
       }
 
       // CASE: parameter in previous query parameter
@@ -666,7 +666,7 @@ function resolveLinkParameter(
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
-        httpLog(`Warning: could not extract parameter "${paramName}" from link`)
+        httpLog(`Warning: could not extract parameter '${paramName}' from link`)
       }
 
       // CASE: parameter in query parameter
@@ -688,7 +688,7 @@ function resolveLinkParameter(
   }
 
   throw new Error(
-    `Cannot create link because "${value}" is an invalid runtime expression`
+    `Cannot create link because '${value}' is an invalid runtime expression`
   )
 }
 

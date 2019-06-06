@@ -324,7 +324,7 @@ function extractToken(data, ctx) {
         };
     }
     else {
-        httpLog(`Warning: could not extract OAuth token from context at "${tokenJSONpath}"`);
+        httpLog(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`);
         return {};
     }
 }
@@ -348,7 +348,7 @@ function createOAuthHeader(data, ctx) {
     }
     else {
         httpLog(`Warning: could not extract OAuth token from context at ` +
-            `"${tokenJSONpath}"`);
+            `'${tokenJSONpath}'`);
         return {};
     }
 }
@@ -392,7 +392,7 @@ function getAuthOptions(operation, _oasgraph, data) {
                         }
                     }
                     else {
-                        throw new Error(`Cannot send API key in "${JSON.stringify(security.def.in)}"`);
+                        throw new Error(`Cannot send API key in '${JSON.stringify(security.def.in)}'`);
                     }
                 }
                 break;
@@ -406,7 +406,7 @@ function getAuthOptions(operation, _oasgraph, data) {
                         break;
                     default:
                         throw new Error(`Cannot recognize http security scheme ` +
-                            `"${JSON.stringify(security.def.scheme)}"`);
+                            `'${JSON.stringify(security.def.scheme)}'`);
                 }
                 break;
             case 'oauth2':
@@ -414,7 +414,7 @@ function getAuthOptions(operation, _oasgraph, data) {
             case 'openIdConnect':
                 break;
             default:
-                throw new Error(`Cannot recognize security type "${security.def.type}"`);
+                throw new Error(`Cannot recognize security type '${security.def.type}'`);
         }
     }
     return { authHeaders, authQs, authCookie };
@@ -474,7 +474,7 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
                 return tokens[0];
             }
             else {
-                httpLog(`Warning: could not extract parameter "${paramName}" from link`);
+                httpLog(`Warning: could not extract parameter '${paramName}' from link`);
             }
             // CASE: parameter in previous query parameter
         }
@@ -514,7 +514,7 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
                 return tokens[0];
             }
             else {
-                httpLog(`Warning: could not extract parameter "${paramName}" from link`);
+                httpLog(`Warning: could not extract parameter '${paramName}' from link`);
             }
             // CASE: parameter in query parameter
         }
@@ -532,7 +532,7 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
             return resolveData.responseHeaders[value.split('header.')[1]];
         }
     }
-    throw new Error(`Cannot create link because "${value}" is an invalid runtime expression`);
+    throw new Error(`Cannot create link because '${value}' is an invalid runtime expression`);
 }
 /**
  * Check if a string is a runtime expression in the context of link parameters
