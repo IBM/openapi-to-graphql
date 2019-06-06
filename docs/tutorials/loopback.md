@@ -1,14 +1,14 @@
-# LoopBack and OASGraph tutorial
+# LoopBack and OpenAPI-to-GraphQL tutorial
 
-The purpose of this tutorial is to give an in-depth look into using OASGraph together with LoopBack v4.
+The purpose of this tutorial is to give an in-depth look into using OpenAPI-to-GraphQL together with LoopBack v4.
 
-We will use a pre-made API created with LoopBack v4 to describe how OASGraph can be used on said API and what OASGraph will do to the API in order to produce a GraphQL interface. In addition, we will describes the steps needed to change the OAS to get the most out of the produced GraphQL interface.
+We will use a pre-made API created with LoopBack v4 to describe how OpenAPI-to-GraphQL can be used on said API and what OpenAPI-to-GraphQL will do to the API in order to produce a GraphQL interface. In addition, we will describes the steps needed to change the OAS to get the most out of the produced GraphQL interface.
 
 ### Clone LoopBack API
 
-OASGraph will create a GraphQL interface that will resolve on, or query, an API.
+OpenAPI-to-GraphQL will create a GraphQL interface that will resolve on, or query, an API.
 
-In this tutorial we will be providing a LoopBack API, the [Example Family Tree API](https://github.com/strongloop/loopback4-example-family-tree), that you can run locally. The purpose of this API is to not only showcase the compatibility between LoopBack and OASGraph but also to demonstrate the capabilities of OASGraph.
+In this tutorial we will be providing a LoopBack API, the [Example Family Tree API](https://github.com/strongloop/loopback4-example-family-tree), that you can run locally. The purpose of this API is to not only showcase the compatibility between LoopBack and OpenAPI-to-GraphQL but also to demonstrate the capabilities of OpenAPI-to-GraphQL.
 
 ***
 
@@ -59,29 +59,29 @@ Then change the server url to match the following. Otherwise, the GraphQL interf
 ]
 ```
 
-### Install OASGraph
+### Install OpenAPI-to-GraphQL
 
-To install OASGraph, clone the repository and link the library (for the CLI commands to work) using the indicated steps.
+To install OpenAPI-to-GraphQL, clone the repository and link the library (for the CLI commands to work) using the indicated steps.
 
 ```
-npm i -g oasgraph
+npm i -g openapi-to-graphql
 ```
 
-Please note that OASGraph can be used either as a library, or via its Command Line Interface (CLI). In this case, we will be using the CLI tool, which will start a server in addition to creating the GraphQL interface.
+Please note that OpenAPI-to-GraphQL can be used either as a library, or via its Command Line Interface (CLI). In this case, we will be using the CLI tool, which will start a server in addition to creating the GraphQL interface.
 
 ### Start GraphQL server
 
 Start the GraphQL server by running the following command.
 
 ```
-oasgraph <OAS JSON file path or remote url>
+openapi-to-graphql <OAS JSON file path or remote url>
 ```
 
 The created GraphQL server is then accessible at [http://127.0.0.1:3001/graphql](http://127.0.0.1:3001/graphql).
 
 ### Try simple queries
 
-Congratulations! You have created your first GraphQL interface with OASGraph.
+Congratulations! You have created your first GraphQL interface with OpenAPI-to-GraphQL.
 
 We can explore the GraphQL interface through the [GraphiQL IDE](https://github.com/graphql/graphiql) that will show at the previously provided link.
 
@@ -127,7 +127,7 @@ fatherId: Float
 
 [Link objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#linkObject "Link object documentation") are constructs in OAS that allow you to explicitly define relationships between different models and operations. For example, when you query for a **Person**, you will receive a *motherId* and a *fatherId*, which can be used to query for other **People**. When you have actions that naturally lead to the next, you use **Link objects** to describe this flow.
 
-While **Link objects** (and OAS in general) are useful for documenting APIs, links are especially important for OASGraph. Even though OASGraph can wrap any API with a valid OAS, it needs **Link objects** in order to create GraphQL interfaces that can conduct the powerful nested queries they are famous for. If we try to use the OAS now, the GraphQL interface OASGraph will create will only be able to handle simple queries that are no different than the ones the original API is capable of. Luckily, **Link objects** are easy to define.
+While **Link objects** (and OAS in general) are useful for documenting APIs, links are especially important for OpenAPI-to-GraphQL. Even though OpenAPI-to-GraphQL can wrap any API with a valid OAS, it needs **Link objects** in order to create GraphQL interfaces that can conduct the powerful nested queries they are famous for. If we try to use the OAS now, the GraphQL interface OpenAPI-to-GraphQL will create will only be able to handle simple queries that are no different than the ones the original API is capable of. Luckily, **Link objects** are easy to define.
 
 ***
 
@@ -180,7 +180,7 @@ Open the Family Tree API OAS and add the *links* and the *operationId* "getPerso
 After you have saved your changes to the OAS, restart the GraphQL server.
 
 ```
-oasgraph <OAS JSON file path or remote url> 
+openapi-to-graphql <OAS JSON file path or remote url> 
 ```
 
 ### Try complex queries
