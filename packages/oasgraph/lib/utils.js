@@ -18,7 +18,7 @@ exports.WarningTypes = {
     MULTIPLE_RESPONSES: (culprit, solution) => {
         return {
             type: 'MultipleResponses',
-            message: `Operation '${culprit}' has more than one success status ` +
+            message: `Operation ${culprit} has more than one success status ` +
                 `codes (200 - 299).`,
             mitigation: `Will select response for status code '${solution}'.`
         };
@@ -26,7 +26,7 @@ exports.WarningTypes = {
     MISSING_RESPONSE_SCHEMA: (culprit, solution) => {
         return {
             type: 'MissingResponseSchema',
-            message: `Operation '${culprit}' has no (valid) response schema. ` +
+            message: `Operation ${culprit} has no (valid) response schema. ` +
                 `If this operation has a 204 HTTP code, you can create a placeholder ` +
                 `schema using the fillEmptyResponses option.`,
             mitigation: `Ignore operation`
@@ -106,9 +106,8 @@ exports.WarningTypes = {
     DUPLICATE_LINK_KEY: (culprit, solution) => {
         return {
             type: 'duplicateLinkKey',
-            message: `Multiple operations with the same response body schema share the same link key '${culprit}'.`,
-            // TODO: improve mitigation message
-            mitigation: `The link will replace the previous one.`
+            message: culprit,
+            mitigation: `The latter link definition will replace the previous one.`,
         };
     },
     UNRESOLVABLE_REFERENCE: (culprit, solution) => {
