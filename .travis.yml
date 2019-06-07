@@ -1,10 +1,10 @@
 sudo: false
 language: node_js
 node_js:
-  - '8'
-  - '9'
-  - '10'
-  - '11'
+  - "8"
+  - "9"
+  - "10"
+  - "11"
 
 os:
   - linux
@@ -20,3 +20,4 @@ script: npm run test
 branches:
   only:
     - master
+    - openapi-to-graphql
