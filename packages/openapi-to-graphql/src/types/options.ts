@@ -124,6 +124,13 @@ export type Options = {
   customResolvers?: {
     [title: string]: { [path: string]: { [method: string]: ResolveFunction } }
   }
+
+  /**
+   * Allows for basic pagination of list types
+   *
+   * Adds the addition of "first" and "last" fields to all list types.
+   */
+  addSlicingPattern?: boolean
 }
 
 export type InternalOptions = {
@@ -230,4 +237,11 @@ export type InternalOptions = {
   customResolvers?: {
     [title: string]: { [path: string]: { [method: string]: ResolveFunction } }
   }
+
+  /**
+   * Allows for basic pagination of list types
+   *
+   * Adds the addition of "first" and "last" fields to all list types.
+   */
+  addSlicingPattern: boolean
 }

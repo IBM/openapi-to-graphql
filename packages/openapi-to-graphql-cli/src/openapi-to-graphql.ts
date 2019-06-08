@@ -33,6 +33,10 @@ program
     'create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them'
   )
   .option(
+    '-a, --addSlicingPattern',
+    'add addition arguments to fields that return lists of objects for pagination'
+  )
+  .option(
     '-o, --operationIdFieldNames',
     'create field names based on the operationId'
   )
@@ -157,7 +161,8 @@ function startGraphQLServer(oas, port) {
     fillEmptyResponses: program.fillEmptyResponses,
     baseUrl: program.url,
     operationIdFieldNames: program.operationIdFieldNames,
-    provideErrorExtensions: program.extensions
+    provideErrorExtensions: program.extensions,
+    addSlicingPattern: program.addSlicingPattern
   })
     .then(({ schema, report }) => {
       console.log(JSON.stringify(report, null, 2))

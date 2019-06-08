@@ -50,6 +50,10 @@ function createGraphQlSchema(spec, options) {
             typeof options.provideErrorExtensions === 'boolean'
                 ? options.provideErrorExtensions
                 : true;
+        options.addSlicingPattern =
+            typeof options.addSlicingPattern === 'boolean'
+                ? options.addSlicingPattern
+                : false;
         options['report'] = {
             warnings: [],
             numOps: 0,
@@ -86,7 +90,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers }) {
+function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers, addSlicingPattern }) {
     return __awaiter(this, void 0, void 0, function* () {
         const options = {
             headers,
@@ -101,7 +105,8 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             report,
             requestOptions,
             provideErrorExtensions,
-            customResolvers
+            customResolvers,
+            addSlicingPattern
         };
         translationLog(`Options: ${JSON.stringify(options)}`);
         /**

@@ -9,19 +9,23 @@ import { Warning } from './types/options'
 export const WarningTypes: {
   [key: string]: (culprit: string, solution: string) => Warning
 } = {
-  /**
-   * Authentication
-   */
+  INVALID_OAS: (culprit: string, solution: string) => {
+    return {
+      type: 'invalidOAS',
+      message: culprit,
+      mitigation: `Ignore and continue`
+    }
+  },
   UNSUPPORTED_HTTP_AUTH_SCHEME: (culprit: string, solution: string) => {
     return {
-      type: 'UnsupportedHTTPAuthScheme',
+      type: 'unsupportedHTTPAuthScheme',
       message: `Unsupported HTTP authentication scheme '${culprit}'.`,
       mitigation: `Ignore operation`
     }
   },
   MULTIPLE_RESPONSES: (culprit: string, solution: string) => {
     return {
-      type: 'MultipleResponses',
+      type: 'multipleResponses',
       message:
         `Operation ${culprit} has more than one success status ` +
         `codes (200 - 299).`,
@@ -30,7 +34,7 @@ export const WarningTypes: {
   },
   MISSING_RESPONSE_SCHEMA: (culprit: string, solution: string) => {
     return {
-      type: 'MissingResponseSchema',
+      type: 'missingResponseSchema',
       message:
         `Operation ${culprit} has no (valid) response schema. ` +
         `If this operation has a 204 HTTP code, you can create a placeholder ` +
@@ -40,42 +44,42 @@ export const WarningTypes: {
   },
   INVALID_SCHEMA_TYPE: (culprit: string, solution: string) => {
     return {
-      type: 'InvalidSchemaType',
+      type: 'invalidSchemaType',
       message: `Request / response schema has no (valid) type '${culprit}'.`,
       mitigation: `Fall back to type 'GraphQL String'`
     }
   },
   INVALID_SCHEMA_TYPE_LIST_ITEM: (culprit: string, solution: string) => {
     return {
-      type: 'InvalidSchemaTypeListItem',
+      type: 'invalidSchemaTypeListItem',
       message: `Request / response schema has no (valid) type '${culprit}'.`,
       mitigation: `Fall back to type 'GraphQL String'`
     }
   },
   INVALID_SCHEMA_TYPE_SCALAR: (culprit: string, solution: string) => {
     return {
-      type: 'InvalidSchemaTypeScalar',
+      type: 'invalidSchemaTypeScalar',
       message: `Request / response schema has no (valid) type '${culprit}'.`,
       mitigation: `Fall back to type 'GraphQL String'`
     }
   },
   UNRESOLVABLE_LINK: (culprit: string, solution: string) => {
     return {
-      type: 'UnresolvableLink',
+      type: 'unresolvableLink',
       message: `Cannot resolve target of link '${culprit}'.`,
       mitigation: `Ignore link`
     }
   },
   AMBIGUOUS_LINK: (culprit: string, solution: string) => {
     return {
-      type: 'AmbiguousLink',
+      type: 'ambiguousLink',
       message: `Cannot unambiguously resolve operationRef '${culprit}' in link.`,
       mitigation: `Use first occurance of '#/' - may cause runtime errors.`
     }
   },
   LINK_NAME_COLLISION: (culprit: string, solution: string) => {
     return {
-      type: 'LinkNameCollision',
+      type: 'linkNameCollision',
       message:
         `Cannot create link '${culprit}' because Object Type already ` +
         `contains field of the same name.`,
@@ -84,7 +88,7 @@ export const WarningTypes: {
   },
   UNNAMED_PARAMETER: (culprit: string, solution: string) => {
     return {
-      type: 'UnnamedParameter',
+      type: 'unnamedParameter',
       message: `Missing 'name' property in '${culprit}'.`,
       mitigation: `Ignore parameter`
     }
@@ -144,6 +148,14 @@ export const WarningTypes: {
       // TODO: improve message
       message: culprit,
       mitigation: `Ignore this set of custom resolvers`
+    }
+  },
+  SLICING_ARGUMENTS_NAME_COLLISION: (culprit: string, solution: string) => {
+    return {
+      type: 'slicingArgumentNameCollision',
+      // TODO: improve message
+      message: culprit,
+      mitigation: `Ignore this slicing argument`
     }
   }
 }

@@ -88,6 +88,10 @@ export async function createGraphQlSchema(
     typeof options.provideErrorExtensions === 'boolean'
       ? options.provideErrorExtensions
       : true
+  options.addSlicingPattern =
+    typeof options.addSlicingPattern === 'boolean'
+      ? options.addSlicingPattern
+      : false
 
   options['report'] = {
     warnings: [],
@@ -146,7 +150,8 @@ async function translateOpenApiToGraphQL(
     report,
     requestOptions,
     provideErrorExtensions,
-    customResolvers
+    customResolvers,
+    addSlicingPattern
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema; report: Report }> {
   const options = {
@@ -162,7 +167,8 @@ async function translateOpenApiToGraphQL(
     report,
     requestOptions,
     provideErrorExtensions,
-    customResolvers
+    customResolvers,
+    addSlicingPattern
   }
   translationLog(`Options: ${JSON.stringify(options)}`)
 

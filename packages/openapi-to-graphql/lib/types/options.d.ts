@@ -112,6 +112,12 @@ export declare type Options = {
             };
         };
     };
+    /**
+     * Allows for basic pagination of list types
+     *
+     * Adds the addition of "first" and "last" fields to all list types.
+     */
+    addSlicingPattern?: boolean;
 };
 export declare type InternalOptions = {
     /**
@@ -213,4 +219,10 @@ export declare type InternalOptions = {
             };
         };
     };
+    /**
+     * Allows for basic pagination of list types
+     *
+     * Adds the addition of "first" and "last" fields to all list types.
+     */
+    addSlicingPattern: boolean;
 };

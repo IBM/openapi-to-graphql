@@ -170,6 +170,175 @@ test('Get nested resource via link operationRef', () => {
   })
 })
 
+test('Get nested lists of resources', () => {
+  let query = `{
+    user(username: "arlene") {
+      name
+      friends {
+        name
+        friends {
+          name
+          friends {
+            name
+          }
+        }
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Arlene L McMahon',
+          friends: [
+            {
+              name: 'William B Ropp',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: 'John C Barnes',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: 'Heather J Tate',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    })
+  })
+})
+
 test('Link parameters as constants and variables', () => {
   let query = `{
     scanner(query: "hello") {
@@ -910,6 +1079,208 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
           data: {
             productWithId: {
               productName: 'abcdef'
+            }
+          }
+        })
+      })
+    })
+})
+
+test('Option addSlicingPattern, use "first" argument', () => {
+  let options = {
+    addSlicingPattern: true
+  }
+  let query = `query {
+    user(username: "arlene") {
+      name
+      friends (first: 3) {
+        name
+        friends (first: 2) {
+          name
+          friends (first: 1) {
+            name
+          }
+        }
+      }
+    }
+  }`
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      let ast = parse(query)
+      let errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(result).toEqual({
+          data: {
+            user: {
+              name: 'Arlene L McMahon',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'William B Ropp',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'William B Ropp',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'William B Ropp',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        })
+      })
+    })
+})
+
+test('Option addSlicingPattern, use "last" argument', () => {
+  let options = {
+    addSlicingPattern: true
+  }
+  let query = `query {
+    user(username: "arlene") {
+      name
+      friends (last: 3) {
+        name
+        friends (last: 2) {
+          name
+          friends (last: 1) {
+            name
+          }
+        }
+      }
+    }
+  }`
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      let ast = parse(query)
+      let errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(result).toEqual({
+          data: {
+            user: {
+              name: 'Arlene L McMahon',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'Heather J Tate'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'Heather J Tate',
+                      friends: [
+                        {
+                          name: 'Heather J Tate'
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'Heather J Tate'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'Heather J Tate',
+                      friends: [
+                        {
+                          name: 'Heather J Tate'
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'Heather J Tate'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'Heather J Tate',
+                      friends: [
+                        {
+                          name: 'Heather J Tate'
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
           }
         })
