@@ -4,7 +4,7 @@
 
 # OpenAPI-to-GraphQL
 
-Translate APIs described by [OpenAPI Specifications (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/).
+Translate APIs described by [OpenAPI Specifications (OAS)](https://github.com/OAI/OpenAPI-Specification) or [Swagger](https://swagger.io/specification/v2/) into [GraphQL](https://graphql.org/).
 
 <img src="https://raw.githubusercontent.com/strongloop/oasgraph/openapi-to-graphql/docs/translation.png" alt="Overview of translation" width="600">
 
