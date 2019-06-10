@@ -1,9 +1,6 @@
-Copyright (c) IBM Corp. 2012,2018. All Rights Reserved.
-This project is licensed under the MIT License, full text below.
-
---------
-
 MIT license
+
+Copyright (c) IBM Corp. 2012,2019. All Rights Reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
