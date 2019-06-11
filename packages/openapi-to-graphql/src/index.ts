@@ -88,6 +88,10 @@ export async function createGraphQlSchema(
     typeof options.provideErrorExtensions === 'boolean'
       ? options.provideErrorExtensions
       : true
+  options.addLimitArgument =
+    typeof options.addLimitArgument === 'boolean'
+      ? options.addLimitArgument
+      : false
 
   options['report'] = {
     warnings: [],
@@ -146,7 +150,8 @@ async function translateOpenApiToGraphQL(
     report,
     requestOptions,
     provideErrorExtensions,
-    customResolvers
+    customResolvers,
+    addLimitArgument
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema; report: Report }> {
   const options = {
@@ -162,7 +167,8 @@ async function translateOpenApiToGraphQL(
     report,
     requestOptions,
     provideErrorExtensions,
-    customResolvers
+    customResolvers,
+    addLimitArgument
   }
   translationLog(`Options: ${JSON.stringify(options)}`)
 
@@ -398,8 +404,13 @@ function getFieldForOperation(
 
   // create args:
   const args: Args = getArgs({
+    // Even though these arguments seems redundent because of the operation
+    // argument, the function cannot be refactored because it is also used
+    // to create arguments for links. The operation argument is really used
+    // to pass data to other functions.
     def: operation.payloadDefinition,
     parameters: operation.parameters,
+
     operation,
     data,
     oass

@@ -33,7 +33,8 @@ function startServer(PORT) {
         family: 'Hominidae',
         genus: 'Homo',
         species: 'sapiens'
-      }
+      },
+      friends: ['will', 'johnny', 'heather']
     },
     will: {
       name: 'William B Ropp',
@@ -49,7 +50,8 @@ function startServer(PORT) {
         family: 'Hominidae',
         genus: 'Homo',
         species: 'sapiens'
-      }
+      },
+      friends: ['arlene', 'johnny']
     },
     johnny: {
       name: 'John C Barnes',
@@ -65,7 +67,8 @@ function startServer(PORT) {
         family: 'Hominidae',
         genus: 'Homo',
         species: 'sapiens'
-      }
+      },
+      friends: ['arlene']
     },
     heather: {
       name: 'Heather J Tate',
@@ -81,7 +84,8 @@ function startServer(PORT) {
         family: 'Hominidae',
         genus: 'Homo',
         species: 'ihavelotsofmoneyus'
-      }
+      },
+      friends: []
     }
   }
 
@@ -299,13 +303,9 @@ function startServer(PORT) {
   app.get('/api/users/:username/car', (req, res) => {
     console.log(req.method, req.path)
     if (
-      typeof req.params.username !== 'string' ||
-      req.params.username === 'undefined'
+      typeof req.params.username === 'string' &&
+      req.params.username in Users
     ) {
-      res.status(404).send({
-        message: 'Wrong username.'
-      })
-    } else {
       res.send({
         model: 'BMW 7 series',
         color: 'black',
@@ -313,6 +313,28 @@ function startServer(PORT) {
           impression: 'decadent'
         },
         kind: 'LIMOSINE'
+      })
+    } else {
+      res.status(404).send({
+        message: 'Wrong username.'
+      })
+    }
+  })
+
+  app.get('/api/users/:username/friends', (req, res) => {
+    console.log(req.method, req.path)
+    if (
+      typeof req.params.username === 'string' &&
+      req.params.username in Users
+    ) {
+      const friends = Users[req.params.username].friends.map(friendName => {
+        return Users[friendName]
+      })
+
+      res.send(friends)
+    } else {
+      res.status(404).send({
+        message: 'Wrong username.'
       })
     }
   })
