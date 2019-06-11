@@ -532,7 +532,7 @@ function createFields({
           // get args for link
           const args = getArgs({
             parameters: dynamicParams,
-            operation,
+            operation: linkedOp,
             data,
             oass
           })
@@ -822,6 +822,7 @@ export function getArgs({
       continue
     }
 
+    // TODO: update with requestOptions
     // if this parameter is provided via options, ignore
     if (typeof data.options === 'object') {
       if (
@@ -838,8 +839,10 @@ export function getArgs({
       }
     }
 
-    // determine type of parameter (often, there is none - assume string)
-    let type = GraphQLString
+    // determine type of parameter
+    // the type of the parameter can either be contained in the "schema" field
+    // or the "content" field (but not both)
+    let type: GraphQLType
     if (typeof parameter.schema === 'object') {
       let schema = parameter.schema
       if ('$ref' in parameter.schema) {
@@ -863,6 +866,19 @@ export function getArgs({
         iteration: 0,
         isMutation: true
       })
+    } else if (typeof parameter.content === 'object') {
+      // TODO
+    } else {
+      // Invalid OAS according to 3.0.2
+      handleWarning({
+        typeKey: 'INVALID_OAS',
+        culprit:
+          `Parameter object "${JSON.stringify(parameter)}" must have ` +
+          `a "schema" or a "content" property`,
+        data,
+        log: translationLog
+      })
+      continue
     }
 
     // sanitize the argument name
@@ -886,6 +902,36 @@ export function getArgs({
     args[saneName] = {
       type: paramRequired ? new GraphQLNonNull(type) : type,
       description: parameter.description // might be undefined
+    }
+  }
+
+  // Add limit argument
+  if (
+    data.options.addLimitArgument &&
+    typeof operation.responseDefinition === 'object' &&
+    operation.responseDefinition.schema.type === 'array' &&
+    // Only add limit argument to lists of object types, not to lists of scalar types
+    ((operation.responseDefinition.subDefinitions as DataDefinition).schema
+      .type === 'object' ||
+      (operation.responseDefinition.subDefinitions as DataDefinition).schema
+        .type === 'array')
+  ) {
+    // Make sure slicing arguments will not overwrite preexisting arguments
+    if ('limit' in args) {
+      handleWarning({
+        typeKey: 'LIMIT_ARGUMENT_NAME_COLLISION',
+        culprit: `${operation.method.toLocaleUpperCase()} ${operation.path}`,
+        data,
+        log: translationLog
+      })
+    } else {
+      args['limit'] = {
+        type: GraphQLInt,
+        description:
+          `Auto-generated argument that limits the size of ` +
+          `returned list of objects/list, selecting the first \`n\` ` +
+          `elements of the list`
+      }
     }
   }
 

@@ -50,6 +50,10 @@ function createGraphQlSchema(spec, options) {
             typeof options.provideErrorExtensions === 'boolean'
                 ? options.provideErrorExtensions
                 : true;
+        options.addLimitArgument =
+            typeof options.addLimitArgument === 'boolean'
+                ? options.addLimitArgument
+                : false;
         options['report'] = {
             warnings: [],
             numOps: 0,
@@ -86,7 +90,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers }) {
+function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers, addLimitArgument }) {
     return __awaiter(this, void 0, void 0, function* () {
         const options = {
             headers,
@@ -101,7 +105,8 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             report,
             requestOptions,
             provideErrorExtensions,
-            customResolvers
+            customResolvers,
+            addLimitArgument
         };
         translationLog(`Options: ${JSON.stringify(options)}`);
         /**
@@ -289,6 +294,10 @@ function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
     });
     // create args:
     const args = schema_builder_1.getArgs({
+        // Even though these arguments seems redundent because of the operation
+        // argument, the function cannot be refactored because it is also used
+        // to create arguments for links. The operation argument is really used
+        // to pass data to other functions.
         def: operation.payloadDefinition,
         parameters: operation.parameters,
         operation,

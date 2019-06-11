@@ -5,19 +5,23 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WarningTypes = {
-    /**
-     * Authentication
-     */
+    INVALID_OAS: (culprit, solution) => {
+        return {
+            type: 'invalidOAS',
+            message: culprit,
+            mitigation: `Ignore and continue`
+        };
+    },
     UNSUPPORTED_HTTP_AUTH_SCHEME: (culprit, solution) => {
         return {
-            type: 'UnsupportedHTTPAuthScheme',
+            type: 'unsupportedHTTPAuthScheme',
             message: `Unsupported HTTP authentication scheme '${culprit}'.`,
             mitigation: `Ignore operation`
         };
     },
     MULTIPLE_RESPONSES: (culprit, solution) => {
         return {
-            type: 'MultipleResponses',
+            type: 'multipleResponses',
             message: `Operation ${culprit} has more than one success status ` +
                 `codes (200 - 299).`,
             mitigation: `Will select response for status code '${solution}'.`
@@ -25,7 +29,7 @@ exports.WarningTypes = {
     },
     MISSING_RESPONSE_SCHEMA: (culprit, solution) => {
         return {
-            type: 'MissingResponseSchema',
+            type: 'missingResponseSchema',
             message: `Operation ${culprit} has no (valid) response schema. ` +
                 `If this operation has a 204 HTTP code, you can create a placeholder ` +
                 `schema using the fillEmptyResponses option.`,
@@ -34,42 +38,42 @@ exports.WarningTypes = {
     },
     INVALID_SCHEMA_TYPE: (culprit, solution) => {
         return {
-            type: 'InvalidSchemaType',
+            type: 'invalidSchemaType',
             message: `Request / response schema has no (valid) type '${culprit}'.`,
             mitigation: `Fall back to type 'GraphQL String'`
         };
     },
     INVALID_SCHEMA_TYPE_LIST_ITEM: (culprit, solution) => {
         return {
-            type: 'InvalidSchemaTypeListItem',
+            type: 'invalidSchemaTypeListItem',
             message: `Request / response schema has no (valid) type '${culprit}'.`,
             mitigation: `Fall back to type 'GraphQL String'`
         };
     },
     INVALID_SCHEMA_TYPE_SCALAR: (culprit, solution) => {
         return {
-            type: 'InvalidSchemaTypeScalar',
+            type: 'invalidSchemaTypeScalar',
             message: `Request / response schema has no (valid) type '${culprit}'.`,
             mitigation: `Fall back to type 'GraphQL String'`
         };
     },
     UNRESOLVABLE_LINK: (culprit, solution) => {
         return {
-            type: 'UnresolvableLink',
+            type: 'unresolvableLink',
             message: `Cannot resolve target of link '${culprit}'.`,
             mitigation: `Ignore link`
         };
     },
     AMBIGUOUS_LINK: (culprit, solution) => {
         return {
-            type: 'AmbiguousLink',
+            type: 'ambiguousLink',
             message: `Cannot unambiguously resolve operationRef '${culprit}' in link.`,
             mitigation: `Use first occurance of '#/' - may cause runtime errors.`
         };
     },
     LINK_NAME_COLLISION: (culprit, solution) => {
         return {
-            type: 'LinkNameCollision',
+            type: 'linkNameCollision',
             message: `Cannot create link '${culprit}' because Object Type already ` +
                 `contains field of the same name.`,
             mitigation: `Ignore link`
@@ -77,7 +81,7 @@ exports.WarningTypes = {
     },
     UNNAMED_PARAMETER: (culprit, solution) => {
         return {
-            type: 'UnnamedParameter',
+            type: 'unnamedParameter',
             message: `Missing 'name' property in '${culprit}'.`,
             mitigation: `Ignore parameter`
         };
@@ -137,6 +141,14 @@ exports.WarningTypes = {
             // TODO: improve message
             message: culprit,
             mitigation: `Ignore this set of custom resolvers`
+        };
+    },
+    LIMIT_ARGUMENT_NAME_COLLISION: (culprit, solution) => {
+        return {
+            type: 'limitArgumentNameCollision',
+            message: `The 'limit' argument could not be added ` +
+                `because of a preexisting argument in operation ${culprit}`,
+            mitigation: `Do not override existing 'limit' argument`
         };
     }
 };
