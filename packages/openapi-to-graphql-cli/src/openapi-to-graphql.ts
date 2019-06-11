@@ -33,6 +33,10 @@ program
     'create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them'
   )
   .option(
+    '-a, --addLimitArgument',
+    'add limit argument on fields returning lists of objects/lists to control the data size'
+  )
+  .option(
     '-o, --operationIdFieldNames',
     'create field names based on the operationId'
   )
@@ -157,7 +161,8 @@ function startGraphQLServer(oas, port) {
     fillEmptyResponses: program.fillEmptyResponses,
     baseUrl: program.url,
     operationIdFieldNames: program.operationIdFieldNames,
-    provideErrorExtensions: program.extensions
+    provideErrorExtensions: program.extensions,
+    addLimitArgument: program.addLimitArgument
   })
     .then(({ schema, report }) => {
       console.log(JSON.stringify(report, null, 2))

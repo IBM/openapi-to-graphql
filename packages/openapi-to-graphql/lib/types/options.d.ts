@@ -112,6 +112,15 @@ export declare type Options = {
             };
         };
     };
+    /**
+     * Auto-generate a 'limit' argument for all fields that return lists of
+     * objects, including ones produced by links
+     *
+     * Allows to constrain the return size of lists of objects
+     *
+     * Returns the first n number of elements in the list
+     */
+    addLimitArgument?: boolean;
 };
 export declare type InternalOptions = {
     /**
@@ -213,4 +222,13 @@ export declare type InternalOptions = {
             };
         };
     };
+    /**
+     * Auto-generate a 'limit' argument for all fields that return lists of
+     * objects, including ones produced by links
+     *
+     * Allows to constrain the return size of lists of objects
+     *
+     * Returns the first n number of elements in the list
+     */
+    addLimitArgument?: boolean;
 };

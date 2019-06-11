@@ -20,6 +20,7 @@ program
     .option('-u, --url <url>', 'select the base url which paths will be built on')
     .option('-s, --strict', 'throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS')
     .option('-f, --fillEmptyResponses', 'create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them')
+    .option('-a, --addLimitArgument', 'add limit argument on fields returning lists of objects/lists to control the data size')
     .option('-o, --operationIdFieldNames', 'create field names based on the operationId')
     .option('--cors', 'enable Cross-origin resource sharing (CORS)')
     .option('--no-viewer', 'do not create GraphQL viewer objects for passing authentication credentials')
@@ -124,7 +125,8 @@ function startGraphQLServer(oas, port) {
         fillEmptyResponses: program.fillEmptyResponses,
         baseUrl: program.url,
         operationIdFieldNames: program.operationIdFieldNames,
-        provideErrorExtensions: program.extensions
+        provideErrorExtensions: program.extensions,
+        addLimitArgument: program.addLimitArgument
     })
         .then(({ schema, report }) => {
         console.log(JSON.stringify(report, null, 2));

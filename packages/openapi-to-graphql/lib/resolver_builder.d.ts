@@ -7,7 +7,6 @@ declare type GetResolverParams = {
     argsFromLink?: {
         [key: string]: string;
     };
-    argsFromParent?: string[];
     payloadName?: string;
     data: PreprocessingData;
     baseUrl?: string;
@@ -17,5 +16,5 @@ declare type GetResolverParams = {
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
-export declare function getResolver({ operation, argsFromLink, argsFromParent, payloadName, data, baseUrl, requestOptions }: GetResolverParams): ResolveFunction;
+export declare function getResolver({ operation, argsFromLink, payloadName, data, baseUrl, requestOptions }: GetResolverParams): ResolveFunction;
 export {};
