@@ -170,6 +170,175 @@ test('Get nested resource via link operationRef', () => {
   })
 })
 
+test('Get nested lists of resources', () => {
+  let query = `{
+    user(username: "arlene") {
+      name
+      friends {
+        name
+        friends {
+          name
+          friends {
+            name
+          }
+        }
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Arlene L McMahon',
+          friends: [
+            {
+              name: 'William B Ropp',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: 'John C Barnes',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              name: 'Heather J Tate',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'William B Ropp'
+                    },
+                    {
+                      name: 'John C Barnes'
+                    },
+                    {
+                      name: 'Heather J Tate'
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    })
+  })
+})
+
 test('Link parameters as constants and variables', () => {
   let query = `{
     scanner(query: "hello") {
@@ -910,6 +1079,107 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
           data: {
             productWithId: {
               productName: 'abcdef'
+            }
+          }
+        })
+      })
+    })
+})
+
+test('Option addLimitArgument', () => {
+  let options = {
+    addLimitArgument: true
+  }
+  let query = `query {
+    user(username: "arlene") {
+      name
+      friends (limit: 3) {
+        name
+        friends (limit: 2) {
+          name
+          friends (limit: 1) {
+            name
+          }
+        }
+      }
+    }
+  }`
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      let ast = parse(query)
+      let errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(result).toEqual({
+          data: {
+            user: {
+              name: 'Arlene L McMahon',
+              friends: [
+                {
+                  name: 'William B Ropp',
+                  friends: [
+                    {
+                      name: 'William B Ropp',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  name: 'John C Barnes',
+                  friends: [
+                    {
+                      name: 'William B Ropp',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  name: 'Heather J Tate',
+                  friends: [
+                    {
+                      name: 'William B Ropp',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    },
+                    {
+                      name: 'John C Barnes',
+                      friends: [
+                        {
+                          name: 'William B Ropp'
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
           }
         })

@@ -26,18 +26,7 @@ let oas3 = require('./fixtures/example_oas3.json')
 
 openapiToGraphql
   .createGraphQlSchema([oas, oas3], {
-    provideErrorExtension: false,
-    customResolvers: {
-      'Example API': {
-        '/users/{username}': {
-          get: () => {
-            return {
-              name: 'Alan'
-            }
-          }
-        }
-      }
-    }
+    addLimitArgument: true
   })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
