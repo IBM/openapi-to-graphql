@@ -2,11 +2,9 @@
 
 OpenAPI-to-GraphQL is a library that automatically creates GraphQL wrappers for existing REST(-like) APIs, relying on the Swagger or OpenAPI specifications of these APIs. To exemplify what OpenAPI-to-GraphQL can do, let's create a GraphQL wrapper for the [IBM Watson Language Translator API](https://www.ibm.com/watson/services/language-translator/). The Language Translator API uses machine learning capabilities to detect the language of given texts, and to translate texts to any of a number of supported languages.
 
-
 ## Video demo
 
 [![OpenAPI-to-GraphQL](../conveyor_belt.png)](https://www.youtube.com/watch?v=87ryTWc85BM "Click here to watch!")
-
 
 ## Creating a simple wrapper
 
@@ -37,12 +35,11 @@ async function startServer () {
   app.listen(3000)
 }
 
-// kick things off:
+// Kick things off:
 startServer()
 ```
 
 Pretty simple, no?
-
 
 ## Trying out the GraphQL wrapper
 
@@ -51,7 +48,6 @@ Running the above code exposes the created GraphQL wrapper at `localhost:3000`. 
 <img src="../identify_language.png" alt="Simple GraphQL query to identify the language of a text" width="800">
 
 Note the `viewerBasicAuth` type at the root of this query. It was created by OpenAPI-to-GraphQL as a mechanism for users to provide their [Language Translator API credentials](https://www.ibm.com/watson/developercloud/language-translator/api/v2/curl.html?curl#authentication) as part of the query. If desired, OpenAPI-to-GraphQL can alternatively be configured to send credentials without the user having to explicitly state them. As we can see, the above query returns a list of identified candidate languages of the given text, which are ranked by a confidence score.
-
 
 ## Enabling nested queries
 

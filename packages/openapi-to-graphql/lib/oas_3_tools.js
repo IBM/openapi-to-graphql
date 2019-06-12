@@ -148,11 +148,11 @@ exports.resolveRef = resolveRef;
  * Returns the base URL to use for the given operation.
  */
 function getBaseUrl(operation) {
-    // check for servers:
+    // Check for servers:
     if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
         throw new Error(`No servers defined for operation '${operation.operationId}'`);
     }
-    // check for local servers
+    // Check for local servers
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
         const url = buildUrl(operation.servers[0]);
         if (Array.isArray(operation.servers) && operation.servers.length > 1) {
@@ -176,11 +176,10 @@ exports.getBaseUrl = getBaseUrl;
  */
 function buildUrl(server) {
     let url = server.url;
-    // necessary?
     if (typeof server.variables === 'object' &&
         Object.keys(server.variables).length > 0) {
         for (let variableKey in server.variables) {
-            // check for default? Would be invalid OAS
+            // TODO: check for default? Would be invalid OAS
             url = url.replace(`{${variableKey}}`, server.variables[variableKey].default.toString());
         }
     }
@@ -259,26 +258,26 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
 ) {
     const query = {};
     const headers = {};
-    // case: nothing to do
+    // Case: nothing to do
     if (Array.isArray(parameters)) {
-        // iterate parameters:
+        // Iterate parameters:
         for (let param of parameters) {
             const sanitizedParamName = beautify(param.name);
             if (sanitizedParamName && sanitizedParamName in args) {
                 switch (param.in) {
-                    // path parameters
+                    // Path parameters
                     case 'path':
                         path = path.replace(`{${param.name}}`, args[sanitizedParamName]);
                         break;
-                    // query parameters
+                    // Query parameters
                     case 'query':
                         query[param.name] = args[sanitizedParamName];
                         break;
-                    // header parameters
+                    // Header parameters
                     case 'header':
                         headers[param.name] = args[sanitizedParamName];
                         break;
-                    // cookie parameters
+                    // Cookie parameters
                     case 'cookie':
                         if (!('cookie' in headers)) {
                             headers['cookie'] = '';
@@ -315,7 +314,7 @@ function getSchemaType(schema) {
         if (typeof schema.additionalProperties === 'object') {
             return 'json';
         }
-        // if there are no properties:
+        // If there are no properties:
         if (typeof schema.properties === 'undefined' ||
             Object.keys(schema.properties).length === 0) {
             return null;
@@ -371,7 +370,7 @@ exports.inferResourceNameFromPath = inferResourceNameFromPath;
 function getRequestSchema(endpoint, oas) {
     if (typeof endpoint.requestBody === 'object') {
         let requestBody = endpoint.requestBody;
-        // make sure we have a RequestBodyObject:
+        // Make sure we have a RequestBodyObject:
         if (typeof requestBody.$ref === 'string') {
             requestBody = resolveRef(requestBody.$ref, oas);
         }
@@ -413,9 +412,9 @@ function getRequestSchemaAndNames(path, method, oas) {
     let { payloadContentType, payloadSchema } = getRequestSchema(endpoint, oas);
     if (payloadSchema) {
         let requestBody = endpoint.requestBody;
-        // determine if request body is required:
+        // Determine if request body is required:
         if (typeof requestBody === 'object') {
-            // resolve reference if needed:
+            // Resolve reference if needed:
             if (typeof requestBody.$ref === 'string') {
                 requestBody = resolveRef(requestBody['$ref'], oas);
             }
@@ -431,8 +430,10 @@ function getRequestSchemaAndNames(path, method, oas) {
         if ('title' in payloadSchema) {
             payloadSchemaNames.fromSchema = payloadSchema.title;
         }
-        // if request body content-type is not application/json, do not parse.
-        // interpret the request body as a string
+        /**
+         * If request body content-type is not application/json, do not parse.
+         * Rather, interpret the request body as a string
+         */
         if (payloadContentType !== 'application/json') {
             let saneContentTypeName = '';
             const terms = payloadContentType.split('/');
@@ -474,7 +475,7 @@ function getResponseSchema(endpoint, statusCode, oas) {
         const responses = endpoint.responses;
         if (typeof responses[statusCode] === 'object') {
             let response = responses[statusCode];
-            // make sure we have a ResponseObject:
+            // Make sure we have a ResponseObject:
             if (typeof response.$ref === 'string') {
                 response = resolveRef(response.$ref, oas);
             }
@@ -527,8 +528,10 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
         if ('title' in responseSchema) {
             responseSchemaNames.fromSchema = responseSchema.title;
         }
-        // if request body content-type is not application/json, do not parse.
-        // interpret the request body as a string
+        /**
+         * If request body content-type is not application/json, do not parse.
+         * Rather, interpret the request body as a string
+         */
         if (responseContentType !== 'application/json') {
             let description = 'Placeholder object to access non-application/json ' + 'response bodies';
             if ('description' in responseSchema &&
@@ -617,13 +620,13 @@ function getEndpointLinks(path, method, oas, data) {
             if (typeof response.$ref === 'string') {
                 response = resolveRef(response.$ref, oas);
             }
-            // here, we can be certain we have a ResponseObject:
+            // Here, we can be certain we have a ResponseObject:
             response = response;
             if (typeof response.links === 'object') {
                 const epLinks = response.links;
                 for (let linkKey in epLinks) {
                     let link = epLinks[linkKey];
-                    // make sure we have LinkObjects:
+                    // Make sure we have LinkObjects:
                     if (typeof link.$ref === 'string') {
                         link = resolveRef(link['$ref'], oas);
                     }
@@ -651,31 +654,31 @@ function getParameters(path, method, oas) {
     }
     const pathItemObject = oas.paths[path];
     const pathParams = pathItemObject.parameters;
-    // first, consider parameters in Path Item Object:
+    // First, consider parameters in Path Item Object:
     if (Array.isArray(pathParams)) {
         const pathItemParameters = pathParams.map(p => {
             if (typeof p.$ref === 'string') {
-                // here we know we have a parameter object:
+                // Here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
             }
             else {
-                // here we know we have a parameter object:
+                // Here we know we have a parameter object:
                 return p;
             }
         });
         parameters = parameters.concat(pathItemParameters);
     }
-    // second, consider parameters in Operation Object:
+    // Second, consider parameters in Operation Object:
     const opObject = oas.paths[path][method];
     const opObjectParameters = opObject.parameters;
     if (Array.isArray(opObjectParameters)) {
         const opParameters = opObjectParameters.map(p => {
             if (typeof p.$ref === 'string') {
-                // here we know we have a parameter object:
+                // Here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
             }
             else {
-                // here we know we have a parameter object:
+                // Here we know we have a parameter object:
                 return p;
             }
         });
@@ -692,21 +695,21 @@ exports.getParameters = getParameters;
  */
 function getServers(path, method, oas) {
     let servers = [];
-    // global server definitions:
+    // Global server definitions:
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
         servers = oas.servers;
     }
-    // path item server definitions override global:
+    // Path item server definitions override global:
     const pathItem = oas.paths[path];
     if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
         servers = pathItem.servers;
     }
-    // operation server definitions override path item:
+    // Operation server definitions override path item:
     const operationObj = pathItem[method];
     if (Array.isArray(operationObj.servers) && operationObj.servers.length > 0) {
         servers = operationObj.servers;
     }
-    // default, in case there is no server:
+    // Default, in case there is no server:
     if (servers.length === 0) {
         let server = {
             url: '/' // TODO: avoid double-slashes
@@ -721,19 +724,19 @@ exports.getServers = getServers;
  * possible references.
  */
 function getSecuritySchemes(oas) {
-    // collect all security schemes:
+    // Collect all security schemes:
     const securitySchemes = {};
     if (typeof oas.components === 'object' &&
         typeof oas.components.securitySchemes === 'object') {
         for (let schemeKey in oas.components.securitySchemes) {
             const obj = oas.components.securitySchemes[schemeKey];
-            // ensure we have actual SecuritySchemeObject:
+            // Ensure we have actual SecuritySchemeObject:
             if (typeof obj.$ref === 'string') {
-                // result of resolution will be SecuritySchemeObject:
+                // Result of resolution will be SecuritySchemeObject:
                 securitySchemes[schemeKey] = resolveRef(obj.$ref, oas);
             }
             else {
-                // we already have a SecuritySchemeObject:
+                // We already have a SecuritySchemeObject:
                 securitySchemes[schemeKey] = obj;
             }
         }
@@ -747,7 +750,7 @@ exports.getSecuritySchemes = getSecuritySchemes;
  */
 function getSecurityRequirements(path, method, securitySchemes, oas) {
     const results = [];
-    // first, consider global requirements:
+    // First, consider global requirements:
     const globalSecurity = oas.security;
     if (globalSecurity && typeof globalSecurity !== 'undefined') {
         for (let secReq of globalSecurity) {
@@ -760,7 +763,7 @@ function getSecurityRequirements(path, method, securitySchemes, oas) {
             }
         }
     }
-    // local:
+    // Local:
     const operation = oas.paths[path][method];
     const localSecurity = operation.security;
     if (localSecurity && typeof localSecurity !== 'undefined') {
@@ -783,7 +786,7 @@ exports.getSecurityRequirements = getSecurityRequirements;
  * First sanitizes given string and then also camel-cases it.
  */
 function beautify(str, lowercaseFirstChar = true) {
-    // only apply to strings:
+    // Only apply to strings:
     if (typeof str !== 'string') {
         throw new Error(`Cannot beautify '${str}' of type '${typeof str}'`);
     }
@@ -805,11 +808,11 @@ function beautify(str, lowercaseFirstChar = true) {
             sanitized = sanitized.slice(0, pos);
         }
     }
-    // special case: we cannot start with number, and cannot be empty:
+    // Special case: we cannot start with number, and cannot be empty:
     if (/^[0-9]/.test(sanitized) || sanitized === '') {
         sanitized = '_' + sanitized;
     }
-    // first character should be lowercase
+    // First character should be lowercase
     if (lowercaseFirstChar) {
         sanitized =
             sanitized.charAt(0).toLowerCase() + sanitized.slice(1, sanitized.length);

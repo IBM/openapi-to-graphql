@@ -59,7 +59,7 @@ function createAndLoadViewer(queryFields, data, isMutation = false, oass) {
                     });
             }
         }
-        // create name for the viewer
+        // Create name for the viewer
         let viewerName = !isMutation
             ? Oas3Tools.beautify(`viewer ${type}`)
             : Oas3Tools.beautify(`mutation viewer ${type}`);
@@ -73,7 +73,7 @@ function createAndLoadViewer(queryFields, data, isMutation = false, oass) {
         // Add the viewer object type to the specified root query object type
         results[viewerName] = getViewerOT(viewerName, protocolName, type, queryFields[protocolName], data, oass);
     }
-    // create name for the AnyAuth viewer
+    // Create name for the AnyAuth viewer
     let anyAuthObjectName = !isMutation
         ? 'viewerAnyAuth'
         : 'mutationViewerAnyAuth';
@@ -87,7 +87,7 @@ exports.createAndLoadViewer = createAndLoadViewer;
  */
 const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
     const scheme = data.security[protocolName];
-    // resolve function:
+    // Resolve function:
     const resolve = (root, args, ctx) => {
         const security = {};
         security[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = args;
@@ -101,15 +101,17 @@ const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
             }
         };
     };
-    // arguments:
+    // Arguments:
+    /**
+     * Do not sort because they are already "sorted" in preprocessing.
+     * Otherwise, for basic auth, "password" will appear before "username"
+     */
     const args = {};
     if (typeof scheme === 'object') {
         for (let parameterName in scheme.parameters) {
             args[parameterName] = { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) };
         }
     }
-    // Do not sort because they are already "sorted" in preprocessing
-    // Otherwise, for basic auth, "password" will appear before "username"
     let typeDescription;
     let description;
     if (oass.length === 1) {
@@ -142,10 +144,7 @@ const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
 const getViewerAnyAuthOT = (name, queryFields, data, oass) => {
     let args = {};
     for (let protocolName in data.security) {
-        // create input object types for the viewer arguments
-        // NOTE: does not need to check for OAuth 2.0 anymore
-        // TODO: This is bad. We don't pass an operation, which is needed for
-        // creating the GraphQLType, though.
+        // Create input object types for the viewer arguments
         const def = preprocessor_1.createDataDef({ fromRef: protocolName }, data.security[protocolName].schema, true, data);
         const type = schema_builder_1.getGraphQLType({
             def,
@@ -156,7 +155,7 @@ const getViewerAnyAuthOT = (name, queryFields, data, oass) => {
         args[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = { type };
     }
     args = utils_1.sortObject(args);
-    // pass object containing security information to fields
+    // Pass object containing security information to fields
     const resolve = (root, args, ctx) => {
         return {
             _openapiToGraphql: {

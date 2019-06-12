@@ -38,7 +38,6 @@ export type ResolveFunction = (
   info: object
 ) => Promise<any> | any
 
-// export type FieldsType = Thunk<GraphQLFieldConfigMap<Object, Object>>
 export type Field = {
   type: GraphQLType
   resolve?: ResolveFunction
