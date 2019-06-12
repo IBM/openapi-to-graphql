@@ -18,9 +18,7 @@
   "paths": {
     "/v2/models": {
       "get": {
-        "tags": [
-          "models"
-        ],
+        "tags": ["models"],
         "operationId": "listModels",
         "summary": "Lists available standard and custom models by source or target language",
         "description": "",
@@ -78,9 +76,7 @@
         }
       },
       "post": {
-        "tags": [
-          "models"
-        ],
+        "tags": ["models"],
         "operationId": "createModel",
         "summary": "Uploads a TMX glossary file on top of a domain to customize a translation model",
         "description": "",
@@ -170,9 +166,7 @@
     },
     "/v2/models/{model_id}": {
       "delete": {
-        "tags": [
-          "models"
-        ],
+        "tags": ["models"],
         "operationId": "deleteModel",
         "summary": "Deletes a custom translation model",
         "description": "",
@@ -221,9 +215,7 @@
         }
       },
       "get": {
-        "tags": [
-          "models"
-        ],
+        "tags": ["models"],
         "operationId": "getModel",
         "summary": "Returns the training status of the translation model",
         "description": "",
@@ -264,9 +256,7 @@
     },
     "/v2/translate": {
       "get": {
-        "tags": [
-          "translate"
-        ],
+        "tags": ["translate"],
         "operationId": "translateGet",
         "summary": "Translates the input text from the source language to the target language",
         "description": "",
@@ -314,10 +304,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "application/json",
-                "text/plain"
-              ],
+              "enum": ["application/json", "text/plain"],
               "default": "text/plain"
             }
           }
@@ -387,9 +374,7 @@
         "x-sdk-exclude": true
       },
       "post": {
-        "tags": [
-          "translate"
-        ],
+        "tags": ["translate"],
         "operationId": "translate",
         "summary": "Translates the input text from the source language to the target language",
         "description": "",
@@ -401,10 +386,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "application/json",
-                "text/plain"
-              ],
+              "enum": ["application/json", "text/plain"],
               "default": "text/plain"
             }
           }
@@ -486,9 +468,7 @@
     },
     "/v2/identifiable_languages": {
       "get": {
-        "tags": [
-          "identify"
-        ],
+        "tags": ["identify"],
         "operationId": "listIdentifiableLanguages",
         "summary": "Lists all languages that can be identified by the API",
         "description": "Lists all languages that the service can identify. Returns the two-letter code (for example, `en` for English or `es` for Spanish) and name of each language.",
@@ -518,9 +498,7 @@
     },
     "/v2/identify": {
       "get": {
-        "tags": [
-          "identify"
-        ],
+        "tags": ["identify"],
         "operationId": "identifyGet",
         "summary": "Identifies the language of the input text.",
         "parameters": [
@@ -540,10 +518,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "application/json",
-                "text/plain"
-              ],
+              "enum": ["application/json", "text/plain"],
               "default": "text/plain"
             }
           }
@@ -603,9 +578,7 @@
         "x-sdk-exclude": true
       },
       "post": {
-        "tags": [
-          "identify"
-        ],
+        "tags": ["identify"],
         "operationId": "identify",
         "summary": "Identifies the language of the input text.",
         "parameters": [
@@ -616,10 +589,7 @@
             "required": false,
             "schema": {
               "type": "string",
-              "enum": [
-                "application/json",
-                "text/plain"
-              ],
+              "enum": ["application/json", "text/plain"],
               "default": "text/plain"
             }
           }
@@ -757,9 +727,7 @@
         }
       },
       "DeleteModelResult": {
-        "required": [
-          "status"
-        ],
+        "required": ["status"],
         "properties": {
           "status": {
             "description": "\"OK\" indicates that the model was successfully deleted.",
@@ -768,9 +736,7 @@
         }
       },
       "TranslateRequest": {
-        "required": [
-          "text"
-        ],
+        "required": ["text"],
         "properties": {
           "model_id": {
             "description": "The unique model_id of the translation model being used to translate text. The model_id inherently specifies source language, target language, and domain. If the model_id is specified, there is no need for the source and target parameters and the values are ignored.",
@@ -794,11 +760,7 @@
         }
       },
       "Translation": {
-        "required": [
-          "word_count",
-          "character_count",
-          "translations"
-        ],
+        "required": ["word_count", "character_count", "translations"],
         "properties": {
           "word_count": {
             "description": "Number of words of the complete input text.",
@@ -818,9 +780,7 @@
         }
       },
       "TranslationText": {
-        "required": [
-          "translation"
-        ],
+        "required": ["translation"],
         "properties": {
           "translation": {
             "description": "Translation output in UTF-8.",
@@ -829,9 +789,7 @@
         }
       },
       "SupportedLanguages": {
-        "required": [
-          "languages"
-        ],
+        "required": ["languages"],
         "properties": {
           "languages": {
             "description": "A list of all languages that the service can identify.",
@@ -843,10 +801,7 @@
         }
       },
       "IdentifiableLanguage": {
-        "required": [
-          "language",
-          "name"
-        ],
+        "required": ["language", "name"],
         "properties": {
           "language": {
             "description": "The code for an identifiable language.",
@@ -859,9 +814,7 @@
         }
       },
       "Languages": {
-        "required": [
-          "languages"
-        ],
+        "required": ["languages"],
         "properties": {
           "languages": {
             "description": "A ranking of identified languages with confidence scores.",
@@ -873,10 +826,7 @@
         }
       },
       "IdentifiedLanguage": {
-        "required": [
-          "language",
-          "confidence"
-        ],
+        "required": ["language", "confidence"],
         "properties": {
           "language": {
             "description": "The code for an identified language.",
@@ -892,10 +842,7 @@
         }
       },
       "ErrorResponse": {
-        "required": [
-          "error_code",
-          "error_message"
-        ],
+        "required": ["error_code", "error_message"],
         "properties": {
           "error_code": {
             "description": "A short identifier for the error.",
