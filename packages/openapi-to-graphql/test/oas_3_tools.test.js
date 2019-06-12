@@ -15,10 +15,10 @@ const {
 } = require('graphql')
 const Oas3Tools = require('../lib/oas_3_tools.js')
 
-test('Applying beautify multiple times does not change outcome', () => {
+test('Applying sanitize multiple times does not change outcome', () => {
   let str = 'this Super*annoying-string()'
-  let once = Oas3Tools.beautify(str)
-  let twice = Oas3Tools.beautify(once)
+  let once = Oas3Tools.sanitize(str)
+  let twice = Oas3Tools.sanitize(once)
   expect(twice).toEqual(once)
 })
 

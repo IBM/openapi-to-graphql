@@ -219,7 +219,7 @@ async function translateOpenApiToGraphQL(
               fieldName in authQueryFields[securityRequirement] ||
               operationIdFieldNames
             ) {
-              fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+              fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
             }
 
             if (fieldName in authQueryFields[securityRequirement]) {
@@ -236,7 +236,7 @@ async function translateOpenApiToGraphQL(
         } else {
           // Avoid overwriting fields that return the same data:
           if (fieldName in queryFields || operationIdFieldNames) {
-            fieldName = Oas3Tools.beautifyAndStore(operationId, data.saneMap)
+            fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
           }
 
           if (fieldName in queryFields) {
@@ -255,7 +255,7 @@ async function translateOpenApiToGraphQL(
          * Use operationId to avoid problems differentiating operations with the
          * same path but differnet methods
          */
-        let saneFieldName = Oas3Tools.beautifyAndStore(
+        let saneFieldName = Oas3Tools.sanitizeAndStore(
           operationId,
           data.saneMap
         )
