@@ -38,6 +38,7 @@ import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning } from './utils'
+import { parseType } from 'graphql'
 
 // Type definitions & exports:
 export type SchemaNames = {
@@ -280,7 +281,7 @@ export function sanitizeObjKeys(
       const res: object = {}
       for (let key in obj) {
         if (!exceptions.includes(key)) {
-          const saneKey = beautify(key)
+          const saneKey = sanitize(key)
           if (Object.prototype.hasOwnProperty.call(obj, key)) {
             res[saneKey] = cleanKeys(obj[key])
           }
@@ -347,7 +348,7 @@ export function instantiatePathAndGetQuery(
   if (Array.isArray(parameters)) {
     // Iterate parameters:
     for (let param of parameters) {
-      const sanitizedParamName = beautify(param.name)
+      const sanitizedParamName = sanitize(param.name)
       if (sanitizedParamName && sanitizedParamName in args) {
         switch (param.in) {
           // Path parameters
@@ -452,20 +453,20 @@ export function getSchemaType(schema: SchemaObject): string | null {
  * Determines an approximate name for the resource at the given path.
  */
 export function inferResourceNameFromPath(path: string): string {
-  let name = ''
-  const parts = path.split('/')
-  parts.forEach((part, i) => {
+  /**
+   * Remove the path parameters from the path
+   *
+   * For example, turn /user/{userId}/car into userCar
+   */
+  let pathNoPathParams = path.split('/').reduce((path, part) => {
     if (!/{|}/g.test(part)) {
-      const partClean = sanitize(parts[i])
-      if (i === 0) {
-        name += partClean
-      } else {
-        name += partClean.charAt(0).toUpperCase() + partClean.slice(1)
-      }
+      return path + capitalize(part)
+    } else {
+      return path
     }
   })
 
-  return name
+  return sanitize(pathNoPathParams)
 }
 
 /**
@@ -946,7 +947,7 @@ export function getSecuritySchemes(
 }
 
 /**
- * Returns the list of BEAUTIFIED keys of NON-OAUTH 2 security schemes
+ * Returns the list of sanitized keys of non-OAuth2 security schemes
  * required by the operation at the given path and method.
  */
 export function getSecurityRequirements(
@@ -997,31 +998,22 @@ export function getSecurityRequirements(
 /**
  * First sanitizes given string and then also camel-cases it.
  */
-export function beautify(
+export function sanitize(
   str: string,
   lowercaseFirstChar: boolean = true
 ): string {
-  // Only apply to strings:
-  if (typeof str !== 'string') {
-    throw new Error(`Cannot beautify '${str}' of type '${typeof str}'`)
-  }
-
-  const charToRemove = '_'
-  let sanitized = sanitize(str)
-  while (sanitized.indexOf(charToRemove) !== -1) {
-    const pos = sanitized.indexOf(charToRemove)
-    if (sanitized.length >= pos + 2) {
-      sanitized =
-        sanitized.slice(0, pos) +
-        sanitized.charAt(pos + 1).toUpperCase() +
-        sanitized.slice(pos + 2, sanitized.length)
-    } else if (sanitized.length === pos + 1) {
-      sanitized =
-        sanitized.slice(0, pos) + sanitized.charAt(pos + 1).toUpperCase()
-    } else {
-      sanitized = sanitized.slice(0, pos)
-    }
-  }
+  /**
+   * Remove all GraphQL unsafe characters
+   *
+   * Also remove _, even though it is GraphQL safe, to follow prescribed
+   * GraphQL naming conventions, which either use PascalCase, camelCase,
+   * or ALL_CAPS (the last of which has not been implemented)
+   *
+   * TODO: Adapt to allow for ALL_CAPS
+   */
+  let sanitized = str.split(/[^a-zA-Z0-9]/g).reduce((path, part) => {
+    return path + capitalize(part)
+  })
 
   // Special case: we cannot start with number, and cannot be empty:
   if (/^[0-9]/.test(sanitized) || sanitized === '') {
@@ -1030,27 +1022,26 @@ export function beautify(
 
   // First character should be lowercase
   if (lowercaseFirstChar) {
-    sanitized =
-      sanitized.charAt(0).toLowerCase() + sanitized.slice(1, sanitized.length)
+    sanitized = uncapitalize(sanitized)
   }
 
   return sanitized
 }
 
 /**
- * Beautifies the given string and stores the sanitized-to-original mapping in
+ * Sanitizes the given string and stores the sanitized-to-original mapping in
  * the given mapping.
  */
-export function beautifyAndStore(
+export function sanitizeAndStore(
   str: string,
   mapping: { [key: string]: string }
 ): string {
   if (!(typeof mapping === 'object')) {
-    throw new Error(`No/invalid mapping passed to beautifyAndStore`)
+    throw new Error(`No/invalid mapping passed to sanitizeAndStore`)
   }
-  const clean = beautify(str)
+  const clean = sanitize(str)
   if (!clean) {
-    throw new Error(`Cannot beautifyAndStore '${str}'`)
+    throw new Error(`Cannot sanitizeAndStore '${str}'`)
   } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
       translationLog(
@@ -1065,21 +1056,13 @@ export function beautifyAndStore(
 
 /**
  * Return an object similar to the input object except the keys are all
- * beautified
+ * sanitized
  */
-export function beautifyObjectKeys(obj: object): object {
+export function sanitizeObjectKeys(obj: object): object {
   return Object.keys(obj).reduce((acc, key) => {
-    acc[beautify(key)] = obj[key]
+    acc[sanitize(key)] = obj[key]
     return acc
   }, {})
-}
-
-/**
- * Sanitizes the given string so that it can be used as the name for a GraphQL
- * Object Type.
- */
-function sanitize(str: string): string {
-  return str.replace(/[^_a-zA-Z0-9]/g, '_')
 }
 
 /**
@@ -1123,5 +1106,5 @@ export function uncapitalize(str: string): string {
  * For operations that do not have an operationId, generate one
  */
 export function generateOperationId(method: string, path: string): string {
-  return beautify(`${method}:${path}`)
+  return sanitize(`${method}:${path}`)
 }

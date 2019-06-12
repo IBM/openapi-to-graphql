@@ -61,8 +61,8 @@ function createAndLoadViewer(queryFields, data, isMutation = false, oass) {
         }
         // Create name for the viewer
         let viewerName = !isMutation
-            ? Oas3Tools.beautify(`viewer ${type}`)
-            : Oas3Tools.beautify(`mutation viewer ${type}`);
+            ? Oas3Tools.sanitize(`viewer ${type}`)
+            : Oas3Tools.sanitize(`mutation viewer ${type}`);
         if (!(type in usedViewerNames)) {
             usedViewerNames[type] = [];
         }
@@ -90,7 +90,7 @@ const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
     // Resolve function:
     const resolve = (root, args, ctx) => {
         const security = {};
-        security[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = args;
+        security[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = args;
         /**
          * viewers are always root, so we can instantiate _openapiToGraphql here without
          * previously checking for its existence
@@ -152,7 +152,7 @@ const getViewerAnyAuthOT = (name, queryFields, data, oass) => {
             oass,
             isMutation: true
         });
-        args[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = { type };
+        args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = { type };
     }
     args = utils_1.sortObject(args);
     // Pass object containing security information to fields

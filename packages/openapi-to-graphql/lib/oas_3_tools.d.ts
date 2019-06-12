@@ -150,7 +150,7 @@ export declare function getSecuritySchemes(oas: Oas3): {
     [key: string]: SecuritySchemeObject;
 };
 /**
- * Returns the list of BEAUTIFIED keys of NON-OAUTH 2 security schemes
+ * Returns the list of sanitized keys of non-OAuth2 security schemes
  * required by the operation at the given path and method.
  */
 export declare function getSecurityRequirements(path: string, method: string, securitySchemes: {
@@ -159,19 +159,19 @@ export declare function getSecurityRequirements(path: string, method: string, se
 /**
  * First sanitizes given string and then also camel-cases it.
  */
-export declare function beautify(str: string, lowercaseFirstChar?: boolean): string;
+export declare function sanitize(str: string, lowercaseFirstChar?: boolean): string;
 /**
- * Beautifies the given string and stores the sanitized-to-original mapping in
+ * Sanitizes the given string and stores the sanitized-to-original mapping in
  * the given mapping.
  */
-export declare function beautifyAndStore(str: string, mapping: {
+export declare function sanitizeAndStore(str: string, mapping: {
     [key: string]: string;
 }): string;
 /**
  * Return an object similar to the input object except the keys are all
- * beautified
+ * sanitized
  */
-export declare function beautifyObjectKeys(obj: object): object;
+export declare function sanitizeObjectKeys(obj: object): object;
 /**
  * Stringifies and possibly trims the given string to the provided length.
  */

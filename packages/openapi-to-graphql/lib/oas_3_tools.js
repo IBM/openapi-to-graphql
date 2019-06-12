@@ -201,7 +201,7 @@ function sanitizeObjKeys(obj, exceptions = []) {
             const res = {};
             for (let key in obj) {
                 if (!exceptions.includes(key)) {
-                    const saneKey = beautify(key);
+                    const saneKey = sanitize(key);
                     if (Object.prototype.hasOwnProperty.call(obj, key)) {
                         res[saneKey] = cleanKeys(obj[key]);
                     }
@@ -262,7 +262,7 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
     if (Array.isArray(parameters)) {
         // Iterate parameters:
         for (let param of parameters) {
-            const sanitizedParamName = beautify(param.name);
+            const sanitizedParamName = sanitize(param.name);
             if (sanitizedParamName && sanitizedParamName in args) {
                 switch (param.in) {
                     // Path parameters
@@ -347,20 +347,20 @@ exports.getSchemaType = getSchemaType;
  * Determines an approximate name for the resource at the given path.
  */
 function inferResourceNameFromPath(path) {
-    let name = '';
-    const parts = path.split('/');
-    parts.forEach((part, i) => {
+    /**
+     * Remove the path parameters from the path
+     *
+     * For example, turn /user/{userId}/car into userCar
+     */
+    let pathNoPathParams = path.split('/').reduce((path, part) => {
         if (!/{|}/g.test(part)) {
-            const partClean = sanitize(parts[i]);
-            if (i === 0) {
-                name += partClean;
-            }
-            else {
-                name += partClean.charAt(0).toUpperCase() + partClean.slice(1);
-            }
+            return path + capitalize(part);
+        }
+        else {
+            return path;
         }
     });
-    return name;
+    return sanitize(pathNoPathParams);
 }
 exports.inferResourceNameFromPath = inferResourceNameFromPath;
 /**
@@ -745,7 +745,7 @@ function getSecuritySchemes(oas) {
 }
 exports.getSecuritySchemes = getSecuritySchemes;
 /**
- * Returns the list of BEAUTIFIED keys of NON-OAUTH 2 security schemes
+ * Returns the list of sanitized keys of non-OAuth2 security schemes
  * required by the operation at the given path and method.
  */
 function getSecurityRequirements(path, method, securitySchemes, oas) {
@@ -785,52 +785,41 @@ exports.getSecurityRequirements = getSecurityRequirements;
 /**
  * First sanitizes given string and then also camel-cases it.
  */
-function beautify(str, lowercaseFirstChar = true) {
-    // Only apply to strings:
-    if (typeof str !== 'string') {
-        throw new Error(`Cannot beautify '${str}' of type '${typeof str}'`);
-    }
-    const charToRemove = '_';
-    let sanitized = sanitize(str);
-    while (sanitized.indexOf(charToRemove) !== -1) {
-        const pos = sanitized.indexOf(charToRemove);
-        if (sanitized.length >= pos + 2) {
-            sanitized =
-                sanitized.slice(0, pos) +
-                    sanitized.charAt(pos + 1).toUpperCase() +
-                    sanitized.slice(pos + 2, sanitized.length);
-        }
-        else if (sanitized.length === pos + 1) {
-            sanitized =
-                sanitized.slice(0, pos) + sanitized.charAt(pos + 1).toUpperCase();
-        }
-        else {
-            sanitized = sanitized.slice(0, pos);
-        }
-    }
+function sanitize(str, lowercaseFirstChar = true) {
+    /**
+     * Remove all GraphQL unsafe characters
+     *
+     * Also remove _, even though it is GraphQL safe, to follow prescribed
+     * GraphQL naming conventions, which either use PascalCase, camelCase,
+     * or ALL_CAPS (the last of which has not been implemented)
+     *
+     * TODO: Adapt to allow for ALL_CAPS
+     */
+    let sanitized = str.split(/[^a-zA-Z0-9]/g).reduce((path, part) => {
+        return path + capitalize(part);
+    });
     // Special case: we cannot start with number, and cannot be empty:
     if (/^[0-9]/.test(sanitized) || sanitized === '') {
         sanitized = '_' + sanitized;
     }
     // First character should be lowercase
     if (lowercaseFirstChar) {
-        sanitized =
-            sanitized.charAt(0).toLowerCase() + sanitized.slice(1, sanitized.length);
+        sanitized = uncapitalize(sanitized);
     }
     return sanitized;
 }
-exports.beautify = beautify;
+exports.sanitize = sanitize;
 /**
- * Beautifies the given string and stores the sanitized-to-original mapping in
+ * Sanitizes the given string and stores the sanitized-to-original mapping in
  * the given mapping.
  */
-function beautifyAndStore(str, mapping) {
+function sanitizeAndStore(str, mapping) {
     if (!(typeof mapping === 'object')) {
-        throw new Error(`No/invalid mapping passed to beautifyAndStore`);
+        throw new Error(`No/invalid mapping passed to sanitizeAndStore`);
     }
-    const clean = beautify(str);
+    const clean = sanitize(str);
     if (!clean) {
-        throw new Error(`Cannot beautifyAndStore '${str}'`);
+        throw new Error(`Cannot sanitizeAndStore '${str}'`);
     }
     else if (clean !== str) {
         if (clean in mapping && str !== mapping[clean]) {
@@ -841,25 +830,18 @@ function beautifyAndStore(str, mapping) {
     }
     return clean;
 }
-exports.beautifyAndStore = beautifyAndStore;
+exports.sanitizeAndStore = sanitizeAndStore;
 /**
  * Return an object similar to the input object except the keys are all
- * beautified
+ * sanitized
  */
-function beautifyObjectKeys(obj) {
+function sanitizeObjectKeys(obj) {
     return Object.keys(obj).reduce((acc, key) => {
-        acc[beautify(key)] = obj[key];
+        acc[sanitize(key)] = obj[key];
         return acc;
     }, {});
 }
-exports.beautifyObjectKeys = beautifyObjectKeys;
-/**
- * Sanitizes the given string so that it can be used as the name for a GraphQL
- * Object Type.
- */
-function sanitize(str) {
-    return str.replace(/[^_a-zA-Z0-9]/g, '_');
-}
+exports.sanitizeObjectKeys = sanitizeObjectKeys;
 /**
  * Stringifies and possibly trims the given string to the provided length.
  */
@@ -899,7 +881,7 @@ exports.uncapitalize = uncapitalize;
  * For operations that do not have an operationId, generate one
  */
 function generateOperationId(method, path) {
-    return beautify(`${method}:${path}`);
+    return sanitize(`${method}:${path}`);
 }
 exports.generateOperationId = generateOperationId;
 //# sourceMappingURL=oas_3_tools.js.map

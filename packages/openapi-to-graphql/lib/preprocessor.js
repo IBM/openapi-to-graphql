@@ -145,7 +145,7 @@ exports.preprocessOas = preprocessOas;
  *
  * Here is the structure of the data:
  * {
- *   {string} [beautified name] { Contains information about the security protocol
+ *   {string} [sanitized name] { Contains information about the security protocol
  *     {string} rawName           Stores the raw security protocol name
  *     {object} def               Definition provided by OAS
  *     {object} parameters        Stores the names of the authentication credentials
@@ -198,7 +198,7 @@ function getProcessedSecuritySchemes(oas, data, oass) {
                     description += ` in ${oas.info.title}`;
                 }
                 parameters = {
-                    apiKey: Oas3Tools.beautify(`${key}_apiKey`)
+                    apiKey: Oas3Tools.sanitize(`${key}_apiKey`)
                 };
                 schema = {
                     type: 'object',
@@ -223,8 +223,8 @@ function getProcessedSecuritySchemes(oas, data, oass) {
                             description += ` in ${oas.info.title}`;
                         }
                         parameters = {
-                            username: Oas3Tools.beautify(`${key}_username`),
-                            password: Oas3Tools.beautify(`${key}_password`)
+                            username: Oas3Tools.sanitize(`${key}_username`),
+                            password: Oas3Tools.sanitize(`${key}_password`)
                         };
                         schema = {
                             type: 'object',
@@ -294,7 +294,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     const saneLinks = {};
     if (typeof links === 'object') {
         Object.keys(links).forEach(linkKey => {
-            saneLinks[Oas3Tools.beautify(linkKey)] = links[linkKey];
+            saneLinks[Oas3Tools.sanitize(linkKey)] = links[linkKey];
         });
     }
     // Determine the index of possible existing data definition
@@ -336,8 +336,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     else {
         // Else, define a new name, store the def, and return it
         const name = getSchemaName(data.usedOTNames, names);
-        // Store and beautify the name
-        const saneName = Oas3Tools.capitalize(Oas3Tools.beautifyAndStore(name, data.saneMap));
+        // Store and sanitize the name
+        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitizeAndStore(name, data.saneMap));
         const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
         // Add the names to the master list
         data.usedOTNames.push(saneName);
@@ -463,7 +463,7 @@ function getPreferredName(names) {
     else {
         schemaName = 'RandomName';
     }
-    return Oas3Tools.beautify(schemaName);
+    return Oas3Tools.sanitize(schemaName);
 }
 /**
  * Determines name to use for schema from previously determined schemaNames and
@@ -481,28 +481,28 @@ function getSchemaName(usedNames, names) {
     let schemaName;
     // CASE: name from reference
     if (typeof names.fromRef === 'string') {
-        const saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromRef));
+        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.fromRef));
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromRef;
         }
     }
     // CASE: name from schema (i.e., "title" property in schema)
     if (!schemaName && typeof names.fromSchema === 'string') {
-        const saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromSchema));
+        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.fromSchema));
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromSchema;
         }
     }
     // CASE: name from path
     if (!schemaName && typeof names.fromPath === 'string') {
-        const saneName = Oas3Tools.capitalize(Oas3Tools.beautify(names.fromPath));
+        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.fromPath));
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromPath;
         }
     }
     // CASE: all names are already used - create approximate name
     if (!schemaName) {
-        const tempName = Oas3Tools.capitalize(Oas3Tools.beautify(typeof names.fromRef === 'string'
+        const tempName = Oas3Tools.capitalize(Oas3Tools.sanitize(typeof names.fromRef === 'string'
             ? names.fromRef
             : typeof names.fromSchema === 'string'
                 ? names.fromSchema

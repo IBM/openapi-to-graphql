@@ -77,7 +77,7 @@ export type Options = {
   baseUrl?: string
 
   /**
-   * Field names can only be beautified operationIds
+   * Field names can only be sanitized operationIds
    *
    * By default, query field names are based on the return type type name and
    * mutation field names are based on the operationId, which may be generated
@@ -193,7 +193,7 @@ export type InternalOptions = {
   baseUrl?: string
 
   /**
-   * Field names can only be beautified operationIds
+   * Field names can only be sanitized operationIds
    *
    * By default, query field names are based on the return type type name and
    * mutation field names are based on the operationId, which may be generated

@@ -52,13 +52,13 @@ export type PreprocessingData = {
   /**
    * The security definitions contained in the OAS. References are resolved.
    *
-   * NOTE: Keys are beautified
+   * NOTE: Keys are sanitized
    * NOTE: Does not contain OAuth 2.0-related security schemes
    */
   security: { [key: string]: ProcessedSecurityScheme }
 
   /**
-   * Mapping between beautified strings and their original ones
+   * Mapping between sanitized strings and their original ones
    */
   saneMap: { [key: string]: string }
 

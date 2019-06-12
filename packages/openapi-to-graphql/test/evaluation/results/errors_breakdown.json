@@ -3,7 +3,7 @@
   "invalidEnumValue": 0,
   "invalidFields": 0,
   "duplicateNamesInSchema": 0,
-  "cannotBeautify": 16,
+  "cannotSanitize": 16,
   "resolveAllOf": 0,
   "itemsPropertyMissing": 0,
   "invalidReference": 7,

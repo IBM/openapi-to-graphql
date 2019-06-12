@@ -356,7 +356,7 @@ function reuseOrCreateEnum({ def, data }: ReuseOrCreateEnum): GraphQLEnumType {
     translationLog(`Create GraphQLEnumType '${def.otName}'`)
     const values = {}
     def.schema.enum.forEach(e => {
-      values[Oas3Tools.beautify(e, false)] = {
+      values[Oas3Tools.sanitize(e, false)] = {
         value: e
       }
     })
@@ -447,7 +447,7 @@ function createFields({
 
     // Finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
-      const sanePropName = Oas3Tools.beautifyAndStore(
+      const sanePropName = Oas3Tools.sanitizeAndStore(
         fieldTypeKey,
         data.saneMap
       )
@@ -524,7 +524,7 @@ function createFields({
           // Get resolve function for link
           const linkResolver = getResolver({
             operation: linkedOp,
-            argsFromLink: Oas3Tools.beautifyObjectKeys(argsFromLink) as {
+            argsFromLink: Oas3Tools.sanitizeObjectKeys(argsFromLink) as {
               [key: string]: string
             },
             data,
@@ -563,7 +563,7 @@ function createFields({
           }
 
           // Finally, add the object type to the fields (using sanitized field name)
-          Oas3Tools.beautifyAndStore(saneLinkKey, data.saneMap)
+          Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap)
           // TODO: check if fields already has this field name
           fields[saneLinkKey] = {
             type: resObjectType,
@@ -908,7 +908,7 @@ export function getArgs({
      * NOTE: when matching these parameters back to requests, we need to again
      * use the real parameter name
      */
-    const saneName = Oas3Tools.beautify(parameter.name)
+    const saneName = Oas3Tools.sanitize(parameter.name)
 
     // Parameters are not required when a default exists:
     let hasDefault = false
@@ -970,7 +970,7 @@ export function getArgs({
     })
 
     // Sanitize the argument name
-    const saneName = Oas3Tools.beautify(def.iotName)
+    const saneName = Oas3Tools.sanitize(def.iotName)
     let reqRequired = false
     if (
       operation &&
