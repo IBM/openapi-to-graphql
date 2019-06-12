@@ -58,12 +58,12 @@ export function getResolver({
   baseUrl,
   requestOptions
 }: GetResolverParams): ResolveFunction {
-  // determine the appropriate URL:
+  // Determine the appropriate URL:
   if (typeof baseUrl === 'undefined') {
     baseUrl = Oas3Tools.getBaseUrl(operation)
   }
 
-  // return custom resolver if it is defined
+  // Return custom resolver if it is defined
   const customResolvers = data.options.customResolvers
   const title = operation.oas.info.title
   const path = operation.path
@@ -82,11 +82,14 @@ export function getResolver({
     return customResolvers[title][path][method]
   }
 
-  // return resolve function:
+  // Return resolve function:
   return (root: any, args, ctx, info = {}) => {
-    // fetch resolveData from possibly existing _openapiToGraphql
-    // NOTE: _openapiToGraphql is an object used to pass security info and data from
-    // previous resolvers
+    /**
+     * Retch resolveData from possibly existing _openapiToGraphql
+     *
+     * NOTE: _openapiToGraphql is an object used to pass security info and data
+     * from previous resolvers
+     */
     let resolveData: any = {}
     if (
       root &&
@@ -99,8 +102,11 @@ export function getResolver({
         !(parentIdentifier.length === 0) &&
         parentIdentifier in root['_openapiToGraphql'].data
       ) {
-        // resolving link params may change the usedParams, but these changes
-        // should not be present in the parent _openapiToGraphql, therefore copy the object
+        /**
+         * Resolving link params may change the usedParams, but these changes
+         * should not be present in the parent _openapiToGraphql, therefore copy
+         * the object
+         */
         resolveData = JSON.parse(
           JSON.stringify(root['_openapiToGraphql'].data[parentIdentifier])
         )
@@ -136,7 +142,7 @@ export function getResolver({
       }
     })
 
-    // handle arguments provided by links
+    // Handle arguments provided by links
     for (let paramName in argsFromLink) {
       let value = argsFromLink[paramName]
 
@@ -158,7 +164,7 @@ export function getResolver({
           ? resolveLinkParameter(paramName, value, resolveData, root, args)
           : value
       } else {
-        // replace link parameters with appropriate values
+        // Replace link parameters with appropriate values
         const linkParams = value.match(/{([^}]*)}/g)
         linkParams.forEach(linkParam => {
           value = value.replace(
@@ -176,10 +182,10 @@ export function getResolver({
       }
     }
 
-    // stored used parameters to future requests:
+    // Stored used parameters to future requests:
     resolveData.usedParams = Object.assign(resolveData.usedParams, args)
 
-    // build URL (i.e., fill in path parameters):
+    // Build URL (i.e., fill in path parameters):
     const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(
       operation.path,
       operation.parameters,
@@ -187,11 +193,13 @@ export function getResolver({
     )
     const url = baseUrl + path
 
-    // The Content-type and accept property should not be changed because the
-    // object type has already been created and unlike these properties, it
-    // cannot be easily changed
-    //
-    // NOTE: This may cause the user to encounter unexpected changes
+    /**
+     * The Content-type and accept property should not be changed because the
+     * object type has already been created and unlike these properties, it
+     * cannot be easily changed
+     *
+     * NOTE: This may cause the user to encounter unexpected changes
+     */
     headers['content-type'] =
       typeof operation.payloadContentType !== 'undefined'
         ? operation.payloadContentType
@@ -227,6 +235,7 @@ export function getResolver({
 
     /**
      * Determine possible payload
+     *
      * GraphQL produces sanitized payload names, so we have to sanitize before
      * lookup here
      */
@@ -235,7 +244,7 @@ export function getResolver({
       const sanePayloadName = Oas3Tools.beautify(payloadName)
       if (sanePayloadName in args) {
         if (typeof args[sanePayloadName] === 'object') {
-          // we need to desanitize the payload so the API understands it:
+          // We need to desanitize the payload so the API understands it:
           const rawPayload = JSON.stringify(
             Oas3Tools.desanitizeObjKeys(args[sanePayloadName], data.saneMap)
           )
@@ -243,7 +252,7 @@ export function getResolver({
           options.body = rawPayload
           resolveData.usedPayload = rawPayload
         } else {
-          // payload is not an object (stored as an application/json)
+          // Payload is not an object (stored as an application/json)
           const rawPayload = args[sanePayloadName]
 
           options.body = rawPayload
@@ -256,14 +265,14 @@ export function getResolver({
      * Pass on OpenAPI-to-GraphQL options
      */
     if (typeof data.options === 'object') {
-      // headers:
+      // Headers:
       if (typeof data.options.headers === 'object') {
         for (let header in data.options.headers) {
           const val = data.options.headers[header]
           options.headers[header] = val
         }
       }
-      // query string:
+      // Query string:
       if (typeof data.options.qs === 'object') {
         for (let query in data.options.qs) {
           const val = data.options.qs[query]
@@ -272,7 +281,7 @@ export function getResolver({
       }
     }
 
-    // get authentication headers and query parameters
+    // Get authentication headers and query parameters
     if (
       root &&
       typeof root === 'object' &&
@@ -288,7 +297,7 @@ export function getResolver({
       Object.assign(options.headers, authHeaders)
       Object.assign(options.qs, authQs)
 
-      // add authentication cookie if created
+      // Add authentication cookie if created
       if (authCookie !== null) {
         const j = NodeRequest.jar()
         j.setCookie(authCookie, options.url)
@@ -296,7 +305,7 @@ export function getResolver({
       }
     }
 
-    // extract OAuth token from context (if available)
+    // Extract OAuth token from context (if available)
     if (data.options.sendOAuthTokenInQuery) {
       const oauthQueryObj = createOAuthQS(data, ctx)
       Object.assign(options.qs, oauthQueryObj)
@@ -308,7 +317,7 @@ export function getResolver({
     resolveData.usedRequestOptions = options
     resolveData.usedStatusCode = operation.statusCode
 
-    // make the call
+    // Make the call
     httpLog(
       `Call ${options.method.toUpperCase()} ${
         options.url
@@ -344,10 +353,12 @@ export function getResolver({
           httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
           if (response.headers['content-type']) {
-            // if the response body is type JSON, then parse it
-            //
-            // content-type may not be necessarily 'application/json'
-            // it can be 'application/json; charset=utf-8' for example
+            /**
+             * If the response body is type JSON, then parse it
+             *
+             * content-type may not be necessarily 'application/json' it can be
+             * 'application/json; charset=utf-8' for example
+             */
             if (response.headers['content-type'].includes('application/json')) {
               body = JSON.parse(body)
             }
@@ -357,11 +368,10 @@ export function getResolver({
 
           resolveData.responseHeaders = response.headers
 
-          // deal with the fact that the server might send unsanitized data
-          // let saneData: any = Oas3Tools.sanitizeObjKeys(body)
+          // Deal with the fact that the server might send unsanitized data
           let saneData = Oas3Tools.sanitizeObjKeys(body)
 
-          // pass on _openapiToGraphql to subsequent resolvers
+          // Pass on _openapiToGraphql to subsequent resolvers
           if (saneData && typeof saneData === 'object') {
             if (Array.isArray(saneData)) {
               saneData.forEach(element => {
@@ -413,10 +423,12 @@ export function getResolver({
           // Apply limit argument
           if (
             data.options.addLimitArgument &&
-            // NOTE: Does not differentiate between autogenerated args and
-            // preexisting args
-            //
-            // Ensure that there is not preexisting 'limit' argument
+            /**
+             * NOTE: Does not differentiate between autogenerated args and
+             * preexisting args
+             *
+             * Ensure that there is not preexisting 'limit' argument
+             */
             !operation.parameters.find(parameter => {
               return parameter.name === 'limit'
             }) &&
@@ -500,7 +512,7 @@ function createOAuthHeader(
     return {}
   }
 
-  // extract token
+  // Extract token
   const tokenJSONpath = data.options.tokenJSONpath
   const tokens = JSONPath.JSONPath({ path: tokenJSONpath, json: ctx })
   if (Array.isArray(tokens) && tokens.length > 0) {
@@ -533,20 +545,22 @@ function getAuthOptions(
   const authQs = {}
   let authCookie = null
 
-  // determine if authentication is required, and which protocol (if any) we
-  // can use
+  /**
+   * Determine if authentication is required, and which protocol (if any) we can
+   * use
+   */
   const {
     authRequired,
     beautifiedSecurityRequirement
   } = getAuthReqAndProtcolName(operation, _openapiToGraphql)
   const securityRequirement = data.saneMap[beautifiedSecurityRequirement]
 
-  // possibly, we don't need to do anything:
+  // Possibly, we don't need to do anything:
   if (!authRequired) {
     return { authHeaders, authQs, authCookie }
   }
 
-  // if authentication is required, but we can't fulfill the protocol, throw:
+  // If authentication is required, but we can't fulfill the protocol, throw:
   if (authRequired && typeof securityRequirement !== 'string') {
     throw new Error(`Missing information to authenticate API request.`)
   }
@@ -694,10 +708,13 @@ function resolveLinkParameter(
       return resolveData.usedRequestOptions.headers[value.split('header.')[1]]
     }
   } else if (value.startsWith('$response.')) {
-    // CASE: parameter is body
-    // NOTE: may not be used because it implies that the operation does not return
-    // a JSON object and OpenAPI-to-GraphQL does not create GraphQL objects for non-JSON
-    // data and links can only exists between objects.
+    /**
+     * CASE: parameter is body
+     *
+     * NOTE: may not be used because it implies that the operation does not
+     * return a JSON object and OpenAPI-to-GraphQL does not create GraphQL
+     * objects for non-JSON data and links can only exists between objects.
+     */
     if (value === '$response.body') {
       const result = JSON.parse(JSON.stringify(root))
       /**
@@ -791,9 +808,12 @@ function getParentIdentifier(info): string {
 function getIdentifierRecursive(path): string {
   return typeof path.prev === 'undefined'
     ? path.key
-    : // Check if the identifier contains array indexing, if so remove
-    // i.e. instead of 0/friends/1/friends/2/friends/user
-    // create friends/friends/friends/user
+    : /**
+     * Check if the identifier contains array indexing, if so remove.
+     *
+     * i.e. instead of 0/friends/1/friends/2/friends/user, create
+     * friends/friends/friends/user
+     */
     isNaN(parseInt(path.key))
     ? `${path.key}/${getIdentifierRecursive(path.prev)}`
     : getIdentifierRecursive(path.prev)
