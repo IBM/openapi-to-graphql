@@ -64270,12 +64270,12 @@
   "errors": [
     {
       "name": "Apacta",
-      "error": "Cannot beautify \"true\" of type \"boolean\"",
+      "error": "Cannot sanitize \"true\" of type \"boolean\"",
       "path": "tmp/APIs/apacta.com/0.0.1/swagger.yaml"
     },
     {
       "name": "AppVeyor",
-      "error": "Cannot beautify \"0\" of type \"number\"",
+      "error": "Cannot sanitize \"0\" of type \"number\"",
       "path": "tmp/APIs/appveyor.com/0.20170106.0/swagger.yaml"
     },
     {
@@ -64320,32 +64320,32 @@
     },
     {
       "name": "GoToMeeting",
-      "error": "Cannot beautify \"true\" of type \"boolean\"",
+      "error": "Cannot sanitize \"true\" of type \"boolean\"",
       "path": "tmp/APIs/citrixonline.com/gotomeeting/1.0.0/swagger.yaml"
     },
     {
       "name": "U.S. EPA Enforcement and Compliance History Online (ECHO) - Clean Air Act",
-      "error": "Cannot beautify \"1\" of type \"number\"",
+      "error": "Cannot sanitize \"1\" of type \"number\"",
       "path": "tmp/APIs/epa.gov/air/0.0.0/swagger.yaml"
     },
     {
       "name": "U.S. EPA Enforcement and Compliance History Online (ECHO) - Clean Water Act (CWA) Rest Services",
-      "error": "Cannot beautify \"1\" of type \"number\"",
+      "error": "Cannot sanitize \"1\" of type \"number\"",
       "path": "tmp/APIs/epa.gov/cwa/0.0.0/swagger.yaml"
     },
     {
       "name": "U.S. EPA Enforcement and Compliance History Online (ECHO) - All Data",
-      "error": "Cannot beautify \"1\" of type \"number\"",
+      "error": "Cannot sanitize \"1\" of type \"number\"",
       "path": "tmp/APIs/epa.gov/echo/1.0.0/swagger.yaml"
     },
     {
       "name": "U.S. EPA Enforcement and Compliance History Online (ECHO) - Resource Conservation and Recovery Act ",
-      "error": "Cannot beautify \"1\" of type \"number\"",
+      "error": "Cannot sanitize \"1\" of type \"number\"",
       "path": "tmp/APIs/epa.gov/rcra/0.0.0/swagger.yaml"
     },
     {
       "name": "U.S. EPA Enforcement and Compliance History Online (ECHO) - Safe Drinking Water Act",
-      "error": "Cannot beautify \"1\" of type \"number\"",
+      "error": "Cannot sanitize \"1\" of type \"number\"",
       "path": "tmp/APIs/epa.gov/sdw/0.0.0/swagger.yaml"
     },
     {
@@ -64355,17 +64355,17 @@
     },
     {
       "name": "Geographic",
-      "error": "Cannot beautify \"0\" of type \"number\"",
+      "error": "Cannot sanitize \"0\" of type \"number\"",
       "path": "tmp/APIs/nytimes.com/geo_api/1.0.0/swagger.yaml"
     },
     {
       "name": "PI Web API 2017 Swagger Spec",
-      "error": "Cannot beautify \"100\" of type \"number\"",
+      "error": "Cannot sanitize \"100\" of type \"number\"",
       "path": "tmp/APIs/osisoft.com/1.9.0.266/swagger.yaml"
     },
     {
       "name": "PTV Timetable API - Version 3",
-      "error": "Cannot beautify \"0\" of type \"number\"",
+      "error": "Cannot sanitize \"0\" of type \"number\"",
       "path": "tmp/APIs/ptv.vic.gov.au/v3/swagger.yaml"
     },
     {
@@ -64375,7 +64375,7 @@
     },
     {
       "name": "SendGrid v3",
-      "error": "Cannot beautify \"true\" of type \"boolean\"",
+      "error": "Cannot sanitize \"true\" of type \"boolean\"",
       "path": "tmp/APIs/sendgrid.com/3.0/swagger.yaml"
     },
     {
@@ -64385,12 +64385,12 @@
     },
     {
       "name": "Slack",
-      "error": "Cannot beautify \"true\" of type \"boolean\"",
+      "error": "Cannot sanitize \"true\" of type \"boolean\"",
       "path": "tmp/APIs/slack.com/1.0.3/swagger.yaml"
     },
     {
       "name": "StackExchange",
-      "error": "Cannot beautify \"true\" of type \"boolean\"",
+      "error": "Cannot sanitize \"true\" of type \"boolean\"",
       "path": "tmp/APIs/stackexchange.com/2.0/swagger.yaml"
     },
     {
@@ -64400,12 +64400,12 @@
     },
     {
       "name": "TVmaze user",
-      "error": "Cannot beautify \"0\" of type \"number\"",
+      "error": "Cannot sanitize \"0\" of type \"number\"",
       "path": "tmp/APIs/tvmaze.com/1.0/swagger.yaml"
     },
     {
       "name": "Wowza Streaming Cloud REST API Reference Documentation",
-      "error": "Cannot beautify \"2\" of type \"number\"",
+      "error": "Cannot sanitize \"2\" of type \"number\"",
       "path": "tmp/APIs/wowza.com/1/swagger.yaml"
     },
     {

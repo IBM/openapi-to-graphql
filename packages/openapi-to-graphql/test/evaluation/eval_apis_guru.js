@@ -107,7 +107,7 @@ function printErrorBreakdown(results) {
     invalidEnumValue: 0, // thrown by: GraphQL
     invalidFields: 0, // thrown by: GraphQL
     duplicateNamesInSchema: 0, // thrown by: GraphQL
-    cannotBeautify: 0, // thrown by: OpenAPI-to-GraphQL
+    cannotSanitize: 0, // thrown by: OpenAPI-to-GraphQL
     resolveAllOf: 0, // thrown by: OpenAPI-to-GraphQL
     itemsPropertyMissing: 0, // thrown by: OpenAPI-to-GraphQL
     invalidReference: 0, // thrown by: OpenAPI-to-GraphQL
@@ -116,8 +116,8 @@ function printErrorBreakdown(results) {
   results.errors.forEach(err => {
     if (/can not be used as an Enum value/.test(err.error)) {
       errors.invalidEnumValue++
-    } else if (/^Cannot beautify /.test(err.error)) {
-      errors.cannotBeautify++
+    } else if (/^Cannot sanitize /.test(err.error)) {
+      errors.cannotSanitize++
     } else if (/allOf will overwrite/.test(err.error)) {
       errors.resolveAllOf++
     } else if (/(Patchable)/.test(err.error)) {

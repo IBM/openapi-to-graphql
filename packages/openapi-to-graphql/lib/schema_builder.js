@@ -216,7 +216,7 @@ function reuseOrCreateEnum({ def, data }) {
         translationLog(`Create GraphQLEnumType '${def.otName}'`);
         const values = {};
         def.schema.enum.forEach(e => {
-            values[Oas3Tools.beautify(e, false)] = {
+            values[Oas3Tools.sanitize(e, false)] = {
                 value: e
             };
         });
@@ -286,7 +286,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
             schema.required.includes(fieldTypeKey);
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
-            const sanePropName = Oas3Tools.beautifyAndStore(fieldTypeKey, data.saneMap);
+            const sanePropName = Oas3Tools.sanitizeAndStore(fieldTypeKey, data.saneMap);
             fields[sanePropName] = {
                 type: reqMutationProp
                     ? new graphql_1.GraphQLNonNull(objectType)
@@ -352,7 +352,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                     // Get resolve function for link
                     const linkResolver = resolver_builder_1.getResolver({
                         operation: linkedOp,
-                        argsFromLink: Oas3Tools.beautifyObjectKeys(argsFromLink),
+                        argsFromLink: Oas3Tools.sanitizeObjectKeys(argsFromLink),
                         data,
                         baseUrl: data.options.baseUrl
                     });
@@ -380,7 +380,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                         description += `\n\nEquivalent to ${operation.oas.info.title} ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
                     }
                     // Finally, add the object type to the fields (using sanitized field name)
-                    Oas3Tools.beautifyAndStore(saneLinkKey, data.saneMap);
+                    Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap);
                     // TODO: check if fields already has this field name
                     fields[saneLinkKey] = {
                         type: resObjectType,
@@ -672,7 +672,7 @@ function getArgs({ def, parameters, operation, data, oass }) {
          * NOTE: when matching these parameters back to requests, we need to again
          * use the real parameter name
          */
-        const saneName = Oas3Tools.beautify(parameter.name);
+        const saneName = Oas3Tools.sanitize(parameter.name);
         // Parameters are not required when a default exists:
         let hasDefault = false;
         if (typeof parameter.schema === 'object') {
@@ -727,7 +727,7 @@ function getArgs({ def, parameters, operation, data, oass }) {
             isMutation: true
         });
         // Sanitize the argument name
-        const saneName = Oas3Tools.beautify(def.iotName);
+        const saneName = Oas3Tools.sanitize(def.iotName);
         let reqRequired = false;
         if (operation &&
             typeof operation === 'object' &&
