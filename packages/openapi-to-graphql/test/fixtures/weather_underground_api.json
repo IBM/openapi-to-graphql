@@ -9,11 +9,7 @@
       "url": "https://www.wunderground.com/about/contact-us"
     },
     "termsOfService": "https://www.wunderground.com/weather/api/d/terms.html",
-    "x-tags": [
-      "Weather",
-      "Conditions",
-      "Forecast"
-    ]
+    "x-tags": ["Weather", "Conditions", "Forecast"]
   },
   "externalDocs": {
     "url": "https://www.wunderground.com/weather/api/d/docs"
@@ -51,17 +47,15 @@
             "type": "string"
           }
         ],
-        "responses" : {
-          "200" : {
+        "responses": {
+          "200": {
             "description": "Weather conditions",
             "schema": {
               "$ref": "#/definitions/WeatherConditions"
             }
           }
         },
-        "tags": [
-          "weather conditions"
-        ],
+        "tags": ["weather conditions"],
         "x-apih-advice": {
           "totalUsageCount": 12,
           "topQueryParams": null,
@@ -148,17 +142,15 @@
             "type": "string"
           }
         ],
-        "responses" : {
-          "200" : {
+        "responses": {
+          "200": {
             "description": "Weather forecast",
             "schema": {
               "$ref": "#/definitions/WeatherForecast"
             }
           }
         },
-        "tags": [
-          "weather forecast"
-        ]
+        "tags": ["weather forecast"]
       }
     },
     "/{key}/forecast10days/q/{state}/{place}.json": {
@@ -187,24 +179,19 @@
             "type": "string"
           }
         ],
-        "responses" : {
-          "200" : {
+        "responses": {
+          "200": {
             "description": "Weather forecast",
             "schema": {
               "$ref": "#/definitions/WeatherForecast"
             }
           }
         },
-        "tags": [
-          "weather forecast"
-        ]
+        "tags": ["weather forecast"]
       }
     }
   },
-  "schemes": [
-    "http",
-    "https"
-  ],
+  "schemes": ["http", "https"],
   "host": "api.wunderground.com",
   "basePath": "/api",
   "x-apih-id": "weather_underground_api",
@@ -548,16 +535,10 @@
                   "type": "integer"
                 }
               },
-              "required": [
-                "conditions"
-              ]
+              "required": ["conditions"]
             }
           },
-          "required": [
-            "version",
-            "termsofService",
-            "features"
-          ]
+          "required": ["version", "termsofService", "features"]
         },
         "current_observation": {
           "type": "object",
@@ -575,11 +556,7 @@
                   "type": "string"
                 }
               },
-              "required": [
-                "url",
-                "title",
-                "link"
-              ]
+              "required": ["url", "title", "link"]
             },
             "display_location": {
               "type": "object",
@@ -896,10 +873,7 @@
           ]
         }
       },
-      "required": [
-        "response",
-        "current_observation"
-      ]
+      "required": ["response", "current_observation"]
     },
     "WeatherForecast": {
       "type": "object",
@@ -920,16 +894,10 @@
                   "type": "integer"
                 }
               },
-              "required": [
-                "forecast"
-              ]
+              "required": ["forecast"]
             }
           },
-          "required": [
-            "version",
-            "termsofService",
-            "features"
-          ]
+          "required": ["version", "termsofService", "features"]
         },
         "forecast": {
           "type": "object",
@@ -979,10 +947,7 @@
                   }
                 }
               },
-              "required": [
-                "date",
-                "forecastday"
-              ]
+              "required": ["date", "forecastday"]
             },
             "simpleforecast": {
               "type": "object",
@@ -1080,10 +1045,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "fahrenheit",
-                          "celsius"
-                        ]
+                        "required": ["fahrenheit", "celsius"]
                       },
                       "low": {
                         "type": "object",
@@ -1095,10 +1057,7 @@
                             "type": "string"
                           }
                         },
-                        "required": [
-                          "fahrenheit",
-                          "celsius"
-                        ]
+                        "required": ["fahrenheit", "celsius"]
                       },
                       "conditions": {
                         "type": "string"
@@ -1125,10 +1084,7 @@
                             "type": "integer"
                           }
                         },
-                        "required": [
-                          "in",
-                          "mm"
-                        ]
+                        "required": ["in", "mm"]
                       },
                       "qpf_day": {
                         "type": "object",
@@ -1140,10 +1096,7 @@
                             "type": "integer"
                           }
                         },
-                        "required": [
-                          "in",
-                          "mm"
-                        ]
+                        "required": ["in", "mm"]
                       },
                       "qpf_night": {
                         "type": "object",
@@ -1155,10 +1108,7 @@
                             "type": "integer"
                           }
                         },
-                        "required": [
-                          "in",
-                          "mm"
-                        ]
+                        "required": ["in", "mm"]
                       },
                       "snow_allday": {
                         "type": "object",
@@ -1170,10 +1120,7 @@
                             "type": "integer"
                           }
                         },
-                        "required": [
-                          "in",
-                          "cm"
-                        ]
+                        "required": ["in", "cm"]
                       },
                       "snow_day": {
                         "type": "object",
@@ -1185,10 +1132,7 @@
                             "type": "integer"
                           }
                         },
-                        "required": [
-                          "in",
-                          "cm"
-                        ]
+                        "required": ["in", "cm"]
                       },
                       "snow_night": {
                         "type": "object",
@@ -1200,10 +1144,7 @@
                             "type": "integer"
                           }
                         },
-                        "required": [
-                          "in",
-                          "cm"
-                        ]
+                        "required": ["in", "cm"]
                       },
                       "maxwind": {
                         "type": "object",
@@ -1221,12 +1162,7 @@
                             "type": "integer"
                           }
                         },
-                        "required": [
-                          "mph",
-                          "kph",
-                          "dir",
-                          "degrees"
-                        ]
+                        "required": ["mph", "kph", "dir", "degrees"]
                       },
                       "avewind": {
                         "type": "object",
@@ -1244,12 +1180,7 @@
                             "type": "integer"
                           }
                         },
-                        "required": [
-                          "mph",
-                          "kph",
-                          "dir",
-                          "degrees"
-                        ]
+                        "required": ["mph", "kph", "dir", "degrees"]
                       },
                       "avehumidity": {
                         "type": "integer"
@@ -1286,21 +1217,13 @@
                   }
                 }
               },
-              "required": [
-                "forecastday"
-              ]
+              "required": ["forecastday"]
             }
           },
-          "required": [
-            "txt_forecast",
-            "simpleforecast"
-          ]
+          "required": ["txt_forecast", "simpleforecast"]
         }
       },
-      "required": [
-        "response",
-        "forecast"
-      ]
+      "required": ["response", "forecast"]
     }
   }
 }

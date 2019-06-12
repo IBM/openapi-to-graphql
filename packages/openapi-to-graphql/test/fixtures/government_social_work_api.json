@@ -12,26 +12,20 @@
   },
   "security": [
     {
-      "mf_auth": [
-        "default"
-      ]
+      "mf_auth": ["default"]
     }
   ],
   "paths": {
     "/assessment_types": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case Assessment"
-        ],
+        "tags": ["Case Assessment"],
         "summary": "Get assessment types",
         "description": "Gets all `Assessment` types",
         "operationId": "getAssessmentTypes",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -101,17 +95,13 @@
     "/case/{caseId}": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case"
-        ],
+        "tags": ["Case"],
         "summary": "Get case details",
         "description": "Gets case details for a given case id",
         "operationId": "getCase",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -175,17 +165,13 @@
     "/social_worker/{userName}": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Social worker profile"
-        ],
+        "tags": ["Social worker profile"],
         "summary": "Gets the given worker's profile",
         "description": "Gets profile date for the case worker",
         "operationId": "getWorkersProfile",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -258,17 +244,13 @@
     "/social_worker/{userName}/cases": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Social worker"
-        ],
+        "tags": ["Social worker"],
         "summary": "Gets assigned cases for the given worker",
         "description": "Gets All `Case` objects for a social worker",
         "operationId": "getWorkersCases",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -341,17 +323,13 @@
     "/social_worker/{userName}/families": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Social worker"
-        ],
+        "tags": ["Social worker"],
         "summary": "Gets assigned families for the given worker",
         "description": "Gets the assigned `Family` objects for a social worker",
         "operationId": "getWorkersFamilies",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -424,17 +402,13 @@
     "/case/{caseId}/case_visit": {
       "post": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "CaseVisit"
-        ],
+        "tags": ["CaseVisit"],
         "summary": "Add visit",
         "description": "Adds a new case visit to the given case",
         "operationId": "addVisit",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -508,17 +482,13 @@
     "/case/{caseId}/case_visit/{visitId}": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "CaseVisit"
-        ],
+        "tags": ["CaseVisit"],
         "summary": "Gets a specific case visit's data for a specific case",
         "description": "Gets a specific case visit data for a given case id/case visit id combination",
         "operationId": "getCaseVisit",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -585,17 +555,13 @@
     "/family/{familyId}": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Family"
-        ],
+        "tags": ["Family"],
         "summary": "Gets client family data",
         "description": "Gets a specific family's data",
         "operationId": "getFamily",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -659,17 +625,13 @@
     "/client/{clientId}": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Gets client data",
         "description": "Gets a specific client data",
         "operationId": "getClient",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -733,17 +695,13 @@
     "/persons": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Person"
-        ],
+        "tags": ["Person"],
         "summary": "Gets a list of persons",
         "description": "Gets all persons",
         "operationId": "getPersons",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -813,17 +771,13 @@
     "/person": {
       "post": {
         "x-since-version": 2,
-        "tags": [
-          "Person"
-        ],
+        "tags": ["Person"],
         "summary": "Add a new client particpant's person profile data",
         "description": "Add a new client record to store the person details of a client participant",
         "operationId": "addPerson",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -894,17 +848,13 @@
     "/person/{personId}": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Person"
-        ],
+        "tags": ["Person"],
         "summary": "Update person data",
         "description": "Update person data",
         "operationId": "updatePerson",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -979,17 +929,13 @@
     "/client": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Updates client data",
         "description": "Updates a specific client data",
         "operationId": "updateClient",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1061,17 +1007,13 @@
     "/client_relationship/{clientId}": {
       "post": {
         "x-since-version": 2,
-        "tags": [
-          "ClientRelationship"
-        ],
+        "tags": ["ClientRelationship"],
         "summary": "Add a new client relationship",
         "description": "Add a new client relationship with relationshipId=clientId",
         "operationId": "addClientRelationship",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1145,17 +1087,13 @@
     "/client_relationship": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "ClientRelationship"
-        ],
+        "tags": ["ClientRelationship"],
         "summary": "Mark a client relationship with status=\"Deleted\" or do other updates",
         "description": "Sets a specific client relationship as \"deleted\"  or do other updates",
         "operationId": "deleteClientRelationship",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1227,17 +1165,13 @@
     "/client/{clientId}/client_contacts": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Gets client's contacts",
         "description": "Gets client's contacts  - not marked as \"Deleted\" - with their email/phone information",
         "operationId": "getClientContacts",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1310,17 +1244,13 @@
     "/client_contact": {
       "post": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Add a new client contact",
         "description": "Add a new client contact with phone/email for a client id",
         "operationId": "addClientContact",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1391,17 +1321,13 @@
     "/client_contact/{contactId}": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Update/delete client contact",
         "description": "Update/delete client contact for a client id",
         "operationId": "updateClientContact",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1476,17 +1402,13 @@
     "/client/{clientId}/client_schools": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Gets client's schools - not marked as \"Deleted\"",
         "description": "Gets client's schools information",
         "operationId": "getClientSchools",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1559,17 +1481,13 @@
     "/client_school": {
       "post": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Add a new client school",
         "description": "Add a new client school detail for a client id",
         "operationId": "addClientSchool",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1640,17 +1558,13 @@
     "/client_school/{schoolId}": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Update/delete client school",
         "description": "Update/delete client school",
         "operationId": "updateClientSchool",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1725,17 +1639,13 @@
     "/client/{clientId}/client_physicians": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Gets client's physicians  - not marked as \"Deleted\"",
         "description": "Gets client's physicians information  - not marked as \"Deleted\"",
         "operationId": "getClientPhysicians",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1808,17 +1718,13 @@
     "/client_physician": {
       "post": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Add a new client physician",
         "description": "Add a new client physician for a client id",
         "operationId": "addClientPhysician",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1879,17 +1785,13 @@
     "/client_physician/{physicianId}": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Client"
-        ],
+        "tags": ["Client"],
         "summary": "Update/delete client physician",
         "description": "Update/delete client physician for a client id",
         "operationId": "updateClientPhysician",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -1954,17 +1856,13 @@
     "/experts": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Expert"
-        ],
+        "tags": ["Expert"],
         "summary": "Gets experts data",
         "description": "Gets all experts",
         "operationId": "getExperts",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2034,17 +1932,13 @@
     "/file/{fileId}": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "File"
-        ],
+        "tags": ["File"],
         "summary": "Gets a specific file(s)",
         "description": "Gets a specific file for a given file id or return all files if no specific file id is given",
         "operationId": "getFile",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2106,17 +2000,13 @@
       },
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "File"
-        ],
+        "tags": ["File"],
         "summary": "Puts a specific file(s)",
         "description": "Gets a specific file for a given file id or return all files if no specific file id is given",
         "operationId": "updateFile",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2180,17 +2070,13 @@
     "/file": {
       "post": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "File"
-        ],
+        "tags": ["File"],
         "summary": "Puts a specific file(s)",
         "description": "Gets a specific file for a given file id or return all files if no specific file id is given",
         "operationId": "putFile",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2251,17 +2137,13 @@
     "/manual/{manualId}": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Manual"
-        ],
+        "tags": ["Manual"],
         "summary": "Gets a specific manual or return all manuals if no specific manual id is given",
         "description": "Gets a specific file for a given manual id",
         "operationId": "getManual",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2325,17 +2207,13 @@
     "/case/{caseId}/media_files": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "summary": "Get media file of a certain kind  - not marked as \"Deleted\"",
         "description": "Gets all media files of the mediaType  - not marked as \"Deleted\"",
         "operationId": "getMedia",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2399,17 +2277,13 @@
     "/case/{caseId}/media_file": {
       "post": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "summary": "Add media file of a certain kind",
         "description": "Adds a new Media file to a case [video, audio, picture, etc]",
         "operationId": "addMedia",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2484,17 +2358,13 @@
     "/case/{caseId}/media/{mediaId}": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Media"
-        ],
+        "tags": ["Media"],
         "summary": "Mark a media file as status=\"Deleted\" or update tagged participants",
         "description": "Sets a specific assessment for a case as \"deleted\" or update tagged participants",
         "operationId": "deleteMedia",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2572,17 +2442,13 @@
     "/case/{caseId}/case_assessments": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case Assessment"
-        ],
+        "tags": ["Case Assessment"],
         "summary": "Retrieve case assessments",
         "description": "Retrieves past assessments - not marked as \"Deleted\" - for a case; if a worker id is specified in the query then retrieves only those assessments  - not marked as \"Deleted\" - for this case and for this worked id",
         "operationId": "getCaseAssessments",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2655,17 +2521,13 @@
     "/case/{caseId}/caseAssessment/{caseAssessmentId}/assessmentType/{assessmentTypeId}/recommendations": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Analytics"
-        ],
+        "tags": ["Analytics"],
         "summary": "get recommendations",
         "description": "This api sends along the case assessment data to the backend analytics engine which sends back recommendations to the app",
         "operationId": "getRecommendations",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2747,17 +2609,13 @@
     "/case/{caseId}/case_note_types": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case Notes"
-        ],
+        "tags": ["Case Notes"],
         "summary": "Retrieve case notetypes",
         "description": "Retrieves a list of available case note types",
         "operationId": "getCaseNoteTypes",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2830,17 +2688,13 @@
     "/case/{caseId}/case_notes": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case Notes"
-        ],
+        "tags": ["Case Notes"],
         "summary": "Retrieve case notes",
         "description": "Retrieves past notes  - not marked as \"Deleted\" - for a case",
         "operationId": "getCaseNotes",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2913,17 +2767,13 @@
     "/case/{caseId}/case_note": {
       "post": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case Notes"
-        ],
+        "tags": ["Case Notes"],
         "summary": "Add case notes",
         "description": "Adds a case notes record for a case",
         "operationId": "addCaseNotes",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -2997,17 +2847,13 @@
     "/case/{caseId}/case_note/{noteId}": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case Notes"
-        ],
+        "tags": ["Case Notes"],
         "summary": "Mark a case note with status=\"Deleted\" or update tagged participants",
         "description": "Sets a specific case note as \"deleted\" or update tagged participants",
         "operationId": "deleteCaseNote",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -3085,17 +2931,13 @@
     "/case/{caseId}/case_assessment": {
       "post": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case Assessment"
-        ],
+        "tags": ["Case Assessment"],
         "summary": "Add assessment",
         "description": "Adds a new assessment record for a case - along with recommedndations elected by the user",
         "operationId": "addCaseAssessment",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -3159,17 +3001,13 @@
     "/case/{caseId}/case_assessment/{caseAssessmentId}": {
       "patch": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "Case Assessment"
-        ],
+        "tags": ["Case Assessment"],
         "summary": "Mark an assessment as status=\"Deleted\"",
         "description": "Sets a specific assessment for a case as \"deleted\"",
         "operationId": "deleteCaseAssessment",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -3237,17 +3075,13 @@
     "/client/{clientId}/client_relationships": {
       "get": {
         "x-since-version": 2,
-        "tags": [
-          "ClientRelationship"
-        ],
+        "tags": ["ClientRelationship"],
         "summary": "Gets all the client relationships  - not marked as \"Deleted\"",
         "description": "Gets all the client relationships  - not marked as \"Deleted\" - for the given client",
         "operationId": "getRelationships",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -3320,17 +3154,13 @@
     "/client_relationship_types": {
       "get": {
         "x-since-version": 2,
-        "tags": [
-          "ClientRelationship"
-        ],
+        "tags": ["ClientRelationship"],
         "summary": "Gets all the client relationship types",
         "description": "Gets all the client relationship types",
         "operationId": "getRelationshipTypes",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -3400,17 +3230,13 @@
     "/score_categories": {
       "get": {
         "x-since-version": "1.0.0",
-        "tags": [
-          "ScoreCategories"
-        ],
+        "tags": ["ScoreCategories"],
         "summary": "Gets all score categories",
         "description": "Gets all score categories",
         "operationId": "getScoreCategories",
         "security": [
           {
-            "mf_auth": [
-              "default"
-            ]
+            "mf_auth": ["default"]
           }
         ],
         "parameters": [
@@ -3502,11 +3328,7 @@
           "level": {
             "type": "string",
             "description": "message level",
-            "enum": [
-              "INFO",
-              "WARNING",
-              "ERROR"
-            ]
+            "enum": ["INFO", "WARNING", "ERROR"]
           }
         }
       },
@@ -3586,11 +3408,7 @@
           "answerType": {
             "description": "Assessment Factor Question Type.",
             "type": "string",
-            "enum": [
-              "Yes",
-              "No",
-              "N/A"
-            ]
+            "enum": ["Yes", "No", "N/A"]
           }
         }
       },
@@ -3767,10 +3585,7 @@
           "gender": {
             "description": "Person Gender.",
             "type": "string",
-            "enum": [
-              "Male",
-              "Female"
-            ]
+            "enum": ["Male", "Female"]
           },
           "lat": {
             "description": "Person Location Latitude.",
@@ -3881,10 +3696,7 @@
           "category": {
             "description": "Household/Non-household grouping",
             "type": "string",
-            "enum": [
-              "Household",
-              "Non-household"
-            ]
+            "enum": ["Household", "Non-household"]
           }
         }
       },
@@ -3975,10 +3787,7 @@
           "status": {
             "description": "Status",
             "type": "string",
-            "enum": [
-              "Submitted",
-              "Deleted"
-            ]
+            "enum": ["Submitted", "Deleted"]
           },
           "date": {
             "description": "Date Media was created.",
@@ -4032,10 +3841,7 @@
           "status": {
             "description": "Status",
             "type": "string",
-            "enum": [
-              "Submitted",
-              "Deleted"
-            ]
+            "enum": ["Submitted", "Deleted"]
           },
           "noteId": {
             "type": "string"
@@ -4076,10 +3882,7 @@
           "recommendationSelection": {
             "description": "Recommendation Selection",
             "type": "string",
-            "enum": [
-              "Yes",
-              "No"
-            ]
+            "enum": ["Yes", "No"]
           }
         }
       },
@@ -4093,10 +3896,7 @@
           "status": {
             "description": "Realtionship active/deleted status",
             "type": "string",
-            "enum": [
-              "Active",
-              "Deleted"
-            ]
+            "enum": ["Active", "Deleted"]
           },
           "role": {
             "$ref": "#/components/schemas/Roles"
@@ -4128,11 +3928,7 @@
           },
           "phoneType": {
             "type": "string",
-            "enum": [
-              "Cell",
-              "Home",
-              "Work"
-            ]
+            "enum": ["Cell", "Home", "Work"]
           },
           "phoneNumber": {
             "type": "string"
@@ -4140,10 +3936,7 @@
           "status": {
             "description": "Client contact status",
             "type": "string",
-            "enum": [
-              "Active",
-              "Deleted"
-            ]
+            "enum": ["Active", "Deleted"]
           }
         }
       },
@@ -4183,10 +3976,7 @@
           "status": {
             "description": "Client Physician status",
             "type": "string",
-            "enum": [
-              "Active",
-              "Deleted"
-            ]
+            "enum": ["Active", "Deleted"]
           }
         }
       },
@@ -4217,10 +4007,7 @@
           "status": {
             "description": "Client school status",
             "type": "string",
-            "enum": [
-              "Active",
-              "Deleted"
-            ]
+            "enum": ["Active", "Deleted"]
           }
         }
       },
@@ -4292,10 +4079,7 @@
           "status": {
             "description": "Case assesement status",
             "type": "string",
-            "enum": [
-              "Submitted",
-              "Deleted"
-            ]
+            "enum": ["Submitted", "Deleted"]
           },
           "worker": {
             "description": "id of the worker that performed this case assessment",
