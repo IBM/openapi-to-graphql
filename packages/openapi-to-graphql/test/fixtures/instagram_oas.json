@@ -1,8 +1,6 @@
 {
   "swagger": "2.0",
-  "schemes": [
-    "https"
-  ],
+  "schemes": ["https"],
   "host": "api.instagram.com",
   "basePath": "/v1",
   "info": {
@@ -14,10 +12,7 @@
     "termsOfService": "https://instagram.com/about/legal/terms/api/",
     "title": "Instagram",
     "version": "1.0.0",
-    "x-apisguru-categories": [
-      "social",
-      "media"
-    ],
+    "x-apisguru-categories": ["social", "media"],
     "x-logo": {
       "url": "https://instagramstatic-a.akamaihd.net/bluebar/8a8f88c/images/press/brand-thumb-icon.jpg"
     },
@@ -35,9 +30,7 @@
     "description": "Instagram Developer Documentation",
     "url": "https://instagram.com/developer"
   },
-  "produces": [
-    "application/json"
-  ],
+  "produces": ["application/json"],
   "securityDefinitions": {
     "api_key": {
       "in": "query",
@@ -131,20 +124,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic"
-            ]
+            "instagram_auth": ["basic"]
           }
         ],
         "summary": "Get recent media from a custom geo-id.",
-        "tags": [
-          "geographies"
-        ]
+        "tags": ["geographies"]
       }
     },
     "/locations/search": {
@@ -207,20 +194,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "public_content"
-            ]
+            "instagram_auth": ["public_content"]
           }
         ],
         "summary": "Search for a location by geographic coordinate.",
-        "tags": [
-          "locations"
-        ]
+        "tags": ["locations"]
       }
     },
     "/locations/{location-id}": {
@@ -245,20 +226,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "public_content"
-            ]
+            "instagram_auth": ["public_content"]
           }
         ],
         "summary": "Get information about a location.",
-        "tags": [
-          "locations"
-        ]
+        "tags": ["locations"]
       }
     },
     "/locations/{location-id}/media/recent": {
@@ -313,20 +288,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "public_content"
-            ]
+            "instagram_auth": ["public_content"]
           }
         ],
         "summary": "Get a list of recent media objects from a given location.",
-        "tags": [
-          "locations"
-        ]
+        "tags": ["locations"]
       }
     },
     "/media/popular": {
@@ -343,20 +312,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic"
-            ]
+            "instagram_auth": ["basic"]
           }
         ],
         "summary": "Get a list of currently popular media.",
-        "tags": [
-          "media"
-        ]
+        "tags": ["media"]
       }
     },
     "/media/search": {
@@ -414,20 +377,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "public_content"
-            ]
+            "instagram_auth": ["public_content"]
           }
         ],
         "summary": "Search for media in a given area.",
-        "tags": [
-          "media"
-        ]
+        "tags": ["media"]
       }
     },
     "/media/shortcode/{shortcode}": {
@@ -452,21 +409,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic",
-              "public_content"
-            ]
+            "instagram_auth": ["basic", "public_content"]
           }
         ],
         "summary": "Get information about a media object.",
-        "tags": [
-          "media"
-        ]
+        "tags": ["media"]
       }
     },
     "/media/{media-id}": {
@@ -491,21 +441,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic",
-              "public_content"
-            ]
+            "instagram_auth": ["basic", "public_content"]
           }
         ],
         "summary": "Get information about a media object.",
-        "tags": [
-          "media"
-        ]
+        "tags": ["media"]
       }
     },
     "/media/{media-id}/comments": {
@@ -530,21 +473,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic",
-              "public_content"
-            ]
+            "instagram_auth": ["basic", "public_content"]
           }
         ],
         "summary": "Get a list of recent comments on a media object.",
-        "tags": [
-          "comments"
-        ]
+        "tags": ["comments"]
       },
       "post": {
         "description": "Create a comment on a media object with the following rules:\n\n  * The total length of the comment cannot exceed 300 characters.\n  * The comment cannot contain more than 4 hashtags.\n  * The comment cannot contain more than 1 URL.\n  * The comment cannot consist of all capital letters.\n",
@@ -574,20 +510,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "comments"
-            ]
+            "instagram_auth": ["comments"]
           }
         ],
         "summary": "Create a comment on a media object.",
-        "tags": [
-          "comments"
-        ]
+        "tags": ["comments"]
       }
     },
     "/media/{media-id}/comments/{comment-id}": {
@@ -619,20 +549,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "comments"
-            ]
+            "instagram_auth": ["comments"]
           }
         ],
         "summary": "Remove a comment.",
-        "tags": [
-          "comments"
-        ]
+        "tags": ["comments"]
       }
     },
     "/media/{media-id}/likes": {
@@ -657,20 +581,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "likes"
-            ]
+            "instagram_auth": ["likes"]
           }
         ],
         "summary": "Remove a like on this media by the current user.",
-        "tags": [
-          "likes"
-        ]
+        "tags": ["likes"]
       },
       "get": {
         "description": "Get a list of users who have liked this media.",
@@ -693,21 +611,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic",
-              "public_content"
-            ]
+            "instagram_auth": ["basic", "public_content"]
           }
         ],
         "summary": "Get a list of users who have liked this media.",
-        "tags": [
-          "likes"
-        ]
+        "tags": ["likes"]
       },
       "post": {
         "description": "Set a like on this media by the currently authenticated user.",
@@ -730,20 +641,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "likes"
-            ]
+            "instagram_auth": ["likes"]
           }
         ],
         "summary": "Set a like on this media by the current user.",
-        "tags": [
-          "likes"
-        ]
+        "tags": ["likes"]
       }
     },
     "/tags/search": {
@@ -768,20 +673,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "public_content"
-            ]
+            "instagram_auth": ["public_content"]
           }
         ],
         "summary": "Search for tags by name.",
-        "tags": [
-          "tags"
-        ]
+        "tags": ["tags"]
       }
     },
     "/tags/{tag-name}": {
@@ -806,20 +705,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "public_content"
-            ]
+            "instagram_auth": ["public_content"]
           }
         ],
         "summary": "Get information about a tag object.",
-        "tags": [
-          "tags"
-        ]
+        "tags": ["tags"]
       }
     },
     "/tags/{tag-name}/media/recent": {
@@ -865,20 +758,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "public_content"
-            ]
+            "instagram_auth": ["public_content"]
           }
         ],
         "summary": "Get a list of recently tagged media.",
-        "tags": [
-          "tags"
-        ]
+        "tags": ["tags"]
       }
     },
     "/users/search": {
@@ -910,20 +797,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic"
-            ]
+            "instagram_auth": ["basic"]
           }
         ],
         "summary": "Search for a user by name.",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/users/self/feed": {
@@ -963,20 +844,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic"
-            ]
+            "instagram_auth": ["basic"]
           }
         ],
         "summary": "See the authenticated user's feed.",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/users/self/media/liked": {
@@ -1008,20 +883,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic"
-            ]
+            "instagram_auth": ["basic"]
           }
         ],
         "summary": "See the list of media liked by the authenticated user.",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/users/self/requested-by": {
@@ -1037,20 +906,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "follower_list"
-            ]
+            "instagram_auth": ["follower_list"]
           }
         ],
         "summary": "List the users who have requested this user's permission to follow.",
-        "tags": [
-          "relationships"
-        ]
+        "tags": ["relationships"]
       }
     },
     "/users/{user-id}": {
@@ -1078,21 +941,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic",
-              "public_content"
-            ]
+            "instagram_auth": ["basic", "public_content"]
           }
         ],
         "summary": "Get basic information about a user.",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/users/{user-id}/followed-by": {
@@ -1117,20 +973,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "follower_list"
-            ]
+            "instagram_auth": ["follower_list"]
           }
         ],
         "summary": "Get the list of users this user is followed by.",
-        "tags": [
-          "relationships"
-        ]
+        "tags": ["relationships"]
       }
     },
     "/users/{user-id}/follows": {
@@ -1155,20 +1005,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "follower_list"
-            ]
+            "instagram_auth": ["follower_list"]
           }
         ],
         "summary": "Get the list of users this user follows.",
-        "tags": [
-          "relationships"
-        ]
+        "tags": ["relationships"]
       }
     },
     "/users/{user-id}/media/recent": {
@@ -1230,21 +1074,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "basic",
-              "public_content"
-            ]
+            "instagram_auth": ["basic", "public_content"]
           }
         ],
         "summary": "Get the most recent media published by a user.",
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/users/{user-id}/relationship": {
@@ -1269,20 +1106,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "follower_list"
-            ]
+            "instagram_auth": ["follower_list"]
           }
         ],
         "summary": "Get information about a relationship to another user.",
-        "tags": [
-          "relationships"
-        ]
+        "tags": ["relationships"]
       },
       "post": {
         "description": "Modify the relationship between the current user and the target user.",
@@ -1320,20 +1151,14 @@
         },
         "security": [
           {
-            "api_key": [
-
-            ]
+            "api_key": []
           },
           {
-            "instagram_auth": [
-              "relationships"
-            ]
+            "instagram_auth": ["relationships"]
           }
         ],
         "summary": "Modify the relationship between the current user and the target user.",
-        "tags": [
-          "relationships"
-        ]
+        "tags": ["relationships"]
       }
     }
   },
@@ -1591,10 +1416,7 @@
         },
         "type": {
           "description": "Type of this media entry",
-          "enum": [
-            "image",
-            "video"
-          ],
+          "enum": ["image", "video"],
           "type": "string"
         },
         "user": {
@@ -1697,20 +1519,12 @@
       "properties": {
         "incoming_status": {
           "description": "Status of incoming relationship",
-          "enum": [
-            "none",
-            "followed_by",
-            "requested_by"
-          ],
+          "enum": ["none", "followed_by", "requested_by"],
           "type": "string"
         },
         "outgoing_status": {
           "description": "Status of outgoing relationship",
-          "enum": [
-            "none",
-            "follows",
-            "requested"
-          ],
+          "enum": ["none", "follows", "requested"],
           "type": "string"
         },
         "target_user_is_private": {
@@ -1750,11 +1564,7 @@
       "properties": {
         "outgoing_status": {
           "description": "Status of outgoing relationship",
-          "enum": [
-            "none",
-            "follows",
-            "requested"
-          ],
+          "enum": ["none", "follows", "requested"],
           "type": "string"
         }
       },
