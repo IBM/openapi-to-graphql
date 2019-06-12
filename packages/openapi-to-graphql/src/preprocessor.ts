@@ -32,8 +32,8 @@ export function preprocessOas(
 ): PreprocessingData {
   const data: PreprocessingData = {
     usedOTNames: [
-      'Query', // used by OpenAPI-to-GraphQL for root-level element
-      'Mutation' // used by OpenAPI-to-GraphQL for root-level element
+      'Query', // Used by OpenAPI-to-GraphQL for root-level element
+      'Mutation' // Used by OpenAPI-to-GraphQL for root-level element
     ],
     defs: [],
     operations: {},
@@ -43,7 +43,7 @@ export function preprocessOas(
   }
 
   oass.forEach(oas => {
-    // store stats on OAS:
+    // Store stats on OAS:
     data.options.report.numOps += Oas3Tools.countOperations(oas)
     data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas)
     data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas)
@@ -166,10 +166,10 @@ export function preprocessOas(
           ? Oas3Tools.getSecurityRequirements(path, method, data.security, oas)
           : []
 
-        // servers
+        // Servers
         const servers = Oas3Tools.getServers(path, method, oas)
 
-        // whether to place this operation into an authentication viewer
+        // Whether to place this operation into an authentication viewer
         const inViewer =
           securityRequirements.length > 0 && data.options.viewer !== false
 
@@ -298,9 +298,11 @@ function getProcessedSecuritySchemes(
 
       case 'http':
         switch (protocol.scheme) {
-          // HTTP a number of authentication types (see
-          // http://www.iana.org/assignments/http-authschemes/
-          // http-authschemes.xhtml)
+          /**
+           * TODO: HTTP has a number of authentication types
+           *
+           * See http://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
+           */
           case 'basic':
             description = `Basic auth credentials for security protocol '${key}'`
             if (oass.length > 1) {
@@ -386,7 +388,7 @@ export function createDataDef(
     )
   }
 
-  // resolve allOf element in schema if applicable
+  // Resolve allOf element in schema if applicable
   if ('allOf' in schema) {
     schema = mergeAllOf(schema)
   }
@@ -406,9 +408,10 @@ export function createDataDef(
     // Found existing data definition. Fetch it
     const existingDataDef = data.defs[index]
 
-    // Collapse links if possible
-    // I.e. if the current operation has links, combine them with the prexisting
-    // ones
+    /**
+     * Collapse links if possible, i.e. if the current operation has links,
+     * combine them with the prexisting ones
+     */
     if (typeof saneLinks !== 'undefined') {
       if (typeof existingDataDef.links !== 'undefined') {
         // Check if there are any overlapping links

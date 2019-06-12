@@ -18,7 +18,7 @@ const translationLog = debug_1.default('translation');
  */
 function getGraphQLType({ def, operation, data, iteration = 0, isMutation = false, oass }) {
     const name = isMutation ? def.iotName : def.otName;
-    // avoid excessive iterations
+    // Avoid excessive iterations
     if (iteration === 50) {
         throw new Error(`Too many iterations when creating schema ${name}`);
     }
@@ -68,12 +68,12 @@ exports.getGraphQLType = getGraphQLType;
  * A returned GraphQLObjectType has the following internal structure:
  *
  *   new GraphQLObjectType({
- *     name        // optional name of the type
- *     description // optional description of type
+ *     name        // Optional name of the type
+ *     description // Optional description of type
  *     fields      // REQUIRED returning fields
  *       type      // REQUIRED definition of the field type
- *       args      // optional definition of types
- *       resolve   // optional function defining how to obtain this type
+ *       args      // Optional definition of types
+ *       resolve   // Optional function defining how to obtain this type
  *   })
  */
 function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) {
@@ -156,7 +156,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
  */
 function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }) {
     const name = isMutation ? def.iotName : def.otName;
-    // try to reuse existing Object Type
+    // Try to reuse existing Object Type
     if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
         translationLog(`Reuse GraphQLList '${def.otName}'`);
         return def.ot;
@@ -165,7 +165,7 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
         translationLog(`Reuse GraphQLList '${def.iotName}'`);
         return def.iot;
     }
-    // create new List Object Type
+    // Create new List Object Type
     translationLog(`Create GraphQLList '${def.otName}'`);
     // Get definition of the list item, which should be in the sub definitions
     const itemDef = def.subDefinitions;
@@ -183,7 +183,7 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
     });
     if (itemsType !== null) {
         const listObjectType = new graphql_1.GraphQLList(itemsType);
-        // store newly created List Object Type
+        // Store newly created List Object Type
         if (!isMutation) {
             def.ot = listObjectType;
         }
@@ -207,7 +207,7 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
  * Returns an existing Enum Type or creates a new one, and stores it in data
  */
 function reuseOrCreateEnum({ def, data }) {
-    // try to reuse existing Enum Type
+    // Rry to reuse existing Enum Type
     if (def.ot && typeof def.ot !== 'undefined') {
         translationLog(`Reuse  GraphQLEnumType '${def.otName}'`);
         return def.ot;
@@ -220,7 +220,7 @@ function reuseOrCreateEnum({ def, data }) {
                 value: e
             };
         });
-        // store newly created Enum Object Type
+        // Store newly created Enum Object Type
         def.ot = new graphql_1.GraphQLEnumType({
             name: def.otName,
             values
@@ -267,11 +267,11 @@ function getScalarType({ def, data }) {
 function createFields({ def, links, operation, data, iteration, isMutation, oass }) {
     let fields = {};
     const fieldTypeDefinitions = def.subDefinitions;
-    // create fields for properties
+    // Create fields for properties
     for (let fieldTypeKey in fieldTypeDefinitions) {
         const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey];
         const schema = fieldTypeDefinition.schema;
-        // get object type describing the property
+        // Get object type describing the property
         const objectType = getGraphQLType({
             def: fieldTypeDefinition,
             operation,
@@ -280,11 +280,11 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
             iteration: iteration + 1,
             isMutation
         });
-        // determine if this property is required in mutations
+        // Determine if this property is required in mutations
         const reqMutationProp = isMutation &&
             'required' in schema &&
             schema.required.includes(fieldTypeKey);
-        // finally, add the object type to the fields (using sanitized field name)
+        // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const sanePropName = Oas3Tools.beautifyAndStore(fieldTypeKey, data.saneMap);
             fields[sanePropName] = {
@@ -297,16 +297,16 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
             };
         }
     }
-    // create fields for links
-    if (iteration === 0 && // only for operation-level object types
+    // Create fields for links
+    if (iteration === 0 && // Only for operation-level object types
         operation &&
-        typeof operation === 'object' && // operation is provided
-        typeof links === 'object' && // links are present
-        !isMutation // only if we are not talking INPUT object type
+        typeof operation === 'object' && // Operation is provided
+        typeof links === 'object' && // Links are present
+        !isMutation // Only if we are not talking INPUT object type
     ) {
         for (let saneLinkKey in links) {
             translationLog(`Create link '${saneLinkKey}'...`);
-            // check if key is already in fields
+            // Check if key is already in fields
             if (saneLinkKey in fields) {
                 utils_1.handleWarning({
                     typeKey: 'LINK_NAME_COLLISION',
@@ -317,7 +317,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
             }
             else {
                 const link = links[saneLinkKey];
-                // get linked operation
+                // Get linked operation
                 let linkedOpId;
                 // TODO: href is yet another alternative to operationRef and operationId
                 if (typeof link.operationId === 'string') {
@@ -332,29 +332,31 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                         oass
                     });
                 }
-                // linkedOpId may not be initialized because operationRef may lead to an
-                // operation object that does not have an operationId
+                /**
+                 * linkedOpId may not be initialized because operationRef may lead to an
+                 * operation object that does not have an operationId
+                 */
                 if (typeof linkedOpId === 'string' && linkedOpId in data.operations) {
                     const linkedOp = data.operations[linkedOpId];
-                    // determine parameters provided via link
+                    // Determine parameters provided via link
                     let argsFromLink = link.parameters;
-                    // remove argsFromLinks from operation parameters
+                    // Remove argsFromLinks from operation parameters
                     let dynamicParams = linkedOp.parameters;
                     if (typeof argsFromLink === 'object') {
                         dynamicParams = dynamicParams.filter(p => {
-                            // here, we know argsFromLink is present:
+                            // Here, we know argsFromLink is present:
                             argsFromLink = argsFromLink;
                             return typeof argsFromLink[p.name] === 'undefined';
                         });
                     }
-                    // get resolve function for link
+                    // Get resolve function for link
                     const linkResolver = resolver_builder_1.getResolver({
                         operation: linkedOp,
                         argsFromLink: Oas3Tools.beautifyObjectKeys(argsFromLink),
                         data,
                         baseUrl: data.options.baseUrl
                     });
-                    // get args for link
+                    // Get args for link
                     const args = getArgs({
                         parameters: dynamicParams,
                         operation: linkedOp,
@@ -377,7 +379,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                     else {
                         description += `\n\nEquivalent to ${operation.oas.info.title} ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
                     }
-                    // finally, add the object type to the fields (using sanitized field name)
+                    // Finally, add the object type to the fields (using sanitized field name)
                     Oas3Tools.beautifyAndStore(saneLinkKey, data.saneMap);
                     // TODO: check if fields already has this field name
                     fields[saneLinkKey] = {
@@ -418,20 +420,24 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
         const operationRef = link.operationRef;
         let linkLocation;
         let linkRelativePathAndMethod;
-        // example relative path: '#/paths/~12.0~1repositories~1{username}/get'
-        // example absolute path: 'https://na2.gigantic-server.com/#/paths/~12.0~1repositories~1{username}/get'
-        // extract relative path from relative path
+        /**
+         * Example relative path: '#/paths/~12.0~1repositories~1{username}/get'
+         * Example absolute path: 'https://na2.gigantic-server.com/#/paths/~12.0~1repositories~1{username}/get'
+         * Extract relative path from relative path
+         */
         if (operationRef.substring(0, 8) === '#/paths/') {
             linkRelativePathAndMethod = operationRef;
-            // extract relative path from absolute path
+            // Extract relative path from absolute path
         }
         else {
-            // '#' may exist in other places in the path
-            // '/#/' is more likely to point to the beginning of the path
+            /**
+             * '#' may exist in other places in the path
+             * '/#/' is more likely to point to the beginning of the path
+             */
             const firstPathIndex = operationRef.indexOf('#/paths/');
-            // found a relative path candidate
+            // Found a relative path candidate
             if (firstPathIndex !== -1) {
-                // check to see if there are other relative path candidates
+                // Check to see if there are other relative path candidates
                 const lastPathIndex = operationRef.lastIndexOf('#/paths/');
                 if (firstPathIndex !== lastPathIndex) {
                     utils_1.handleWarning({
@@ -443,7 +449,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 }
                 linkLocation = operationRef.substring(0, firstPathIndex);
                 linkRelativePathAndMethod = operationRef.substring(firstPathIndex);
-                // cannot find relative path candidate
+                // Cannot find relative path candidate
             }
             else {
                 utils_1.handleWarning({
@@ -456,27 +462,32 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 return;
             }
         }
-        // infer operationId from relative path
+        // Infer operationId from relative path
         if (typeof linkRelativePathAndMethod === 'string') {
             let linkPath;
             let linkMethod;
-            // NOTE: I wish we could extract the linkedOpId by matching the
-            //  linkedOpObject with an operation in data and extracting the
-            //  operationId there but that does not seem to be possible
-            //  especiially because you need to know the operationId just to
-            //  access the operations so what I have to do is reconstruct the
-            //  operationId the same way preprocessing does it
-            // linkPath should be the path followed by the method
-            // find the slash that divides the path from the method
+            /**
+             * NOTE: I wish we could extract the linkedOpId by matching the
+             * linkedOpObject with an operation in data and extracting the operationId
+             * there but that does not seem to be possible especiially because you
+             * need to know the operationId just to access the operations so what I
+             * have to do is reconstruct the operationId the same way preprocessing
+             * does it
+             */
+            /**
+             * linkPath should be the path followed by the method
+             *
+             * Find the slash that divides the path from the method
+             */
             const pivotSlashIndex = linkRelativePathAndMethod.lastIndexOf('/');
-            // check if there are any '/' in the linkPath
+            // Check if there are any '/' in the linkPath
             if (pivotSlashIndex !== -1) {
-                // getting method
-                // check if there is a method at the end of the linkPath
+                // Get method
+                // Check if there is a method at the end of the linkPath
                 if (pivotSlashIndex !== linkRelativePathAndMethod.length - 1) {
-                    // start at +1 because we do not want the starting '/'
+                    // Start at +1 because we do not want the starting '/'
                     linkMethod = linkRelativePathAndMethod.substring(pivotSlashIndex + 1);
-                    // check if method is a valid method
+                    // Check if method is a valid method
                     if (!Oas3Tools.OAS_OPERATIONS.includes(linkMethod)) {
                         utils_1.handleWarning({
                             typeKey: 'UNRESOLVABLE_LINK',
@@ -487,7 +498,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                         });
                         return;
                     }
-                    // there is no method at the end of the path
+                    // There is no method at the end of the path
                 }
                 else {
                     utils_1.handleWarning({
@@ -498,20 +509,26 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                     });
                     return;
                 }
-                // getting path
-                // substring starts at index 8 and ends at pivotSlashIndex to exclude
-                // the '/'s at the ends of the path
-                // TODO: improve removing '/#/paths'?
+                /**
+                 * Get path
+                 *
+                 * Substring starts at index 8 and ends at pivotSlashIndex to exclude
+                 * the '/'s at the ends of the path
+                 *
+                 * TODO: improve removing '/#/paths'?
+                 */
                 linkPath = linkRelativePathAndMethod.substring(8, pivotSlashIndex);
-                // linkPath is currently a JSON Pointer
-                // revert the escaped '/', represented by '~1', to form intended
-                // path
+                /**
+                 * linkPath is currently a JSON Pointer
+                 *
+                 * Revert the escaped '/', represented by '~1', to form intended path
+                 */
                 linkPath = linkPath.replace(/~1/g, '/');
-                // find the right oas
+                // Find the right oas
                 const oas = typeof linkLocation === 'undefined'
                     ? operation.oas
                     : getOasFromLinkLocation(linkLocation, link, data, oass);
-                // if the link was external, make sure that an OAS could be identified
+                // If the link was external, make sure that an OAS could be identified
                 if (typeof oas !== 'undefined') {
                     if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
                         if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
@@ -535,7 +552,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                                 log: translationLog
                             });
                         }
-                        // path and method could not be found
+                        // Path and method could not be found
                     }
                     else {
                         utils_1.handleWarning({
@@ -546,7 +563,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                             log: translationLog
                         });
                     }
-                    // external link could not be resolved
+                    // External link could not be resolved
                 }
                 else {
                     utils_1.handleWarning({
@@ -587,9 +604,9 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
  */
 function getArgs({ def, parameters, operation, data, oass }) {
     let args = {};
-    // handle params:
+    // Handle params:
     for (let parameter of parameters) {
-        // we need at least a name
+        // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
                 typeKey: 'UNNAMED_PARAMETER',
@@ -600,7 +617,7 @@ function getArgs({ def, parameters, operation, data, oass }) {
             continue;
         }
         // TODO: update with requestOptions
-        // if this parameter is provided via options, ignore
+        // If this parameter is provided via options, ignore
         if (typeof data.options === 'object') {
             if (typeof data.options.headers === 'object' &&
                 parameter.name in data.options.headers) {
@@ -611,9 +628,12 @@ function getArgs({ def, parameters, operation, data, oass }) {
                 continue;
             }
         }
-        // determine type of parameter
-        // the type of the parameter can either be contained in the "schema" field
-        // or the "content" field (but not both)
+        /**
+         * Determine type of parameter
+         *
+         * The type of the parameter can either be contained in the "schema" field
+         * or the "content" field (but not both)
+         */
         let type;
         if (typeof parameter.schema === 'object') {
             let schema = parameter.schema;
@@ -646,11 +666,14 @@ function getArgs({ def, parameters, operation, data, oass }) {
             });
             continue;
         }
-        // sanitize the argument name
-        // NOTE: when matching these parameters back to requests, we need to again
-        // use the real parameter name
+        /**
+         * Sanitize the argument name
+         *
+         * NOTE: when matching these parameters back to requests, we need to again
+         * use the real parameter name
+         */
         const saneName = Oas3Tools.beautify(parameter.name);
-        // parameters are not required when a default exists:
+        // Parameters are not required when a default exists:
         let hasDefault = false;
         if (typeof parameter.schema === 'object') {
             let schema = parameter.schema;
@@ -664,7 +687,7 @@ function getArgs({ def, parameters, operation, data, oass }) {
         const paramRequired = parameter.required && !hasDefault;
         args[saneName] = {
             type: paramRequired ? new graphql_1.GraphQLNonNull(type) : type,
-            description: parameter.description // might be undefined
+            description: parameter.description // Might be undefined
         };
     }
     // Add limit argument
@@ -694,7 +717,7 @@ function getArgs({ def, parameters, operation, data, oass }) {
             };
         }
     }
-    // handle request schema (if present):
+    // Handle request schema (if present):
     if (typeof def === 'object') {
         const reqObjectType = getGraphQLType({
             def,
@@ -703,7 +726,7 @@ function getArgs({ def, parameters, operation, data, oass }) {
             oass,
             isMutation: true
         });
-        // sanitize the argument name
+        // Sanitize the argument name
         const saneName = Oas3Tools.beautify(def.iotName);
         let reqRequired = false;
         if (operation &&
@@ -738,20 +761,20 @@ function getLinkLocationType(linkLocation) {
  * Based on the location of the OAS, retrieve said OAS
  */
 function getOasFromLinkLocation(linkLocation, link, data, oass) {
-    // may be an external reference
+    // May be an external reference
     switch (getLinkLocationType(linkLocation)) {
         case 'title':
-            // get the possible
+            // Get the possible
             const possibleOass = oass.filter(oas => {
                 return oas.info.title === linkLocation;
             });
-            // check if there are an ambiguous OASs
+            // Check if there are an ambiguous OASs
             if (possibleOass.length === 1) {
-                // no ambiguity
+                // No ambiguity
                 return possibleOass[0];
             }
             else if (possibleOass.length > 1) {
-                // some ambiguity
+                // Some ambiguity
                 utils_1.handleWarning({
                     typeKey: 'AMBIGUOUS_LINK',
                     culprit: `Multiple OASs share the same title '${linkLocation}' in ` +
@@ -761,7 +784,7 @@ function getOasFromLinkLocation(linkLocation, link, data, oass) {
                 });
             }
             else {
-                // no OAS had the expected title
+                // No OAS had the expected title
                 utils_1.handleWarning({
                     typeKey: 'UNRESOLVABLE_LINK',
                     culprit: `No OAS has the title '${linkLocation}' in the ` +

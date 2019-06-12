@@ -19,7 +19,7 @@ function preprocessOas(oass, options) {
     const data = {
         usedOTNames: [
             'Query',
-            'Mutation' // used by OpenAPI-to-GraphQL for root-level element
+            'Mutation' // Used by OpenAPI-to-GraphQL for root-level element
         ],
         defs: [],
         operations: {},
@@ -28,7 +28,7 @@ function preprocessOas(oass, options) {
         options
     };
     oass.forEach(oas => {
-        // store stats on OAS:
+        // Store stats on OAS:
         data.options.report.numOps += Oas3Tools.countOperations(oas);
         data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas);
         data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas);
@@ -97,9 +97,9 @@ function preprocessOas(oass, options) {
                 const securityRequirements = options.viewer
                     ? Oas3Tools.getSecurityRequirements(path, method, data.security, oas)
                     : [];
-                // servers
+                // Servers
                 const servers = Oas3Tools.getServers(path, method, oas);
-                // whether to place this operation into an authentication viewer
+                // Whether to place this operation into an authentication viewer
                 const inViewer = securityRequirements.length > 0 && data.options.viewer !== false;
                 const isMutation = method.toLowerCase() !== 'get';
                 // Store determined information for operation
@@ -212,9 +212,11 @@ function getProcessedSecuritySchemes(oas, data, oass) {
                 break;
             case 'http':
                 switch (protocol.scheme) {
-                    // HTTP a number of authentication types (see
-                    // http://www.iana.org/assignments/http-authschemes/
-                    // http-authschemes.xhtml)
+                    /**
+                     * TODO: HTTP has a number of authentication types
+                     *
+                     * See http://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
+                     */
                     case 'basic':
                         description = `Basic auth credentials for security protocol '${key}'`;
                         if (oass.length > 1) {
@@ -284,7 +286,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         throw new Error(`Cannot create data definition for invalid schema ` +
             `'${JSON.stringify(schema)}'`);
     }
-    // resolve allOf element in schema if applicable
+    // Resolve allOf element in schema if applicable
     if ('allOf' in schema) {
         schema = mergeAllOf(schema);
     }
@@ -300,9 +302,10 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     if (index !== -1) {
         // Found existing data definition. Fetch it
         const existingDataDef = data.defs[index];
-        // Collapse links if possible
-        // I.e. if the current operation has links, combine them with the prexisting
-        // ones
+        /**
+         * Collapse links if possible, i.e. if the current operation has links,
+         * combine them with the prexisting ones
+         */
         if (typeof saneLinks !== 'undefined') {
             if (typeof existingDataDef.links !== 'undefined') {
                 // Check if there are any overlapping links

@@ -251,8 +251,10 @@ async function translateOpenApiToGraphQL(
           queryFields[fieldName] = field
         }
       } else {
-        // Use operationId to avoid problems differentiating operations with the
-        // same path but differnet methods
+        /**
+         * Use operationId to avoid problems differentiating operations with the
+         * same path but differnet methods
+         */
         let saneFieldName = Oas3Tools.beautifyAndStore(
           operationId,
           data.saneMap
@@ -355,9 +357,12 @@ async function translateOpenApiToGraphQL(
         : null
   }
 
-  // Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
-  // The reason: once creating the schema, the 'fields' thunks will resolve
-  // and if a field references an undefined Object Types, GraphQL will throw.
+  /**
+   * Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
+   *
+   * The reason: once creating the schema, the 'fields' thunks will resolve and
+   * if a field references an undefined Object Types, GraphQL will throw.
+   */
   Object.entries(data.operations).forEach(([opId, operation]) => {
     if (typeof operation.responseDefinition.ot === 'undefined') {
       operation.responseDefinition.ot = GraphQLTools.getEmptyObjectType(
@@ -381,7 +386,7 @@ function getFieldForOperation(
   oass: Oas3[],
   requestOptions: NodeRequest.OptionsWithUrl
 ): Field {
-  // create GraphQL Type for response:
+  // Create GraphQL Type for response:
   const type = getGraphQLType({
     def: operation.responseDefinition,
     data,
@@ -389,7 +394,7 @@ function getFieldForOperation(
     oass
   })
 
-  // create resolve function:
+  // Create resolve function:
   const payloadSchemaName = operation.payloadDefinition
     ? operation.payloadDefinition.iotName
     : null
@@ -402,12 +407,14 @@ function getFieldForOperation(
     requestOptions
   })
 
-  // create args:
+  // Create args:
   const args: Args = getArgs({
-    // Even though these arguments seems redundent because of the operation
-    // argument, the function cannot be refactored because it is also used
-    // to create arguments for links. The operation argument is really used
-    // to pass data to other functions.
+    /**
+     * Even though these arguments seems redundent because of the operation
+     * argument, the function cannot be refactored because it is also used to
+     * create arguments for links. The operation argument is really used to pass
+     * data to other functions.
+     */
     def: operation.payloadDefinition,
     parameters: operation.parameters,
 

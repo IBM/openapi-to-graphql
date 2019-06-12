@@ -98,7 +98,7 @@ export function createAndLoadViewer(
       }
     }
 
-    // create name for the viewer
+    // Create name for the viewer
     let viewerName = !isMutation
       ? Oas3Tools.beautify(`viewer ${type}`)
       : Oas3Tools.beautify(`mutation viewer ${type}`)
@@ -122,7 +122,7 @@ export function createAndLoadViewer(
     )
   }
 
-  // create name for the AnyAuth viewer
+  // Create name for the AnyAuth viewer
   let anyAuthObjectName = !isMutation
     ? 'viewerAnyAuth'
     : 'mutationViewerAnyAuth'
@@ -151,7 +151,7 @@ const getViewerOT = (
 ): Viewer => {
   const scheme: ProcessedSecurityScheme = data.security[protocolName]
 
-  // resolve function:
+  // Resolve function:
   const resolve = (root, args, ctx) => {
     const security = {}
     security[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = args
@@ -167,15 +167,17 @@ const getViewerOT = (
     }
   }
 
-  // arguments:
+  // Arguments:
+  /**
+   * Do not sort because they are already "sorted" in preprocessing.
+   * Otherwise, for basic auth, "password" will appear before "username"
+   */
   const args = {}
   if (typeof scheme === 'object') {
     for (let parameterName in scheme.parameters) {
       args[parameterName] = { type: new GraphQLNonNull(GraphQLString) }
     }
   }
-  // Do not sort because they are already "sorted" in preprocessing
-  // Otherwise, for basic auth, "password" will appear before "username"
 
   let typeDescription
   let description
@@ -216,10 +218,7 @@ const getViewerAnyAuthOT = (
 ): Viewer => {
   let args = {}
   for (let protocolName in data.security) {
-    // create input object types for the viewer arguments
-    // NOTE: does not need to check for OAuth 2.0 anymore
-    // TODO: This is bad. We don't pass an operation, which is needed for
-    // creating the GraphQLType, though.
+    // Create input object types for the viewer arguments
 
     const def = createDataDef(
       { fromRef: protocolName },
@@ -239,7 +238,7 @@ const getViewerAnyAuthOT = (
   }
   args = sortObject(args)
 
-  // pass object containing security information to fields
+  // Pass object containing security information to fields
   const resolve = (root, args, ctx) => {
     return {
       _openapiToGraphql: {

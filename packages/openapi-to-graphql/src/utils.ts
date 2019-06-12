@@ -171,7 +171,7 @@ export function handleWarning({
   data,
   log
 }: {
-  typeKey: string // eslint-disable-line
+  typeKey: string
   culprit: string
   solution?: string
   data: PreprocessingData

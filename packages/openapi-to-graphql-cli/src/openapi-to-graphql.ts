@@ -167,7 +167,7 @@ function startGraphQLServer(oas, port) {
     .then(({ schema, report }) => {
       console.log(JSON.stringify(report, null, 2))
 
-      // save local file if required
+      // Save local file if required
       if (program.save) {
         writeSchema(schema)
       } else {
@@ -176,7 +176,7 @@ function startGraphQLServer(oas, port) {
           app.use(cors())
         }
 
-        // mounting graphql endpoint using the middleware express-graphql
+        // Mounting graphql endpoint using the middleware express-graphql
         app.use(
           '/graphql',
           graphqlHTTP({
@@ -185,7 +185,7 @@ function startGraphQLServer(oas, port) {
           })
         )
 
-        // initiating the server on the port specified by user or the default one
+        // Initiating the server on the port specified by user or the default one
         app.listen(port, () => {
           console.log(`GraphQL accessible at: http://localhost:${port}/graphql`)
         })
