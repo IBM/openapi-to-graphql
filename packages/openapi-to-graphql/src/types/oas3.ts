@@ -170,11 +170,11 @@ type PathsObject = {
 }
 
 type OAuthFlowObject = {
-  authorizationUrl?: string // optional, beacause applies only to certain flows
-  tokenUrl?: string // optional, beacause applies only to certain flows
-  refreshUrl?: string // optional, beacause applies only to certain flows
+  authorizationUrl?: string // Optional, beacause applies only to certain flows
+  tokenUrl?: string // Optional, beacause applies only to certain flows
+  refreshUrl?: string // Optional, beacause applies only to certain flows
   scopes?: {
-    // optional, beacause applies only to certain flows
+    // Optional, beacause applies only to certain flows
     [key: string]: string
   }
 }
@@ -189,12 +189,12 @@ type OAuthFlowsObject = {
 export type SecuritySchemeObject = {
   type: 'apiKey' | 'basicAuth' | 'http' | 'oauth2' | 'openIdConnect'
   description?: string
-  name?: string // optional, because applies only to apiKey
-  in?: string // optional, because applies only to apiKey
-  scheme?: string // optional, because applies only to http
+  name?: string // Optional, because applies only to apiKey
+  in?: string // Optional, because applies only to apiKey
+  scheme?: string // Optional, because applies only to http
   bearerFormat?: string
-  flows?: OAuthFlowsObject // optional, because applies only to oauth2
-  openIdConnectUrl?: string // // optional, because applies only to openIdConnect
+  flows?: OAuthFlowsObject // Optional, because applies only to oauth2
+  openIdConnectUrl?: string // // Optional, because applies only to openIdConnect
 }
 
 export type SecuritySchemesObject = {
