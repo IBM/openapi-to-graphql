@@ -100,8 +100,8 @@ export function createAndLoadViewer(
 
     // Create name for the viewer
     let viewerName = !isMutation
-      ? Oas3Tools.beautify(`viewer ${type}`)
-      : Oas3Tools.beautify(`mutation viewer ${type}`)
+      ? Oas3Tools.sanitize(`viewer ${type}`)
+      : Oas3Tools.sanitize(`mutation viewer ${type}`)
 
     if (!(type in usedViewerNames)) {
       usedViewerNames[type] = []
@@ -154,7 +154,7 @@ const getViewerOT = (
   // Resolve function:
   const resolve = (root, args, ctx) => {
     const security = {}
-    security[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = args
+    security[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = args
 
     /**
      * viewers are always root, so we can instantiate _openapiToGraphql here without
@@ -234,7 +234,7 @@ const getViewerAnyAuthOT = (
       isMutation: true
     })
 
-    args[Oas3Tools.beautifyAndStore(protocolName, data.saneMap)] = { type }
+    args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = { type }
   }
   args = sortObject(args)
 

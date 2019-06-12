@@ -28,7 +28,7 @@ const httpLog = debug('http')
 // Type definitions & exports:
 type AuthReqAndProtcolName = {
   authRequired: boolean
-  beautifiedSecurityRequirement?: string
+  sanitizedSecurityRequirement?: string
 }
 
 type AuthOptions = {
@@ -122,7 +122,7 @@ export function getResolver({
      * the user.
      */
     operation.parameters.forEach(param => {
-      const paramName = Oas3Tools.beautify(param.name)
+      const paramName = Oas3Tools.sanitize(param.name)
       if (
         typeof args[paramName] === 'undefined' &&
         param.schema &&
@@ -241,7 +241,7 @@ export function getResolver({
      */
     resolveData.usedPayload = undefined
     if (payloadName && typeof payloadName === 'string') {
-      const sanePayloadName = Oas3Tools.beautify(payloadName)
+      const sanePayloadName = Oas3Tools.sanitize(payloadName)
       if (sanePayloadName in args) {
         if (typeof args[sanePayloadName] === 'object') {
           // We need to desanitize the payload so the API understands it:
@@ -551,9 +551,9 @@ function getAuthOptions(
    */
   const {
     authRequired,
-    beautifiedSecurityRequirement
+    sanitizedSecurityRequirement
   } = getAuthReqAndProtcolName(operation, _openapiToGraphql)
-  const securityRequirement = data.saneMap[beautifiedSecurityRequirement]
+  const securityRequirement = data.saneMap[sanitizedSecurityRequirement]
 
   // Possibly, we don't need to do anything:
   if (!authRequired) {
@@ -570,7 +570,7 @@ function getAuthOptions(
     switch (security.def.type) {
       case 'apiKey':
         const apiKey =
-          _openapiToGraphql.security[beautifiedSecurityRequirement].apiKey
+          _openapiToGraphql.security[sanitizedSecurityRequirement].apiKey
         if ('in' in security.def) {
           if (typeof security.def.name === 'string') {
             if (security.def.in === 'header') {
@@ -592,9 +592,9 @@ function getAuthOptions(
         switch (security.def.scheme) {
           case 'basic':
             const username =
-              _openapiToGraphql.security[beautifiedSecurityRequirement].username
+              _openapiToGraphql.security[sanitizedSecurityRequirement].username
             const password =
-              _openapiToGraphql.security[beautifiedSecurityRequirement].password
+              _openapiToGraphql.security[sanitizedSecurityRequirement].password
             const credentials = `${username}:${password}`
             authHeaders['Authorization'] = `Basic ${Buffer.from(
               credentials
@@ -638,16 +638,16 @@ function getAuthReqAndProtcolName(
     authRequired = true
 
     for (let securityRequirement of operation.securityRequirements) {
-      const beautifiedSecurityRequirement = Oas3Tools.beautify(
+      const sanitizedSecurityRequirement = Oas3Tools.sanitize(
         securityRequirement
       )
       if (
-        typeof _openapiToGraphql.security[beautifiedSecurityRequirement] ===
+        typeof _openapiToGraphql.security[sanitizedSecurityRequirement] ===
         'object'
       ) {
         return {
           authRequired,
-          beautifiedSecurityRequirement
+          sanitizedSecurityRequirement
         }
       }
     }
@@ -696,12 +696,12 @@ function resolveLinkParameter(
       // CASE: parameter in previous query parameter
     } else if (value.startsWith('$request.query')) {
       return resolveData.usedParams[
-        Oas3Tools.beautify(value.split('query.')[1])
+        Oas3Tools.sanitize(value.split('query.')[1])
       ]
 
       // CASE: parameter in previous path parameter
     } else if (value.startsWith('$request.path')) {
-      return resolveData.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
+      return resolveData.usedParams[Oas3Tools.sanitize(value.split('path.')[1])]
 
       // CASE: parameter in previous header parameter
     } else if (value.startsWith('$request.header')) {
@@ -740,13 +740,13 @@ function resolveLinkParameter(
     } else if (value.startsWith('$response.query')) {
       // NOTE: handled the same way $request.query is handled
       return resolveData.usedParams[
-        Oas3Tools.beautify(value.split('query.')[1])
+        Oas3Tools.sanitize(value.split('query.')[1])
       ]
 
       // CASE: parameter in path parameter
     } else if (value.startsWith('$response.path')) {
       // NOTE: handled the same way $request.path is handled
-      return resolveData.usedParams[Oas3Tools.beautify(value.split('path.')[1])]
+      return resolveData.usedParams[Oas3Tools.sanitize(value.split('path.')[1])]
 
       // CASE: parameter in header parameter
     } else if (value.startsWith('$response.header')) {

@@ -72,7 +72,7 @@ export declare type Operation = {
     /**
      * List of keys of security schemes required by this operation
      *
-     * NOTE: Keys are beautified
+     * NOTE: Keys are sanitized
      * NOTE: Does not contain OAuth 2.0-related security schemes
      */
     securityRequirements: string[];
