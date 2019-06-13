@@ -31,7 +31,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         typeof customResolvers[title] === 'object' &&
         typeof customResolvers[title][path] === 'object' &&
         typeof customResolvers[title][path][method] === 'function') {
-        translationLog(`Use custom resolver for ${title} ${method.toLocaleUpperCase()} ${path}`);
+        translationLog(`Use custom resolver for ${Oas3Tools.getOperationString(operation, data.oass)}`);
         return customResolvers[title][path][method];
     }
     // Return resolve function:
@@ -237,8 +237,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 }
                 else if (response.statusCode > 299) {
                     httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
-                    const operationString = `${operation.method.toUpperCase()} ${operation.path}`;
-                    const errorString = `Could not invoke operation ${operationString}`;
+                    const errorString = `Could not invoke operation ${Oas3Tools.getOperationString(operation, data.oass)}`;
                     if (data.options.provideErrorExtensions) {
                         const extensions = {
                             method: operation.method,

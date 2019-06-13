@@ -16,7 +16,7 @@ const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
-function getGraphQLType({ def, operation, data, iteration = 0, isMutation = false, oass }) {
+function getGraphQLType({ def, operation, data, iteration = 0, isMutation = false }) {
     const name = isMutation ? def.iotName : def.otName;
     // Avoid excessive iterations
     if (iteration === 50) {
@@ -29,7 +29,6 @@ function getGraphQLType({ def, operation, data, iteration = 0, isMutation = fals
             def,
             operation,
             data,
-            oass,
             iteration,
             isMutation
         });
@@ -40,7 +39,6 @@ function getGraphQLType({ def, operation, data, iteration = 0, isMutation = fals
             def,
             operation,
             data,
-            oass,
             iteration,
             isMutation
         });
@@ -76,7 +74,7 @@ exports.getGraphQLType = getGraphQLType;
  *       resolve   // Optional function defining how to obtain this type
  *   })
  */
-function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) {
+function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
     const schema = def.schema;
     // CASE: query - create or reuse OT
     if (!isMutation) {
@@ -104,7 +102,6 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
                         links: def.links,
                         operation,
                         data,
-                        oass,
                         iteration,
                         isMutation
                     });
@@ -142,8 +139,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
                         operation,
                         data,
                         iteration,
-                        isMutation,
-                        oass
+                        isMutation
                     });
                 }
             });
@@ -154,7 +150,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation, oass }) 
 /**
  * Returns an existing List or creates a new one, and stores it in data
  */
-function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }) {
+function reuseOrCreateList({ def, operation, iteration, isMutation, data }) {
     const name = isMutation ? def.iotName : def.otName;
     // Try to reuse existing Object Type
     if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
@@ -177,7 +173,6 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data, oass }
         def: itemDef,
         data,
         operation,
-        oass,
         iteration: iteration + 1,
         isMutation
     });
@@ -264,7 +259,7 @@ function getScalarType({ def, data }) {
 /**
  * Creates the fields object to be used by an ObjectType
  */
-function createFields({ def, links, operation, data, iteration, isMutation, oass }) {
+function createFields({ def, links, operation, data, iteration, isMutation }) {
     let fields = {};
     const fieldTypeDefinitions = def.subDefinitions;
     // Create fields for properties
@@ -276,7 +271,6 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
             def: fieldTypeDefinition,
             operation,
             data,
-            oass,
             iteration: iteration + 1,
             isMutation
         });
@@ -328,8 +322,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                         links,
                         linkKey: saneLinkKey,
                         operation,
-                        data,
-                        oass
+                        data
                     });
                 }
                 /**
@@ -360,8 +353,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                     const args = getArgs({
                         parameters: dynamicParams,
                         operation: linkedOp,
-                        data,
-                        oass
+                        data
                     });
                     /**
                      * get response object type
@@ -373,12 +365,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
                     if (typeof description !== 'string') {
                         description = 'No description available.';
                     }
-                    if (oass.length === 1) {
-                        description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
-                    }
-                    else {
-                        description += `\n\nEquivalent to ${operation.oas.info.title} ${linkedOp.method.toUpperCase()} ${linkedOp.path}`;
-                    }
+                    description += `\n\nEquivalent to ${Oas3Tools.getOperationString(linkedOp, data.oass)}`;
                     // Finally, add the object type to the fields (using sanitized field name)
                     Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap);
                     // TODO: check if fields already has this field name
@@ -412,7 +399,7 @@ function createFields({ def, links, operation, data, iteration, isMutation, oass
  *  Any changes to constructing operationIds in preprocessor.js should be
  *  reflected here.
  */
-function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
+function linkOpRefToOpId({ links, linkKey, operation, data }) {
     const link = links[linkKey];
     let linkedOpId;
     if (typeof link.operationRef === 'string') {
@@ -527,7 +514,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
                 // Find the right oas
                 const oas = typeof linkLocation === 'undefined'
                     ? operation.oas
-                    : getOasFromLinkLocation(linkLocation, link, data, oass);
+                    : getOasFromLinkLocation(linkLocation, link, data);
                 // If the link was external, make sure that an OAS could be identified
                 if (typeof oas !== 'undefined') {
                     if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
@@ -602,7 +589,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data, oass }) {
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
  * Type
  */
-function getArgs({ def, parameters, operation, data, oass }) {
+function getArgs({ def, parameters, operation, data }) {
     let args = {};
     // Handle params:
     for (let parameter of parameters) {
@@ -647,7 +634,6 @@ function getArgs({ def, parameters, operation, data, oass }) {
                 def: paramDef,
                 operation,
                 data,
-                oass,
                 iteration: 0,
                 isMutation: true
             });
@@ -703,7 +689,7 @@ function getArgs({ def, parameters, operation, data, oass }) {
         if ('limit' in args) {
             utils_1.handleWarning({
                 typeKey: 'LIMIT_ARGUMENT_NAME_COLLISION',
-                culprit: `${operation.method.toLocaleUpperCase()} ${operation.path}`,
+                culprit: Oas3Tools.getOperationString(operation, data.oass),
                 data,
                 log: translationLog
             });
@@ -723,7 +709,6 @@ function getArgs({ def, parameters, operation, data, oass }) {
             def,
             data,
             operation,
-            oass,
             isMutation: true
         });
         // Sanitize the argument name
@@ -760,12 +745,12 @@ function getLinkLocationType(linkLocation) {
  * Used in the context of links, specifically those using an external operationRef
  * Based on the location of the OAS, retrieve said OAS
  */
-function getOasFromLinkLocation(linkLocation, link, data, oass) {
+function getOasFromLinkLocation(linkLocation, link, data) {
     // May be an external reference
     switch (getLinkLocationType(linkLocation)) {
         case 'title':
             // Get the possible
-            const possibleOass = oass.filter(oas => {
+            const possibleOass = data.oass.filter(oas => {
                 return oas.info.title === linkLocation;
             });
             // Check if there are an ambiguous OASs

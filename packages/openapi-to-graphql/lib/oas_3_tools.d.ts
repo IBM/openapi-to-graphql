@@ -182,6 +182,18 @@ export declare function trim(str: string, length: number): string;
  */
 export declare function isOperation(method: string): boolean;
 /**
+ * Creates a string that describes an operation in the form:
+ * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
+ */
+export declare function getOperationString(operation: Operation, oass: Oas3[]): string;
+/**
+ * Formats a string that describes an operation in the form:
+ * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
+ *
+ * Also used in preprocessing.ts where Operation objects are being constructed
+ */
+export declare function formatOperationString(method: string, path: string, title?: string): string;
+/**
  * Capitalizes a given string
  */
 export declare function capitalize(str: string): string;

@@ -114,7 +114,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
          * is easier for OpenAPI-to-GraphQL to use
          */
         const data = preprocessor_1.preprocessOas(oass, options);
-        preliminaryChecks(options, data, oass);
+        preliminaryChecks(options, data);
         /**
          * Create GraphQL fields for every operation and structure them based on their
          * characteristics (query vs. mutation, auth vs. non-auth).
@@ -133,7 +133,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
             .forEach(([operationId, operation]) => {
             translationLog(`Process operation '${operationId}'...`);
-            let field = getFieldForOperation(operation, options.baseUrl, data, oass, requestOptions);
+            let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions);
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
                 if (operation.inViewer) {
@@ -236,10 +236,10 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
          * Organize created queries / mutations into viewer objects.
          */
         if (Object.keys(authQueryFields).length > 0) {
-            Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, data, false, oass));
+            Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, data, false));
         }
         if (Object.keys(authMutationFields).length > 0) {
-            Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, data, true, oass));
+            Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, data, true));
         }
         /**
          * Build up the schema
@@ -278,13 +278,12 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
+function getFieldForOperation(operation, baseUrl, data, requestOptions) {
     // Create GraphQL Type for response:
     const type = schema_builder_1.getGraphQLType({
         def: operation.responseDefinition,
         data,
-        operation,
-        oass
+        operation
     });
     // Create resolve function:
     const payloadSchemaName = operation.payloadDefinition
@@ -308,8 +307,7 @@ function getFieldForOperation(operation, baseUrl, data, oass, requestOptions) {
         def: operation.payloadDefinition,
         parameters: operation.parameters,
         operation,
-        data,
-        oass
+        data
     });
     return {
         type,
@@ -357,9 +355,9 @@ function sortOperations(op1, op2) {
 /**
  * Ensures that the options are valid
  */
-function preliminaryChecks(options, data, oass) {
+function preliminaryChecks(options, data) {
     // Check if OASs have unique titles
-    const titles = oass.map(oas => {
+    const titles = data.oass.map(oas => {
         return oas.info.title;
     });
     // Find duplicates among titles
@@ -379,7 +377,7 @@ function preliminaryChecks(options, data, oass) {
         Object.keys(options.customResolvers)
             .filter(title => {
             // If no OAS contains this title
-            return !oass.some(oas => {
+            return !data.oass.some(oas => {
                 return title === oas.info.title;
             });
         })
