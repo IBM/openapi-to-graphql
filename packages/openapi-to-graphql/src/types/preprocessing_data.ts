@@ -66,4 +66,9 @@ export type PreprocessingData = {
    * Options passed to OpenAPI-to-GraphQL by the user
    */
   options: InternalOptions
+
+  /**
+   * All of the provided OASs
+   */
+  oass: Oas3[]
 }

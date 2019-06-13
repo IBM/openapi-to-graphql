@@ -178,7 +178,7 @@ async function translateOpenApiToGraphQL(
    */
   const data: PreprocessingData = preprocessOas(oass, options)
 
-  preliminaryChecks(options, data, oass)
+  preliminaryChecks(options, data)
 
   /**
    * Create GraphQL fields for every operation and structure them based on their
@@ -202,7 +202,6 @@ async function translateOpenApiToGraphQL(
         operation,
         options.baseUrl,
         data,
-        oass,
         requestOptions
       )
       if (!operation.isMutation) {
@@ -324,14 +323,14 @@ async function translateOpenApiToGraphQL(
   if (Object.keys(authQueryFields).length > 0) {
     Object.assign(
       queryFields,
-      createAndLoadViewer(authQueryFields, data, false, oass)
+      createAndLoadViewer(authQueryFields, data, false)
     )
   }
 
   if (Object.keys(authMutationFields).length > 0) {
     Object.assign(
       mutationFields,
-      createAndLoadViewer(authMutationFields, data, true, oass)
+      createAndLoadViewer(authMutationFields, data, true)
     )
   }
 
@@ -383,15 +382,13 @@ function getFieldForOperation(
   operation: Operation,
   baseUrl: string,
   data: PreprocessingData,
-  oass: Oas3[],
   requestOptions: NodeRequest.OptionsWithUrl
 ): Field {
   // Create GraphQL Type for response:
   const type = getGraphQLType({
     def: operation.responseDefinition,
     data,
-    operation,
-    oass
+    operation
   })
 
   // Create resolve function:
@@ -419,8 +416,7 @@ function getFieldForOperation(
     parameters: operation.parameters,
 
     operation,
-    data,
-    oass
+    data
   })
 
   return {
@@ -473,11 +469,10 @@ function sortOperations(op1: Operation, op2: Operation): number {
  */
 function preliminaryChecks(
   options: InternalOptions,
-  data: PreprocessingData,
-  oass: Oas3[]
+  data: PreprocessingData
 ): void {
   // Check if OASs have unique titles
-  const titles = oass.map(oas => {
+  const titles = data.oass.map(oas => {
     return oas.info.title
   })
 
@@ -501,7 +496,7 @@ function preliminaryChecks(
     Object.keys(options.customResolvers)
       .filter(title => {
         // If no OAS contains this title
-        return !oass.some(oas => {
+        return !data.oass.some(oas => {
           return title === oas.info.title
         })
       })

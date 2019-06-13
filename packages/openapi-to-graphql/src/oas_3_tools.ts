@@ -1090,6 +1090,40 @@ export function isOperation(method: string): boolean {
 }
 
 /**
+ * Creates a string that describes an operation in the form:
+ * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
+ */
+export function getOperationString(operation: Operation, oass: Oas3[]): string {
+  if (oass.length === 1) {
+    return formatOperationString(operation.method, operation.path)
+  } else {
+    return formatOperationString(
+      operation.method,
+      operation.path,
+      operation.oas.info.title
+    )
+  }
+}
+
+/**
+ * Formats a string that describes an operation in the form:
+ * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
+ *
+ * Also used in preprocessing.ts where Operation objects are being constructed
+ */
+export function formatOperationString(
+  method: string,
+  path: string,
+  title?: string
+): string {
+  if (title) {
+    return `${title} ${method.toUpperCase()} ${path}`
+  } else {
+    return `${method.toUpperCase()} ${path}`
+  }
+}
+
+/**
  * Capitalizes a given string
  */
 export function capitalize(str: string): string {
