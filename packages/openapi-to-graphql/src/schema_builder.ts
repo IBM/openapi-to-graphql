@@ -49,7 +49,6 @@ type GetGraphQLTypeParams = {
   data: PreprocessingData // Data produced by preprocessing
   iteration?: number // Count of recursions used to create type
   isMutation?: boolean // Whether to create an Input Type
-  oass: Oas3[] // Input OAS 3
 }
 
 type GetArgsParams = {
@@ -57,7 +56,6 @@ type GetArgsParams = {
   parameters: ParameterObject[]
   operation?: Operation
   data: PreprocessingData
-  oass: Oas3[]
 }
 
 type CreateOrReuseOtParams = {
@@ -66,7 +64,6 @@ type CreateOrReuseOtParams = {
   iteration: number
   isMutation: boolean
   data: PreprocessingData
-  oass: Oas3[]
 }
 
 type ReuseOrCreateListParams = {
@@ -75,7 +72,6 @@ type ReuseOrCreateListParams = {
   iteration: number
   isMutation: boolean
   data: PreprocessingData
-  oass: Oas3[]
 }
 
 type ReuseOrCreateEnum = {
@@ -95,7 +91,6 @@ type CreateFieldsParams = {
   iteration: number
   isMutation: boolean
   data: PreprocessingData
-  oass: Oas3[]
 }
 
 type LinkOpRefToOpIdParams = {
@@ -103,7 +98,6 @@ type LinkOpRefToOpIdParams = {
   linkKey: string
   operation: Operation
   data: PreprocessingData
-  oass: Oas3[]
 }
 
 const translationLog = debug('translation')
@@ -116,8 +110,7 @@ export function getGraphQLType({
   operation,
   data,
   iteration = 0,
-  isMutation = false,
-  oass
+  isMutation = false
 }: GetGraphQLTypeParams): GraphQLType {
   const name = isMutation ? def.iotName : def.otName
 
@@ -134,7 +127,6 @@ export function getGraphQLType({
       def,
       operation,
       data,
-      oass,
       iteration,
       isMutation
     })
@@ -145,7 +137,6 @@ export function getGraphQLType({
       def,
       operation,
       data,
-      oass,
       iteration,
       isMutation
     })
@@ -186,8 +177,7 @@ function createOrReuseOt({
   operation,
   data,
   iteration,
-  isMutation,
-  oass
+  isMutation
 }: CreateOrReuseOtParams): GraphQLType {
   const schema = def.schema
 
@@ -225,7 +215,6 @@ function createOrReuseOt({
             links: def.links,
             operation,
             data,
-            oass,
             iteration,
             isMutation
           })
@@ -268,8 +257,7 @@ function createOrReuseOt({
             operation,
             data,
             iteration,
-            isMutation,
-            oass
+            isMutation
           })
         }
       })
@@ -287,8 +275,7 @@ function reuseOrCreateList({
   operation,
   iteration,
   isMutation,
-  data,
-  oass
+  data
 }: ReuseOrCreateListParams): GraphQLList<any> {
   const name = isMutation ? def.iotName : def.otName
 
@@ -316,7 +303,6 @@ function reuseOrCreateList({
     def: itemDef,
     data,
     operation,
-    oass,
     iteration: iteration + 1,
     isMutation
   })
@@ -415,8 +401,7 @@ function createFields({
   operation,
   data,
   iteration,
-  isMutation,
-  oass
+  isMutation
 }: CreateFieldsParams): GraphQLFieldConfigMap<any, any> {
   let fields: GraphQLFieldConfigMap<any, any> = {}
 
@@ -434,7 +419,6 @@ function createFields({
       def: fieldTypeDefinition,
       operation,
       data,
-      oass,
       iteration: iteration + 1,
       isMutation
     })
@@ -496,8 +480,7 @@ function createFields({
             links,
             linkKey: saneLinkKey,
             operation,
-            data,
-            oass
+            data
           })
         }
 
@@ -535,8 +518,7 @@ function createFields({
           const args = getArgs({
             parameters: dynamicParams,
             operation: linkedOp,
-            data,
-            oass
+            data
           })
 
           /**
@@ -552,15 +534,10 @@ function createFields({
             description = 'No description available.'
           }
 
-          if (oass.length === 1) {
-            description += `\n\nEquivalent to ${linkedOp.method.toUpperCase()} ${
-              linkedOp.path
-            }`
-          } else {
-            description += `\n\nEquivalent to ${
-              operation.oas.info.title
-            } ${linkedOp.method.toUpperCase()} ${linkedOp.path}`
-          }
+          description += `\n\nEquivalent to ${Oas3Tools.getOperationString(
+            linkedOp,
+            data.oass
+          )}`
 
           // Finally, add the object type to the fields (using sanitized field name)
           Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap)
@@ -600,8 +577,7 @@ function linkOpRefToOpId({
   links,
   linkKey,
   operation,
-  data,
-  oass
+  data
 }: LinkOpRefToOpIdParams): string {
   const link = links[linkKey]
 
@@ -734,7 +710,7 @@ function linkOpRefToOpId({
         const oas =
           typeof linkLocation === 'undefined'
             ? operation.oas
-            : getOasFromLinkLocation(linkLocation, link, data, oass)
+            : getOasFromLinkLocation(linkLocation, link, data)
 
         // If the link was external, make sure that an OAS could be identified
         if (typeof oas !== 'undefined') {
@@ -822,8 +798,7 @@ export function getArgs({
   def,
   parameters,
   operation,
-  data,
-  oass
+  data
 }: GetArgsParams): Args {
   let args = {}
 
@@ -883,7 +858,6 @@ export function getArgs({
         def: paramDef,
         operation,
         data,
-        oass,
         iteration: 0,
         isMutation: true
       })
@@ -944,7 +918,7 @@ export function getArgs({
     if ('limit' in args) {
       handleWarning({
         typeKey: 'LIMIT_ARGUMENT_NAME_COLLISION',
-        culprit: `${operation.method.toLocaleUpperCase()} ${operation.path}`,
+        culprit: Oas3Tools.getOperationString(operation, data.oass),
         data,
         log: translationLog
       })
@@ -965,7 +939,6 @@ export function getArgs({
       def,
       data,
       operation,
-      oass,
       isMutation: true
     })
 
@@ -1011,14 +984,13 @@ function getLinkLocationType(linkLocation: string): string {
 function getOasFromLinkLocation(
   linkLocation: string,
   link: LinkObject,
-  data: PreprocessingData,
-  oass: Oas3[]
+  data: PreprocessingData
 ): Oas3 {
   // May be an external reference
   switch (getLinkLocationType(linkLocation)) {
     case 'title':
       // Get the possible
-      const possibleOass = oass.filter(oas => {
+      const possibleOass = data.oass.filter(oas => {
         return oas.info.title === linkLocation
       })
 

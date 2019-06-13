@@ -39,7 +39,8 @@ export function preprocessOas(
     operations: {},
     saneMap: {},
     security: {},
-    options
+    options,
+    oass
   }
 
   oass.forEach(oas => {
@@ -49,7 +50,7 @@ export function preprocessOas(
     data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas)
 
     // Get security schemes
-    const currentSecurity = getProcessedSecuritySchemes(oas, data, oass)
+    const currentSecurity = getProcessedSecuritySchemes(oas, data)
     const commonSecurityPropertyName = getCommonPropertyNames(
       data.security,
       currentSecurity
@@ -89,11 +90,16 @@ export function preprocessOas(
         }
 
         if (oass.length === 1) {
-          description += `\n\nEquivalent to ${method.toUpperCase()} ${path}`
+          description += `\n\nEquivalent to ${Oas3Tools.formatOperationString(
+            method,
+            path
+          )}`
         } else {
-          description += `\n\nEquivalent to ${
+          description += `\n\nEquivalent to ${Oas3Tools.formatOperationString(
+            method,
+            path,
             oas.info.title
-          } ${method.toUpperCase()} ${path}`
+          )}`
         }
 
         // Hold on to the operationId
@@ -139,7 +145,10 @@ export function preprocessOas(
         if (!responseSchema || typeof responseSchema !== 'object') {
           handleWarning({
             typeKey: 'MISSING_RESPONSE_SCHEMA',
-            culprit: `${oas.info.title} ${method.toUpperCase()} ${path}`,
+            culprit:
+              oass.length === 1
+                ? Oas3Tools.formatOperationString(method, path)
+                : Oas3Tools.formatOperationString(method, path, oas.info.title),
             data,
             log: preprocessingLog
           })
@@ -255,8 +264,7 @@ export function preprocessOas(
  */
 function getProcessedSecuritySchemes(
   oas: Oas3,
-  data: PreprocessingData,
-  oass: Oas3[]
+  data: PreprocessingData
 ): { [key: string]: ProcessedSecurityScheme } {
   const result = {}
   const security = Oas3Tools.getSecuritySchemes(oas)
@@ -277,7 +285,7 @@ function getProcessedSecuritySchemes(
     switch (protocol.type) {
       case 'apiKey':
         description = `API key credentials for the security protocol '${key}'`
-        if (oass.length > 1) {
+        if (data.oass.length > 1) {
           description += ` in ${oas.info.title}`
         }
 
@@ -305,7 +313,7 @@ function getProcessedSecuritySchemes(
            */
           case 'basic':
             description = `Basic auth credentials for security protocol '${key}'`
-            if (oass.length > 1) {
+            if (data.oass.length > 1) {
               description += ` in ${oas.info.title}`
             }
 
