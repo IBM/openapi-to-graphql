@@ -413,4 +413,6 @@ function preliminaryChecks(options, data, oass) {
         });
     }
 }
+var oas_3_tools_1 = require("./oas_3_tools");
+exports.sanitize = oas_3_tools_1.sanitize;
 //# sourceMappingURL=index.js.map
