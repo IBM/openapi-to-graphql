@@ -176,6 +176,7 @@ exports.getBaseUrl = getBaseUrl;
  */
 function buildUrl(server) {
     let url = server.url;
+    // Replace with variable defaults, if applicable
     if (typeof server.variables === 'object' &&
         Object.keys(server.variables).length > 0) {
         for (let variableKey in server.variables) {
@@ -360,7 +361,7 @@ function inferResourceNameFromPath(path) {
             return path;
         }
     });
-    return sanitize(pathNoPathParams);
+    return pathNoPathParams;
 }
 exports.inferResourceNameFromPath = inferResourceNameFromPath;
 /**
@@ -379,7 +380,7 @@ function getRequestSchema(endpoint, oas) {
         }
         if (typeof requestBody.content === 'object') {
             const content = requestBody.content;
-            // Prioritizes content-type JSON
+            // Prioritize content-type JSON
             if (Object.keys(content).includes('application/json')) {
                 return {
                     payloadContentType: 'application/json',
@@ -387,13 +388,12 @@ function getRequestSchema(endpoint, oas) {
                 };
             }
             else {
-                // Picks a random content type
-                for (let contentType in content) {
-                    return {
-                        payloadContentType: contentType,
-                        payloadSchema: content[contentType].schema
-                    };
-                }
+                // Pick first (random) content type
+                const randomContentType = Object.keys(content)[0];
+                return {
+                    payloadContentType: randomContentType,
+                    payloadSchema: content[randomContentType].schema
+                };
             }
         }
     }
@@ -401,8 +401,8 @@ function getRequestSchema(endpoint, oas) {
 }
 exports.getRequestSchema = getRequestSchema;
 /**
- * Returns the request schema (if any) for endpoint at given path and method, a
- * dictionary of names from different sources (if available), and whether the
+ * Returns the request schema (if any) for an endpoint at given path and method,
+ * a dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
  */
 function getRequestSchemaAndNames(path, method, oas) {
@@ -435,12 +435,9 @@ function getRequestSchemaAndNames(path, method, oas) {
          * Rather, interpret the request body as a string
          */
         if (payloadContentType !== 'application/json') {
-            let saneContentTypeName = '';
-            const terms = payloadContentType.split('/');
-            for (let index in terms) {
-                saneContentTypeName +=
-                    terms[index].charAt(0).toUpperCase() + terms[index].slice(1);
-            }
+            const saneContentTypeName = uncapitalize(payloadContentType.split('/').reduce((name, term) => {
+                return name + capitalize(term);
+            }));
             payloadSchemaNames = {
                 fromPath: saneContentTypeName
             };
@@ -484,7 +481,7 @@ function getResponseSchema(endpoint, statusCode, oas) {
             }
             if (response.content && typeof response.content !== 'undefined') {
                 const content = response.content;
-                // Prioritizes content-type JSON
+                // Prioritize content-type JSON
                 if (Object.keys(content).includes('application/json')) {
                     return {
                         responseContentType: 'application/json',
@@ -492,13 +489,12 @@ function getResponseSchema(endpoint, statusCode, oas) {
                     };
                 }
                 else {
-                    // Picks a random content type
-                    for (let contentType in content) {
-                        return {
-                            responseContentType: contentType,
-                            responseSchema: content[contentType].schema
-                        };
-                    }
+                    // Pick first (random) content type
+                    const randomContentType = Object.keys(content)[0];
+                    return {
+                        responseContentType: randomContentType,
+                        responseSchema: content[randomContentType].schema
+                    };
                 }
             }
         }
