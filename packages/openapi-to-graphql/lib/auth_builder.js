@@ -18,7 +18,7 @@ const translationLog = debug_1.default('translation');
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-function createAndLoadViewer(queryFields, data, isMutation = false, oass) {
+function createAndLoadViewer(queryFields, data, isMutation = false) {
     let results = {};
     /**
      * Object that contains all previously defined viewer object names.
@@ -71,21 +71,21 @@ function createAndLoadViewer(queryFields, data, isMutation = false, oass) {
         }
         usedViewerNames[type].push(viewerName);
         // Add the viewer object type to the specified root query object type
-        results[viewerName] = getViewerOT(viewerName, protocolName, type, queryFields[protocolName], data, oass);
+        results[viewerName] = getViewerOT(viewerName, protocolName, type, queryFields[protocolName], data);
     }
     // Create name for the AnyAuth viewer
     let anyAuthObjectName = !isMutation
         ? 'viewerAnyAuth'
         : 'mutationViewerAnyAuth';
     // Add the AnyAuth object type to the specified root query object type
-    results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data, oass);
+    results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data);
     return results;
 }
 exports.createAndLoadViewer = createAndLoadViewer;
 /**
  * Gets the viewer Object, resolve function, and arguments
  */
-const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
+const getViewerOT = (name, protocolName, type, queryFields, data) => {
     const scheme = data.security[protocolName];
     // Resolve function:
     const resolve = (root, args, ctx) => {
@@ -114,7 +114,7 @@ const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
     }
     let typeDescription;
     let description;
-    if (oass.length === 1) {
+    if (data.oass.length === 1) {
         typeDescription = `A viewer for the security protocol: '${scheme.rawName}'`;
         description = `A viewer that wraps all operations authenticated via ${type}`;
     }
@@ -141,7 +141,7 @@ const getViewerOT = (name, protocolName, type, queryFields, data, oass) => {
  * Create an object containing an AnyAuth viewer, its resolve function,
  * and its args.
  */
-const getViewerAnyAuthOT = (name, queryFields, data, oass) => {
+const getViewerAnyAuthOT = (name, queryFields, data) => {
     let args = {};
     for (let protocolName in data.security) {
         // Create input object types for the viewer arguments
@@ -149,7 +149,6 @@ const getViewerAnyAuthOT = (name, queryFields, data, oass) => {
         const type = schema_builder_1.getGraphQLType({
             def,
             data,
-            oass,
             isMutation: true
         });
         args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = { type };

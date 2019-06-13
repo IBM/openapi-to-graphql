@@ -49,8 +49,7 @@ const translationLog = debug('translation')
 export function createAndLoadViewer(
   queryFields: object,
   data: PreprocessingData,
-  isMutation: boolean = false,
-  oass: Oas3[]
+  isMutation: boolean = false
 ): { [key: string]: Viewer } {
   let results = {}
   /**
@@ -117,8 +116,7 @@ export function createAndLoadViewer(
       protocolName,
       type,
       queryFields[protocolName],
-      data,
-      oass
+      data
     )
   }
 
@@ -131,8 +129,7 @@ export function createAndLoadViewer(
   results[anyAuthObjectName] = getViewerAnyAuthOT(
     anyAuthObjectName,
     anyAuthFields,
-    data,
-    oass
+    data
   )
 
   return results
@@ -146,8 +143,7 @@ const getViewerOT = (
   protocolName: string,
   type: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
-  data: PreprocessingData,
-  oass: Oas3[]
+  data: PreprocessingData
 ): Viewer => {
   const scheme: ProcessedSecurityScheme = data.security[protocolName]
 
@@ -181,7 +177,7 @@ const getViewerOT = (
 
   let typeDescription
   let description
-  if (oass.length === 1) {
+  if (data.oass.length === 1) {
     typeDescription = `A viewer for the security protocol: '${scheme.rawName}'`
     description = `A viewer that wraps all operations authenticated via ${type}`
   } else {
@@ -213,8 +209,7 @@ const getViewerOT = (
 const getViewerAnyAuthOT = (
   name: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
-  data: PreprocessingData,
-  oass: Oas3[]
+  data: PreprocessingData
 ): Viewer => {
   let args = {}
   for (let protocolName in data.security) {
@@ -230,7 +225,6 @@ const getViewerAnyAuthOT = (
     const type = getGraphQLType({
       def,
       data,
-      oass,
       isMutation: true
     })
 
