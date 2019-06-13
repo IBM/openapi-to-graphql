@@ -539,3 +539,5 @@ function preliminaryChecks(
     })
   }
 }
+
+export { sanitize } from './oas_3_tools'

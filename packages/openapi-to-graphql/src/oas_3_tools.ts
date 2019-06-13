@@ -248,6 +248,8 @@ export function getBaseUrl(operation: Operation): string {
  */
 function buildUrl(server: ServerObject): string {
   let url = server.url
+
+  // Replace with variable defaults, if applicable
   if (
     typeof server.variables === 'object' &&
     Object.keys(server.variables).length > 0
@@ -466,7 +468,7 @@ export function inferResourceNameFromPath(path: string): string {
     }
   })
 
-  return sanitize(pathNoPathParams)
+  return pathNoPathParams
 }
 
 /**
@@ -493,19 +495,19 @@ export function getRequestSchema(
     if (typeof requestBody.content === 'object') {
       const content: MediaTypesObject = requestBody.content
 
-      // Prioritizes content-type JSON
+      // Prioritize content-type JSON
       if (Object.keys(content).includes('application/json')) {
         return {
           payloadContentType: 'application/json',
           payloadSchema: content['application/json'].schema as SchemaObject
         }
       } else {
-        // Picks a random content type
-        for (let contentType in content) {
-          return {
-            payloadContentType: contentType,
-            payloadSchema: content[contentType].schema as SchemaObject
-          }
+        // Pick first (random) content type
+        const randomContentType = Object.keys(content)[0]
+
+        return {
+          payloadContentType: randomContentType,
+          payloadSchema: content[randomContentType].schema as SchemaObject
         }
       }
     }
@@ -514,8 +516,8 @@ export function getRequestSchema(
 }
 
 /**
- * Returns the request schema (if any) for endpoint at given path and method, a
- * dictionary of names from different sources (if available), and whether the
+ * Returns the request schema (if any) for an endpoint at given path and method,
+ * a dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
  */
 export function getRequestSchemaAndNames(
@@ -557,12 +559,11 @@ export function getRequestSchemaAndNames(
      * Rather, interpret the request body as a string
      */
     if (payloadContentType !== 'application/json') {
-      let saneContentTypeName: string = ''
-      const terms = payloadContentType.split('/')
-      for (let index in terms) {
-        saneContentTypeName +=
-          terms[index].charAt(0).toUpperCase() + terms[index].slice(1)
-      }
+      const saneContentTypeName = uncapitalize(
+        payloadContentType.split('/').reduce((name, term) => {
+          return name + capitalize(term)
+        })
+      )
 
       payloadSchemaNames = {
         fromPath: saneContentTypeName
@@ -624,19 +625,19 @@ export function getResponseSchema(
       if (response.content && typeof response.content !== 'undefined') {
         const content: MediaTypesObject = response.content
 
-        // Prioritizes content-type JSON
+        // Prioritize content-type JSON
         if (Object.keys(content).includes('application/json')) {
           return {
             responseContentType: 'application/json',
             responseSchema: content['application/json'].schema as SchemaObject
           }
         } else {
-          // Picks a random content type
-          for (let contentType in content) {
-            return {
-              responseContentType: contentType,
-              responseSchema: content[contentType].schema as SchemaObject
-            }
+          // Pick first (random) content type
+          const randomContentType = Object.keys(content)[0]
+
+          return {
+            responseContentType: randomContentType,
+            responseSchema: content[randomContentType].schema as SchemaObject
           }
         }
       }
