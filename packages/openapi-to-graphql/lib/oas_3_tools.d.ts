@@ -100,8 +100,8 @@ export declare function getRequestSchema(endpoint: OperationObject, oas: Oas3): 
     payloadSchema: SchemaObject;
 } | null;
 /**
- * Returns the request schema (if any) for endpoint at given path and method, a
- * dictionary of names from different sources (if available), and whether the
+ * Returns the request schema (if any) for an endpoint at given path and method,
+ * a dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
  */
 export declare function getRequestSchemaAndNames(path: string, method: string, oas: Oas3): RequestSchemaAndNames;
