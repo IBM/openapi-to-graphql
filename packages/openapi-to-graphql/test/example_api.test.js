@@ -41,6 +41,40 @@ afterAll(() => {
   return stopServer()
 })
 
+test('Get descriptions', () => {
+  let query = `{
+    __type(name: "Car") {
+      name
+      fields {
+        description
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        __type: {
+          name: 'Car',
+          fields: [
+            {
+              description: 'The color of the car.'
+            },
+            {
+              description: 'No description available.'
+            },
+            {
+              description: 'The model of the car.'
+            },
+            {
+              description: 'Arbitrary (string) tags describing an entity.'
+            }
+          ]
+        }
+      }
+    })
+  })
+})
+
 test('Get resource (incl. enum)', () => {
   let query = `{
     user (username: "arlene") {
