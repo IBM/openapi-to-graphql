@@ -759,8 +759,17 @@ export function getResponseStatusCode(
     } else if (successCodes.length > 1) {
       handleWarning({
         typeKey: 'MULTIPLE_RESPONSES',
-        culprit: `${method.toUpperCase()} ${path}`,
-        solution: `${successCodes[0]}`,
+        message:
+          `Operation '${formatOperationString(
+            method,
+            path,
+            oas.info.title
+          )}' ` +
+          `contains multiple possible successful response object ` +
+          `(HTTP code 200-299 or 2XX). Only one can be chosen.`,
+        mitigationAddendum:
+          `The response object with the HTTP code ` +
+          `${successCodes[0]} will be selected`,
         data,
         log: translationLog
       })
@@ -1045,6 +1054,7 @@ export function sanitizeAndStore(
     throw new Error(`Cannot sanitizeAndStore '${str}'`)
   } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
+      // TODO: Follow warning model
       translationLog(
         `Warning: '${str}' and '${mapping[clean]}' both sanitize ` +
           `to '${clean}' - collision possible. Desanitize to '${str}'.`

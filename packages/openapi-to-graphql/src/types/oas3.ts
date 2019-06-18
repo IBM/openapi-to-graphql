@@ -187,7 +187,7 @@ type OAuthFlowsObject = {
 }
 
 export type SecuritySchemeObject = {
-  type: 'apiKey' | 'basicAuth' | 'http' | 'oauth2' | 'openIdConnect'
+  type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect'
   description?: string
   name?: string // Optional, because applies only to apiKey
   in?: string // Optional, because applies only to apiKey
