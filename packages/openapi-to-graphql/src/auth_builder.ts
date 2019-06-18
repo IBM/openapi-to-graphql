@@ -53,11 +53,14 @@ export function createAndLoadViewer(
 ): { [key: string]: Viewer } {
   let results = {}
   /**
-   * Object that contains all previously defined viewer object names.
-   * The key is the security scheme type (apiKey or BasicAuth) and the value is
-   * a list of the names for the viewers for that security scheme type.
+   * To ensure that viewers have unique names, we add a numerical postfix.
+   *
+   * This object keeps track of what the postfix should be.
+   *
+   * The key is the security scheme type and the value is
+   * the current highest postfix used for viewers of that security scheme type.
    */
-  const usedViewerNames: { [key: string]: string[] } = {}
+  const viewerNamePostfix: { [key: string]: number } = {}
 
   /**
    * Used to collect all fields in the given querFields object, no matter which
@@ -69,10 +72,11 @@ export function createAndLoadViewer(
     Object.assign(anyAuthFields, queryFields[protocolName])
 
     /**
-     * check if the name has already been used (i.e. in the list)
+     * Check if the name has already been used (i.e. in the list)
      * if so, create a new name and add it to the list
      */
-    let type = data.security[protocolName].def.type
+    let securityType = data.security[protocolName].def.type
+    let viewerType: string
 
     /**
      * HTTP is not an authentication protocol
@@ -80,41 +84,47 @@ export function createAndLoadViewer(
      * change the typeName to match the exact authentication type (e.g. basic
      * authentication)
      */
-    if (type === 'http') {
+    if (securityType === 'http') {
       let scheme = data.security[protocolName].def.scheme
       switch (scheme) {
         case 'basic':
-          type = 'basicAuth'
+          viewerType = 'basicAuth'
           break
 
         default:
           handleWarning({
-            typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
-            culprit: String(scheme),
+            typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+            message:
+              `Currently unsupported HTTP authentication protocol ` +
+              `type 'http' and scheme '${scheme}'`,
             data,
             log: translationLog
           })
+
+          continue
       }
+    } else {
+      viewerType = securityType
     }
 
     // Create name for the viewer
     let viewerName = !isMutation
-      ? Oas3Tools.sanitize(`viewer ${type}`)
-      : Oas3Tools.sanitize(`mutation viewer ${type}`)
+      ? Oas3Tools.sanitize(`viewer ${viewerType}`)
+      : Oas3Tools.sanitize(`mutation viewer ${viewerType}`)
 
-    if (!(type in usedViewerNames)) {
-      usedViewerNames[type] = []
+    // Ensure unique viewer name
+    // If name already exists, append a number at the end of the name
+    if (!(viewerType in viewerNamePostfix)) {
+      viewerNamePostfix[viewerType] = 1
+    } else {
+      viewerName += ++viewerNamePostfix[viewerType]
     }
-    if (usedViewerNames[type].indexOf(viewerName) !== -1) {
-      viewerName += usedViewerNames[type].length + 1
-    }
-    usedViewerNames[type].push(viewerName)
 
     // Add the viewer object type to the specified root query object type
     results[viewerName] = getViewerOT(
       viewerName,
       protocolName,
-      type,
+      securityType,
       queryFields[protocolName],
       data
     )
@@ -141,7 +151,7 @@ export function createAndLoadViewer(
 const getViewerOT = (
   name: string,
   protocolName: string,
-  type: string,
+  securityType: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
   data: PreprocessingData
 ): Viewer => {
@@ -153,7 +163,7 @@ const getViewerOT = (
     security[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = args
 
     /**
-     * viewers are always root, so we can instantiate _openapiToGraphql here without
+     * Viewers are always root, so we can instantiate _openapiToGraphql here without
      * previously checking for its existence
      */
     return {
@@ -175,19 +185,21 @@ const getViewerOT = (
     }
   }
 
-  let typeDescription
-  let description
-  if (data.oass.length === 1) {
-    typeDescription = `A viewer for the security protocol: '${scheme.rawName}'`
-    description = `A viewer that wraps all operations authenticated via ${type}`
-  } else {
-    typeDescription =
-      `A viewer for the security protocol '${scheme.rawName}' ` +
-      `in ${scheme.oas.info.title}`
+  let typeDescription = `A viewer for security scheme '${protocolName}'`
+  /**
+   * HTTP authentication uses different schemes. It is not sufficient to name
+   * only the security type
+   */
+  let description =
+    securityType === 'http'
+      ? `A viewer that wraps all operations authenticated via security scheme ` +
+        `'${protocolName}', which is of type 'http' '${scheme.def.scheme}'`
+      : `A viewer that wraps all operations authenticated via security scheme ` +
+        `'${protocolName}', which is of type '${securityType}'`
 
-    description =
-      `A viewer that wraps all operations authenticated via ${type}\n\n` +
-      `For the security scheme: ${scheme.oas.info.title} ${protocolName}`
+  if (data.oass.length !== 1) {
+    typeDescription += ` in OAS '${scheme.oas.info.title}'`
+    description = `, in OAS '${scheme.oas.info.title}`
   }
 
   return {
@@ -214,7 +226,6 @@ const getViewerAnyAuthOT = (
   let args = {}
   for (let protocolName in data.security) {
     // Create input object types for the viewer arguments
-
     const def = createDataDef(
       { fromRef: protocolName },
       data.security[protocolName].schema,

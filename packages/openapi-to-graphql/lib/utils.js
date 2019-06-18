@@ -4,159 +4,54 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.WarningTypes = {
-    INVALID_OAS: (culprit, solution) => {
-        return {
-            type: 'invalidOAS',
-            message: culprit,
-            mitigation: `Ignore and continue`
-        };
-    },
-    UNSUPPORTED_HTTP_AUTH_SCHEME: (culprit, solution) => {
-        return {
-            type: 'unsupportedHTTPAuthScheme',
-            message: `Unsupported HTTP authentication scheme '${culprit}'.`,
-            mitigation: `Ignore operation`
-        };
-    },
-    MULTIPLE_RESPONSES: (culprit, solution) => {
-        return {
-            type: 'multipleResponses',
-            message: `Operation ${culprit} has more than one success status ` +
-                `codes (200 - 299).`,
-            mitigation: `Will select response for status code '${solution}'.`
-        };
-    },
-    MISSING_RESPONSE_SCHEMA: (culprit, solution) => {
-        return {
-            type: 'missingResponseSchema',
-            message: `Operation ${culprit} has no (valid) response schema. ` +
-                `If this operation has a 204 HTTP code, you can create a placeholder ` +
-                `schema using the fillEmptyResponses option.`,
-            mitigation: `Ignore operation`
-        };
-    },
-    INVALID_SCHEMA_TYPE: (culprit, solution) => {
-        return {
-            type: 'invalidSchemaType',
-            message: `Request / response schema has no (valid) type '${culprit}'.`,
-            mitigation: `Fall back to type 'GraphQL String'`
-        };
-    },
-    INVALID_SCHEMA_TYPE_LIST_ITEM: (culprit, solution) => {
-        return {
-            type: 'invalidSchemaTypeListItem',
-            message: `Request / response schema has no (valid) type '${culprit}'.`,
-            mitigation: `Fall back to type 'GraphQL String'`
-        };
-    },
-    INVALID_SCHEMA_TYPE_SCALAR: (culprit, solution) => {
-        return {
-            type: 'invalidSchemaTypeScalar',
-            message: `Request / response schema has no (valid) type '${culprit}'.`,
-            mitigation: `Fall back to type 'GraphQL String'`
-        };
-    },
-    UNRESOLVABLE_LINK: (culprit, solution) => {
-        return {
-            type: 'unresolvableLink',
-            message: `Cannot resolve target of link '${culprit}'.`,
-            mitigation: `Ignore link`
-        };
-    },
-    AMBIGUOUS_LINK: (culprit, solution) => {
-        return {
-            type: 'ambiguousLink',
-            message: `Cannot unambiguously resolve operationRef '${culprit}' in link.`,
-            mitigation: `Use first occurance of '#/' - may cause runtime errors.`
-        };
-    },
-    LINK_NAME_COLLISION: (culprit, solution) => {
-        return {
-            type: 'linkNameCollision',
-            message: `Cannot create link '${culprit}' because Object Type already ` +
-                `contains field of the same name.`,
-            mitigation: `Ignore link`
-        };
-    },
-    UNNAMED_PARAMETER: (culprit, solution) => {
-        return {
-            type: 'unnamedParameter',
-            message: `Missing 'name' property in '${culprit}'.`,
-            mitigation: `Ignore parameter`
-        };
-    },
-    DUPLICATE_FIELD_NAME: (culprit, solution) => {
-        return {
-            type: 'duplicateFieldName',
-            message: `Field name '${culprit}' is already present in the object.`,
-            mitigation: `Ignore duplicate field`
-        };
-    },
-    DUPLICATE_OPERATION: (culprit, solution) => {
-        return {
-            type: 'duplicateOperation',
-            message: `Multiple OASs share operations with the same operationId '${culprit}'.`,
-            mitigation: `The operation from the OAS '${solution}' will replace the previous one.`
-        };
-    },
-    DUPLICATE_SECURITY_SCHEME: (culprit, solution) => {
-        return {
-            type: 'duplicateSecurity',
-            message: `Multiple OASs share security schemes with the same name '${culprit}'.`,
-            mitigation: `The security scheme from the OAS '${solution}' will replace the previous one.`
-        };
-    },
-    DUPLICATE_LINK_KEY: (culprit, solution) => {
-        return {
-            type: 'duplicateLinkKey',
-            message: culprit,
-            mitigation: `The latter link definition will replace the previous one.`
-        };
-    },
-    UNRESOLVABLE_REFERENCE: (culprit, solution) => {
-        return {
-            type: 'unresolvableReference',
-            message: `A schema reference could not be resolved due to unknown OAS origin.`,
-            mitigation: `The schema will not be resolved, which may cause issues.`
-        };
-    },
-    MULTIPLE_OAS_SAME_TITLE: (culprit, solution) => {
-        return {
-            type: 'multipleOasSameTitle',
-            message: `Multiple OASs share the same title '${culprit}'`,
-            mitigation: `Continue as is - may break other features`
-        };
-    },
-    CUSTOM_RESOLVER_UNKNOWN_OAS: (culprit, solution) => {
-        return {
-            type: 'customResolverUnknownOAS',
-            message: `Some custom resolvers reference OAS with title '${culprit}' but no OAS with such title is provided`,
-            mitigation: `Ignore this set of custom resolvers`
-        };
-    },
-    CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD: (culprit, solution) => {
-        return {
-            type: 'customResolverUnknownOperation',
-            // TODO: improve message
-            message: culprit,
-            mitigation: `Ignore this set of custom resolvers`
-        };
-    },
-    LIMIT_ARGUMENT_NAME_COLLISION: (culprit, solution) => {
-        return {
-            type: 'limitArgumentNameCollision',
-            message: `The 'limit' argument could not be added ` +
-                `because of a preexisting argument in operation ${culprit}`,
-            mitigation: `Do not override existing 'limit' argument`
-        };
-    }
+exports.mitigations = {
+    /**
+     * Problems with the OAS
+     *
+     * Should be caught by the module oas-validator
+     */
+    INVALID_OAS: `Ignore issue and continue.`,
+    INVALID_SCHEMA_TYPE: `Fall back to GraphQL string type and stringify returned data.`,
+    INVALID_SCHEMA_TYPE_LIST_ITEM: `Fall back to GraphQL string type and stringify returned data.`,
+    INVALID_SCHEMA_TYPE_SCALAR: `Fall back to GraphQL string type and stringify returned data.`,
+    UNNAMED_PARAMETER: `Ignore parameter.`,
+    // General problems
+    MULTIPLE_RESPONSES: `Select first response object with successful status code (200-299).`,
+    MISSING_RESPONSE_SCHEMA: `Ignore operation.`,
+    DUPLICATE_FIELD_NAME: `Ignore field and maintain preexisting field.`,
+    DUPLICATE_LINK_KEY: `Ignore link and maintain preexisting link.`,
+    UNRESOLVABLE_REFERENCE: `The schema will not be resolved.`,
+    UNSUPPORTED_HTTP_SECURITY_SCHEME: `Ignore security scheme.`,
+    // Links
+    UNRESOLVABLE_LINK: `Ignore link.`,
+    AMBIGUOUS_LINK: `Use first occurance of '#/'.`,
+    LINK_NAME_COLLISION: `Ignore link and maintain preexisting field.`,
+    // Multiple OAS
+    MULTIPLE_OAS_SAME_TITLE: `Ignore issue and continue.`,
+    DUPLICATE_OPERATIONID: `Ignore operation and maintain preexisting operation.`,
+    DUPLICATE_SECURITY_SCHEME: `Ignore security scheme and maintain preexisting scheme.`,
+    // Options
+    CUSTOM_RESOLVER_UNKNOWN_OAS: `Ignore this set of custom resolvers.`,
+    CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD: `Ignore this set of custom resolvers.`,
+    LIMIT_ARGUMENT_NAME_COLLISION: `Do not override existing 'limit' argument.`,
+    // Miscellaneous
+    OAUTH_SECURITY_SCHEME: `Ignore security scheme`
 };
 /**
  * Utilities that are specific to OpenAPI-to-GraphQL
  */
-function handleWarning({ typeKey, culprit, solution = '', data, log }) {
-    const warning = exports.WarningTypes[typeKey](culprit, solution);
+function handleWarning({ typeKey, message, mitigationAddendum, path, data, log }) {
+    const mitigation = exports.mitigations[typeKey];
+    const warning = {
+        type: typeKey,
+        message,
+        mitigation: mitigationAddendum
+            ? `${mitigation} ${mitigationAddendum}`
+            : mitigation
+    };
+    if (typeof path !== undefined) {
+        warning['path'] = path;
+    }
     if (data.options.strict) {
         throw new Error(`${warning.type} - ${warning.message}`);
     }
