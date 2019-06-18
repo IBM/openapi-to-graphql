@@ -1,15 +1,40 @@
 import { PreprocessingData } from './types/preprocessing_data';
-import { Warning } from './types/options';
-export declare const WarningTypes: {
-    [key: string]: (culprit: string, solution: string) => Warning;
+export declare const mitigations: {
+    /**
+     * Problems with the OAS
+     *
+     * Should be caught by the module oas-validator
+     */
+    INVALID_OAS: string;
+    INVALID_SCHEMA_TYPE: string;
+    INVALID_SCHEMA_TYPE_LIST_ITEM: string;
+    INVALID_SCHEMA_TYPE_SCALAR: string;
+    UNNAMED_PARAMETER: string;
+    MULTIPLE_RESPONSES: string;
+    MISSING_RESPONSE_SCHEMA: string;
+    DUPLICATE_FIELD_NAME: string;
+    DUPLICATE_LINK_KEY: string;
+    UNRESOLVABLE_REFERENCE: string;
+    UNSUPPORTED_HTTP_SECURITY_SCHEME: string;
+    UNRESOLVABLE_LINK: string;
+    AMBIGUOUS_LINK: string;
+    LINK_NAME_COLLISION: string;
+    MULTIPLE_OAS_SAME_TITLE: string;
+    DUPLICATE_OPERATIONID: string;
+    DUPLICATE_SECURITY_SCHEME: string;
+    CUSTOM_RESOLVER_UNKNOWN_OAS: string;
+    CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD: string;
+    LIMIT_ARGUMENT_NAME_COLLISION: string;
+    OAUTH_SECURITY_SCHEME: string;
 };
 /**
  * Utilities that are specific to OpenAPI-to-GraphQL
  */
-export declare function handleWarning({ typeKey, culprit, solution, data, log }: {
+export declare function handleWarning({ typeKey, message, mitigationAddendum, path, data, log }: {
     typeKey: string;
-    culprit: string;
-    solution?: string;
+    message: string;
+    mitigationAddendum?: string;
+    path?: string[];
     data: PreprocessingData;
     log?: Function;
 }): void;

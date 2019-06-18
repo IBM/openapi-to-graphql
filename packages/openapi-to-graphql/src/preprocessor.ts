@@ -55,16 +55,19 @@ export function preprocessOas(
       data.security,
       currentSecurity
     )
-    Object.assign(data.security, currentSecurity)
     commonSecurityPropertyName.forEach(propertyName => {
       handleWarning({
-        typeKey: 'SECURITY_SCHEME',
-        culprit: propertyName,
-        solution: currentSecurity[propertyName].oas.info.title,
+        typeKey: 'DUPLICATE_SECURITY_SCHEME',
+        message: `Multiple OASs share security schemes with the same name '${propertyName}'`,
+        mitigationAddendum:
+          `The security scheme from OAS ` +
+          `'${currentSecurity[propertyName].oas.info.title}' will be ignored`,
         data,
         log: preprocessingLog
       })
     })
+    // Do not overwrite preexisting security schemes
+    data.security = { ...currentSecurity, ...data.security }
 
     // Process all operations
     for (let path in oas.paths) {
@@ -75,6 +78,10 @@ export function preprocessOas(
         }
 
         const endpoint = oas.paths[path][method]
+        const operationString =
+          oass.length === 1
+            ? Oas3Tools.formatOperationString(method, path)
+            : Oas3Tools.formatOperationString(method, path, oas.info.title)
 
         // Determine description
         let description = endpoint.description
@@ -89,18 +96,7 @@ export function preprocessOas(
           description = 'No description available.'
         }
 
-        if (oass.length === 1) {
-          description += `\n\nEquivalent to ${Oas3Tools.formatOperationString(
-            method,
-            path
-          )}`
-        } else {
-          description += `\n\nEquivalent to ${Oas3Tools.formatOperationString(
-            method,
-            path,
-            oas.info.title
-          )}`
-        }
+        description += `\n\nEquivalent to ${operationString}`
 
         // Hold on to the operationId
         const operationId =
@@ -145,10 +141,10 @@ export function preprocessOas(
         if (!responseSchema || typeof responseSchema !== 'object') {
           handleWarning({
             typeKey: 'MISSING_RESPONSE_SCHEMA',
-            culprit:
-              oass.length === 1
-                ? Oas3Tools.formatOperationString(method, path)
-                : Oas3Tools.formatOperationString(method, path, oas.info.title),
+            message:
+              `Operation ${operationString} has no (valid) response schema.\n\n` +
+              `If this operation has a 204 HTTP code, you can create a placeholder ` +
+              `schema using the fillEmptyResponses option.`,
             data,
             log: preprocessingLog
           })
@@ -208,15 +204,17 @@ export function preprocessOas(
         // May occur if multiple OAS are provided
         if (operationId in data.operations) {
           handleWarning({
-            typeKey: 'DUPLICATE_OPERATION',
-            culprit: operationId,
-            solution: operation.oas.info.title,
+            typeKey: 'DUPLICATE_OPERATIONID',
+            message: `Multiple OASs share operations with the same operationId '${operationId}'`,
+            mitigationAddendum: `The operation from the OAS '${
+              operation.oas.info.title
+            }' will be ignored`,
             data,
             log: preprocessingLog
           })
+        } else {
+          data.operations[operationId] = operation
         }
-
-        data.operations[operationId] = operation
       }
     }
   })
@@ -273,11 +271,6 @@ function getProcessedSecuritySchemes(
   for (let key in security) {
     const protocol = security[key]
 
-    // We use a separate mechanisms to handle OAuth 2.0:
-    if (protocol.type === 'oauth2') {
-      continue
-    }
-
     let schema
     // Determine the parameters and the schema for the security protocol
     let parameters = {}
@@ -313,9 +306,6 @@ function getProcessedSecuritySchemes(
            */
           case 'basic':
             description = `Basic auth credentials for security protocol '${key}'`
-            if (data.oass.length > 1) {
-              description += ` in ${oas.info.title}`
-            }
 
             parameters = {
               username: Oas3Tools.sanitize(`${key}_username`),
@@ -335,10 +325,14 @@ function getProcessedSecuritySchemes(
               }
             }
             break
+
           default:
             handleWarning({
-              typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
-              culprit: `${String(protocol.scheme)}`,
+              typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+              message:
+                `Currently unsupported HTTP authentication protocol ` +
+                `type 'http' and scheme '${protocol.scheme}' in OAS ` +
+                `'${oas.info.title}'`,
               data,
               log: preprocessingLog
             })
@@ -347,12 +341,35 @@ function getProcessedSecuritySchemes(
 
       // TODO: Implement
       case 'openIdConnect':
+        handleWarning({
+          typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+          message:
+            `Currently unsupported HTTP authentication protocol ` +
+            `type 'openIdConnect' in OAS '${oas.info.title}'`,
+          data,
+          log: preprocessingLog
+        })
         break
+
+      case 'oauth2':
+        handleWarning({
+          typeKey: 'OAUTH_SECURITY_SCHEME',
+          message:
+            `OAuth security scheme found in OAS '${oas.info.title}'. ` +
+            `OAuth support is provided using the 'tokenJSONpath' option`,
+          data,
+          log: preprocessingLog
+        })
+
+        // Continue because we do not want to create an oauth viewer
+        continue
 
       default:
         handleWarning({
-          typeKey: 'UNSUPPORTED_HTTP_AUTH_SCHEME',
-          culprit: `${String(protocol.scheme)}`,
+          typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+          message:
+            `Unsupported HTTP authentication protocol` +
+            `type '${protocol.type}' in OAS '${oas.info.title}'`,
           data,
           log: preprocessingLog
         })
@@ -433,7 +450,7 @@ export function createDataDef(
           ) {
             handleWarning({
               typeKey: 'DUPLICATE_LINK_KEY',
-              culprit:
+              message:
                 `Multiple operations with the same response body share the same sanitized ` +
                 `link key '${saneLinkKey}' but have different link definitions ` +
                 `'${JSON.stringify(existingDataDef.links[saneLinkKey])}' and ` +
@@ -444,8 +461,12 @@ export function createDataDef(
           }
         })
 
-        // Collapse the links
-        Object.assign(existingDataDef.links, saneLinks)
+        /**
+         * Collapse the links
+         *
+         * Avoid overwriting preexisting links
+         */
+        existingDataDef.links = { ...saneLinks, ...existingDataDef.links }
       } else {
         // No preexisting links, so simply assign the links
         existingDataDef.links = saneLinks
@@ -472,7 +493,9 @@ export function createDataDef(
     if (!type) {
       handleWarning({
         typeKey: 'INVALID_SCHEMA_TYPE',
-        culprit: JSON.stringify(schema),
+        message:
+          `Request/response schema has no (valid) type ` +
+          `'${JSON.stringify(schema)}'.`,
         data,
         log: preprocessingLog
       })
@@ -505,7 +528,7 @@ export function createDataDef(
           // TODO: Should this simply throw an error?
           handleWarning({
             typeKey: 'UNRESOLVABLE_REFERENCE',
-            culprit: undefined,
+            message: `A schema reference could not be resolved due to unknown OAS origin.`,
             data,
             log: preprocessingLog
           })
@@ -537,7 +560,7 @@ export function createDataDef(
             // TODO: Should this simply throw an error?
             handleWarning({
               typeKey: 'UNRESOLVABLE_REFERENCE',
-              culprit: undefined,
+              message: `A schema reference could not be resolved due to unknown OAS origin.`,
               data,
               log: preprocessingLog
             })

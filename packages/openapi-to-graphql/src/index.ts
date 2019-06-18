@@ -198,12 +198,15 @@ async function translateOpenApiToGraphQL(
     .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
     .forEach(([operationId, operation]) => {
       translationLog(`Process operation '${operationId}'...`)
+      const operationString = Oas3Tools.getOperationString(operation, data.oass)
+
       let field = getFieldForOperation(
         operation,
         options.baseUrl,
         data,
         requestOptions
       )
+
       if (!operation.isMutation) {
         let fieldName = Oas3Tools.uncapitalize(
           operation.responseDefinition.otName
@@ -216,6 +219,10 @@ async function translateOpenApiToGraphQL(
             // Avoid overwriting fields that return the same data:
             if (
               fieldName in authQueryFields[securityRequirement] ||
+              /**
+               * If the option is set operationIdFieldNames, the fieldName is
+               * forced to be the operationId
+               */
               operationIdFieldNames
             ) {
               fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
@@ -224,30 +231,46 @@ async function translateOpenApiToGraphQL(
             if (fieldName in authQueryFields[securityRequirement]) {
               handleWarning({
                 typeKey: 'DUPLICATE_FIELD_NAME',
-                culprit: fieldName,
+                message:
+                  `Multiple operations have the same name ` +
+                  `'${fieldName}' and security requirement ` +
+                  `'${securityRequirement}'. GraphQL field names must be ` +
+                  `unique so only one can be added to the authentication ` +
+                  `viewer.\n\nOperation '${operationString}' will be ignored.`,
                 data,
                 log: translationLog
               })
+            } else {
+              authQueryFields[securityRequirement][fieldName] = field
             }
-
-            authQueryFields[securityRequirement][fieldName] = field
           }
         } else {
           // Avoid overwriting fields that return the same data:
-          if (fieldName in queryFields || operationIdFieldNames) {
+          if (
+            fieldName in queryFields ||
+            /**
+             * If the option is set operationIdFieldNames, the fieldName is
+             * forced to be the operationId
+             */
+            operationIdFieldNames
+          ) {
             fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
           }
 
           if (fieldName in queryFields) {
             handleWarning({
               typeKey: 'DUPLICATE_FIELD_NAME',
-              culprit: fieldName,
+              message:
+                `Multiple operations have the same name ` +
+                `'${fieldName}'. GraphQL field names must be ` +
+                `unique so only one can be added to the Query object.` +
+                `\n\nOperation '${operationString}' will be ignored.`,
               data,
               log: translationLog
             })
+          } else {
+            queryFields[fieldName] = field
           }
-
-          queryFields[fieldName] = field
         }
       } else {
         /**
@@ -267,25 +290,34 @@ async function translateOpenApiToGraphQL(
             if (saneFieldName in authMutationFields[securityRequirement]) {
               handleWarning({
                 typeKey: 'DUPLICATE_FIELD_NAME',
-                culprit: saneFieldName,
+                message:
+                  `Multiple operations have the same name ` +
+                  `'${saneFieldName}' and security requirement ` +
+                  `'${securityRequirement}'. GraphQL field names must be ` +
+                  `unique so only one can be added to the authentication ` +
+                  `viewer.\n\nOperation '${operationString}' will be ignored.`,
                 data,
                 log: translationLog
               })
+            } else {
+              authMutationFields[securityRequirement][saneFieldName] = field
             }
-
-            authMutationFields[securityRequirement][saneFieldName] = field
           }
         } else {
           if (saneFieldName in mutationFields) {
             handleWarning({
               typeKey: 'DUPLICATE_FIELD_NAME',
-              culprit: saneFieldName,
+              message:
+                `Multiple operations have the same name ` +
+                `'${saneFieldName}'. GraphQL field names must be ` +
+                `unique so only one can be added to the Mutation object.` +
+                `\n\nOperation '${operationString}' will be ignored.`,
               data,
               log: translationLog
             })
+          } else {
+            mutationFields[saneFieldName] = field
           }
-
-          mutationFields[saneFieldName] = field
         }
       }
     })
@@ -484,7 +516,7 @@ function preliminaryChecks(
   ).forEach(title => {
     handleWarning({
       typeKey: 'MULTIPLE_OAS_SAME_TITLE',
-      culprit: title,
+      message: `Multiple OAS share the same title '${title}'`,
       data,
       log: translationLog
     })
@@ -503,12 +535,15 @@ function preliminaryChecks(
       .forEach(title => {
         handleWarning({
           typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
-          culprit: title,
+          message:
+            `Custom resolvers reference OAS '${title}' but no such ` +
+            `OAS was provided`,
           data,
           log: translationLog
         })
       })
 
+    // TODO: Only run the following test on OASs that exist. See previous check.
     Object.keys(options.customResolvers).forEach(title => {
       // Get all operations from a particular OAS
       const operations = Object.values(data.operations).filter(operation => {
@@ -524,7 +559,10 @@ function preliminaryChecks(
           ) {
             handleWarning({
               typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
-              culprit: `A custom resolver references an operation with path '${path}' and method '${method}' but no such operation exists in OAS with title '${title}'`,
+              message:
+                `A custom resolver references an operation with ` +
+                `path '${path}' and method '${method}' but no such operation ` +
+                `exists in OAS with title '${title}'`,
               data,
               log: translationLog
             })
