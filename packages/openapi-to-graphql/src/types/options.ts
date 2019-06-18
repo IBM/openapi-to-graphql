@@ -14,6 +14,7 @@ export type Warning = {
   type: string
   message: string
   mitigation: string
+  path?: string[]
 }
 
 export type Report = {

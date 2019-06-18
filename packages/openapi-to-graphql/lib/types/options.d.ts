@@ -7,6 +7,7 @@ export declare type Warning = {
     type: string;
     message: string;
     mitigation: string;
+    path?: string[];
 };
 export declare type Report = {
     warnings: Warning[];
