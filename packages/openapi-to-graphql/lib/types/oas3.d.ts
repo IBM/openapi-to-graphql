@@ -159,7 +159,7 @@ declare type OAuthFlowsObject = {
     authorizationCode?: OAuthFlowObject;
 };
 export declare type SecuritySchemeObject = {
-    type: 'apiKey' | 'basicAuth' | 'http' | 'oauth2' | 'openIdConnect';
+    type: 'apiKey' | 'http' | 'oauth2' | 'openIdConnect';
     description?: string;
     name?: string;
     in?: string;
