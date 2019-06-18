@@ -441,9 +441,9 @@ function createFields({
           : (objectType as GraphQLOutputType),
 
         description:
-          typeof def.schema.description === 'undefined'
+          typeof schema.description === 'undefined'
             ? 'No description available.'
-            : def.schema.description
+            : schema.description
       }
     }
   }
