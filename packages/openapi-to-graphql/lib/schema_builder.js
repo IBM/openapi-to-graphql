@@ -285,9 +285,9 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
                 type: reqMutationProp
                     ? new graphql_1.GraphQLNonNull(objectType)
                     : objectType,
-                description: typeof def.schema.description === 'undefined'
+                description: typeof schema.description === 'undefined'
                     ? 'No description available.'
-                    : def.schema.description
+                    : schema.description
             };
         }
     }
