@@ -190,8 +190,8 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data }) {
     else {
         utils_1.handleWarning({
             typeKey: 'INVALID_SCHEMA_TYPE_LIST_ITEM',
-            culprit: `List item '${itemsName}' in list '${name}' with schema: ` +
-                `'${JSON.stringify(itemsSchema)}'`,
+            message: `List item '${itemsName}' in list '${name}' contains an ` +
+                `invalid JSON schema '${JSON.stringify(itemsSchema)}'`,
             data,
             log: translationLog
         });
@@ -247,7 +247,7 @@ function getScalarType({ def, data }) {
         default:
             utils_1.handleWarning({
                 typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
-                culprit: `Unknown JSON scalar type '${type}'`,
+                message: `Unknown JSON scalar type '${type}'`,
                 data,
                 log: translationLog
             });
@@ -304,7 +304,8 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
             if (saneLinkKey in fields) {
                 utils_1.handleWarning({
                     typeKey: 'LINK_NAME_COLLISION',
-                    culprit: saneLinkKey,
+                    message: `Cannot create link '${saneLinkKey}' because parent ` +
+                        `Object Type already contains a field with the same (sanitized) name.`,
                     data,
                     log: translationLog
                 });
@@ -379,7 +380,7 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
                 else {
                     utils_1.handleWarning({
                         typeKey: 'UNRESOLVABLE_LINK',
-                        culprit: saneLinkKey,
+                        message: `Cannot resolve target of link '${saneLinkKey}`,
                         data,
                         log: translationLog
                     });
@@ -401,7 +402,7 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
  */
 function linkOpRefToOpId({ links, linkKey, operation, data }) {
     const link = links[linkKey];
-    let linkedOpId;
+    const operationString = Oas3Tools.getOperationString(operation, data.oass);
     if (typeof link.operationRef === 'string') {
         // TODO: external refs
         const operationRef = link.operationRef;
@@ -429,7 +430,9 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 if (firstPathIndex !== lastPathIndex) {
                     utils_1.handleWarning({
                         typeKey: 'AMBIGUOUS_LINK',
-                        culprit: operationRef,
+                        message: `The link '${linkKey}' in operation '${operationString}' ` +
+                            `contains an ambiguous operationRef '${operationRef}',  ` +
+                            `meaning it has multiple instances of the string '#/paths/'`,
                         data,
                         log: translationLog
                     });
@@ -441,8 +444,9 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
             else {
                 utils_1.handleWarning({
                     typeKey: 'UNRESOLVABLE_LINK',
-                    culprit: `Link '${linkKey}' has not relative path in operationRef ` +
-                        `'${operationRef}'`,
+                    message: `The link '${linkKey}' in operation '${operationString}' ` +
+                        `does not contain a valid path in operationRef '${operationRef}', ` +
+                        `meaning it does not contain a string '#/paths/'`,
                     data,
                     log: translationLog
                 });
@@ -478,8 +482,8 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                     if (!Oas3Tools.OAS_OPERATIONS.includes(linkMethod)) {
                         utils_1.handleWarning({
                             typeKey: 'UNRESOLVABLE_LINK',
-                            culprit: `Method '${linkMethod}' in operationRef ` +
-                                `'${operationRef}' is invalid`,
+                            message: `The operationRef '${operationRef}' contains an ` +
+                                `invalid HTTP method '${linkMethod}'`,
                             data,
                             log: translationLog
                         });
@@ -490,7 +494,8 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 else {
                     utils_1.handleWarning({
                         typeKey: 'UNRESOLVABLE_LINK',
-                        culprit: `No valid method targeted by operationRef ` + `'${operationRef}'`,
+                        message: `The operationRef '${operationRef}' does not contain an` +
+                            `HTTP method`,
                         data,
                         log: translationLog
                     });
@@ -518,6 +523,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 // If the link was external, make sure that an OAS could be identified
                 if (typeof oas !== 'undefined') {
                     if (typeof linkMethod === 'string' && typeof linkPath === 'string') {
+                        let linkedOpId;
                         if (linkPath in oas.paths && linkMethod in oas.paths[linkPath]) {
                             const linkedOpObject = oas.paths[linkPath][linkMethod];
                             if ('operationId' in linkedOpObject) {
@@ -533,7 +539,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                         else {
                             utils_1.handleWarning({
                                 typeKey: 'UNRESOLVABLE_LINK',
-                                culprit: `Could not find operationId '${linkedOpId}' in link ` +
+                                message: `Could not find operationId '${linkedOpId}' in link ` +
                                     `'${linkKey}'`,
                                 data,
                                 log: translationLog
@@ -544,7 +550,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                     else {
                         utils_1.handleWarning({
                             typeKey: 'UNRESOLVABLE_LINK',
-                            culprit: `Could not find path and/or method from operationRef ` +
+                            message: `Could not find path and/or method from operationRef ` +
                                 `'${operationRef}' in link '${linkKey}'`,
                             data,
                             log: translationLog
@@ -555,7 +561,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 else {
                     utils_1.handleWarning({
                         typeKey: 'UNRESOLVABLE_LINK',
-                        culprit: `OAS of external link '${link.operationRef}' could not ` +
+                        message: `OAS of external link '${link.operationRef}' could not ` +
                             `be identified`,
                         data,
                         log: translationLog
@@ -566,7 +572,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
             else {
                 utils_1.handleWarning({
                     typeKey: 'UNRESOLVABLE_LINK',
-                    culprit: `Could not extract path and/or method from operationRef ` +
+                    message: `Cannot extract path and/or method from operationRef ` +
                         `'${operationRef}' in link '${linkKey}'`,
                     data,
                     log: translationLog
@@ -577,11 +583,12 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
         else {
             utils_1.handleWarning({
                 typeKey: 'UNRESOLVABLE_LINK',
-                culprit: `Could not extract relative path from operationRef ` +
+                message: `Cannot extract path and/or method from operationRef ` +
                     `'${operationRef}' in link '${linkKey}'`,
                 data,
                 log: translationLog
             });
+            return;
         }
     }
 }
@@ -591,13 +598,15 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
  */
 function getArgs({ def, parameters, operation, data }) {
     let args = {};
+    const operationString = Oas3Tools.getOperationString(operation, data.oass);
     // Handle params:
     for (let parameter of parameters) {
         // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
-                typeKey: 'UNNAMED_PARAMETER',
-                culprit: JSON.stringify(parameter),
+                typeKey: 'INVALID_OAS',
+                message: `The operation '${operationString}' contains a ` +
+                    `parameter '${JSON.stringify(parameter)}' with no 'name' property`,
                 data,
                 log: translationLog
             });
@@ -645,8 +654,9 @@ function getArgs({ def, parameters, operation, data }) {
             // Invalid OAS according to 3.0.2
             utils_1.handleWarning({
                 typeKey: 'INVALID_OAS',
-                culprit: `Parameter object "${JSON.stringify(parameter)}" must have ` +
-                    `a "schema" or a "content" property`,
+                message: `The operation '${operationString}' contains a ` +
+                    `parameter '${JSON.stringify(parameter)}' with no 'schema' or ` +
+                    `'content' property`,
                 data,
                 log: translationLog
             });
@@ -689,7 +699,9 @@ function getArgs({ def, parameters, operation, data }) {
         if ('limit' in args) {
             utils_1.handleWarning({
                 typeKey: 'LIMIT_ARGUMENT_NAME_COLLISION',
-                culprit: Oas3Tools.getOperationString(operation, data.oass),
+                message: `The 'limit' argument cannot be added ` +
+                    `because of a preexisting argument in ` +
+                    `operation ${Oas3Tools.getOperationString(operation, data.oass)}`,
                 data,
                 log: translationLog
             });
@@ -762,8 +774,8 @@ function getOasFromLinkLocation(linkLocation, link, data) {
                 // Some ambiguity
                 utils_1.handleWarning({
                     typeKey: 'AMBIGUOUS_LINK',
-                    culprit: `Multiple OASs share the same title '${linkLocation}' in ` +
-                        `the operationRef '${link.operationRef}'`,
+                    message: `The operationRef '${link.operationRef}' references an ` +
+                        `OAS '${linkLocation}' but multiple OASs share the same title`,
                     data,
                     log: translationLog
                 });
@@ -772,8 +784,8 @@ function getOasFromLinkLocation(linkLocation, link, data) {
                 // No OAS had the expected title
                 utils_1.handleWarning({
                     typeKey: 'UNRESOLVABLE_LINK',
-                    culprit: `No OAS has the title '${linkLocation}' in the ` +
-                        `operationRef '${link.operationRef}'`,
+                    message: `The operationRef '${link.operationRef}' reference an ` +
+                        `OAS '${linkLocation}' but no such OAS was provided`,
                     data,
                     log: translationLog
                 });
@@ -790,7 +802,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
         default:
             utils_1.handleWarning({
                 typeKey: 'UNRESOLVABLE_LINK',
-                culprit: `The link location of the operationRef ` +
+                message: `The link location of the operationRef ` +
                     `'${link.operationRef}' is currently not supported\n` +
                     `Currently only the title of the OAS is supported`,
                 data,
