@@ -562,7 +562,7 @@ function preliminaryChecks(
               message:
                 `A custom resolver references an operation with ` +
                 `path '${path}' and method '${method}' but no such operation ` +
-                `exists in OAS with title '${title}'`,
+                `exists in OAS '${title}'`,
               data,
               log: translationLog
             })
