@@ -1,6 +1,6 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/strongloop/oasgraph.svg?style=flat)
-![Travis (.org)](https://img.shields.io/travis/strongloop/oasgraph.svg?style=flat)
-[![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+![Travis (.org)](https://img.shields.io/travis/ibm/openapi-to-graphql.svg?style=flat)
+[![Join the chat at https://gitter.im/IBM/openapi-to-graphql](https://badges.gitter.im/IBM/openapi-to-graphql.svg?style=flat)](https://gitter.im/IBM/openapi-to-graphql?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # OpenAPI-to-GraphQL
 
