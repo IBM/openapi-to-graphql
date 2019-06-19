@@ -437,7 +437,7 @@ function preliminaryChecks(options, data) {
                             typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
                             message: `A custom resolver references an operation with ` +
                                 `path '${path}' and method '${method}' but no such operation ` +
-                                `exists in OAS with title '${title}'`,
+                                `exists in OAS '${title}'`,
                             data,
                             log: translationLog
                         });
