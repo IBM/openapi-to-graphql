@@ -12,9 +12,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/strongloop/oasgraph/tree/openapi-to-graphql"
+    "url": "https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql-cli"
   },
-  "homepage": "https://github.com/strongloop/oasgraph/blob/openapi-to-graphql/README.md",
+  "homepage": "https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql-cli",
   "keywords": [
     "ibm",
     "strongloop",
