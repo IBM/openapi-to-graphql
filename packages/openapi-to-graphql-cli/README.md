@@ -6,9 +6,9 @@
 
 Command line interface (CLI) for turning APIs described by [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/) interfaces.
 
-<img src="https://raw.githubusercontent.com/strongloop/oasgraph/openapi-to-graphql/docs/translation.png" alt="Overview of translation" width="600">
+<img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/translation.png" alt="Overview of translation" width="600">
 
-_Note: To use OpenAPI-to-GraphQL as a library, refer to the [`openapi-to-graphql`](https://github.com/strongloop/oasgraph/tree/openapi-to-graphql/packages/openapi-to-graphql) package._
+_Note: To use OpenAPI-to-GraphQL as a library, refer to the [`openapi-to-graphql`](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql) package._
 
 ## Installation
 
@@ -66,9 +66,9 @@ openapi-to-graphql oas.json --save schema.graphql
 
 ---
 
-To learn more about the other options, please refer [here](https://github.com/strongloop/oasgraph/tree/openapi-to-graphql/packages/openapi-to-graphql#options).
+To learn more about the other options, please refer [here](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql#options).
 
-Please note that the CLI tool is mainly used for quick testing and does not offer all the features that [`createGraphQlSchema(oas, options)`](https://github.com/strongloop/oasgraph/tree/openapi-to-graphql/packages/openapi-to-graphql#usage) does.
+Please note that the CLI tool is mainly used for quick testing and does not offer all the features that [`createGraphQlSchema(oas, options)`](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql#usage) does.
 
 ## License
 
