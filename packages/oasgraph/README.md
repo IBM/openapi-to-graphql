@@ -2,6 +2,7 @@
 [![npm](https://img.shields.io/npm/v/oasgraph.svg?style=flat)](https://www.npmjs.com/package/oasgraph)
 [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# OASGraph has now been renamed to [OpenAPI-to-GraphQL](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql). OASGraph is now deprecated. 
 
 # OASGraph
 Generates a [GraphQL schema](https://graphql.org/learn/schema/) for a given [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification).

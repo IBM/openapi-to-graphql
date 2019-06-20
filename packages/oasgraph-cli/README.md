@@ -2,6 +2,7 @@
 [![npm](https://img.shields.io/npm/v/oasgraph-cli.svg?style=flat)](https://www.npmjs.com/package/oasgraph-cli)
 [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# OASGraph CLI has now been renamed to [OpenAPI-to-GraphQL CLI](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql-cli). OASGraph CLI is now deprecated. 
 
 # OASGraph CLI
 Command line interface (CLI) for turning APIs described by [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/) interfaces.

@@ -2,6 +2,7 @@
 ![Travis (.org)](https://img.shields.io/travis/strongloop/oasgraph.svg?style=flat)
 [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# OASGraph has now been renamed to [OpenAPI-to-GraphQL](https://github.com/OAI/OpenAPI-Specification). OASGraph is now deprecated. 
 
 # OASGraph
 Translate APIs described by [OpenAPI Specifications (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/).
