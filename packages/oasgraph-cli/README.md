@@ -1,14 +1,15 @@
-![Travis (.org)](https://img.shields.io/travis/strongloop/oasgraph.svg?style=flat)
+![Travis (.org)](https://img.shields.io/travis/ibm/openapi-to-graphql.svg?style=flat)
 [![npm](https://img.shields.io/npm/v/oasgraph-cli.svg?style=flat)](https://www.npmjs.com/package/oasgraph-cli)
 [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# Please note: OASGraph CLI has been renamed to [OpenAPI-to-GraphQL CLI](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql-cli).
 
 # OASGraph CLI
 Command line interface (CLI) for turning APIs described by [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/) interfaces.
 
-<img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/translation.png" alt="Overview of translation" width="600">
+<img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/translation.png" alt="Overview of translation" width="600">
 
-_Note: To use OASGraph as a library, refer to the [`oasgraph`](https://github.com/strongloop/oasgraph/tree/master/packages/oasgraph) package._
+_Note: To use OASGraph as a library, refer to the [`oasgraph`](https://github.com/ibm/openapi-to-graphql/tree/oasgraph/packages/oasgraph) package._
 
 
 ## Installation
@@ -61,9 +62,9 @@ oasgraph oas.json --save schema.graphql
 
 ***
 
-To learn more about the other options, please refer [here](https://github.com/strongloop/oasgraph/tree/master/packages/oasgraph#options).
+To learn more about the other options, please refer [here](https://github.com/ibm/openapi-to-graphql/tree/oasgraph/packages/oasgraph#options).
 
-Please note that the CLI tool is mainly used for quick testing and does not offer all the features that [`createGraphQlSchema(oas, options)`](https://github.com/strongloop/oasgraph/tree/master/packages/oasgraph#usage) does.
+Please note that the CLI tool is mainly used for quick testing and does not offer all the features that [`createGraphQlSchema(oas, options)`](https://github.com/ibm/openapi-to-graphql/tree/oasgraph/packages/oasgraph#usage) does.
 
 
 ## License

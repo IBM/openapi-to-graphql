@@ -1,14 +1,15 @@
-![Travis (.org)](https://img.shields.io/travis/strongloop/oasgraph.svg?style=flat)
+![Travis (.org)](https://img.shields.io/travis/ibm/openapi-to-graphql.svg?style=flat)
 [![npm](https://img.shields.io/npm/v/oasgraph.svg?style=flat)](https://www.npmjs.com/package/oasgraph)
 [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# Please note: OASGraph has been renamed to [OpenAPI-to-GraphQL](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql).
 
 # OASGraph
 Generates a [GraphQL schema](https://graphql.org/learn/schema/) for a given [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification).
 
-<img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/translation.png" alt="Overview of translation" width="600">
+<img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/translation.png" alt="Overview of translation" width="600">
 
-_Note: To use OASGraph via the command line, refer to the [`oasgraph-cli`](https://github.com/strongloop/oasgraph/tree/master/packages/oasgraph-cli) package._
+_Note: To use OASGraph via the command line, refer to the [`oasgraph-cli`](https://github.com/ibm/openapi-to-graphql/tree/oasgraph/packages/oasgraph-cli) package._
 
 
 ## Installation

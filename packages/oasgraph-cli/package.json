@@ -12,9 +12,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/strongloop/oasgraph.git"
+    "url": "https://github.com/IBM/openapi-to-graphql/tree/oasgraph"
   },
-  "homepage": "https://github.com/strongloop/oasgraph/blob/master/README.md",
+  "homepage": "https://github.com/IBM/openapi-to-graphql/tree/oasgraph",
   "keywords": [
     "ibm",
     "strongloop",
