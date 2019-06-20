@@ -6,9 +6,9 @@
 
 Generates a [GraphQL schema](https://graphql.org/learn/schema/) for a given [OpenAPI Specification (OAS)](https://github.com/OAI/OpenAPI-Specification).
 
-<img src="https://raw.githubusercontent.com/strongloop/oasgraph/openapi-to-graphql/docs/translation.png" alt="Overview of translation" width="600">
+<img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/translation.png" alt="Overview of translation" width="600">
 
-_Note: To use OpenAPI-to-GraphQL via the command line, refer to the [`openapi-to-graphql-cli`](https://github.com/strongloop/oasgraph/tree/openapi-to-graphql/packages/openapi-to-graphql-cli) package._
+_Note: To use OpenAPI-to-GraphQL via the command line, refer to the [`openapi-to-graphql-cli`](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql-cli) package._
 
 ## Installation
 
