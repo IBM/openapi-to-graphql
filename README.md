@@ -1,12 +1,13 @@
-![GitHub last commit](https://img.shields.io/github/last-commit/strongloop/oasgraph.svg?style=flat)
-![Travis (.org)](https://img.shields.io/travis/strongloop/oasgraph.svg?style=flat)
+![GitHub last commit](https://img.shields.io/github/last-commit/ibm/openapi-to-graphql.svg?style=flat)
+![Travis (.org)](https://img.shields.io/travis/ibm/openapi-to-graphql.svg?style=flat)
 [![Join the chat at https://gitter.im/oasgraph/Lobby](https://badges.gitter.im/oasgraph/Lobby.svg?style=flat)](https://gitter.im/oasgraph/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
+# Please note: OASGraph has now been renamed to [OpenAPI-to-GraphQL](https://github.com/IBM/openapi-to-graphql/tree/oasgraph).
 
 # OASGraph
 Translate APIs described by [OpenAPI Specifications (OAS)](https://github.com/OAI/OpenAPI-Specification) into [GraphQL](https://graphql.org/).
 
-<img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/translation.png" alt="Overview of translation" width="600">
+<img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/translation.png" alt="Overview of translation" width="600">
 
 
 ## Getting started
@@ -58,32 +59,32 @@ Here are some guides to further help you get started:
 * **Data-centric**
   The GraphQL interface is created around the data definitions in the given OAS, not around the endpoints, leading to a natural use of GraphQL.
 
-  <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/data-centric.png" alt="Example of data-centric design" width="600">
+  <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/data-centric.png" alt="Example of data-centric design" width="600">
 
 * **Nested data**
   [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.md#linksObject) defined in the OAS are used to compose data definitions. Furthermore, hierarchical path structures can be used to nest data via the [`addSubOperations`](./packages/oasgraph/README.md#options-addsuboperations) option.
 
-  <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/links.png" alt="Example of links resolution" width="600">
+  <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/links.png" alt="Example of links resolution" width="600">
 
 * **Automatic query resolution**
   Automatically generated resolvers translate (nested) GraphQL queries to API requests. Request results are translated back to GraphQL responses.
 
-  <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/resolution.png" alt="Example of query resolution" width="600">
+  <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/resolution.png" alt="Example of query resolution" width="600">
 
 * **Mutations**
   Non-safe, non-idempotent API operations (e.g., `POST`, `PUT`, `DELETE`) are translated to GraphQL [mutations](http://graphql.org/learn/queries/#mutations). Input payload is type-checked.
 
-  <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/mutations.png" alt="Example of mutation" width="600">
+  <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/mutations.png" alt="Example of mutation" width="600">
 
 * **Authentication**
   OASGraph currently supports authentication via API Key and basic auth. OASGraph wraps secured endpoints into a `viewer`, which takes the API key / credentials as input.
 
-  <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/auth.png" alt="Example of authentication" width="600">
+  <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/auth.png" alt="Example of authentication" width="600">
 
 * **API Sanitation**
   Parts of an API that not compatible with GraphQL are automatically sanitized. For example, API parameters and data definition names with unsupported characters (e.g., `-`, `.`, `,`, `:`, `;`...) are removed. GraphQL queries are desanitized to correctly invoke the REST API and the responses are resanitized to create GraphQL-compliant results.
 
-  <img src="https://raw.githubusercontent.com/strongloop/oasgraph/master/docs/sanitization.png" alt="Example of sanitation" width="300">
+  <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/sanitization.png" alt="Example of sanitation" width="300">
 
 * **Custom request options** Provide headers and query parameters to send with every API request. This allows, for example, to handle authentication or tag requests from GraphQL.
 
