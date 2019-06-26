@@ -366,6 +366,14 @@ function startServer(PORT) {
     res.send(Companies[req.params.id])
   })
 
+  app.get('/api/coffeeLocation', (req, res) => {
+    console.log(req.method, req.path)
+    res.send({
+      lat: parseFloat(req.query.lat) + 5,
+      long: parseFloat(req.query.long) + 5
+    })
+  })
+
   app.get('/api/cookie', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
     if ('cookie' in req.headers) {

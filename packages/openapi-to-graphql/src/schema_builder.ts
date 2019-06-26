@@ -869,30 +869,28 @@ export function getArgs({
      * or the "content" field (but not both)
      */
     let type: GraphQLType
+    let schema: SchemaObject | ReferenceObject
     if (typeof parameter.schema === 'object') {
-      let schema = parameter.schema
-      if ('$ref' in parameter.schema) {
-        schema = Oas3Tools.resolveRef(parameter.schema['$ref'], operation.oas)
-      }
-
-      // TODO: remove
-      const paramDef = createDataDef(
-        { fromRef: parameter.name },
-        schema as SchemaObject,
-        true,
-        data
-      )
-
-      // @ts-ignore
-      type = getGraphQLType({
-        def: paramDef,
-        operation,
-        data,
-        iteration: 0,
-        isMutation: true
-      })
+      schema = parameter.schema
     } else if (typeof parameter.content === 'object') {
-      // TODO
+      if (
+        typeof parameter.content['application/json'] === 'object' &&
+        typeof parameter.content['application/json'].schema === 'object'
+      ) {
+        schema = parameter.content['application/json'].schema
+      } else {
+        handleWarning({
+          typeKey: 'NON_APPLICATION_JSON_SCHEMA',
+          message:
+            `The operation '${operationString}' contains a ` +
+            `parameter '${JSON.stringify(parameter)}' that has a 'content' ` +
+            `property but no schemas in application/json format. The ` +
+            `parameter will not be created`,
+          data,
+          log: translationLog
+        })
+        continue
+      }
     } else {
       // Invalid OAS according to 3.0.2
       handleWarning({
@@ -906,6 +904,27 @@ export function getArgs({
       })
       continue
     }
+
+    if ('$ref' in schema) {
+      schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas)
+    }
+
+    // TODO: remove
+    const paramDef = createDataDef(
+      { fromRef: parameter.name },
+      schema as SchemaObject,
+      true,
+      data
+    )
+
+    // @ts-ignore
+    type = getGraphQLType({
+      def: paramDef,
+      operation,
+      data,
+      iteration: 0,
+      isMutation: true
+    })
 
     /**
      * Sanitize the argument name

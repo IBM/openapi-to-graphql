@@ -1226,3 +1226,22 @@ test('Option addLimitArgument', () => {
       })
     })
 })
+
+test('Content property in parameter object', () => {
+  let query = `{
+    coordinates(lat: 3, long: 5) {
+      lat,
+      long
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        coordinates: {
+          lat: 8,
+          long: 10
+        }
+      }
+    })
+  })
+})
