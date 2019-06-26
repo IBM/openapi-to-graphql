@@ -324,9 +324,10 @@ export function getResolver({
     httpLog(
       `Call ${options.method.toUpperCase()} ${
         options.url
-      }?${querystring.stringify(options.qs)}` +
+      }?${querystring.stringify(options.qs)}\n` +
         `headers:${JSON.stringify(options.headers)}`
     )
+
     return new Promise((resolve, reject) => {
       NodeRequest(options, (err, response, body) => {
         if (err) {

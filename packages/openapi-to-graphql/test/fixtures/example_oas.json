@@ -271,6 +271,48 @@
         }
       }
     },
+    "/coffeeLocation": {
+      "get": {
+        "operationId": "getNearestCoffeeMachine",
+        "description": "Used to find the nearest coffee machine based on the user's coordinates. Used to test the content field in parameter objects.",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lat",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          {
+            "in": "query",
+            "name": "long",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Coordinates of nearest coffee machine.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/coordinates"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/copier": {
       "get": {
         "operationId": "getCopier",
@@ -959,93 +1001,6 @@
   },
   "components": {
     "schemas": {
-      "user": {
-        "type": "object",
-        "description": "A user represents a natural person",
-        "properties": {
-          "name": {
-            "type": "string",
-            "description": "The legal name of a user"
-          },
-          "address": {
-            "$ref": "#/components/schemas/address"
-          },
-          "address2": {
-            "$ref": "#/components/schemas/address"
-          },
-          "employerId": {
-            "type": "string",
-            "description": "The identifier of the company a user works for"
-          },
-          "hobbies": {
-            "type": "array",
-            "description": "The hobbies of this user",
-            "items": {
-              "type": "string"
-            }
-          },
-          "status": {
-            "enum": ["staff", "contractor", "alumni"]
-          },
-          "nomenclature": {
-            "type": "object",
-            "allOf": [
-              {
-                "properties": {
-                  "suborder": {
-                    "type": "string"
-                  }
-                }
-              },
-              {
-                "properties": {
-                  "family": {
-                    "type": "string"
-                  }
-                }
-              }
-            ],
-            "properties": {
-              "genus": {
-                "type": "string"
-              },
-              "species": {
-                "type": "string"
-              }
-            }
-          }
-        },
-        "required": ["name", "address", "employerId", "hobbies"]
-      },
-      "company": {
-        "type": "object",
-        "description": "A company is the employer of many users",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "The identifier of a company"
-          },
-          "name": {
-            "type": "string",
-            "description": "The legal name of a company"
-          },
-          "legalForm": {
-            "type": "string",
-            "description": "The legal form of a company"
-          },
-          "ceoUsername": {
-            "type": "string",
-            "description": "The identifier of the user who is CEO of the company"
-          },
-          "offices": {
-            "type": "array",
-            "description": "The offices of a company",
-            "items": {
-              "$ref": "#/components/schemas/address"
-            }
-          }
-        }
-      },
       "address": {
         "type": "object",
         "description": "The legal address of a user",
@@ -1078,6 +1033,47 @@
           "kind": {
             "type": "string",
             "enum": ["SEDAN", "SUV", "MINIVAN", "LIMOSINE"]
+          }
+        }
+      },
+      "company": {
+        "type": "object",
+        "description": "A company is the employer of many users",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "The identifier of a company"
+          },
+          "name": {
+            "type": "string",
+            "description": "The legal name of a company"
+          },
+          "legalForm": {
+            "type": "string",
+            "description": "The legal form of a company"
+          },
+          "ceoUsername": {
+            "type": "string",
+            "description": "The identifier of the user who is CEO of the company"
+          },
+          "offices": {
+            "type": "array",
+            "description": "The offices of a company",
+            "items": {
+              "$ref": "#/components/schemas/address"
+            }
+          }
+        }
+      },
+      "coordinates": {
+        "type": "object",
+        "required": ["lat", "long"],
+        "properties": {
+          "lat": {
+            "type": "number"
+          },
+          "long": {
+            "type": "number"
           }
         }
       },
@@ -1175,6 +1171,64 @@
         "additionalProperties": {
           "type": "string"
         }
+      },
+      "user": {
+        "type": "object",
+        "description": "A user represents a natural person",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The legal name of a user"
+          },
+          "address": {
+            "$ref": "#/components/schemas/address"
+          },
+          "address2": {
+            "$ref": "#/components/schemas/address"
+          },
+          "employerId": {
+            "type": "string",
+            "description": "The identifier of the company a user works for"
+          },
+          "hobbies": {
+            "type": "array",
+            "description": "The hobbies of this user",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "enum": ["staff", "contractor", "alumni"]
+          },
+          "nomenclature": {
+            "type": "object",
+            "allOf": [
+              {
+                "properties": {
+                  "suborder": {
+                    "type": "string"
+                  }
+                }
+              },
+              {
+                "properties": {
+                  "family": {
+                    "type": "string"
+                  }
+                }
+              }
+            ],
+            "properties": {
+              "genus": {
+                "type": "string"
+              },
+              "species": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "required": ["name", "address", "employerId", "hobbies"]
       }
     },
     "links": {

@@ -22,6 +22,7 @@ exports.mitigations = {
     DUPLICATE_LINK_KEY: `Ignore link and maintain preexisting link.`,
     UNRESOLVABLE_REFERENCE: `The schema will not be resolved.`,
     UNSUPPORTED_HTTP_SECURITY_SCHEME: `Ignore security scheme.`,
+    NON_APPLICATION_JSON_SCHEMA: `Ignore schema`,
     // Links
     UNRESOLVABLE_LINK: `Ignore link.`,
     AMBIGUOUS_LINK: `Use first occurance of '#/'.`,
