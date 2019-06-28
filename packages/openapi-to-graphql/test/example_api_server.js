@@ -25,6 +25,10 @@ function startServer(PORT) {
         street: '4656 Cherry Camp Road',
         city: 'Elk Grove Village'
       },
+      address2: {
+        street: '3180 Little Acres Lane',
+        city: 'Macomb'
+      },
       employerId: 'binsol',
       hobbies: ['tap dancing', 'bowling'],
       status: 'staff',
@@ -537,9 +541,7 @@ function startServer(PORT) {
   app.post('/api/scanner/:path', (req, res) => {
     console.log(req.method, req.path)
     res.status(200).send({
-      body: `req.body: ${req.body}, req.query.query: ${
-        req.query.query
-      }, req.path.path: ${req.params.path}`
+      body: `req.body: ${req.body}, req.query.query: ${req.query.query}, req.path.path: ${req.params.path}`
     })
   })
 

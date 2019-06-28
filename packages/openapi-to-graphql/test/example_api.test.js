@@ -658,6 +658,9 @@ test('Get single resource', () => {
       name
       address{
         street
+      },
+      address2{
+        city
       }
     }
   }`
@@ -668,6 +671,9 @@ test('Get single resource', () => {
           name: 'Arlene L McMahon',
           address: {
             street: '4656 Cherry Camp Road'
+          },
+          address2: {
+            city: 'Macomb'
           }
         }
       }

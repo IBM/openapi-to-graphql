@@ -970,6 +970,9 @@
           "address": {
             "$ref": "#/components/schemas/address"
           },
+          "address2": {
+            "$ref": "#/components/schemas/address"
+          },
           "employerId": {
             "type": "string",
             "description": "The identifier of the company a user works for"

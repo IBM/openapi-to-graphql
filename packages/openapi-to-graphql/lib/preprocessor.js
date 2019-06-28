@@ -433,7 +433,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 }
                 const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
                 // Add field type references
-                def.subDefinitions[propSchemaName] = subDefinition;
+                def.subDefinitions[propertyKey] = subDefinition;
             }
         }
         return def;

@@ -206,9 +206,7 @@ export function preprocessOas(
           handleWarning({
             typeKey: 'DUPLICATE_OPERATIONID',
             message: `Multiple OASs share operations with the same operationId '${operationId}'`,
-            mitigationAddendum: `The operation from the OAS '${
-              operation.oas.info.title
-            }' will be ignored`,
+            mitigationAddendum: `The operation from the OAS '${operation.oas.info.title}' will be ignored`,
             data,
             log: preprocessingLog
           })
@@ -576,7 +574,7 @@ export function createDataDef(
           oas
         )
         // Add field type references
-        def.subDefinitions[propSchemaName] = subDefinition
+        def.subDefinitions[propertyKey] = subDefinition
       }
     }
 
