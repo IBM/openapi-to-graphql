@@ -157,8 +157,8 @@ function startServer(PORT) {
 
   const Patents = {
     'CCC OSv1': {
-      patentId: '100',
-      inventorId: 'heather'
+      'patent-id': '100',
+      'inventor-id': 'heather'
     }
   }
 
@@ -183,6 +183,59 @@ function startServer(PORT) {
     }
   }
 
+  const Papers = {
+    apples: {
+      name: 'Deliciousness of apples',
+      published: true
+    },
+    coffee: {
+      name: 'How much coffee is too much coffee?',
+      published: false
+    },
+    tennis: {
+      name: 'How many tennis balls can fit into the average building?',
+      published: true
+    }
+  }
+
+  const Trash = {
+    arlene: {
+      brand: 'Garbage Emporium',
+      contents: [
+        {
+          type: 'apple',
+          message: 'Half-eaten'
+        },
+        {
+          type: 'sock',
+          message: 'Lost one'
+        }
+      ]
+    },
+    will: {
+      brand: 'Garbage Emporium',
+      contents: [
+        {
+          type: 'sock',
+          message: 'Lost one'
+        }
+      ]
+    },
+    johnny: {
+      brand: 'Garbage Emporium',
+      contents: []
+    },
+    heather: {
+      brand: 'Solid Gold Products',
+      contents: [
+        {
+          type: 'tissue',
+          message: 'Used'
+        }
+      ]
+    }
+  }
+
   const Auth = {
     arlene: {
       username: 'arlene123',
@@ -203,21 +256,6 @@ function startServer(PORT) {
       username: 'cccrulez',
       password: 'johnnyisabully',
       accessToken: 'ijk'
-    }
-  }
-
-  const Papers = {
-    apples: {
-      name: 'Deliciousness of apples',
-      published: true
-    },
-    coffee: {
-      name: 'How much coffee is too much coffee?',
-      published: false
-    },
-    tennis: {
-      name: 'How many tennis balls can fit into the average building?',
-      published: true
     }
   }
 
@@ -491,7 +529,7 @@ function startServer(PORT) {
   app.get('/api/patents/:id', authMiddleware, (req, res) => {
     console.log(req.method, req.path)
     for (let patent in Patents) {
-      if (Patents[patent].patentId === req.params.id) {
+      if (Patents[patent]['patent-id'] === req.params.id) {
         return res.send(Patents[patent])
       }
       res.status(404).send({ message: 'Patent does not exist.' })
@@ -597,6 +635,22 @@ function startServer(PORT) {
       })
     } else {
       res.send('A secure message.')
+    }
+  })
+
+  app.get('/api/trashcans', (req, res) => {
+    console.log(req.method, req.path)
+    res.send(Array.from(Object.values(Trash)))
+  })
+
+  app.get('/api/trashcans/:username', (req, res) => {
+    console.log(req.method, req.path)
+    if (req.params.username in Users) {
+      res.send(Trash[req.params.username])
+    } else {
+      res.status(404).send({
+        message: 'Wrong username.'
+      })
     }
   })
 

@@ -9,7 +9,7 @@
 
 // Type imports:
 import { Oas3, SchemaObject } from './types/oas3'
-import { Operation } from './types/operation'
+import { Operation, DataDefinition } from './types/operation'
 import { ResolveFunction } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
@@ -20,7 +20,6 @@ import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
 import { debug } from 'debug'
 import { GraphQLError } from 'graphql'
-import { resolve } from 'path'
 
 const translationLog = debug('translation')
 const httpLog = debug('http')
@@ -333,13 +332,14 @@ export function getResolver({
         if (err) {
           httpLog(err)
           reject(err)
-        } else if (response.statusCode > 299) {
+        } else if (response.statusCode < 200 || response.statusCode > 299) {
           httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
           const errorString = `Could not invoke operation ${Oas3Tools.getOperationString(
             operation,
             data.oass
           )}`
+
           if (data.options.provideErrorExtensions) {
             const extensions = {
               method: operation.method,
@@ -353,6 +353,8 @@ export function getResolver({
           } else {
             reject(new Error(errorString))
           }
+
+          // Successful response 200-299
         } else {
           httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
@@ -365,12 +367,26 @@ export function getResolver({
              */
             if (response.headers['content-type'].includes('application/json')) {
               body = JSON.parse(body)
+            } else {
+              /**
+               * If not application/json, assume no additional processing is
+               * needed
+               *
+               * TODO: Should this also make a check to see what is defined in
+               * the schema? Probably not, would be an OAS/API mismatch.
+               */
+              resolve(body)
             }
           } else {
             httpLog('Warning: response does not have a Content-Type property')
           }
 
           resolveData.responseHeaders = response.headers
+
+          body = stringifyObjectsWithNoProperties(
+            body,
+            operation.responseDefinition
+          )
 
           // Deal with the fact that the server might send unsanitized data
           let saneData = Oas3Tools.sanitizeObjKeys(body)
@@ -831,4 +847,42 @@ function graphQLErrorWithExtensions(
   extensions: { [key: string]: any }
 ): GraphQLError {
   return new GraphQLError(message, null, null, null, null, null, extensions)
+}
+
+/**
+ * Ideally, all objects should be defined with properties. However, if they are
+ * not, then we can at least stringify the data.
+ *
+ * This function recursively ensures that objects have properties, if not
+ * stringify the data to match the mitigation.
+ */
+function stringifyObjectsWithNoProperties(
+  data: any,
+  dataDef: DataDefinition
+): any {
+  if (typeof dataDef !== 'undefined') {
+    if (dataDef.type === 'array') {
+      data = data.map(element => {
+        return stringifyObjectsWithNoProperties(
+          element,
+          dataDef.subDefinitions as DataDefinition
+        )
+      })
+    } else if (dataDef.type === 'object') {
+      if (typeof dataDef.schema.properties !== 'undefined') {
+        Object.keys(data).forEach(propertyName => {
+          data[propertyName] = stringifyObjectsWithNoProperties(
+            data[propertyName],
+            dataDef.subDefinitions[propertyName]
+          )
+        })
+
+        // Schema does not have properties defined, therefore stringify
+      } else {
+        return JSON.stringify(data)
+      }
+    }
+  }
+
+  return data
 }

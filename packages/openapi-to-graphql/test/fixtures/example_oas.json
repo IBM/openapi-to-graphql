@@ -876,6 +876,56 @@
         }
       }
     },
+    "/trashcans/{username}": {
+      "get": {
+        "operationId": "getOfficeTrashCan",
+        "description": "Returns the (contents of a) trashcan from a specific owner",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Identifier of a user."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A user represents a natural person.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/trashcan"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trashcans": {
+      "get": {
+        "operationId": "getAllTrashCans",
+        "description": "Returns the (contents of a) trashcan from a specific office",
+        "responses": {
+          "200": {
+            "description": "A user represents a natural person.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/trashcan"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/snack": {
       "get": {
         "operationId": "getSnack",
@@ -1161,6 +1211,20 @@
           "patentId": {
             "type": "string",
             "description": "The patent associated with a project if applicable"
+          }
+        }
+      },
+      "trashcan": {
+        "type": "object",
+        "properties": {
+          "brand": {
+            "type": "object"
+          },
+          "contents": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
           }
         }
       },

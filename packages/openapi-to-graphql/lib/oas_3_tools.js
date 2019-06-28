@@ -315,12 +315,9 @@ function getSchemaType(schema) {
         if (typeof schema.additionalProperties === 'object') {
             return 'json';
         }
-        // If there are no properties:
-        if (typeof schema.properties === 'undefined' ||
-            Object.keys(schema.properties).length === 0) {
-            return null;
+        else {
+            return 'object';
         }
-        return 'object';
     }
     if ('properties' in schema) {
         return 'object';
