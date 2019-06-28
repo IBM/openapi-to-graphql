@@ -1245,3 +1245,45 @@ test('Content property in parameter object', () => {
     })
   })
 })
+
+test('Stringify objects without defined properties', () => {
+  let query = `{
+    trashcan(username:"arlene") {
+      brand,
+      contents
+    }
+    trashcans {
+      contents
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        trashcan: {
+          brand: '"Garbage Emporium"',
+          contents: [
+            '{"type":"apple","message":"Half-eaten"}',
+            '{"type":"sock","message":"Lost one"}'
+          ]
+        },
+        trashcans: [
+          {
+            contents: [
+              '{"type":"apple","message":"Half-eaten"}',
+              '{"type":"sock","message":"Lost one"}'
+            ]
+          },
+          {
+            contents: ['{"type":"sock","message":"Lost one"}']
+          },
+          {
+            contents: []
+          },
+          {
+            contents: ['{"type":"tissue","message":"Used"}']
+          }
+        ]
+      }
+    })
+  })
+})

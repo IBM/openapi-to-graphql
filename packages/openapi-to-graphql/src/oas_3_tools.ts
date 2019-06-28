@@ -411,17 +411,9 @@ export function getSchemaType(schema: SchemaObject): string | null {
     // CASE: arbitrary JSON
     if (typeof schema.additionalProperties === 'object') {
       return 'json'
+    } else {
+      return 'object'
     }
-
-    // If there are no properties:
-    if (
-      typeof schema.properties === 'undefined' ||
-      Object.keys(schema.properties).length === 0
-    ) {
-      return null
-    }
-
-    return 'object'
   }
 
   if ('properties' in schema) {
@@ -575,9 +567,7 @@ export function getRequestSchemaAndNames(
         'description' in payloadSchema &&
         typeof payloadSchema['description'] === 'string'
       ) {
-        description += `\n\nOriginal top level description: '${
-          payloadSchema['description']
-        }'`
+        description += `\n\nOriginal top level description: '${payloadSchema['description']}'`
       }
 
       payloadSchema = {
@@ -693,9 +683,7 @@ export function getResponseSchemaAndNames(
         'description' in responseSchema &&
         typeof responseSchema['description'] === 'string'
       ) {
-        description += `\n\nOriginal top level description: '${
-          responseSchema['description']
-        }'`
+        description += `\n\nOriginal top level description: '${responseSchema['description']}'`
       }
 
       responseSchema = {

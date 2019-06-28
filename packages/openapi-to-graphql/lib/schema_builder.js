@@ -90,6 +90,31 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
                 (typeof operation === 'object'
                     ? ` (for operation '${operation.operationId}')`
                     : ''));
+            /**
+             * If the schema does not contain any properties, then OpenAPI-to-GraphQL
+             * cannot create a GraphQL Object Type for it because in GraphQL, all Object
+             * Type properties must be named.
+             *
+             * Instead, stringify the response.
+             *
+             * NOTE: there is a similar check in the resolver_builder.ts so that the
+             * response data is properly stringified.
+             *
+             * See stringifyObjectsWithNoProperties() function
+             */
+            if (typeof def.schema.properties === 'undefined') {
+                utils_1.handleWarning({
+                    typeKey: 'OBJECT_MISSING_PROPERTIES',
+                    message: `The operation ` +
+                        `'${Oas3Tools.getOperationString(operation, data.oass)}' contains ` +
+                        `a object schema ${JSON.stringify(def)} with no properties. ` +
+                        `GraphQL objects must have well-defined properties so a one to ` +
+                        `one conversion cannot be achieved.`,
+                    data,
+                    log: translationLog
+                });
+                return graphql_1.GraphQLString;
+            }
             const description = typeof schema.description !== 'undefined'
                 ? schema.description
                 : 'No description available.';
@@ -245,12 +270,7 @@ function getScalarType({ def, data }) {
             def.ot = GraphQLJSON;
             break;
         default:
-            utils_1.handleWarning({
-                typeKey: 'INVALID_SCHEMA_TYPE_SCALAR',
-                message: `Unknown JSON scalar type '${type}'`,
-                data,
-                log: translationLog
-            });
+            // If the type is not known, try to stringify
             def.ot = graphql_1.GraphQLString;
             break;
     }

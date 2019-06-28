@@ -26,6 +26,7 @@ export const mitigations = {
   UNRESOLVABLE_REFERENCE: `The schema will not be resolved.`,
   UNSUPPORTED_HTTP_SECURITY_SCHEME: `Ignore security scheme.`,
   NON_APPLICATION_JSON_SCHEMA: `Ignore schema`,
+  OBJECT_MISSING_PROPERTIES: `The (sub-)object will be stringified. The property will return a string in the interface.`,
 
   // Links
   UNRESOLVABLE_LINK: `Ignore link.`,

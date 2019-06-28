@@ -361,12 +361,10 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         // Store and sanitize the name
         const saneName = Oas3Tools.capitalize(Oas3Tools.sanitizeAndStore(name, data.saneMap));
         const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
-        // Add the names to the master list
-        data.usedOTNames.push(saneName);
-        data.usedOTNames.push(saneInputName);
         // Determine the type of the schema
         const type = Oas3Tools.getSchemaType(schema);
         if (!type) {
+            // TODO: Throw error?
             utils_1.handleWarning({
                 typeKey: 'INVALID_SCHEMA_TYPE',
                 message: `Request/response schema has no (valid) type ` +
@@ -374,52 +372,33 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 data,
                 log: preprocessingLog
             });
+            return null;
         }
-        const def = {
-            preferredName,
-            schema,
-            type,
-            subDefinitions: undefined,
-            links: saneLinks,
-            otName: saneName,
-            iotName: saneInputName
-        };
-        // Add the def to the master list
-        data.defs.push(def);
-        // Break schema down into component parts
-        // I.e. if it is an list type, create a reference to the list item type
-        // Or if it is an object type, create references to all of the field types
-        if (type === 'array' && typeof schema.items === 'object') {
-            let itemsSchema = schema.items;
-            let itemsName = `${name}ListItem`;
-            if ('$ref' in itemsSchema) {
-                if (oas) {
-                    itemsName = schema.items['$ref'].split('/').pop();
-                    itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas);
-                }
-                else {
-                    // TODO: Should this simply throw an error?
-                    utils_1.handleWarning({
-                        typeKey: 'UNRESOLVABLE_REFERENCE',
-                        message: `A schema reference could not be resolved due to unknown OAS origin.`,
-                        data,
-                        log: preprocessingLog
-                    });
-                }
-            }
-            const subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
-            // Add list item reference
-            def.subDefinitions = subDefinition;
-        }
-        else if (type === 'object') {
-            def.subDefinitions = {};
-            for (let propertyKey in schema.properties) {
-                let propSchemaName = propertyKey;
-                let propSchema = schema.properties[propertyKey];
-                if ('$ref' in propSchema) {
+        else {
+            // Add the names to the master list
+            data.usedOTNames.push(saneName);
+            data.usedOTNames.push(saneInputName);
+            const def = {
+                preferredName,
+                schema,
+                type,
+                subDefinitions: undefined,
+                links: saneLinks,
+                otName: saneName,
+                iotName: saneInputName
+            };
+            // Add the def to the master list
+            data.defs.push(def);
+            // Break schema down into component parts
+            // I.e. if it is an list type, create a reference to the list item type
+            // Or if it is an object type, create references to all of the field types
+            if (type === 'array' && typeof schema.items === 'object') {
+                let itemsSchema = schema.items;
+                let itemsName = `${name}ListItem`;
+                if ('$ref' in itemsSchema) {
                     if (oas) {
-                        propSchemaName = propSchema['$ref'].split('/').pop();
-                        propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
+                        itemsName = schema.items['$ref'].split('/').pop();
+                        itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas);
                     }
                     else {
                         // TODO: Should this simply throw an error?
@@ -431,12 +410,37 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                         });
                     }
                 }
-                const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
-                // Add field type references
-                def.subDefinitions[propertyKey] = subDefinition;
+                const subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
+                // Add list item reference
+                def.subDefinitions = subDefinition;
             }
+            else if (type === 'object') {
+                def.subDefinitions = {};
+                for (let propertyKey in schema.properties) {
+                    let propSchemaName = propertyKey;
+                    let propSchema = schema.properties[propertyKey];
+                    if ('$ref' in propSchema) {
+                        if (oas) {
+                            propSchemaName = propSchema['$ref'].split('/').pop();
+                            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
+                        }
+                        else {
+                            // TODO: Should this simply throw an error?
+                            utils_1.handleWarning({
+                                typeKey: 'UNRESOLVABLE_REFERENCE',
+                                message: `A schema reference could not be resolved due to unknown OAS origin.`,
+                                data,
+                                log: preprocessingLog
+                            });
+                        }
+                    }
+                    const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
+                    // Add field type references
+                    def.subDefinitions[propertyKey] = subDefinition;
+                }
+            }
+            return def;
         }
-        return def;
     }
 }
 exports.createDataDef = createDataDef;
