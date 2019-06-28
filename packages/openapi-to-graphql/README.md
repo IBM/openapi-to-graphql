@@ -231,9 +231,9 @@ OpenAPI-to-GraphQL further provides `anyAuth` viewers (for queries and mutations
       password: "secret"
     }
   ) {
-    patentWithId (patentId: "test") {  // requires "exampleApiKeyProtocol"
+    patent (patentId: "test") {  // requires "exampleApiKeyProtocol"
       patentId
-      inventor {                       // requires "exampleBasicProtocol"
+      inventor {                 // requires "exampleBasicProtocol"
         name
       }
     }

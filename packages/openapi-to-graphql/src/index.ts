@@ -208,23 +208,19 @@ async function translateOpenApiToGraphQL(
       )
 
       if (!operation.isMutation) {
-        let fieldName = Oas3Tools.uncapitalize(
-          operation.responseDefinition.otName
-        )
+        let fieldName = operationIdFieldNames
+          ? Oas3Tools.sanitize(operationId)
+          : Oas3Tools.sanitize(
+              Oas3Tools.inferResourceNameFromPath(operation.path)
+            )
+
         if (operation.inViewer) {
           for (let securityRequirement of operation.securityRequirements) {
             if (typeof authQueryFields[securityRequirement] !== 'object') {
               authQueryFields[securityRequirement] = {}
             }
             // Avoid overwriting fields that return the same data:
-            if (
-              fieldName in authQueryFields[securityRequirement] ||
-              /**
-               * If the option is set operationIdFieldNames, the fieldName is
-               * forced to be the operationId
-               */
-              operationIdFieldNames
-            ) {
+            if (fieldName in authQueryFields[securityRequirement]) {
               fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
             }
 
@@ -246,14 +242,7 @@ async function translateOpenApiToGraphQL(
           }
         } else {
           // Avoid overwriting fields that return the same data:
-          if (
-            fieldName in queryFields ||
-            /**
-             * If the option is set operationIdFieldNames, the fieldName is
-             * forced to be the operationId
-             */
-            operationIdFieldNames
-          ) {
+          if (fieldName in queryFields) {
             fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
           }
 
@@ -275,12 +264,15 @@ async function translateOpenApiToGraphQL(
       } else {
         /**
          * Use operationId to avoid problems differentiating operations with the
-         * same path but differnet methods
+         * same path but different methods
          */
         let saneFieldName = Oas3Tools.sanitizeAndStore(
-          operationId,
+          `${operation.method}${Oas3Tools.inferResourceNameFromPath(
+            operation.path
+          )}`,
           data.saneMap
         )
+
         if (operation.inViewer) {
           for (let securityRequirement of operation.securityRequirements) {
             if (typeof authMutationFields[securityRequirement] !== 'object') {
@@ -573,4 +565,4 @@ function preliminaryChecks(
   }
 }
 
-export { sanitize } from './oas_3_tools'
+export { sanitize, inferResourceNameFromPath } from './oas_3_tools'

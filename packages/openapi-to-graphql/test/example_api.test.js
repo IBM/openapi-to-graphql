@@ -161,7 +161,7 @@ test('Get nested resource via link $response.body#/...', () => {
 
 test('Get nested resource via link $request.path#/... and $request.query#/', () => {
   let query = `{
-    productWithId (productId: "123" productTag: "blah") {
+    product (productId: "123" productTag: "blah") {
       productName
       reviews {
         text
@@ -171,7 +171,7 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        productWithId: {
+        product: {
           productName: 'Super Product',
           reviews: [{ text: 'Great product' }, { text: 'I love it' }]
         }
@@ -182,7 +182,7 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
 
 test('Get nested resource via link operationRef', () => {
   let query = `{
-    productWithId (productId: "123" productTag: "blah") {
+    product (productId: "123" productTag: "blah") {
       productName
       reviewsWithOperationRef {
         text
@@ -192,7 +192,7 @@ test('Get nested resource via link operationRef', () => {
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        productWithId: {
+        product: {
           productName: 'Super Product',
           reviewsWithOperationRef: [
             { text: 'Great product' },
@@ -515,14 +515,14 @@ test('Link parameters as constants and variables with request payload', () => {
 
 test('Get response without providing parameter with default value', () => {
   let query = `{
-    productsReviews (id: "100") {
+    productReviews (id: "100") {
       text
     }
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        productsReviews: [{ text: 'Great product' }, { text: 'I love it' }]
+        productReviews: [{ text: 'Great product' }, { text: 'I love it' }]
       }
     })
   })
@@ -593,14 +593,14 @@ test('Ensure good naming for operations with duplicated schemas', () => {
 
 test('Get response containing 64 bit integer (using GraphQLFloat)', () => {
   let query = `{
-    productsReviews (id: "100") {
+    productReviews (id: "100") {
       timestamp
     }
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        productsReviews: [
+        productReviews: [
           { timestamp: 1502787600000000 },
           { timestamp: 1502787400000000 }
         ]
@@ -677,10 +677,10 @@ test('Get single resource', () => {
 
 test('Post resource', () => {
   let query = `mutation {
-    postUser (userInput: {
+    postUsers (userInput: {
       name: "Mr. New Guy"
       address: {
-        street: "Home streeet 1"
+        street: "Home street 1"
         city: "Hamburg"
       }
       employerId: "binsol"
@@ -692,7 +692,7 @@ test('Post resource', () => {
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        postUser: {
+        postUsers: {
           name: 'Mr. New Guy'
         }
       }
@@ -702,10 +702,10 @@ test('Post resource', () => {
 
 test('Post resource and get nested resource back', () => {
   let query = `mutation {
-    postUser (userInput: {
+    postUsers (userInput: {
       name: "Mr. New Guy"
       address: {
-        street: "Home streeet 1"
+        street: "Home street 1"
         city: "Hamburg"
       }
       employerId: "binsol"
@@ -722,7 +722,7 @@ test('Post resource and get nested resource back', () => {
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        postUser: {
+        postUsers: {
           name: 'Mr. New Guy',
           employerCompany: {
             ceoUser: {
@@ -736,11 +736,11 @@ test('Post resource and get nested resource back', () => {
 })
 
 test('Post resource with non-application/json content-type request and response bodies', () => {
-  let query = `mutation{postPaper(textPlainInput: "happy")}`
+  let query = `mutation{postPapers(textPlainInput: "happy")}`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        postPaper: 'You sent the paper idea: happy'
+        postPapers: 'You sent the paper idea: happy'
       }
     })
   })
@@ -752,7 +752,7 @@ test(
     'received data is correctly sanitized',
   () => {
     let query = `{
-    productWithId (productId: "this-path", productTag:"And a tag") {
+    product (productId: "this-path", productTag:"And a tag") {
       productId
       productTag
     }
@@ -760,7 +760,7 @@ test(
     return graphql(createdSchema, query).then(result => {
       expect(result).toEqual({
         data: {
-          productWithId: {
+          product: {
             productId: 'this-path',
             productTag: 'And a tag'
           }
@@ -772,7 +772,7 @@ test(
 
 test('Request data is correctly de-sanitized to be sent', () => {
   let query = `mutation {
-    postProductWithId (productWithIdInput: {
+    postProducts (productWithIdInput: {
       productName: "Soccer ball"
       productId: "ball123"
       productTag:"sports"
@@ -785,7 +785,7 @@ test('Request data is correctly de-sanitized to be sent', () => {
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        postProductWithId: {
+        postProducts: {
           productName: 'Soccer ball',
           productId: 'ball123',
           productTag: 'sports'
@@ -797,7 +797,7 @@ test('Request data is correctly de-sanitized to be sent', () => {
 
 test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
   let query = `{
-    car (username: "arlene") {
+    userCar (username: "arlene") {
       color
       model
       tags
@@ -806,7 +806,7 @@ test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        car: {
+        userCar: {
           color: 'black',
           model: 'BMW 7 series',
           tags: {
@@ -820,14 +820,14 @@ test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
 
 test('Capitalized enum values can be returned', () => {
   let query = `{
-    car (username: "arlene") {
+    userCar (username: "arlene") {
       kind
     }
   }`
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        car: {
+        userCar: {
           kind: 'LIMOSINE'
         }
       }
@@ -845,7 +845,7 @@ test('Define header and query options', () => {
     }
   }
   let query = `{
-    status2 (globalquery: "test")
+    status (globalquery: "test")
   }`
   return openapiToGraphql
     .createGraphQlSchema(oas, options)
@@ -857,7 +857,7 @@ test('Define header and query options', () => {
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
           data: {
-            status2: 'Ok.'
+            status: 'Ok.'
           }
         })
       })
@@ -1098,7 +1098,7 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
     }
   }
   let query = `{
-    productWithId (productId: "123" productTag: "blah") {
+    product (productId: "123" productTag: "blah") {
       productName
     }
   }`
@@ -1111,7 +1111,7 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
           data: {
-            productWithId: {
+            product: {
               productName: 'abcdef'
             }
           }

@@ -88,7 +88,9 @@ export declare function instantiatePathAndGetQuery(path: string, parameters: Par
  */
 export declare function getSchemaType(schema: SchemaObject): string | null;
 /**
- * Determines an approximate name for the resource at the given path.
+ * Infers a resource name from the given URL path.
+ *
+ * For example, turns "/users/{userId}/car" into "userCar".
  */
 export declare function inferResourceNameFromPath(path: string): string;
 /**

@@ -136,19 +136,16 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             const operationString = Oas3Tools.getOperationString(operation, data.oass);
             let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions);
             if (!operation.isMutation) {
-                let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
+                let fieldName = operationIdFieldNames
+                    ? Oas3Tools.sanitize(operationId)
+                    : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path));
                 if (operation.inViewer) {
                     for (let securityRequirement of operation.securityRequirements) {
                         if (typeof authQueryFields[securityRequirement] !== 'object') {
                             authQueryFields[securityRequirement] = {};
                         }
                         // Avoid overwriting fields that return the same data:
-                        if (fieldName in authQueryFields[securityRequirement] ||
-                            /**
-                             * If the option is set operationIdFieldNames, the fieldName is
-                             * forced to be the operationId
-                             */
-                            operationIdFieldNames) {
+                        if (fieldName in authQueryFields[securityRequirement]) {
                             fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap);
                         }
                         if (fieldName in authQueryFields[securityRequirement]) {
@@ -170,12 +167,7 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
                 }
                 else {
                     // Avoid overwriting fields that return the same data:
-                    if (fieldName in queryFields ||
-                        /**
-                         * If the option is set operationIdFieldNames, the fieldName is
-                         * forced to be the operationId
-                         */
-                        operationIdFieldNames) {
+                    if (fieldName in queryFields) {
                         fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap);
                     }
                     if (fieldName in queryFields) {
@@ -197,9 +189,9 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             else {
                 /**
                  * Use operationId to avoid problems differentiating operations with the
-                 * same path but differnet methods
+                 * same path but different methods
                  */
-                let saneFieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap);
+                let saneFieldName = Oas3Tools.sanitizeAndStore(`${operation.method}${Oas3Tools.inferResourceNameFromPath(operation.path)}`, data.saneMap);
                 if (operation.inViewer) {
                     for (let securityRequirement of operation.securityRequirements) {
                         if (typeof authMutationFields[securityRequirement] !== 'object') {
@@ -449,4 +441,5 @@ function preliminaryChecks(options, data) {
 }
 var oas_3_tools_1 = require("./oas_3_tools");
 exports.sanitize = oas_3_tools_1.sanitize;
+exports.inferResourceNameFromPath = oas_3_tools_1.inferResourceNameFromPath;
 //# sourceMappingURL=index.js.map

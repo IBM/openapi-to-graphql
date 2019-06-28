@@ -40,7 +40,7 @@ afterAll(() => {
 test('Get patent using basic auth', () => {
   let query = `{
     viewerBasicAuth (username: "arlene123", password: "password123") {
-      patentWithId (patentId: "100") {
+      patent (patentId: "100") {
         patentId
       }
     }
@@ -49,7 +49,7 @@ test('Get patent using basic auth', () => {
     expect(result).toEqual({
       data: {
         viewerBasicAuth: {
-          patentWithId: {
+          patent: {
             patentId: '100'
           }
         }
@@ -61,7 +61,7 @@ test('Get patent using basic auth', () => {
 test('Get patent using API key', () => {
   let query = `{
     viewerApiKey2 (apiKey: "abcdef") {
-      patentWithId (patentId: "100") {
+      patent (patentId: "100") {
         patentId
       }
     }
@@ -70,7 +70,7 @@ test('Get patent using API key', () => {
     expect(result).toEqual({
       data: {
         viewerApiKey2: {
-          patentWithId: {
+          patent: {
             patentId: '100'
           }
         }
@@ -82,7 +82,7 @@ test('Get patent using API key', () => {
 test('Get patent using API key 3', () => {
   let query = `{
     viewerApiKey3 (apiKey: "abcdef") {
-      patentWithId (patentId: "100") {
+      patent (patentId: "100") {
         patentId
       }
     }
@@ -91,7 +91,7 @@ test('Get patent using API key 3', () => {
     expect(result).toEqual({
       data: {
         viewerApiKey3: {
-          patentWithId: {
+          patent: {
             patentId: '100'
           }
         }
@@ -103,7 +103,7 @@ test('Get patent using API key 3', () => {
 test('Get project using API key 1', () => {
   let query = `{
     viewerApiKey (apiKey: "abcdef") {
-      projectWithId (projectId: 1) {
+      project (projectId: 1) {
         active
         projectId
       }
@@ -113,7 +113,7 @@ test('Get project using API key 1', () => {
     expect(result).toEqual({
       data: {
         viewerApiKey: {
-          projectWithId: {
+          project: {
             active: true,
             projectId: 1
           }
@@ -131,14 +131,14 @@ test('Get project using API key passed as option - viewer is disabled', async ()
     }
   })
   let query = `{
-    projectWithId (projectId: 1) {
+    project (projectId: 1) {
       projectId
     }
   }`
   return graphql(schema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        projectWithId: {
+        project: {
           projectId: 1
         }
       }
@@ -156,14 +156,14 @@ test('Get project using API key passed in the requestOptions - viewer is disable
     }
   })
   let query = `{
-    projectWithId (projectId: 1) {
+    project (projectId: 1) {
       projectId
     }
   }`
   return graphql(schema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        projectWithId: {
+        project: {
           projectId: 1
         }
       }
@@ -174,7 +174,7 @@ test('Get project using API key passed in the requestOptions - viewer is disable
 test('Get project using API key 2', () => {
   let query = `{
     viewerApiKey2 (apiKey: "abcdef") {
-      projectWithId (projectId: 1) {
+      project (projectId: 1) {
         projectId
       }
     }
@@ -183,7 +183,7 @@ test('Get project using API key 2', () => {
     expect(result).toEqual({
       data: {
         viewerApiKey2: {
-          projectWithId: {
+          project: {
             projectId: 1
           }
         }
@@ -195,7 +195,7 @@ test('Get project using API key 2', () => {
 test('Post project using API key 1', () => {
   let query = `mutation {
     mutationViewerApiKey (apiKey: "abcdef") {
-      postProjectWithId (projectWithIdInput: {
+      postProjects (projectWithIdInput: {
         projectId: 123
         leadId: "arlene"
       }) {
@@ -209,7 +209,7 @@ test('Post project using API key 1', () => {
     expect(result).toEqual({
       data: {
         mutationViewerApiKey: {
-          postProjectWithId: {
+          postProjects: {
             projectLead: {
               name: 'Arlene L McMahon'
             }
@@ -223,7 +223,7 @@ test('Post project using API key 1', () => {
 test('Post project using API key 2', () => {
   let query = `mutation {
     mutationViewerApiKey2 (apiKey: "abcdef") {
-      postProjectWithId (projectWithIdInput: {
+      postProjects (projectWithIdInput: {
         projectId: 123
         leadId: "arlene"
       }) {
@@ -237,7 +237,7 @@ test('Post project using API key 2', () => {
     expect(result).toEqual({
       data: {
         mutationViewerApiKey2: {
-          postProjectWithId: {
+          postProjects: {
             projectLead: {
               name: 'Arlene L McMahon'
             }
@@ -251,7 +251,7 @@ test('Post project using API key 2', () => {
 test('Get project using API key 3', async () => {
   let query = `{
     viewerApiKey3 (apiKey: "abcdef") {
-      projectWithId (projectId: 1) {
+      project (projectId: 1) {
         projectId
       }
     }
@@ -260,7 +260,7 @@ test('Get project using API key 3', async () => {
     expect(result).toEqual({
       data: {
         viewerApiKey3: {
-          projectWithId: {
+          project: {
             projectId: 1
           }
         }
@@ -277,14 +277,14 @@ test('Get project using API key 3 passed as option - viewer is disabled', async 
     }
   })
   let query = `{
-    projectWithId (projectId: 1) {
+    project (projectId: 1) {
       projectId
     }
   }`
   return graphql(schema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        projectWithId: {
+        project: {
           projectId: 1
         }
       }
@@ -302,14 +302,14 @@ test('Get project using API key 3 passed in the requestOptions - viewer is disab
     }
   })
   let query = `{
-    projectWithId (projectId: 1) {
+    project (projectId: 1) {
       projectId
     }
   }`
   return graphql(schema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        projectWithId: {
+        project: {
           projectId: 1
         }
       }
@@ -320,7 +320,7 @@ test('Get project using API key 3 passed in the requestOptions - viewer is disab
 test('Basic AnyAuth usage', () => {
   let query = `{ 
     viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}) {
-      patentWithId (patentId: "100") {
+      patent (patentId: "100") {
         patentId
       }
     }
@@ -329,7 +329,7 @@ test('Basic AnyAuth usage', () => {
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
-          patentWithId: {
+          patent: {
             patentId: '100'
           }
         }
@@ -341,7 +341,7 @@ test('Basic AnyAuth usage', () => {
 test('Basic AnyAuth usage with extraneous auth data', () => {
   let query = `{ 
     viewerAnyAuth(exampleApiKeyProtocol: {apiKey: "abcdef"}, exampleApiBasicProtocol: {username: "arlene123", password: "password123"}) {
-      patentWithId (patentId: "100") {
+      patent (patentId: "100") {
         patentId
       }
     }
@@ -350,7 +350,7 @@ test('Basic AnyAuth usage with extraneous auth data', () => {
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
-          patentWithId: {
+          patent: {
             patentId: '100'
           }
         }
@@ -362,10 +362,10 @@ test('Basic AnyAuth usage with extraneous auth data', () => {
 test('Basic AnyAuth usage with multiple operations', () => {
   let query = `{ 
     viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}) {
-      patentWithId (patentId: "100") {
+      patent (patentId: "100") {
         patentId
       }
-      projectWithId (projectId: 1) {
+      project (projectId: 1) {
         projectId
       }
     }
@@ -374,10 +374,10 @@ test('Basic AnyAuth usage with multiple operations', () => {
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
-          patentWithId: {
+          patent: {
             patentId: '100'
           },
-          projectWithId: {
+          project: {
             projectId: 1
           }
         }
@@ -389,10 +389,10 @@ test('Basic AnyAuth usage with multiple operations', () => {
 test('AnyAuth with multiple operations with different auth requirements', () => {
   let query = `{ 
     viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}, exampleApiKeyProtocol: {apiKey: "abcdef"}) {
-      patentWithId (patentId: "100") {
+      patent (patentId: "100") {
         patentId
       }
-      projectWithId (projectId: 1) {
+      project (projectId: 1) {
         projectId
       }
     }
@@ -401,10 +401,10 @@ test('AnyAuth with multiple operations with different auth requirements', () => 
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
-          patentWithId: {
+          patent: {
             patentId: '100'
           },
-          projectWithId: {
+          project: {
             projectId: 1
           }
         }
@@ -417,7 +417,7 @@ test('AnyAuth with multiple operations with different auth requirements', () => 
 test('AnyAuth with multiple operations with different auth requirements in a link', () => {
   let query = `{ 
     viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}, exampleApiKeyProtocol: {apiKey: "abcdef"}) {
-      projectWithId (projectId: 3) {
+      project (projectId: 3) {
         projectId
         patentId
         patent {
@@ -433,7 +433,7 @@ test('AnyAuth with multiple operations with different auth requirements in a lin
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
-          projectWithId: {
+          project: {
             projectId: 3,
             patentId: '100',
             patent: {

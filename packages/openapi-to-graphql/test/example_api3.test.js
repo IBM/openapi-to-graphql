@@ -200,7 +200,7 @@ test('Two APIs with viewers', () => {
       }
     }
     viewerBasicAuth2 (username: "arlene123", password: "password123") {
-      patentWithId (patentId: "100") {
+      patent (patentId: "100") {
         patentId
       }
     }
@@ -217,7 +217,7 @@ test('Two APIs with viewers', () => {
           }
         },
         viewerBasicAuth2: {
-          patentWithId: {
+          patent: {
             patentId: '100'
           }
         }
@@ -229,7 +229,7 @@ test('Two APIs with viewers', () => {
 test('Two APIs with AnyAuth viewer', () => {
   let query = `{ 
     viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}, exampleApi3BasicProtocol: {username: "arlene123", password: "password123"}) {
-      projectWithId(projectId: 1) {
+      project(projectId: 1) {
         projectLead{
           name
         }
@@ -243,7 +243,7 @@ test('Two APIs with AnyAuth viewer', () => {
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
-          projectWithId: {
+          project: {
             projectLead: {
               name: 'Arlene L McMahon'
             }
@@ -260,7 +260,7 @@ test('Two APIs with AnyAuth viewer', () => {
 test('Two APIs with AnyAuth viewer and interrelated links', () => {
   let query = `{ 
     viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}, exampleApi3BasicProtocol: {username: "arlene123", password: "password123"}) {
-      projectWithId(projectId: 1) {
+      project(projectId: 1) {
         projectLead{
           name
           author {
@@ -277,7 +277,7 @@ test('Two APIs with AnyAuth viewer and interrelated links', () => {
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
-          projectWithId: {
+          project: {
             projectLead: {
               name: 'Arlene L McMahon',
               author: {
