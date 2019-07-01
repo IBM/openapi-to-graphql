@@ -24,7 +24,7 @@ This is my commit message
 Signed-off-by: Random J Developer <random@developer.example.org>
 ```
 
-Git even has a -s command line option to append this automatically to your commit message:
+Git even has a `-s` command line option to append this automatically to your commit message:
 
 ```sh
 $ git commit -s -m 'This is my commit message'
