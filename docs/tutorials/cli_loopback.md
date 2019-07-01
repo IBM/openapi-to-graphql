@@ -1,6 +1,6 @@
 # OpenAPI-to-GraphQL Quickstart tutorial
 
-The purpose of this tutorial is to show how easy it is to use OpenAPI-to-GraphQL CLI in combination with LoopBack.
+The purpose of this tutorial is to show how easy it is to use OpenAPI-to-GraphQL CLI.
 
 With just a single command line instruction, `openapi-to-graphql <OAS JSON file path or remote url>`, you can get a GraphQL server running.
 
@@ -8,7 +8,8 @@ Please note that while the CLI tool will satisfy most needs, it does not offer t
 
 ## Video demo
 
-[![OpenAPI-to-GraphQL](../conveyor_belt.png)](https://www.youtube.com/watch?v=KXUTmM6y-LM "Click here to watch!")
+[![OpenAPI-to-GraphQL](../conveyor_belt.png)](https://www.youtube.com/watch?v=4TrHUBJElrk "Click here to watch!")
+
 
 ## Do it yourself
 
