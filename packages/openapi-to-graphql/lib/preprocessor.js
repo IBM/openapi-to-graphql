@@ -374,7 +374,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         const saneName = Oas3Tools.capitalize(Oas3Tools.sanitizeAndStore(name, data.saneMap));
         const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
         // Determine the type of the schema
-        const type = Oas3Tools.getSchemaType(schema);
+        const type = Oas3Tools.getSchemaType(schema, data);
         if (!type) {
             throw new Error(`Cannot process schema '${JSON.stringify(schema)}'. Cannot identify type of schema.`);
         }

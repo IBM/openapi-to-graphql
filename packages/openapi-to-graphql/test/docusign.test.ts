@@ -8,11 +8,12 @@
 /* globals test, expect */
 
 import * as openapiToGraphql from '../lib/index.js'
+import { Options } from '../lib/types/options.js'
 
 const oas = require('./fixtures/docusign_oas.json')
 
 test('Generate schema without problems', () => {
-  const options = {
+  const options: Options = {
     strict: false
   }
   return openapiToGraphql

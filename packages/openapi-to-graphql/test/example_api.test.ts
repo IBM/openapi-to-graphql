@@ -8,6 +8,7 @@
 /* globals beforeAll, test, expect */
 
 import * as openapiToGraphql from '../lib/index.js'
+import { Options } from '../lib/types/options.js'
 const { graphql, parse, validate } = require('graphql')
 const { startServer, stopServer } = require('./example_api_server')
 
@@ -811,24 +812,24 @@ test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        "cars": [
+        cars: [
           {
-            "tags": null
+            tags: null
           },
           {
-            "tags": {
-              "speed": "extreme"
+            tags: {
+              speed: 'extreme'
             }
           },
           {
-            "tags": {
-              "impression": "decadent",
-              "condition": "slightly beat-up"
+            tags: {
+              impression: 'decadent',
+              condition: 'slightly beat-up'
             }
           },
           {
-            "tags": {
-              "impression": "decadent"
+            tags: {
+              impression: 'decadent'
             }
           }
         ]
@@ -855,7 +856,7 @@ test('Capitalized enum values can be returned', () => {
 })
 
 test('Define header and query options', () => {
-  const options = {
+  const options: Options = {
     headers: {
       exampleHeader: 'some-value'
     },
@@ -936,7 +937,7 @@ test('Error contains extension', () => {
 })
 
 test('Option provideErrorExtensions should prevent error extensions from being created', () => {
-  const options = {
+  const options: Options = {
     provideErrorExtensions: false
   }
   const query = `query {
@@ -973,7 +974,7 @@ test('Option provideErrorExtensions should prevent error extensions from being c
 })
 
 test('Option customResolver', () => {
-  const options = {
+  const options: Options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -1010,7 +1011,7 @@ test('Option customResolver', () => {
 })
 
 test('Option customResolver with links', () => {
-  const options = {
+  const options: Options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -1064,13 +1065,13 @@ test('Option customResolver with links', () => {
 })
 
 test('Option customResolver using resolver arguments', () => {
-  const options = {
+  const options: Options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
           get: (obj, args, context, info) => {
             return {
-              name: args.username
+              name: args['username']
             }
           }
         }
@@ -1101,7 +1102,7 @@ test('Option customResolver using resolver arguments', () => {
 })
 
 test('Option customResolver using resolver arguments that are sanitized', () => {
-  const options = {
+  const options: Options = {
     customResolvers: {
       'Example API': {
         '/products/{product-id}': {
@@ -1140,7 +1141,7 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
 })
 
 test('Option addLimitArgument', () => {
-  const options = {
+  const options: Options = {
     addLimitArgument: true
   }
   const query = `query {
@@ -1272,48 +1273,48 @@ test('Handle objects without defined properties with arbitrary GraphQL JSON type
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        "trashcan": {
-          "brand": "Garbage Emporium",
-          "contents": [
+        trashcan: {
+          brand: 'Garbage Emporium',
+          contents: [
             {
-              "type": "apple",
-              "message": "Half-eaten"
+              type: 'apple',
+              message: 'Half-eaten'
             },
             {
-              "type": "sock",
-              "message": "Lost one"
+              type: 'sock',
+              message: 'Lost one'
             }
           ]
         },
-        "trashcans": [
+        trashcans: [
           {
-            "contents": [
+            contents: [
               {
-                "type": "apple",
-                "message": "Half-eaten"
+                type: 'apple',
+                message: 'Half-eaten'
               },
               {
-                "type": "sock",
-                "message": "Lost one"
+                type: 'sock',
+                message: 'Lost one'
               }
             ]
           },
           {
-            "contents": [
+            contents: [
               {
-                "type": "sock",
-                "message": "Lost one"
+                type: 'sock',
+                message: 'Lost one'
               }
             ]
           },
           {
-            "contents": []
+            contents: []
           },
           {
-            "contents": [
+            contents: [
               {
-                "type": "tissue",
-                "message": "Used"
+                type: 'tissue',
+                message: 'Used'
               }
             ]
           }
@@ -1324,7 +1325,7 @@ test('Handle objects without defined properties with arbitrary GraphQL JSON type
 })
 
 test('Generate "Equivalent to..." messages', () => {
-  const options = {
+  const options: Options = {
     // Used to simplify test. Otherwise viewers will polute query/mutation fields.
     viewer: false
   }
@@ -1417,7 +1418,7 @@ test('Generate "Equivalent to..." messages', () => {
 })
 
 test('Withhold "Equivalent to..." messages', () => {
-  const options = {
+  const options: Options = {
     // Used to simplify test. Otherwise viewers will polute query/mutation fields.
     viewer: false,
     equivalentToMessages: false
@@ -1499,4 +1500,71 @@ test('Withhold "Equivalent to..." messages', () => {
     })
 
   return Promise.all([promise, promise2])
+})
+
+test('UUID format becomes GraphQL ID type', () => {
+  let query = `{
+    __type(name: "Company") {
+      fields {
+        name
+        type {
+          name
+          kind
+        }
+      }
+    }
+  }`
+  return graphql(createdSchema, query).then(result => {
+    expect(
+      result.data['__type'].fields.find(field => {
+        return field.name === 'id'
+      })
+    ).toEqual({
+      name: 'id',
+      type: {
+        name: 'ID',
+        kind: 'SCALAR'
+      }
+    })
+  })
+})
+
+test('Option idFormats', () => {
+  const options: Options = {
+    idFormats: ['specialIdFormat']
+  }
+
+  // Check query/mutation field descriptions
+  const query = `{
+    __type(name: "PatentWithId") {
+      fields {
+        name
+        type {
+          name
+          kind
+        }
+      }
+    }
+  }`
+
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      const ast = parse(query)
+      const errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(
+          result.data['__type'].fields.find(field => {
+            return field.name === 'patentId'
+          })
+        ).toEqual({
+          name: 'patentId',
+          type: {
+            name: 'ID',
+            kind: 'SCALAR'
+          }
+        })
+      })
+    })
 })

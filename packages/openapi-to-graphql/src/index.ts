@@ -155,6 +155,7 @@ async function translateOpenApiToGraphQL(
     operationIdFieldNames,
     fillEmptyResponses,
     addLimitArgument,
+    idFormats,
 
     // Resolver options
     headers,
@@ -181,6 +182,7 @@ async function translateOpenApiToGraphQL(
     operationIdFieldNames,
     fillEmptyResponses,
     addLimitArgument,
+    idFormats,
 
     // Resolver options
     headers,

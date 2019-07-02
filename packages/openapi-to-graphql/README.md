@@ -154,6 +154,8 @@ Schema options:
 
 - `addLimitArgument` (type: `boolean`, default: `false`): Add a `limit` argument to fields returning lists of objects/lists that will limit the number of returned elements, selecting the first `n` elements of the list.
 
+- `idFormats` (type: `string[]`): If a schema is of type string and has format UUID, it will be translated into a [GraphQL ID type](https://graphql.org/graphql-js/type/#graphqlid). To allow for more customzation, this option allows users to specify other formats that should be interpreted as ID types. 
+
 ***
 
 Resolver options:

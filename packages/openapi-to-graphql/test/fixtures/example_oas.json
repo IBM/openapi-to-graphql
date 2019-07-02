@@ -1113,7 +1113,8 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "The identifier of a company"
+            "description": "The identifier of a company",
+            "format": "uuid"
           },
           "name": {
             "type": "string",
@@ -1186,7 +1187,8 @@
         "properties": {
           "patent-id": {
             "type": "string",
-            "description": "The id of the patent"
+            "description": "The id of the patent",
+            "format": "specialIdFormat"
           },
           "inventor-id": {
             "type": "string",

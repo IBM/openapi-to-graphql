@@ -23,6 +23,7 @@ import {
   GraphQLScalarType,
   GraphQLObjectType,
   GraphQLString,
+  GraphQLID,
   GraphQLInt,
   GraphQLFloat,
   GraphQLBoolean,
@@ -378,6 +379,9 @@ function getScalarType({ def, data }: ReuseOrCreateScalar): GraphQLScalarType {
   const type = def.type
 
   switch (type) {
+    case 'id':
+      def.ot = GraphQLID
+      break
     case 'string':
       def.ot = GraphQLString
       break

@@ -67,6 +67,13 @@ export type Options = {
    */
   addLimitArgument?: boolean
 
+  /**
+   * If a schema is of type string and has format UUID, it will be translated
+   * into a GraphQL ID type. To allow for more customzation, this option allows
+   * users to specify other formats that should be interpreted as ID types.
+   */
+  idFormats?: string[]
+
   // Resolver options
 
   /**
@@ -201,6 +208,13 @@ export type InternalOptions = {
    * Returns the first n number of elements in the list
    */
   addLimitArgument: boolean
+
+  /**
+   * If a schema is of type string and has format UUID, it will be translated
+   * into a GraphQL ID type. To allow for more customzation, this option allows
+   * users to specify other formats that should be interpreted as ID types.
+   */
+  idFormats?: string[]
 
   // Resolver options
 

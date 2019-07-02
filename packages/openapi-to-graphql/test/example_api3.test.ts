@@ -8,6 +8,7 @@
 /* globals beforeAll, test, expect */
 
 import * as openapiToGraphql from '../lib/index.js'
+import { Options } from '../lib/types/options.js'
 const { graphql, parse, validate } = require('graphql')
 const api = require('./example_api_server')
 const api2 = require('./example_api3_server')
@@ -295,7 +296,7 @@ test('Two APIs with AnyAuth viewer and interrelated links', () => {
 })
 
 test('Option customResolver with two APIs', () => {
-  const options = {
+  const options: Options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -347,7 +348,7 @@ test('Option customResolver with two APIs', () => {
 })
 
 test('Option customResolver with two APIs and interrelated links', () => {
-  const options = {
+  const options: Options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
