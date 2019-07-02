@@ -243,6 +243,9 @@ function reuseOrCreateEnum({ def, data }) {
 function getScalarType({ def, data }) {
     const type = def.type;
     switch (type) {
+        case 'id':
+            def.ot = graphql_1.GraphQLID;
+            break;
         case 'string':
             def.ot = graphql_1.GraphQLString;
             break;

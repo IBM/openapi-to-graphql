@@ -86,7 +86,7 @@ export declare function instantiatePathAndGetQuery(path: string, parameters: Par
  * Returns the "type" of the given JSON schema. Makes best guesses if the type
  * is not explicitly defined.
  */
-export declare function getSchemaType(schema: SchemaObject): string | null;
+export declare function getSchemaType(schema: SchemaObject, data: PreprocessingData): string | null;
 /**
  * Determines an approximate name for the resource at the given path.
  */

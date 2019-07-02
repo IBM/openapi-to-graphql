@@ -26,7 +26,7 @@ let oas3 = require('./fixtures/example_oas3.json')
 
 openapiToGraphql
   .createGraphQlSchema(oas, {
-    fillEmptyResponses: true
+    idFormats: ['specialIdFormat']
   })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))

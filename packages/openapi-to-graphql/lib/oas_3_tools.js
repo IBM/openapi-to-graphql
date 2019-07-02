@@ -304,13 +304,13 @@ exports.instantiatePathAndGetQuery = instantiatePathAndGetQuery;
  * Returns the "type" of the given JSON schema. Makes best guesses if the type
  * is not explicitly defined.
  */
-function getSchemaType(schema) {
+function getSchemaType(schema, data) {
     // CASE: enum
     if (Array.isArray(schema.enum)) {
         return 'enum';
     }
     // CASE: object
-    if (schema.type === 'object') {
+    if (schema.type === 'object' || 'properties' in schema) {
         // CASE: arbitrary JSON
         if (typeof schema.additionalProperties === 'object') {
             return 'json';
@@ -319,19 +319,30 @@ function getSchemaType(schema) {
             return 'object';
         }
     }
-    if ('properties' in schema) {
-        return 'object';
-    }
     // CASE: array
-    if ('items' in schema) {
+    if (schema.type === 'array' || 'items' in schema) {
         return 'array';
-    }
-    // CASE: 64 bit int - return number, leading to use of GraphQLFloat:
-    if (schema.type === 'integer' && schema.format === 'int64') {
-        return 'number';
     }
     // CASE: a type is present
     if (typeof schema.type === 'string') {
+        // Special edge cases involving the schema format 
+        if (typeof schema.format === 'string') {
+            /**
+             * CASE: 64 bit int - return number instead of integer, leading to use of
+             * GraphQLFloat, which can support 64 bits:
+             */
+            if (schema.type === 'integer' && schema.format === 'int64') {
+                return 'number';
+                // CASE: id
+            }
+            else if (schema.type === 'string' &&
+                (schema.format === 'uuid' ||
+                    // Custom ID format
+                    (Array.isArray(data.options.idFormats) &&
+                        data.options.idFormats.includes(schema.format)))) {
+                return 'id';
+            }
+        }
         return schema.type;
     }
     // CASE: nullable - default to string

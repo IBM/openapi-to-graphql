@@ -99,7 +99,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
  */
 function translateOpenApiToGraphQL(oass, { strict, report, 
 // Schema options
-operationIdFieldNames, fillEmptyResponses, addLimitArgument, 
+operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, 
 // Resolver options
 headers, qs, requestOptions, baseUrl, customResolvers, 
 // Authentication options
@@ -114,6 +114,7 @@ provideErrorExtensions, equivalentToMessages }) {
             operationIdFieldNames,
             fillEmptyResponses,
             addLimitArgument,
+            idFormats,
             // Resolver options
             headers,
             qs,
