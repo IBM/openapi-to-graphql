@@ -39,6 +39,7 @@
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "scripts": {
+    "prepublish": "npm run build",
     "api": "nodemon test/example_api_server.js",
     "dev": "tsc -w",
     "start_dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",

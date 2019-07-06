@@ -38,6 +38,7 @@
   },
   "main": "lib/index.js",
   "scripts": {
+    "prepublish": "npm run build",
     "dev": "tsc -w",
     "build": "tsc"
   },

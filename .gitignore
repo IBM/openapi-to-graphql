@@ -47,3 +47,6 @@ tmp
 
 # Lock files:
 package-lock.json
+
+# Built files:
+lib/
