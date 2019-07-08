@@ -33,49 +33,7 @@ export type Options = {
    */
   strict?: boolean
 
-  /**
-   * Custom headers to send with every request made by a resolve function.
-   */
-  headers?: { [key: string]: string }
-
-  /**
-   * Custom query parameters to send with every reqeust by a resolve function.
-   */
-  qs?: { [key: string]: string }
-
-  /**
-   * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
-   * basic auth and API key credentials.
-   */
-  viewer?: boolean
-
-  /**
-   * JSON path to OAuth 2 token contained in GraphQL context. Tokens will per
-   * default be sent in "Authorization" header.
-   */
-  tokenJSONpath?: string
-
-  /**
-   * Determines whether to send OAuth 2 token as query parameter instead of in
-   * header.
-   */
-  sendOAuthTokenInQuery?: boolean
-
-  /**
-   * Under certain circumstances (such as response code 204), some RESTful
-   * operations should not return any data. However, GraphQL objects must have
-   * a data structure. Normally, these operations would be ignored but for the
-   * sake of completeness, the following option will give these operations a
-   * placeholder data structure. Even though the data structure will not have
-   * any practical use, at least the operations will show up in the schema.
-   */
-  fillEmptyResponses?: boolean
-
-  /**
-   * Specifies the URL on which all paths will be based on.
-   * Overrides the server object in the OAS.
-   */
-  baseUrl?: string
+  // Schema options
 
   /**
    * Field names can only be sanitized operationIds
@@ -90,6 +48,38 @@ export type Options = {
   operationIdFieldNames?: boolean
 
   /**
+   * Under certain circumstances (such as response code 204), some RESTful
+   * operations should not return any data. However, GraphQL objects must have
+   * a data structure. Normally, these operations would be ignored but for the
+   * sake of completeness, the following option will give these operations a
+   * placeholder data structure. Even though the data structure will not have
+   * any practical use, at least the operations will show up in the schema.
+   */
+  fillEmptyResponses?: boolean
+
+  /**
+   * Auto-generate a 'limit' argument for all fields that return lists of
+   * objects, including ones produced by links
+   *
+   * Allows to constrain the return size of lists of objects
+   *
+   * Returns the first n number of elements in the list
+   */
+  addLimitArgument?: boolean
+
+  // Resolver options
+
+  /**
+   * Custom headers to send with every request made by a resolve function.
+   */
+  headers?: { [key: string]: string }
+
+  /**
+   * Custom query parameters to send with every reqeust by a resolve function.
+   */
+  qs?: { [key: string]: string }
+
+  /**
    * Allows to override or add options to the node's request object used to make
    * calls to the API backend.
    * e.g. Setup the web proxy to use.
@@ -97,15 +87,10 @@ export type Options = {
   requestOptions?: NodeRequest.OptionsWithUrl
 
   /**
-   * The error extensions is part of the GraphQLErrors that will be returned if
-   * the query cannot be fulfilled. It provides information about the failed
-   * REST call(e.g. the method, path, status code, response
-   * headers, and response body). It can be useful for debugging but may
-   * unintentionally leak information.
-   *
-   * This option prevents the extensions from being created.
+   * Specifies the URL on which all paths will be based on.
+   * Overrides the server object in the OAS.
    */
-  provideErrorExtensions?: boolean
+  baseUrl?: string
 
   /**
    * Allows to define custom resolvers for fields on the query/mutation root
@@ -126,15 +111,38 @@ export type Options = {
     [title: string]: { [path: string]: { [method: string]: ResolveFunction } }
   }
 
+  // Authentication options
+
   /**
-   * Auto-generate a 'limit' argument for all fields that return lists of
-   * objects, including ones produced by links
-   *
-   * Allows to constrain the return size of lists of objects
-   *
-   * Returns the first n number of elements in the list
+   * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
+   * basic auth and API key credentials.
    */
-  addLimitArgument?: boolean
+  viewer?: boolean
+
+  /**
+   * JSON path to OAuth 2 token contained in GraphQL context. Tokens will per
+   * default be sent in "Authorization" header.
+   */
+  tokenJSONpath?: string
+
+  /**
+   * Determines whether to send OAuth 2 token as query parameter instead of in
+   * header.
+   */
+  sendOAuthTokenInQuery?: boolean
+
+  // Logging options
+
+  /**
+   * The error extensions is part of the GraphQLErrors that will be returned if
+   * the query cannot be fulfilled. It provides information about the failed
+   * REST call(e.g. the method, path, status code, response
+   * headers, and response body). It can be useful for debugging but may
+   * unintentionally leak information.
+   *
+   * This option prevents the extensions from being created.
+   */
+  provideErrorExtensions?: boolean
 
   /**
    * Appends a small statement to the end of field description that clarifies
@@ -156,53 +164,11 @@ export type InternalOptions = {
   strict: boolean
 
   /**
-   * Custom headers to send with every request made by a resolve function.
-   */
-  headers?: { [key: string]: string }
-
-  /**
-   * Custom query parameters to send with every reqeust by a resolve function.
-   */
-  qs?: { [key: string]: string }
-
-  /**
-   * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
-   * basic auth and API key credentials.
-   */
-  viewer: boolean
-
-  /**
-   * JSON path to OAuth 2 token contained in GraphQL context. Tokens will per
-   * default be sent in "Authorization" header.
-   */
-  tokenJSONpath?: string
-
-  /**
-   * Determines whether to send OAuth 2 token as query parameter instead of in
-   * header.
-   */
-  sendOAuthTokenInQuery: boolean
-
-  /**
    * Holds information about the GraphQL schema generation process
    */
   report: Report
 
-  /**
-   * Under certain circumstances (such as response code 204), some RESTful
-   * operations should not return any data. However, GraphQL objects must have
-   * a data structure. Normally, these operations would be ignored but for the
-   * sake of completeness, the following option will give these operations a
-   * placeholder data structure. Even though the data structure will not have
-   * any practical use, at least the operations will show up in the schema.
-   */
-  fillEmptyResponses: boolean
-
-  /**
-   * Specifies the URL on which all paths will be based on.
-   * Overrides the server object in the OAS.
-   */
-  baseUrl?: string
+  // Schema options
 
   /**
    * Field names can only be sanitized operationIds
@@ -217,6 +183,38 @@ export type InternalOptions = {
   operationIdFieldNames: boolean
 
   /**
+   * Under certain circumstances (such as response code 204), some RESTful
+   * operations should not return any data. However, GraphQL objects must have
+   * a data structure. Normally, these operations would be ignored but for the
+   * sake of completeness, the following option will give these operations a
+   * placeholder data structure. Even though the data structure will not have
+   * any practical use, at least the operations will show up in the schema.
+   */
+  fillEmptyResponses: boolean
+
+  /**
+   * Auto-generate a 'limit' argument for all fields that return lists of
+   * objects, including ones produced by links
+   *
+   * Allows to constrain the return size of lists of objects
+   *
+   * Returns the first n number of elements in the list
+   */
+  addLimitArgument: boolean
+
+  // Resolver options
+
+  /**
+   * Custom headers to send with every request made by a resolve function.
+   */
+  headers?: { [key: string]: string }
+
+  /**
+   * Custom query parameters to send with every reqeust by a resolve function.
+   */
+  qs?: { [key: string]: string }
+
+  /**
    * Allows to override or add options to the node's request object used to make
    * calls to the API backend.
    * e.g. Setup the web proxy to use.
@@ -224,15 +222,10 @@ export type InternalOptions = {
   requestOptions?: NodeRequest.OptionsWithUrl
 
   /**
-   * The error extensions is part of the GraphQLErrors that will be returned if
-   * the query cannot be fulfilled. It provides information about the failed
-   * REST call(e.g. the method, path, status code, response
-   * headers, and response body). It can be useful for debugging but may
-   * unintentionally leak information.
-   *
-   * This option prevents the extensions from being created.
+   * Specifies the URL on which all paths will be based on.
+   * Overrides the server object in the OAS.
    */
-  provideErrorExtensions: boolean
+  baseUrl?: string
 
   /**
    * Allows to define custom resolvers for fields on the query/mutation root
@@ -253,15 +246,38 @@ export type InternalOptions = {
     [title: string]: { [path: string]: { [method: string]: ResolveFunction } }
   }
 
+  // Authentication options
+
   /**
-   * Auto-generate a 'limit' argument for all fields that return lists of
-   * objects, including ones produced by links
-   *
-   * Allows to constrain the return size of lists of objects
-   *
-   * Returns the first n number of elements in the list
+   * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
+   * basic auth and API key credentials.
    */
-  addLimitArgument: boolean
+  viewer: boolean
+
+  /**
+   * JSON path to OAuth 2 token contained in GraphQL context. Tokens will per
+   * default be sent in "Authorization" header.
+   */
+  tokenJSONpath?: string
+
+  /**
+   * Determines whether to send OAuth 2 token as query parameter instead of in
+   * header.
+   */
+  sendOAuthTokenInQuery: boolean
+
+  // Logging options
+
+  /**
+   * The error extensions is part of the GraphQLErrors that will be returned if
+   * the query cannot be fulfilled. It provides information about the failed
+   * REST call(e.g. the method, path, status code, response
+   * headers, and response body). It can be useful for debugging but may
+   * unintentionally leak information.
+   *
+   * This option prevents the extensions from being created.
+   */
+  provideErrorExtensions: boolean
 
   /**
    * Appends a small statement to the end of field description that clarifies

@@ -71,27 +71,33 @@ export async function createGraphQlSchema(
 
   // Setting default options
   options.strict = typeof options.strict === 'boolean' ? options.strict : false
-  options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
-  options.sendOAuthTokenInQuery =
-    typeof options.sendOAuthTokenInQuery === 'boolean'
-      ? options.sendOAuthTokenInQuery
+
+  // Schema options
+  options.operationIdFieldNames =
+    typeof options.operationIdFieldNames === 'boolean'
+      ? options.operationIdFieldNames
       : false
   options.fillEmptyResponses =
     typeof options.fillEmptyResponses === 'boolean'
       ? options.fillEmptyResponses
       : false
-  options.operationIdFieldNames =
-    typeof options.operationIdFieldNames === 'boolean'
-      ? options.operationIdFieldNames
-      : false
-  options.provideErrorExtensions =
-    typeof options.provideErrorExtensions === 'boolean'
-      ? options.provideErrorExtensions
-      : true
   options.addLimitArgument =
     typeof options.addLimitArgument === 'boolean'
       ? options.addLimitArgument
       : false
+
+  // Authentication options
+  options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
+  options.sendOAuthTokenInQuery =
+    typeof options.sendOAuthTokenInQuery === 'boolean'
+      ? options.sendOAuthTokenInQuery
+      : false
+
+  // Logging options
+  options.provideErrorExtensions =
+    typeof options.provideErrorExtensions === 'boolean'
+      ? options.provideErrorExtensions
+      : true
   options.equivalentToMessages =
     typeof options.equivalentToMessages === 'boolean'
       ? options.equivalentToMessages
@@ -143,37 +149,53 @@ async function translateOpenApiToGraphQL(
   oass: Oas3[],
   {
     strict,
+    report,
+
+    // Schema options
+    operationIdFieldNames,
+    fillEmptyResponses,
+    addLimitArgument,
+
+    // Resolver options
     headers,
     qs,
+    requestOptions,
+    baseUrl,
+    customResolvers,
+
+    // Authentication options
     viewer,
     tokenJSONpath,
     sendOAuthTokenInQuery,
-    fillEmptyResponses,
-    baseUrl,
-    operationIdFieldNames,
-    report,
-    requestOptions,
+
+    // Logging options
     provideErrorExtensions,
-    customResolvers,
-    addLimitArgument,
     equivalentToMessages
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema; report: Report }> {
   const options = {
+    strict,
+    report,
+
+    // Schema options
+    operationIdFieldNames,
+    fillEmptyResponses,
+    addLimitArgument,
+
+    // Resolver options
     headers,
     qs,
+    requestOptions,
+    baseUrl,
+    customResolvers,
+
+    // Authentication options
     viewer,
     tokenJSONpath,
-    strict,
     sendOAuthTokenInQuery,
-    fillEmptyResponses,
-    baseUrl,
-    operationIdFieldNames,
-    report,
-    requestOptions,
+
+    // Logging options
     provideErrorExtensions,
-    customResolvers,
-    addLimitArgument,
     equivalentToMessages
   }
   translationLog(`Options: ${JSON.stringify(options)}`)

@@ -33,27 +33,30 @@ function createGraphQlSchema(spec, options) {
         }
         // Setting default options
         options.strict = typeof options.strict === 'boolean' ? options.strict : false;
-        options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true;
-        options.sendOAuthTokenInQuery =
-            typeof options.sendOAuthTokenInQuery === 'boolean'
-                ? options.sendOAuthTokenInQuery
+        // Schema options
+        options.operationIdFieldNames =
+            typeof options.operationIdFieldNames === 'boolean'
+                ? options.operationIdFieldNames
                 : false;
         options.fillEmptyResponses =
             typeof options.fillEmptyResponses === 'boolean'
                 ? options.fillEmptyResponses
                 : false;
-        options.operationIdFieldNames =
-            typeof options.operationIdFieldNames === 'boolean'
-                ? options.operationIdFieldNames
-                : false;
-        options.provideErrorExtensions =
-            typeof options.provideErrorExtensions === 'boolean'
-                ? options.provideErrorExtensions
-                : true;
         options.addLimitArgument =
             typeof options.addLimitArgument === 'boolean'
                 ? options.addLimitArgument
                 : false;
+        // Authentication options
+        options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true;
+        options.sendOAuthTokenInQuery =
+            typeof options.sendOAuthTokenInQuery === 'boolean'
+                ? options.sendOAuthTokenInQuery
+                : false;
+        // Logging options
+        options.provideErrorExtensions =
+            typeof options.provideErrorExtensions === 'boolean'
+                ? options.provideErrorExtensions
+                : true;
         options.equivalentToMessages =
             typeof options.equivalentToMessages === 'boolean'
                 ? options.equivalentToMessages
@@ -94,23 +97,35 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers, addLimitArgument, equivalentToMessages }) {
+function translateOpenApiToGraphQL(oass, { strict, report, 
+// Schema options
+operationIdFieldNames, fillEmptyResponses, addLimitArgument, 
+// Resolver options
+headers, qs, requestOptions, baseUrl, customResolvers, 
+// Authentication options
+viewer, tokenJSONpath, sendOAuthTokenInQuery, 
+// Logging options
+provideErrorExtensions, equivalentToMessages }) {
     return __awaiter(this, void 0, void 0, function* () {
         const options = {
+            strict,
+            report,
+            // Schema options
+            operationIdFieldNames,
+            fillEmptyResponses,
+            addLimitArgument,
+            // Resolver options
             headers,
             qs,
+            requestOptions,
+            baseUrl,
+            customResolvers,
+            // Authentication options
             viewer,
             tokenJSONpath,
-            strict,
             sendOAuthTokenInQuery,
-            fillEmptyResponses,
-            baseUrl,
-            operationIdFieldNames,
-            report,
-            requestOptions,
+            // Logging options
             provideErrorExtensions,
-            customResolvers,
-            addLimitArgument,
             equivalentToMessages
         };
         translationLog(`Options: ${JSON.stringify(options)}`);
