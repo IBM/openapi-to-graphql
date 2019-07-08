@@ -19,14 +19,24 @@ program
   .usage('<OAS JSON file path(s) and/or remote url(s)> [options]')
   .arguments('<path(s) and/or url(s)>')
   .option(
+    '-s, --strict',
+    'throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS'
+  )
+  .option('--save <file path>', 'save schema to path and do not start server')
+
+  // Resolver options
+  .option(
     '-p, --port <port>',
     'select the port where the server will start',
     parseInt
   )
   .option('-u, --url <url>', 'select the base url which paths will be built on')
+  .option('--cors', 'enable Cross-origin resource sharing (CORS)')
+
+  // Schema options
   .option(
-    '-s, --strict',
-    'throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS'
+    '-o, --operationIdFieldNames',
+    'create field names based on the operationId'
   )
   .option(
     '-f, --fillEmptyResponses',
@@ -36,15 +46,14 @@ program
     '-a, --addLimitArgument',
     'add a limit argument on fields returning lists of objects/lists to control the data size'
   )
-  .option(
-    '-o, --operationIdFieldNames',
-    'create field names based on the operationId'
-  )
-  .option('--cors', 'enable Cross-origin resource sharing (CORS)')
+
+  // Authentication options
   .option(
     '--no-viewer',
     'do not create GraphQL viewer objects for passing authentication credentials'
   )
+
+  // Logging options
   .option(
     '--no-extensions',
     'do not add extentions, containing information about failed REST calls, to the GraphQL errors objects'
@@ -53,7 +62,6 @@ program
     '--no-equivalentToMessages',
     'do not append information about the underlying REST operations to the description of fields'
   )
-  .option('--save <file path>', 'save schema to path and do not start server')
   .parse(process.argv)
 
 // Select the port on which to host the GraphQL server
@@ -161,12 +169,20 @@ function startGraphQLServer(oas, port) {
   // Create GraphQL interface
   createGraphQlSchema(oas, {
     strict: program.strict,
-    viewer: program.viewer,
-    fillEmptyResponses: program.fillEmptyResponses,
+
+    // Resolver options
     baseUrl: program.url,
+
+    // Schema options
     operationIdFieldNames: program.operationIdFieldNames,
-    provideErrorExtensions: program.extensions,
+    fillEmptyResponses: program.fillEmptyResponses,
     addLimitArgument: program.addLimitArgument,
+
+    // Authentication options
+    viewer: program.viewer,
+
+    // Logging options
+    provideErrorExtensions: program.extensions,
     equivalentToMessages: program.equivalentToMessages
   })
     .then(({ schema, report }) => {
