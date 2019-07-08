@@ -54,6 +54,10 @@ function createGraphQlSchema(spec, options) {
             typeof options.addLimitArgument === 'boolean'
                 ? options.addLimitArgument
                 : false;
+        options.equivalentToMessages =
+            typeof options.equivalentToMessages === 'boolean'
+                ? options.equivalentToMessages
+                : true;
         options['report'] = {
             warnings: [],
             numOps: 0,
@@ -90,7 +94,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers, addLimitArgument }) {
+function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSONpath, sendOAuthTokenInQuery, fillEmptyResponses, baseUrl, operationIdFieldNames, report, requestOptions, provideErrorExtensions, customResolvers, addLimitArgument, equivalentToMessages }) {
     return __awaiter(this, void 0, void 0, function* () {
         const options = {
             headers,
@@ -106,7 +110,8 @@ function translateOpenApiToGraphQL(oass, { strict, headers, qs, viewer, tokenJSO
             requestOptions,
             provideErrorExtensions,
             customResolvers,
-            addLimitArgument
+            addLimitArgument,
+            equivalentToMessages
         };
         translationLog(`Options: ${JSON.stringify(options)}`);
         /**

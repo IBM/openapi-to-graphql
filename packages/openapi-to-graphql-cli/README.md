@@ -27,11 +27,12 @@ Options:
   -u, --url <url>              select the base url which paths will be built on
   -s, --strict                 throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS
   -f, --fillEmptyResponses     create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them
-  -a, --addLimitArgument       add a limit argument on fields returning lists of objects/lists that will constrain the list size
+  -a, --addLimitArgument       add limit argument on fields returning lists of objects/lists to control the data size
   -o, --operationIdFieldNames  create field names based on the operationId
   --cors                       enable Cross-origin resource sharing (CORS)
   --no-viewer                  do not create GraphQL viewer objects for passing authentication credentials
   --no-extensions              do not add extentions, containing information about failed REST calls, to the GraphQL errors objects
+  --no-equivalentToMessages    do not append information about the underlying REST operations to the description of fields
   --save <file path>           save schema to path and do not start server
   -h, --help                   output usage information
 ```

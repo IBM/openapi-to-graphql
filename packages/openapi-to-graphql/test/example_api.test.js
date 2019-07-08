@@ -42,7 +42,7 @@ afterAll(() => {
 })
 
 test('Get descriptions', () => {
-  let query = `{
+  const query = `{
     __type(name: "Car") {
       name
       fields {
@@ -76,7 +76,7 @@ test('Get descriptions', () => {
 })
 
 test('Get resource (incl. enum)', () => {
-  let query = `{
+  const query = `{
     user (username: "arlene") {
       name
       status
@@ -90,7 +90,7 @@ test('Get resource (incl. enum)', () => {
 })
 
 test('Get resource 2', () => {
-  let query = `{
+  const query = `{
     company (id: "binsol") {
       legalForm
     }
@@ -101,7 +101,7 @@ test('Get resource 2', () => {
 })
 
 test('Get resource with status code: 2XX', () => {
-  let query = `{
+  const query = `{
     papers {
       name
       published
@@ -124,7 +124,7 @@ test('Get resource with status code: 2XX', () => {
 })
 
 test('Get resource with no response schema and status code: 204 and fillEmptyResponses', () => {
-  let query = `{
+  const query = `{
     bonuses
   }`
   return graphql(createdSchema, query).then(result => {
@@ -137,7 +137,7 @@ test('Get resource with no response schema and status code: 204 and fillEmptyRes
 })
 
 test('Get nested resource via link $response.body#/...', () => {
-  let query = `{
+  const query = `{
     user (username: "arlene") {
       name
       employerCompany {
@@ -160,7 +160,7 @@ test('Get nested resource via link $response.body#/...', () => {
 })
 
 test('Get nested resource via link $request.path#/... and $request.query#/', () => {
-  let query = `{
+  const query = `{
     productWithId (productId: "123" productTag: "blah") {
       productName
       reviews {
@@ -181,7 +181,7 @@ test('Get nested resource via link $request.path#/... and $request.query#/', () 
 })
 
 test('Get nested resource via link operationRef', () => {
-  let query = `{
+  const query = `{
     productWithId (productId: "123" productTag: "blah") {
       productName
       reviewsWithOperationRef {
@@ -205,7 +205,7 @@ test('Get nested resource via link operationRef', () => {
 })
 
 test('Get nested lists of resources', () => {
-  let query = `{
+  const query = `{
     user(username: "arlene") {
       name
       friends {
@@ -374,7 +374,7 @@ test('Get nested lists of resources', () => {
 })
 
 test('Link parameters as constants and variables', () => {
-  let query = `{
+  const query = `{
     scanner(query: "hello") {
       body
       basicLink{
@@ -416,7 +416,7 @@ test('Link parameters as constants and variables', () => {
 })
 
 test('Nested links with constants and variables', () => {
-  let query = `{
+  const query = `{
     scanner(query: "val") {
       body
       basicLink{
@@ -490,7 +490,7 @@ test('Nested links with constants and variables', () => {
 })
 
 test('Link parameters as constants and variables with request payload', () => {
-  let query = `mutation {
+  const query = `mutation {
     postScanner(query: "query", path: "path", textPlainInput: "body") {
       body
       everythingLink2 {
@@ -514,7 +514,7 @@ test('Link parameters as constants and variables with request payload', () => {
 })
 
 test('Get response without providing parameter with default value', () => {
-  let query = `{
+  const query = `{
     productsReviews (id: "100") {
       text
     }
@@ -529,7 +529,7 @@ test('Get response without providing parameter with default value', () => {
 })
 
 test('Get response with header parameters', () => {
-  let query = `{
+  const query = `{
     snack(snackType: chips, snackSize: small)
   }`
   return graphql(createdSchema, query).then(result => {
@@ -544,7 +544,7 @@ test('Get response with header parameters', () => {
 // Content-type and accept headers should not change because they are linked
 // to GraphQL object types with static schemas
 test('Get JSON response even with non-JSON accept header', () => {
-  let query = `{
+  const query = `{
     office (id: 2) {
       employerId
       roomNumber,
@@ -563,7 +563,7 @@ test('Get JSON response even with non-JSON accept header', () => {
 })
 
 test('Get response with cookies', () => {
-  let query = `{
+  const query = `{
     cookie (cookieType:chocolateChip, cookieSize:megaSized)
   }`
   return graphql(createdSchema, query).then(result => {
@@ -577,7 +577,7 @@ test('Get response with cookies', () => {
 })
 
 test('Ensure good naming for operations with duplicated schemas', () => {
-  let query = `query {
+  const query = `query {
     cleanDesks
     dirtyDesks
   }`
@@ -592,7 +592,7 @@ test('Ensure good naming for operations with duplicated schemas', () => {
 })
 
 test('Get response containing 64 bit integer (using GraphQLFloat)', () => {
-  let query = `{
+  const query = `{
     productsReviews (id: "100") {
       timestamp
     }
@@ -610,7 +610,7 @@ test('Get response containing 64 bit integer (using GraphQLFloat)', () => {
 })
 
 test('Get array of strings', () => {
-  let query = `{
+  const query = `{
     user (username: "arlene") {
       hobbies
     }
@@ -627,7 +627,7 @@ test('Get array of strings', () => {
 })
 
 test('Get array of objects', () => {
-  let query = `{
+  const query = `{
     company (id: "binsol") {
       offices{
         street
@@ -653,7 +653,7 @@ test('Get array of objects', () => {
 })
 
 test('Get single resource', () => {
-  let query = `{
+  const query = `{
     user(username: "arlene"){
       name
       address{
@@ -682,7 +682,7 @@ test('Get single resource', () => {
 })
 
 test('Post resource', () => {
-  let query = `mutation {
+  const query = `mutation {
     postUser (userInput: {
       name: "Mr. New Guy"
       address: {
@@ -707,7 +707,7 @@ test('Post resource', () => {
 })
 
 test('Post resource and get nested resource back', () => {
-  let query = `mutation {
+  const query = `mutation {
     postUser (userInput: {
       name: "Mr. New Guy"
       address: {
@@ -742,7 +742,7 @@ test('Post resource and get nested resource back', () => {
 })
 
 test('Post resource with non-application/json content-type request and response bodies', () => {
-  let query = `mutation{postPaper(textPlainInput: "happy")}`
+  const query = `mutation{postPaper(textPlainInput: "happy")}`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
@@ -757,7 +757,7 @@ test(
     'correctly sanitized, path and query parameters are correctly sanitized, ' +
     'received data is correctly sanitized',
   () => {
-    let query = `{
+    const query = `{
     productWithId (productId: "this-path", productTag:"And a tag") {
       productId
       productTag
@@ -777,7 +777,7 @@ test(
 )
 
 test('Request data is correctly de-sanitized to be sent', () => {
-  let query = `mutation {
+  const query = `mutation {
     postProductWithId (productWithIdInput: {
       productName: "Soccer ball"
       productId: "ball123"
@@ -802,7 +802,7 @@ test('Request data is correctly de-sanitized to be sent', () => {
 })
 
 test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
-  let query = `{
+  const query = `{
     car (username: "arlene") {
       color
       model
@@ -825,7 +825,7 @@ test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
 })
 
 test('Capitalized enum values can be returned', () => {
-  let query = `{
+  const query = `{
     car (username: "arlene") {
       kind
     }
@@ -850,7 +850,7 @@ test('Define header and query options', () => {
       limit: 30
     }
   }
-  let query = `{
+  const query = `{
     status2 (globalquery: "test")
   }`
   return openapiToGraphql
@@ -871,7 +871,7 @@ test('Define header and query options', () => {
 })
 
 test('Resolve allOf', () => {
-  let query = `{
+  const query = `{
     user (username: "arlene") {
       name
       nomenclature {
@@ -900,7 +900,7 @@ test('Resolve allOf', () => {
 })
 
 test('Error contains extension', () => {
-  let query = `query {
+  const query = `query {
     user(username: "abcdef") {
       name
     }
@@ -926,7 +926,7 @@ test('Option provideErrorExtensions should prevent error extensions from being c
   let options = {
     provideErrorExtensions: false
   }
-  let query = `query {
+  const query = `query {
     user(username: "abcdef") {
       name
     }
@@ -973,7 +973,7 @@ test('Option customResolver', () => {
       }
     }
   }
-  let query = `query {
+  const query = `query {
     user(username: "abcdef") {
       name
     }
@@ -1011,7 +1011,7 @@ test('Option customResolver with links', () => {
       }
     }
   }
-  let query = `query {
+  const query = `query {
     user(username: "abcdef") {
       name
       employerId
@@ -1064,7 +1064,7 @@ test('Option customResolver using resolver arguments', () => {
       }
     }
   }
-  let query = `query {
+  const query = `query {
     user(username: "abcdef") {
       name
     }
@@ -1103,7 +1103,7 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
       }
     }
   }
-  let query = `{
+  const query = `{
     productWithId (productId: "123" productTag: "blah") {
       productName
     }
@@ -1130,7 +1130,7 @@ test('Option addLimitArgument', () => {
   let options = {
     addLimitArgument: true
   }
-  let query = `query {
+  const query = `query {
     user(username: "arlene") {
       name
       friends (limit: 3) {
@@ -1228,7 +1228,7 @@ test('Option addLimitArgument', () => {
 })
 
 test('Content property in parameter object', () => {
-  let query = `{
+  const query = `{
     coordinates(lat: 3, long: 5) {
       lat,
       long
@@ -1247,7 +1247,7 @@ test('Content property in parameter object', () => {
 })
 
 test('Stringify objects without defined properties', () => {
-  let query = `{
+  const query = `{
     trashcan(username:"arlene") {
       brand,
       contents
@@ -1286,4 +1286,182 @@ test('Stringify objects without defined properties', () => {
       }
     })
   })
+})
+
+test('Generate "Equivalent to..." messages', () => {
+  let options = {
+    // Used to simplify test. Otherwise viewers will polute query/mutation fields.
+    viewer: false
+  }
+
+  // Check if query/mutation fields have the message
+  const query = `query {
+    __schema {
+      queryType {
+        fields {
+          type {
+            name
+          }
+          description
+        }
+      }
+      mutationType {
+        fields {
+          type {
+            name
+          }
+          description
+        }
+      }
+    }
+  }`
+
+  const promise = openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      let ast = parse(query)
+      let errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        // Make sure all query fields have the message
+        expect(
+          result.data['__schema']['queryType']['fields'].every(field => {
+            return field.description.includes('\n\nEquivalent to GET ')
+          })
+        ).toBe(true)
+
+        // Make sure all mutation fields have the message
+        expect(
+          result.data['__schema']['mutationType']['fields'].every(field => {
+            return field.description.includes('\n\nEquivalent to ')
+          })
+        ).toBe(true)
+
+        // Check full message on a particular field
+        expect(
+          result.data['__schema']['queryType']['fields'].find(field => {
+            return field.type.name === 'Car'
+          })
+        ).toEqual({
+          type: {
+            name: 'Car'
+          },
+          description:
+            'Returns a car to test nesting of sub operations\n\nEquivalent to GET /users/{username}/car'
+        })
+      })
+    })
+
+  // Check link field description
+  const query2 = `query {
+    __type(name: "User") {
+      fields {
+        type {
+          name
+        }
+        description
+      }
+    }
+  }`
+
+  const promise2 = graphql(createdSchema, query2).then(result => {
+    expect(
+      result.data['__type']['fields'].find(field => {
+        return field.type.name === 'Company'
+      })
+    ).toEqual({
+      type: {
+        name: 'Company'
+      },
+      description:
+        "Allows to fetch the user's employer company.\n\nEquivalent to GET /companies/{id}"
+    })
+  })
+
+  return Promise.all([promise, promise2])
+})
+
+test('Withhold "Equivalent to..." messages', () => {
+  let options = {
+    // Used to simplify test. Otherwise viewers will polute query/mutation fields.
+    viewer: false,
+    equivalentToMessages: false
+  }
+
+  // Check query/mutation field descriptions
+  const query = `query {
+    __schema {
+      queryType {
+        fields {
+          type {
+            name
+          }
+          description
+        }
+      }
+      mutationType {
+        fields {
+          type {
+            name
+          }
+          description
+        }
+      }
+    }
+  }`
+
+  const promise = openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      let ast = parse(query)
+      let errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(
+          result.data['__schema']['queryType']['fields'].every(field => {
+            return field.description.includes('\n\nEquivalent to GET ')
+          })
+        ).toBe(false)
+
+        expect(
+          result.data['__schema']['mutationType']['fields'].every(field => {
+            return field.description.includes('\n\nEquivalent to ')
+          })
+        ).toBe(false)
+      })
+    })
+
+  // Check link field description
+  const query2 = `query {
+    __type(name: "User") {
+      fields {
+        type {
+          name
+        }
+        description
+      }
+    }
+  }`
+
+  const promise2 = openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      let ast = parse(query)
+      let errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query2).then(result => {
+        expect(
+          result.data['__type']['fields'].find(field => {
+            return field.type.name === 'Company'
+          })
+        ).toEqual({
+          type: {
+            name: 'Company'
+          },
+          description: "Allows to fetch the user's employer company."
+        })
+      })
+    })
+
+  return Promise.all([promise, promise2])
 })

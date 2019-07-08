@@ -47,7 +47,7 @@ afterAll(() => {
 })
 
 test('Basic query on two APIs', () => {
-  let query = `query{
+  const query = `query {
     author(authorId: "arlene"){
       name
     },
@@ -76,7 +76,7 @@ test('Basic query on two APIs', () => {
 })
 
 test('Two APIs with independent links', () => {
-  let query = `query {
+  const query = `query {
     author(authorId: "arlene") {
       name
       masterpieceTitle,
@@ -137,7 +137,7 @@ test('Two APIs with independent links', () => {
 })
 
 test('Two APIs with interrelated links', () => {
-  let query = `query {
+  const query = `query {
     author(authorId: "arlene") {
       name
       employee{
@@ -190,7 +190,7 @@ test('Two APIs with interrelated links', () => {
 })
 
 test('Two APIs with viewers', () => {
-  let query = `query {
+  const query = `query {
     viewerApiKey (apiKey: "abcdef"){
       nextWork(authorId: "arlene") {
         title
@@ -227,7 +227,7 @@ test('Two APIs with viewers', () => {
 })
 
 test('Two APIs with AnyAuth viewer', () => {
-  let query = `{ 
+  const query = `{ 
     viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}, exampleApi3BasicProtocol: {username: "arlene123", password: "password123"}) {
       projectWithId(projectId: 1) {
         projectLead{
@@ -258,7 +258,7 @@ test('Two APIs with AnyAuth viewer', () => {
 })
 
 test('Two APIs with AnyAuth viewer and interrelated links', () => {
-  let query = `{ 
+  const query = `{ 
     viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}, exampleApi3BasicProtocol: {username: "arlene123", password: "password123"}) {
       projectWithId(projectId: 1) {
         projectLead{
@@ -317,7 +317,7 @@ test('Option customResolver with two APIs', () => {
       }
     }
   }
-  let query = `query {
+  const query = `query {
     user(username: "abcdef") {
       name
     }
@@ -379,7 +379,7 @@ test('Option customResolver with two APIs and interrelated links', () => {
       }
     }
   }
-  let query = `query {
+  const query = `query {
     author(authorId: "abcdef") {
       name
       employee{
