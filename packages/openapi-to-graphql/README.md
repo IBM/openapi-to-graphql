@@ -166,6 +166,8 @@ The options object can contain the following properties:
 
 - `addLimitArgument` (type: `boolean`, default: `false`): Add a `limit` argument to fields returning lists of objects/lists that will limit the number of returned elements, selecting the first `n` elements of the list.
 
+- `equivalentToMessages` (type: `boolean`, default: `true`): Append a small message to the description of a field that clarifies the operation the field will trigger. The message will take the form of `Equivalent to {title of OAS} {method in ALL_CAPS} {path}` (the [title](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#infoObject) will only appear if multiple OASs are provided). Messages will appear for query/mutation fields as well as for fields created by links. _Note: These messages may unintentionally leak information about the underlying REST API._
+
 Consider this example of passing options:
 
 ```javascript

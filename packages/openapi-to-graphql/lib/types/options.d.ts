@@ -122,6 +122,16 @@ export declare type Options = {
      * Returns the first n number of elements in the list
      */
     addLimitArgument?: boolean;
+    /**
+     * Appends a small statement to the end of field description that clarifies
+     * the operation that the field will trigger.
+     *
+     * Will affect query and mutation fields as well as fields created from links
+     *
+     * In the form of: 'Equivalent to {title of OAS} {method in ALL_CAPS} {path}'
+     * Will forgo the title is only one OAS is provided
+     */
+    equivalentToMessages?: boolean;
 };
 export declare type InternalOptions = {
     /**
@@ -231,5 +241,15 @@ export declare type InternalOptions = {
      *
      * Returns the first n number of elements in the list
      */
-    addLimitArgument?: boolean;
+    addLimitArgument: boolean;
+    /**
+     * Appends a small statement to the end of field description that clarifies
+     * the operation that the field will trigger.
+     *
+     * Will affect query and mutation fields as well as fields created from links
+     *
+     * In the form of: 'Equivalent to {title of OAS} {method in ALL_CAPS} {path}'
+     * Will forgo the title is only one OAS is provided
+     */
+    equivalentToMessages: boolean;
 };

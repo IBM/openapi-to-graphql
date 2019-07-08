@@ -38,7 +38,7 @@ afterAll(() => {
 })
 
 test('Get patent using basic auth', () => {
-  let query = `{
+  const query = `{
     viewerBasicAuth (username: "arlene123", password: "password123") {
       patentWithId (patentId: "100") {
         patentId
@@ -59,7 +59,7 @@ test('Get patent using basic auth', () => {
 })
 
 test('Get patent using API key', () => {
-  let query = `{
+  const query = `{
     viewerApiKey2 (apiKey: "abcdef") {
       patentWithId (patentId: "100") {
         patentId
@@ -80,7 +80,7 @@ test('Get patent using API key', () => {
 })
 
 test('Get patent using API key 3', () => {
-  let query = `{
+  const query = `{
     viewerApiKey3 (apiKey: "abcdef") {
       patentWithId (patentId: "100") {
         patentId
@@ -101,7 +101,7 @@ test('Get patent using API key 3', () => {
 })
 
 test('Get project using API key 1', () => {
-  let query = `{
+  const query = `{
     viewerApiKey (apiKey: "abcdef") {
       projectWithId (projectId: 1) {
         active
@@ -130,7 +130,7 @@ test('Get project using API key passed as option - viewer is disabled', async ()
       access_token: 'abcdef'
     }
   })
-  let query = `{
+  const query = `{
     projectWithId (projectId: 1) {
       projectId
     }
@@ -155,7 +155,7 @@ test('Get project using API key passed in the requestOptions - viewer is disable
       }
     }
   })
-  let query = `{
+  const query = `{
     projectWithId (projectId: 1) {
       projectId
     }
@@ -172,7 +172,7 @@ test('Get project using API key passed in the requestOptions - viewer is disable
 })
 
 test('Get project using API key 2', () => {
-  let query = `{
+  const query = `{
     viewerApiKey2 (apiKey: "abcdef") {
       projectWithId (projectId: 1) {
         projectId
@@ -193,7 +193,7 @@ test('Get project using API key 2', () => {
 })
 
 test('Post project using API key 1', () => {
-  let query = `mutation {
+  const query = `mutation {
     mutationViewerApiKey (apiKey: "abcdef") {
       postProjectWithId (projectWithIdInput: {
         projectId: 123
@@ -221,7 +221,7 @@ test('Post project using API key 1', () => {
 })
 
 test('Post project using API key 2', () => {
-  let query = `mutation {
+  const query = `mutation {
     mutationViewerApiKey2 (apiKey: "abcdef") {
       postProjectWithId (projectWithIdInput: {
         projectId: 123
@@ -249,7 +249,7 @@ test('Post project using API key 2', () => {
 })
 
 test('Get project using API key 3', async () => {
-  let query = `{
+  const query = `{
     viewerApiKey3 (apiKey: "abcdef") {
       projectWithId (projectId: 1) {
         projectId
@@ -276,7 +276,7 @@ test('Get project using API key 3 passed as option - viewer is disabled', async 
       cookie: 'access_token=abcdef'
     }
   })
-  let query = `{
+  const query = `{
     projectWithId (projectId: 1) {
       projectId
     }
@@ -301,7 +301,7 @@ test('Get project using API key 3 passed in the requestOptions - viewer is disab
       }
     }
   })
-  let query = `{
+  const query = `{
     projectWithId (projectId: 1) {
       projectId
     }
@@ -318,7 +318,7 @@ test('Get project using API key 3 passed in the requestOptions - viewer is disab
 })
 
 test('Basic AnyAuth usage', () => {
-  let query = `{ 
+  const query = `{ 
     viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}) {
       patentWithId (patentId: "100") {
         patentId
@@ -339,7 +339,7 @@ test('Basic AnyAuth usage', () => {
 })
 
 test('Basic AnyAuth usage with extraneous auth data', () => {
-  let query = `{ 
+  const query = `{ 
     viewerAnyAuth(exampleApiKeyProtocol: {apiKey: "abcdef"}, exampleApiBasicProtocol: {username: "arlene123", password: "password123"}) {
       patentWithId (patentId: "100") {
         patentId
@@ -360,7 +360,7 @@ test('Basic AnyAuth usage with extraneous auth data', () => {
 })
 
 test('Basic AnyAuth usage with multiple operations', () => {
-  let query = `{ 
+  const query = `{ 
     viewerAnyAuth(exampleApiKeyProtocol2: {apiKey: "abcdef"}) {
       patentWithId (patentId: "100") {
         patentId
@@ -387,7 +387,7 @@ test('Basic AnyAuth usage with multiple operations', () => {
 })
 
 test('AnyAuth with multiple operations with different auth requirements', () => {
-  let query = `{ 
+  const query = `{ 
     viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}, exampleApiKeyProtocol: {apiKey: "abcdef"}) {
       patentWithId (patentId: "100") {
         patentId
@@ -415,7 +415,7 @@ test('AnyAuth with multiple operations with different auth requirements', () => 
 
 // This request can only be fulfilled using AnyAuth
 test('AnyAuth with multiple operations with different auth requirements in a link', () => {
-  let query = `{ 
+  const query = `{ 
     viewerAnyAuth(exampleApiBasicProtocol: {username: "arlene123", password: "password123"}, exampleApiKeyProtocol: {apiKey: "abcdef"}) {
       projectWithId (projectId: 3) {
         projectId
@@ -450,7 +450,7 @@ test('AnyAuth with multiple operations with different auth requirements in a lin
 })
 
 test('Extract token from context', () => {
-  let query = `{
+  const query = `{
     secure
   }`
 

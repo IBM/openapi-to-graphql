@@ -49,6 +49,10 @@ program
     '--no-extensions',
     'do not add extentions, containing information about failed REST calls, to the GraphQL errors objects'
   )
+  .option(
+    '--no-equivalentToMessages',
+    'do not append information about the underlying REST operations to the description of fields'
+  )
   .option('--save <file path>', 'save schema to path and do not start server')
   .parse(process.argv)
 
@@ -162,7 +166,8 @@ function startGraphQLServer(oas, port) {
     baseUrl: program.url,
     operationIdFieldNames: program.operationIdFieldNames,
     provideErrorExtensions: program.extensions,
-    addLimitArgument: program.addLimitArgument
+    addLimitArgument: program.addLimitArgument,
+    equivalentToMessages: program.equivalentToMessages
   })
     .then(({ schema, report }) => {
       console.log(JSON.stringify(report, null, 2))

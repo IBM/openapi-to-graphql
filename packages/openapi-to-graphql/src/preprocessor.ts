@@ -95,7 +95,9 @@ export function preprocessOas(
           description = 'No description available.'
         }
 
-        description += `\n\nEquivalent to ${operationString}`
+        if (data.options.equivalentToMessages) {
+          description += `\n\nEquivalent to ${operationString}`
+        }
 
         // Hold on to the operationId
         const operationId =
@@ -545,7 +547,6 @@ export function createDataDef(
 
         // Add list item reference
         def.subDefinitions = subDefinition
-        
       } else if (type === 'object') {
         def.subDefinitions = {}
 

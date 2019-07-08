@@ -47,7 +47,7 @@ test('All mutation endpoints present', () => {
 })
 
 test('Get resource', () => {
-  let query = `{
+  const query = `{
     assessmentTypes (
       contentType: ""
       acceptLanguage: ""

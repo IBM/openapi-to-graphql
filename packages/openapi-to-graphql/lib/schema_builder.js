@@ -377,8 +377,8 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
                         data
                     });
                     /**
-                     * get response object type
-                     * use the reference here
+                     * Get response object type
+                     * Use the reference here
                      * OT will be built up some other time
                      */
                     const resObjectType = linkedOp.responseDefinition.ot;
@@ -386,7 +386,9 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
                     if (typeof description !== 'string') {
                         description = 'No description available.';
                     }
-                    description += `\n\nEquivalent to ${Oas3Tools.getOperationString(linkedOp, data.oass)}`;
+                    if (data.options.equivalentToMessages) {
+                        description += `\n\nEquivalent to ${Oas3Tools.getOperationString(linkedOp, data.oass)}`;
+                    }
                     // Finally, add the object type to the fields (using sanitized field name)
                     Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap);
                     // TODO: check if fields already has this field name

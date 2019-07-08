@@ -68,7 +68,9 @@ function preprocessOas(oass, options) {
                 if (typeof description !== 'string') {
                     description = 'No description available.';
                 }
-                description += `\n\nEquivalent to ${operationString}`;
+                if (data.options.equivalentToMessages) {
+                    description += `\n\nEquivalent to ${operationString}`;
+                }
                 // Hold on to the operationId
                 const operationId = typeof endpoint.operationId !== 'undefined'
                     ? endpoint.operationId

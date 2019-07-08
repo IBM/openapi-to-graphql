@@ -92,6 +92,10 @@ export async function createGraphQlSchema(
     typeof options.addLimitArgument === 'boolean'
       ? options.addLimitArgument
       : false
+  options.equivalentToMessages =
+    typeof options.equivalentToMessages === 'boolean'
+      ? options.equivalentToMessages
+      : true
 
   options['report'] = {
     warnings: [],
@@ -151,7 +155,8 @@ async function translateOpenApiToGraphQL(
     requestOptions,
     provideErrorExtensions,
     customResolvers,
-    addLimitArgument
+    addLimitArgument,
+    equivalentToMessages
   }: InternalOptions
 ): Promise<{ schema: GraphQLSchema; report: Report }> {
   const options = {
@@ -168,7 +173,8 @@ async function translateOpenApiToGraphQL(
     requestOptions,
     provideErrorExtensions,
     customResolvers,
-    addLimitArgument
+    addLimitArgument,
+    equivalentToMessages
   }
   translationLog(`Options: ${JSON.stringify(options)}`)
 

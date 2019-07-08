@@ -10,7 +10,7 @@ const graphqlHTTP = require('express-graphql')
 const app = express()
 const openapiToGraphql = require('../lib/index.js')
 
-let oas = require('./openapi.json')
+let oas = require('./fixtures/example_oas.json')
 // let oas2 = require('./fixtures/example_oas2.json')
 let oas3 = require('./fixtures/example_oas3.json')
 

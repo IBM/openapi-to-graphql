@@ -19,7 +19,7 @@ beforeAll(async () => {
 })
 
 test('Get response', async () => {
-  let query = `mutation {
+  const query = `mutation {
     mutationViewerBasicAuth (username: "test" password: "data") {
       postTestAction2 (payloadInput: {age: 27}) {
         payload

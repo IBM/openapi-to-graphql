@@ -168,7 +168,7 @@ test('Properly treat null values during sanitization', () => {
     })
   })
 
-  let query = `{
+  const query = `{
     User {
       name
     }

@@ -57,7 +57,7 @@ test('The option operationIdFieldNames should allow both operations to be presen
 })
 
 test('Querying the two operations', () => {
-  let query = `query {
+  const query = `query {
     getUser {
       name
     }
