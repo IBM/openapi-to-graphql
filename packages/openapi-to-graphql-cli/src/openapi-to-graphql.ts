@@ -86,8 +86,7 @@ Promise.all(
         try {
           resolve(readFile(path.resolve(filePath)))
         } catch (error) {
-          console.error(error)
-          reject(filePath)
+          reject(error)
         }
 
         // Check if file is in a remote location
@@ -97,13 +96,12 @@ Promise.all(
             resolve(remoteContent)
           })
           .catch(error => {
-            console.error(error)
-            reject(filePath)
+            reject(error)
           })
 
         // Cannot determine location of file
       } else {
-        reject(filePath)
+        reject(`File path '${filePath}' is invalid`)
       }
     })
   })
@@ -111,10 +109,8 @@ Promise.all(
   .then(oass => {
     startGraphQLServer(oass, portNumber)
   })
-  .catch(filePath => {
-    console.error(
-      `OpenAPI-to-GraphQL cannot read file. File '${filePath}' does not exist.`
-    )
+  .catch(error => {
+    console.error(error)
     process.exit(1)
   })
 
@@ -125,14 +121,15 @@ Promise.all(
  * @return {object}      Content of read file
  */
 function readFile(path) {
-  try {
-    const doc = /json$/.test(path)
-      ? JSON.parse(fs.readFileSync(path, 'utf8'))
-      : yaml.safeLoad(fs.readFileSync(path, 'utf8'))
-    return doc
-  } catch (e) {
-    console.error('Error: failed to parse YAML/JSON')
-    return null
+  if (/json$/.test(path)) {
+    return JSON.parse(fs.readFileSync(path, 'utf8'))
+
+  } else if (/yaml$/.test(path) || /yml$/.test(path)) {
+    return yaml.safeLoad(fs.readFileSync(path, 'utf8'))
+
+  } else {
+    throw new Error(`Failed to parse JSON/YAML. Ensure file '${path}' has ` + 
+    `the correct extension (i.e. '.json', '.yaml', or '.yml).`)
   }
 }
 
@@ -144,16 +141,31 @@ function getRemoteFileSpec(uri) {
   return new Promise((resolve, reject) => {
     request(
       {
-        uri,
-        json: true
+        uri
       },
       (err, res, body) => {
         if (err) {
           reject(err)
-        } else if (res.statusCode !== 200) {
-          reject(new Error(`Error: ${JSON.stringify(body)}`))
+        } else if (res.statusCode < 200 && res.statusCode <= 300) {
+          reject(
+            new Error(
+              `Could not retrieve file. Received unsuccessful status code '${res.statusCode}.`
+            )
+          )
         } else {
-          resolve(body)
+          if (typeof body === 'string') {
+            try {
+              resolve(JSON.parse(body))
+            } catch (e) {
+              try {
+                resolve(yaml.safeLoad(body))
+              } catch (f) {
+                console.error(`JSON parse error: ${e}\nYAML parse error: ${f}`)
+              }
+            }
+          }
+
+          reject(new Error(`Cannot parse remote file`))
         }
       }
     )
