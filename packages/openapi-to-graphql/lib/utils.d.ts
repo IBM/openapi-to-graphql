@@ -6,9 +6,6 @@ export declare const mitigations: {
      * Should be caught by the module oas-validator
      */
     INVALID_OAS: string;
-    INVALID_SCHEMA_TYPE: string;
-    INVALID_SCHEMA_TYPE_LIST_ITEM: string;
-    INVALID_SCHEMA_TYPE_SCALAR: string;
     UNNAMED_PARAMETER: string;
     MULTIPLE_RESPONSES: string;
     MISSING_RESPONSE_SCHEMA: string;

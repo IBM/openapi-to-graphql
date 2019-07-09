@@ -348,15 +348,8 @@ function reuseOrCreateList({
     }
     return listObjectType
   } else {
-    handleWarning({
-      typeKey: 'INVALID_SCHEMA_TYPE_LIST_ITEM',
-      message:
-        `List item '${itemsName}' in list '${name}' contains an ` +
-        `invalid JSON schema '${JSON.stringify(itemsSchema)}'`,
-      data,
-      log: translationLog
-    })
-    return new GraphQLList(GraphQLString)
+    throw new Error(`Cannot create list item object type '${itemsName}' in list 
+    '${name}' with schema '${JSON.stringify(itemsSchema)}'`)
   }
 }
 

@@ -310,6 +310,15 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     if ('allOf' in schema) {
         schema = mergeAllOf(schema);
     }
+    else if ('anyOf' in schema) {
+        throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(schema)}'`);
+    }
+    else if ('oneOf' in schema) {
+        throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(schema)}'`);
+    }
+    else if ('not' in schema) {
+        throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(schema)}'`);
+    }
     const preferredName = getPreferredName(names);
     const saneLinks = {};
     if (typeof links === 'object') {
@@ -366,15 +375,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         // Determine the type of the schema
         const type = Oas3Tools.getSchemaType(schema);
         if (!type) {
-            // TODO: Throw error?
-            utils_1.handleWarning({
-                typeKey: 'INVALID_SCHEMA_TYPE',
-                message: `Request/response schema has no (valid) type ` +
-                    `'${JSON.stringify(schema)}'.`,
-                data,
-                log: preprocessingLog
-            });
-            return null;
+            throw new Error(`Cannot process schema '${JSON.stringify(schema)}'. Cannot identify type of schema.`);
         }
         else {
             // Add the names to the master list

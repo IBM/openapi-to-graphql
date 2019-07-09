@@ -213,14 +213,8 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data }) {
         return listObjectType;
     }
     else {
-        utils_1.handleWarning({
-            typeKey: 'INVALID_SCHEMA_TYPE_LIST_ITEM',
-            message: `List item '${itemsName}' in list '${name}' contains an ` +
-                `invalid JSON schema '${JSON.stringify(itemsSchema)}'`,
-            data,
-            log: translationLog
-        });
-        return new graphql_1.GraphQLList(graphql_1.GraphQLString);
+        throw new Error(`Cannot create list item object type '${itemsName}' in list 
+    '${name}' with schema '${JSON.stringify(itemsSchema)}'`);
     }
 }
 /**

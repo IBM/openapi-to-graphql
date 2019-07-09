@@ -11,9 +11,6 @@ exports.mitigations = {
      * Should be caught by the module oas-validator
      */
     INVALID_OAS: `Ignore issue and continue.`,
-    INVALID_SCHEMA_TYPE: `Fall back to GraphQL string type and stringify returned data.`,
-    INVALID_SCHEMA_TYPE_LIST_ITEM: `Fall back to GraphQL string type and stringify returned data.`,
-    INVALID_SCHEMA_TYPE_SCALAR: `Fall back to GraphQL string type and stringify returned data.`,
     UNNAMED_PARAMETER: `Ignore parameter.`,
     // General problems
     MULTIPLE_RESPONSES: `Select first response object with successful status code (200-299).`,
