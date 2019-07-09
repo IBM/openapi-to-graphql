@@ -30,11 +30,11 @@ program
   )
   .option(
     '-f, --fillEmptyResponses',
-    'create placeholder schemas for operations with HTTP status code 204 (no response) rather than ignore them'
+    'create placeholder schemas for operations with no response body rather than ignore them'
   )
   .option(
     '-a, --addLimitArgument',
-    'add limit argument on fields returning lists of objects/lists to control the data size'
+    'add a limit argument on fields returning lists of objects/lists to control the data size'
   )
   .option(
     '-o, --operationIdFieldNames',

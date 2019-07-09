@@ -545,14 +545,12 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
     }
     else {
         /**
-         * 204 is a special case in which a successful call does not return a
-         * response. GraphQL does not support that kind of functionality so by
-         * default, these operations will be ignored.
-         *
-         * However, if the following condition is true, then OpenAPI-to-GraphQL will inject
-         * a placeholder response schema.
+         * GraphQL requires that objects must have some properties. To allow some
+         * operations (such as those with a 204 HTTP code) to be included in the
+         * GraphQL interface, we added the fillEmptyResponses option, which will
+         * simply create a placeholder object with a placeholder property.
          */
-        if (statusCode === '204' && options.fillEmptyResponses) {
+        if (options.fillEmptyResponses) {
             return {
                 responseSchemaNames: {
                     fromPath: inferResourceNameFromPath(path)

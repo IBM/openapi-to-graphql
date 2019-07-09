@@ -86,8 +86,8 @@ function preprocessOas(oass, options) {
                     utils_1.handleWarning({
                         typeKey: 'MISSING_RESPONSE_SCHEMA',
                         message: `Operation ${operationString} has no (valid) response schema. ` +
-                            `If this operation has a 204 HTTP code, you can create a placeholder ` +
-                            `schema using the fillEmptyResponses option.`,
+                            `You can use the fillEmptyResponses option to create a ` +
+                            `placeholder schema`,
                         data,
                         log: preprocessingLog
                     });
