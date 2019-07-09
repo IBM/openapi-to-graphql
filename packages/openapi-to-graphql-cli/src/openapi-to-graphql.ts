@@ -119,7 +119,10 @@ function readFile(path) {
       : yaml.safeLoad(fs.readFileSync(path, 'utf8'))
     return doc
   } catch (e) {
-    console.error('Error: failed to parse YAML/JSON')
+    console.error(
+      `Failed to parse JSON/YAML. Ensure correct file ` +
+        `extension (i.e. '.json' or '.yaml').`
+    )
     return null
   }
 }
@@ -141,7 +144,20 @@ function getRemoteFileSpec(uri) {
         } else if (res.statusCode !== 200) {
           reject(new Error(`Error: ${JSON.stringify(body)}`))
         } else {
-          resolve(body)
+          // If the body is an object, it is most likely an OAS in JSON format
+          if (typeof body === 'object') {
+            resolve(body)
+
+            // If the body is a string, try to parse as YAML
+          } else if (typeof body === 'string') {
+            try {
+              resolve(yaml.safeLoad(body))
+            } catch (e) {
+              reject(new Error(`Cannot parse remote YAML file`))
+            }
+          } else {
+            reject(new Error(`Cannot parse remote file`))
+          }
         }
       }
     )
