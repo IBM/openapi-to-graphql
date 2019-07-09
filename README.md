@@ -60,7 +60,7 @@ Here are some guides to further help you get started:
   <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/data-centric.png" alt="Example of data-centric design" width="600">
 
 - **Nested data**
-  [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.md#linksObject) defined in the OAS are used to compose data definitions. Furthermore, hierarchical path structures can be used to nest data via the [`addSubOperations`](./packages/openapi-to-graphql/README.md#options-addsuboperations) option.
+  [Links](https://github.com/OAI/OpenAPI-Specification/blob/OpenAPI.next/versions/3.0.0.md#link-Object) defined in the OAS are used to create nested data structures, allowing for (deeply) nested queries. 
 
   <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/links.png" alt="Example of links resolution" width="600">
 

@@ -81,10 +81,6 @@ export declare type Operation = {
      */
     servers: ServerObject[];
     /**
-     * List of operations which are nested based on their path.
-     */
-    subOps?: Operation[];
-    /**
      * Whether this operation should be placed in an authentication viewer\
      * (cannot be true if "viewer" option passed to OpenAPI-to-GraphQL is false).
      */

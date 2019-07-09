@@ -179,7 +179,6 @@ OpenAPI-to-GraphQL.createGraphQLSchema(oas, {
   qs: {
     limit: 30 // send limit query string in every request
   },
-  addSubOperations: false,
   requestOptions: {
     proxy: "http://my-proxy:3128"
   },
