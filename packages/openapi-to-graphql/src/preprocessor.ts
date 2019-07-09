@@ -415,6 +415,24 @@ export function createDataDef(
   // Resolve allOf element in schema if applicable
   if ('allOf' in schema) {
     schema = mergeAllOf(schema)
+  } else if ('anyOf' in schema) {
+    throw new Error(
+      `OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(
+        schema
+      )}'`
+    )
+  } else if ('oneOf' in schema) {
+    throw new Error(
+      `OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(
+        schema
+      )}'`
+    )
+  } else if ('not' in schema) {
+    throw new Error(
+      `OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(
+        schema
+      )}'`
+    )
   }
 
   const preferredName = getPreferredName(names)
@@ -486,17 +504,11 @@ export function createDataDef(
     // Determine the type of the schema
     const type = Oas3Tools.getSchemaType(schema as SchemaObject)
     if (!type) {
-      // TODO: Throw error?
-      handleWarning({
-        typeKey: 'INVALID_SCHEMA_TYPE',
-        message:
-          `Request/response schema has no (valid) type ` +
-          `'${JSON.stringify(schema)}'.`,
-        data,
-        log: preprocessingLog
-      })
-
-      return null
+      throw new Error(
+        `Cannot process schema '${JSON.stringify(
+          schema
+        )}'. Cannot identify type of schema.`
+      )
     } else {
       // Add the names to the master list
       data.usedOTNames.push(saneName)
