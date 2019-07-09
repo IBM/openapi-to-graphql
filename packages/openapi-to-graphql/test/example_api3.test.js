@@ -28,7 +28,6 @@ beforeAll(() => {
   return Promise.all([
     openapiToGraphql
       .createGraphQlSchema([oas, oas3], {
-        addSubOperations: true,
         fillEmptyResponses: true
       })
       .then(({ schema, report }) => {
