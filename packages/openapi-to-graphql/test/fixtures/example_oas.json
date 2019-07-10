@@ -1037,7 +1037,7 @@
           "200": {
             "description": "Secure message.",
             "content": {
-              "application/json": {
+              "text/plain": {
                 "schema": {
                   "type": "string",
                   "description": "A secure message."

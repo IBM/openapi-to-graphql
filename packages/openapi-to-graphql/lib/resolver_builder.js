@@ -264,16 +264,33 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                          */
                         if (response.headers['content-type'].includes('application/json')) {
                             body = JSON.parse(body);
-                        }
-                        else {
                             /**
                              * If not application/json, assume no additional processing is
                              * needed
-                             *
-                             * TODO: Should this also make a check to see what is defined in
-                             * the schema? Probably not, would be an OAS/API mismatch.
                              */
-                            resolve(body);
+                        }
+                        else {
+                            /**
+                             * Throw warning if the non-application/json content does not
+                             * match the OAS.
+                             *
+                             * Use an inclusion test in case of charset
+                             *
+                             * i.e. text/plain; charset=utf-8
+                             */
+                            if (!(response.headers['content-type'].includes(operation.responseContentType)
+                                || operation.responseContentType.includes(response.headers['content-type']))) {
+                                const errorString = `Operation ` +
+                                    `${Oas3Tools.getOperationString(operation, data.oass)} ` +
+                                    `should have a content-type '${operation.responseContentType}' ` +
+                                    `but has '${response.headers['content-type']}' instead`;
+                                httpLog(errorString);
+                                reject(errorString);
+                            }
+                            else {
+                                // TODO: Handle YAML
+                                resolve(body);
+                            }
                         }
                     }
                     else {
