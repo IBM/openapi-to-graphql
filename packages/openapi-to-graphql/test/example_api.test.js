@@ -129,7 +129,7 @@ test('Get resource with no response schema and status code: 204 and fillEmptyRes
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        bonuses: ''
+        bonuses: null
       }
     })
   })

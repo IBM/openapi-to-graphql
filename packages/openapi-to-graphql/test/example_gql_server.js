@@ -25,7 +25,9 @@ let oas3 = require('./fixtures/example_oas3.json')
 // let oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
 openapiToGraphql
-  .createGraphQlSchema(oas)
+  .createGraphQlSchema(oas, {
+    fillEmptyResponses: true
+  })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
     app.use(
