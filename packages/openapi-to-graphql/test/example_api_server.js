@@ -416,6 +416,7 @@ function startServer(PORT) {
     console.log(req.method, req.path, req.query, req.headers)
     if ('cookie' in req.headers) {
       res
+        .set('Content-Type', 'text/plain')
         .status(200)
         .send(`Thanks for your cookie preferences: "${req.headers.cookie}"`)
     } else {
@@ -432,12 +433,12 @@ function startServer(PORT) {
 
   app.get('/api/cleanDesks', (req, res) => {
     console.log(req.method, req.path)
-    res.send('5 clean desks')
+    res.set('Content-Type', 'text/plain').send('5 clean desks')
   })
 
   app.get('/api/dirtyDesks', (req, res) => {
     console.log(req.method, req.path)
-    res.send('5 dirty desks')
+    res.set('Content-Type', 'text/plain').send('5 dirty desks')
   })
 
   app.get('/api/bonuses', (req, res) => {
@@ -595,6 +596,7 @@ function startServer(PORT) {
     console.log(req.method, req.path, req.query, req.headers)
     if ('snack_type' in req.headers && 'snack_size' in req.headers) {
       res
+        .set('Content-Type', 'text/plain')
         .status(200)
         .send(`Here is a ${req.headers.snack_size} ${req.headers.snack_type}`)
     } else {
@@ -612,7 +614,10 @@ function startServer(PORT) {
         message: 'wrong request'
       })
     } else {
-      res.send('Ok.')
+      res
+        .set('Content-Type', 'text/plain')
+        .status(200)
+        .send('Ok.')
     }
   })
 
@@ -634,7 +639,7 @@ function startServer(PORT) {
         message: 'missing authorization header'
       })
     } else {
-      res.send('A secure message.')
+      res.set('Content-Type', 'text/plain').send('A secure message.')
     }
   })
 
