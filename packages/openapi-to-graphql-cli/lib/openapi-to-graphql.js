@@ -80,9 +80,7 @@ Promise.all(filePaths.map(filePath => {
  */
 function readFile(path) {
     try {
-        const doc = /json$/.test(path)
-            ? JSON.parse(fs.readFileSync(path, 'utf8'))
-            : yaml.safeLoad(fs.readFileSync(path, 'utf8'));
+        const doc = yaml.safeLoad(fs.readFileSync(path, 'utf8'));
         return doc;
     }
     catch (e) {
@@ -98,30 +96,19 @@ function readFile(path) {
 function getRemoteFileSpec(uri) {
     return new Promise((resolve, reject) => {
         request({
-            uri,
-            json: true
+            uri
         }, (err, res, body) => {
             if (err) {
                 reject(err);
             }
-            else if (res.statusCode !== 200) {
-                reject(new Error(`Error: ${JSON.stringify(body)}`));
+            else if (res.statusCode < 200 && res.statusCode <= 300) {
+                reject(new Error(`Could not retrieve file. Received unsuccessful status code '${res.statusCode}.`));
             }
             else {
-                // If the body is an object, it is most likely an OAS in JSON format
-                if (typeof body === 'object') {
-                    resolve(body);
-                    // If the body is a string, try to parse as YAML
+                try {
+                    resolve(yaml.safeLoad(body));
                 }
-                else if (typeof body === 'string') {
-                    try {
-                        resolve(yaml.safeLoad(body));
-                    }
-                    catch (e) {
-                        reject(new Error(`Cannot parse remote YAML file`));
-                    }
-                }
-                else {
+                catch (e) {
                     reject(new Error(`Cannot parse remote file`));
                 }
             }
