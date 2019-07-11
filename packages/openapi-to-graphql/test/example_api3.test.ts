@@ -7,19 +7,20 @@
 
 /* globals beforeAll, test, expect */
 
-const openapiToGraphql = require('../lib/index.js')
+import * as openapiToGraphql from '../lib/index.js'
 const { graphql, parse, validate } = require('graphql')
 const api = require('./example_api_server')
 const api2 = require('./example_api3_server')
 
-let createdSchema
-let oas = require('./fixtures/example_oas.json')
-let oas3 = require('./fixtures/example_oas3.json')
+const oas = require('./fixtures/example_oas.json')
+const oas3 = require('./fixtures/example_oas3.json')
 const PORT = 3005
 const PORT2 = 3006
 // update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 oas3.servers[0].variables.port.default = String(PORT2)
+
+let createdSchema
 
 /**
  * Set up the schema first and run example API server
@@ -294,7 +295,7 @@ test('Two APIs with AnyAuth viewer and interrelated links', () => {
 })
 
 test('Option customResolver with two APIs', () => {
-  let options = {
+  const options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -327,8 +328,8 @@ test('Option customResolver with two APIs', () => {
   return openapiToGraphql
     .createGraphQlSchema([oas, oas3], options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
@@ -346,7 +347,7 @@ test('Option customResolver with two APIs', () => {
 })
 
 test('Option customResolver with two APIs and interrelated links', () => {
-  let options = {
+  const options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -404,8 +405,8 @@ test('Option customResolver with two APIs and interrelated links', () => {
   return openapiToGraphql
     .createGraphQlSchema([oas, oas3], options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({

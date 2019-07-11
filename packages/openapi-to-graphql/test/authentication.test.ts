@@ -7,10 +7,10 @@
 
 /* globals beforeAll, test, expect */
 
-const openapiToGraphql = require('../lib/index.js')
-const { graphql } = require('graphql')
+import * as openapiToGraphql from '../lib/index.js'
+import { graphql } from 'graphql'
 
-let oas = require('./fixtures/example_oas.json')
+const oas = require('./fixtures/example_oas.json')
 const PORT = 3003
 // update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
@@ -124,7 +124,7 @@ test('Get project using API key 1', () => {
 })
 
 test('Get project using API key passed as option - viewer is disabled', async () => {
-  let { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
+  const { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
     viewer: false,
     headers: {
       access_token: 'abcdef'
@@ -147,12 +147,13 @@ test('Get project using API key passed as option - viewer is disabled', async ()
 })
 
 test('Get project using API key passed in the requestOptions - viewer is disabled', async () => {
-  let { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
+  const { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
     viewer: false,
     requestOptions: {
       headers: {
         access_token: 'abcdef'
-      }
+      },
+      url: undefined
     }
   })
   const query = `{
@@ -270,7 +271,7 @@ test('Get project using API key 3', async () => {
 })
 
 test('Get project using API key 3 passed as option - viewer is disabled', async () => {
-  let { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
+  const { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
     viewer: false,
     headers: {
       cookie: 'access_token=abcdef'
@@ -293,12 +294,13 @@ test('Get project using API key 3 passed as option - viewer is disabled', async 
 })
 
 test('Get project using API key 3 passed in the requestOptions - viewer is disabled', async () => {
-  let { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
+  const { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
     viewer: false,
     requestOptions: {
       headers: {
         cookie: 'access_token=abcdef'
-      }
+      },
+      url: undefined
     }
   })
   const query = `{

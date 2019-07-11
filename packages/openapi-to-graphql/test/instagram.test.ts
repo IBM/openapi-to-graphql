@@ -7,12 +7,13 @@
 
 /* globals beforeAll, test, expect */
 
-const openapiToGraphql = require('../lib/index.js')
+import * as openapiToGraphql from '../lib/index.js'
 
 /**
  * Set up the schema first
  */
-let oas = require('./fixtures/instagram.json')
+const oas = require('./fixtures/instagram.json')
+
 let createdSchema
 beforeAll(() => {
   return openapiToGraphql
@@ -29,7 +30,7 @@ test('All Instagram query endpoints present', () => {
       if (method === 'get') oasGetCount++
     }
   }
-  let gqlTypes = Object.keys(
+  const gqlTypes = Object.keys(
     createdSchema._typeMap.Query.getFields().viewerAnyAuth.type.getFields()
   ).length
   expect(gqlTypes).toEqual(oasGetCount)

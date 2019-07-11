@@ -13,22 +13,22 @@ const {
   GraphQLString,
   graphql
 } = require('graphql')
-const Oas3Tools = require('../lib/oas_3_tools.js')
+import * as Oas3Tools from '../lib/oas_3_tools.js'
 
 test('Applying sanitize multiple times does not change outcome', () => {
-  let str = 'this Super*annoying-string()'
-  let once = Oas3Tools.sanitize(str)
-  let twice = Oas3Tools.sanitize(once)
+  const str = 'this Super*annoying-string()'
+  const once = Oas3Tools.sanitize(str)
+  const twice = Oas3Tools.sanitize(once)
   expect(twice).toEqual(once)
 })
 
 test('Sanitize object keys', () => {
-  let obj = {
+  const obj = {
     a_key: {
       'b&**key': 'test !!'
     }
   }
-  let clean = Oas3Tools.sanitizeObjKeys(obj)
+  const clean = Oas3Tools.sanitizeObjKeys(obj)
   expect(clean).toEqual({
     aKey: {
       bKey: 'test !!'
@@ -37,13 +37,13 @@ test('Sanitize object keys', () => {
 })
 
 test('Sanitize object keys including array', () => {
-  let obj = {
+  const obj = {
     a_key: {
       'b&**key': 'test !!',
       'asf blah': [{ 'a)(a': 'test2' }]
     }
   }
-  let clean = Oas3Tools.sanitizeObjKeys(obj)
+  const clean = Oas3Tools.sanitizeObjKeys(obj)
   expect(clean).toEqual({
     aKey: {
       bKey: 'test !!',
@@ -57,14 +57,14 @@ test('Sanitize object keys including array', () => {
 })
 
 test('Sanitize object keys when given an array', () => {
-  let obj = [
+  const obj = [
     {
       'a)(a': {
         b_2: 'test'
       }
     }
   ]
-  let clean = Oas3Tools.sanitizeObjKeys(obj)
+  const clean = Oas3Tools.sanitizeObjKeys(obj)
   expect(clean).toEqual([
     {
       aA: {
@@ -75,12 +75,12 @@ test('Sanitize object keys when given an array', () => {
 })
 
 test('Sanitize object keys, but not $ref', () => {
-  let obj = {
+  const obj = {
     $ref: {
       'a-b': 'test'
     }
   }
-  let clean = Oas3Tools.sanitizeObjKeys(obj, ['$ref'])
+  const clean = Oas3Tools.sanitizeObjKeys(obj, ['$ref'])
   expect(clean).toEqual({
     $ref: {
       aB: 'test'
@@ -88,20 +88,20 @@ test('Sanitize object keys, but not $ref', () => {
   })
 })
 
-let mapping = {
+const mapping = {
   productId: 'product-id',
   productName: 'product-name',
   productTag: 'product-tag'
 }
 
 test('Desanitize object keys', () => {
-  let obj = {
+  const obj = {
     productId: '123',
     info: {
       productName: 'Soccer'
     }
   }
-  let raw = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  const raw = Oas3Tools.desanitizeObjKeys(obj, mapping)
   expect(raw).toEqual({
     'product-id': '123',
     info: {
@@ -111,12 +111,12 @@ test('Desanitize object keys', () => {
 })
 
 test('Desanitize object keys including array', () => {
-  let obj = {
+  const obj = {
     productId: {
       info: [{ productName: 'test1' }, { productTag: 'test2' }]
     }
   }
-  let clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  const clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
   expect(clean).toEqual({
     'product-id': {
       info: [{ 'product-name': 'test1' }, { 'product-tag': 'test2' }]
@@ -125,14 +125,14 @@ test('Desanitize object keys including array', () => {
 })
 
 test('Desanitize object keys when given an array', () => {
-  let obj = [
+  const obj = [
     {
       productName: {
         productTag: 'test'
       }
     }
   ]
-  let clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  const clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
   expect(clean).toEqual([
     {
       'product-name': {
@@ -143,7 +143,7 @@ test('Desanitize object keys when given an array', () => {
 })
 
 test('Properly treat null values during sanitization', () => {
-  let schema = new GraphQLSchema({
+  const schema = new GraphQLSchema({
     query: new GraphQLObjectType({
       name: 'Query',
       fields: {
@@ -158,7 +158,7 @@ test('Properly treat null values during sanitization', () => {
             }
           }),
           resolve: (root, args, context) => {
-            let data = {
+            const data = {
               name: null
             }
             return Oas3Tools.sanitizeObjKeys(data)

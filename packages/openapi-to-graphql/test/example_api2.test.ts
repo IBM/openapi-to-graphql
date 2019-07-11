@@ -7,15 +7,16 @@
 
 /* globals beforeAll, test, expect */
 
-const openapiToGraphql = require('../lib/index.js')
+import * as openapiToGraphql from '../lib/index.js';
 const { graphql, parse, validate } = require('graphql')
 const { startServer, stopServer } = require('./example_api2_server')
 
-let createdSchema
-let oas = require('./fixtures/example_oas2.json')
+const oas = require('./fixtures/example_oas2.json')
 const PORT = 3004
 // update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
+
+let createdSchema
 
 /**
  * Set up the schema first and run example API server
@@ -52,7 +53,7 @@ test('The option operationIdFieldNames should allow both operations to be presen
     }
   }
 
-  let gqlTypes = Object.keys(createdSchema._typeMap.Query.getFields()).length
+  const gqlTypes = Object.keys(createdSchema._typeMap.Query.getFields()).length
   expect(gqlTypes).toEqual(oasGetCount)
 })
 
