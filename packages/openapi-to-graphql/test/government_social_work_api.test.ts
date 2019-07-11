@@ -14,7 +14,8 @@ const { parse, validate } = require('graphql')
 /**
  * Set up the schema first
  */
-let oas = require('./fixtures/government_social_work_api.json')
+const oas = require('./fixtures/government_social_work_api.json')
+
 let createdSchema
 beforeAll(() => {
   return openapiToGraphql
@@ -31,7 +32,7 @@ test('All query endpoints present', () => {
       if (method === 'get') oasGetCount++
     }
   }
-  let gqlTypes = Object.keys(createdSchema._typeMap.Query.getFields()).length
+  const gqlTypes = Object.keys(createdSchema._typeMap.Query.getFields()).length
   expect(gqlTypes).toEqual(oasGetCount)
 })
 
@@ -42,7 +43,7 @@ test('All mutation endpoints present', () => {
       if (Oas3Tools.isOperation(method) && method !== 'get') oasMutCount++
     }
   }
-  let gqlTypes = Object.keys(createdSchema._typeMap.Mutation.getFields()).length
+  const gqlTypes = Object.keys(createdSchema._typeMap.Mutation.getFields()).length
   expect(gqlTypes).toEqual(oasMutCount)
 })
 
@@ -61,7 +62,7 @@ test('Get resource', () => {
       }
     }
   }`
-  let ast = parse(query)
-  let errors = validate(createdSchema, ast)
+  const ast = parse(query)
+  const errors = validate(createdSchema, ast)
   expect(errors).toEqual([])
 })

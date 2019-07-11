@@ -7,15 +7,16 @@
 
 /* globals beforeAll, test, expect */
 
-const openapiToGraphql = require('../lib/index.js')
+import * as openapiToGraphql from '../lib/index.js'
 const { graphql, parse, validate } = require('graphql')
 const { startServer, stopServer } = require('./example_api_server')
 
-let createdSchema
-let oas = require('./fixtures/example_oas.json')
+const oas = require('./fixtures/example_oas.json')
 const PORT = 3002
 // update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
+
+let createdSchema
 
 /**
  * Set up the schema first and run example API server
@@ -841,12 +842,12 @@ test('Capitalized enum values can be returned', () => {
 })
 
 test('Define header and query options', () => {
-  let options = {
+  const options = {
     headers: {
       exampleHeader: 'some-value'
     },
     qs: {
-      limit: 30
+      limit: '30'
     }
   }
   const query = `{
@@ -856,8 +857,8 @@ test('Define header and query options', () => {
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
       // validate that 'limit' parameter is covered by options:
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
@@ -922,7 +923,7 @@ test('Error contains extension', () => {
 })
 
 test('Option provideErrorExtensions should prevent error extensions from being created', () => {
-  let options = {
+  const options = {
     provideErrorExtensions: false
   }
   const query = `query {
@@ -933,8 +934,8 @@ test('Option provideErrorExtensions should prevent error extensions from being c
   return openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
@@ -959,7 +960,7 @@ test('Option provideErrorExtensions should prevent error extensions from being c
 })
 
 test('Option customResolver', () => {
-  let options = {
+  const options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -980,8 +981,8 @@ test('Option customResolver', () => {
   return openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
@@ -996,7 +997,7 @@ test('Option customResolver', () => {
 })
 
 test('Option customResolver with links', () => {
-  let options = {
+  const options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -1026,8 +1027,8 @@ test('Option customResolver with links', () => {
   return openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
@@ -1050,7 +1051,7 @@ test('Option customResolver with links', () => {
 })
 
 test('Option customResolver using resolver arguments', () => {
-  let options = {
+  const options = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -1071,8 +1072,8 @@ test('Option customResolver using resolver arguments', () => {
   return openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
@@ -1087,7 +1088,7 @@ test('Option customResolver using resolver arguments', () => {
 })
 
 test('Option customResolver using resolver arguments that are sanitized', () => {
-  let options = {
+  const options = {
     customResolvers: {
       'Example API': {
         '/products/{product-id}': {
@@ -1110,8 +1111,8 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
   return openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
@@ -1126,7 +1127,7 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
 })
 
 test('Option addLimitArgument', () => {
-  let options = {
+  const options = {
     addLimitArgument: true
   }
   const query = `query {
@@ -1146,8 +1147,8 @@ test('Option addLimitArgument', () => {
   return openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
@@ -1288,7 +1289,7 @@ test('Stringify objects without defined properties', () => {
 })
 
 test('Generate "Equivalent to..." messages', () => {
-  let options = {
+  const options = {
     // Used to simplify test. Otherwise viewers will polute query/mutation fields.
     viewer: false
   }
@@ -1318,8 +1319,8 @@ test('Generate "Equivalent to..." messages', () => {
   const promise = openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         // Make sure all query fields have the message
@@ -1381,7 +1382,7 @@ test('Generate "Equivalent to..." messages', () => {
 })
 
 test('Withhold "Equivalent to..." messages', () => {
-  let options = {
+  const options = {
     // Used to simplify test. Otherwise viewers will polute query/mutation fields.
     viewer: false,
     equivalentToMessages: false
@@ -1412,8 +1413,8 @@ test('Withhold "Equivalent to..." messages', () => {
   const promise = openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query).then(result => {
         expect(
@@ -1445,8 +1446,8 @@ test('Withhold "Equivalent to..." messages', () => {
   const promise2 = openapiToGraphql
     .createGraphQlSchema(oas, options)
     .then(({ schema }) => {
-      let ast = parse(query)
-      let errors = validate(schema, ast)
+      const ast = parse(query)
+      const errors = validate(schema, ast)
       expect(errors).toEqual([])
       return graphql(schema, query2).then(result => {
         expect(

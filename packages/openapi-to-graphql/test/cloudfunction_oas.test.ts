@@ -7,14 +7,15 @@
 
 /* globals beforeAll, test, expect */
 
-const openapiToGraphql = require('../lib/index.js')
+import * as openapiToGraphql from '../lib/index.js'
 const { parse, validate } = require('graphql')
 
-let oas = require('./fixtures/cloudfunction_oas.json')
+const oas = require('./fixtures/cloudfunction_oas.json')
+
 let createdSchema
 
 beforeAll(async () => {
-  let { schema } = await openapiToGraphql.createGraphQlSchema(oas)
+  const { schema } = await openapiToGraphql.createGraphQlSchema(oas)
   createdSchema = schema
 })
 
@@ -28,7 +29,7 @@ test('Get response', async () => {
     }
   }`
   // validate that 'limit' parameter is covered by options:
-  let ast = parse(query)
-  let errors = validate(createdSchema, ast)
+  const ast = parse(query)
+  const errors = validate(createdSchema, ast)
   expect(errors).toEqual([])
 })
