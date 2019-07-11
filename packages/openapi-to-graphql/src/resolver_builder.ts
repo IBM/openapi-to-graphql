@@ -74,12 +74,7 @@ export function getResolver({
     typeof customResolvers[title][path] === 'object' &&
     typeof customResolvers[title][path][method] === 'function'
   ) {
-    translationLog(
-      `Use custom resolver for ${Oas3Tools.getOperationString(
-        operation,
-        data.oass
-      )}`
-    )
+    translationLog(`Use custom resolver for ${operation.operationString}`)
 
     return customResolvers[title][path][method]
   }
@@ -335,10 +330,7 @@ export function getResolver({
         } else if (response.statusCode < 200 || response.statusCode > 299) {
           httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
-          const errorString = `Could not invoke operation ${Oas3Tools.getOperationString(
-            operation,
-            data.oass
-          )}`
+          const errorString = `Could not invoke operation ${operation.operationString}`
 
           if (data.options.provideErrorExtensions) {
             let responseBody
@@ -386,7 +378,7 @@ export function getResolver({
             ) {
               const errorString =
                 `Operation ` +
-                `${Oas3Tools.getOperationString(operation, data.oass)} ` +
+                `${operation.operationString} ` +
                 `should have a content-type '${operation.responseContentType}' ` +
                 `but has '${response.headers['content-type']}' instead`
 
@@ -408,10 +400,7 @@ export function getResolver({
                 } catch (e) {
                   const errorString =
                     `Cannot JSON parse response body of ` +
-                    `operation ${Oas3Tools.getOperationString(
-                      operation,
-                      data.oass
-                    )} ` +
+                    `operation ${operation.operationString} ` +
                     `even though it has content-type 'application/json'`
 
                   httpLog(errorString)

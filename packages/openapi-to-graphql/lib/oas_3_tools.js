@@ -859,19 +859,6 @@ function isOperation(method) {
 }
 exports.isOperation = isOperation;
 /**
- * Creates a string that describes an operation in the form:
- * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
- */
-function getOperationString(operation, oass) {
-    if (oass.length === 1) {
-        return formatOperationString(operation.method, operation.path);
-    }
-    else {
-        return formatOperationString(operation.method, operation.path, operation.oas.info.title);
-    }
-}
-exports.getOperationString = getOperationString;
-/**
  * Formats a string that describes an operation in the form:
  * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
  *

@@ -106,7 +106,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
                 utils_1.handleWarning({
                     typeKey: 'OBJECT_MISSING_PROPERTIES',
                     message: `The operation ` +
-                        `'${Oas3Tools.getOperationString(operation, data.oass)}' contains ` +
+                        `'${operation.operationString}' contains ` +
                         `a object schema ${JSON.stringify(def)} with no properties. ` +
                         `GraphQL objects must have well-defined properties so a one to ` +
                         `one conversion cannot be achieved.`,
@@ -381,7 +381,7 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
                         description = 'No description available.';
                     }
                     if (data.options.equivalentToMessages) {
-                        description += `\n\nEquivalent to ${Oas3Tools.getOperationString(linkedOp, data.oass)}`;
+                        description += `\n\nEquivalent to ${linkedOp.operationString}`;
                     }
                     // Finally, add the object type to the fields (using sanitized field name)
                     Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap);
@@ -418,7 +418,6 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
  */
 function linkOpRefToOpId({ links, linkKey, operation, data }) {
     const link = links[linkKey];
-    const operationString = Oas3Tools.getOperationString(operation, data.oass);
     if (typeof link.operationRef === 'string') {
         // TODO: external refs
         const operationRef = link.operationRef;
@@ -446,7 +445,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 if (firstPathIndex !== lastPathIndex) {
                     utils_1.handleWarning({
                         typeKey: 'AMBIGUOUS_LINK',
-                        message: `The link '${linkKey}' in operation '${operationString}' ` +
+                        message: `The link '${linkKey}' in operation '${operation.operationString}' ` +
                             `contains an ambiguous operationRef '${operationRef}',  ` +
                             `meaning it has multiple instances of the string '#/paths/'`,
                         data,
@@ -461,7 +460,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
             else {
                 utils_1.handleWarning({
                     typeKey: 'UNRESOLVABLE_LINK',
-                    message: `The link '${linkKey}' in operation '${operationString}' ` +
+                    message: `The link '${linkKey}' in operation '${operation.operationString}' ` +
                         `does not contain a valid path in operationRef '${operationRef}', ` +
                         `meaning it does not contain a string '#/paths/'`,
                     data,
@@ -622,14 +621,13 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
  */
 function getArgs({ def, parameters, operation, data }) {
     let args = {};
-    const operationString = Oas3Tools.getOperationString(operation, data.oass);
     // Handle params:
     for (let parameter of parameters) {
         // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
                 typeKey: 'INVALID_OAS',
-                message: `The operation '${operationString}' contains a ` +
+                message: `The operation '${operation.operationString}' contains a ` +
                     `parameter '${JSON.stringify(parameter)}' with no 'name' property`,
                 data,
                 log: translationLog
@@ -667,7 +665,7 @@ function getArgs({ def, parameters, operation, data }) {
             else {
                 utils_1.handleWarning({
                     typeKey: 'NON_APPLICATION_JSON_SCHEMA',
-                    message: `The operation '${operationString}' contains a ` +
+                    message: `The operation '${operation.operationString}' contains a ` +
                         `parameter '${JSON.stringify(parameter)}' that has a 'content' ` +
                         `property but no schemas in application/json format. The ` +
                         `parameter will not be created`,
@@ -681,7 +679,7 @@ function getArgs({ def, parameters, operation, data }) {
             // Invalid OAS according to 3.0.2
             utils_1.handleWarning({
                 typeKey: 'INVALID_OAS',
-                message: `The operation '${operationString}' contains a ` +
+                message: `The operation '${operation.operationString}' contains a ` +
                     `parameter '${JSON.stringify(parameter)}' with no 'schema' or ` +
                     `'content' property`,
                 data,
@@ -741,7 +739,7 @@ function getArgs({ def, parameters, operation, data }) {
                 typeKey: 'LIMIT_ARGUMENT_NAME_COLLISION',
                 message: `The 'limit' argument cannot be added ` +
                     `because of a preexisting argument in ` +
-                    `operation ${Oas3Tools.getOperationString(operation, data.oass)}`,
+                    `operation ${operation.operationString}`,
                 data,
                 log: translationLog
             });

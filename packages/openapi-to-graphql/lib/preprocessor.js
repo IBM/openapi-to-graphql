@@ -110,6 +110,7 @@ function preprocessOas(oass, options) {
                 // Store determined information for operation
                 const operation = {
                     operationId,
+                    operationString,
                     description,
                     path,
                     method: method.toLowerCase(),

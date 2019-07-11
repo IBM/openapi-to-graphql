@@ -184,6 +184,7 @@ export function preprocessOas(
         // Store determined information for operation
         const operation: Operation = {
           operationId,
+          operationString,
           description,
           path,
           method: method.toLowerCase(),
