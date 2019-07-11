@@ -137,7 +137,7 @@ Notice that the slashes in the path `/favoriteBooks/{name}` must be escaped with
 The `createGraphQlSchema` function takes an optional `options` object as a second argument:
 
 ```javascript
-createGraphQLSchema(oas, options)
+createGraphQLSchema(oas[, options])
 ```
 
 The options object can contain the following properties:
@@ -176,7 +176,7 @@ Authentication options:
 
 - `tokenJSONpath` (type: `string`, default: `undefined`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](./README.md#authorization).
 
-- `sendOAuthTokenInQuery` (type: `boolean`, default: `false`): If set to true, the OAuth token extracted from the provided `tokenJSONpath` will be sent as an `access_token` query parameter (instead of in a header).
+- `sendOAuthTokenInQuery` (type: `boolean`, default: `false`): If set to true, the OAuth token extracted from the provided `tokenJSONpath` will be sent as an `access_token` query parameter (instead of in the header).
 ***
 
 Logging options:
