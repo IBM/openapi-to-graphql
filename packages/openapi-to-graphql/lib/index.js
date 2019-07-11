@@ -153,7 +153,6 @@ provideErrorExtensions, equivalentToMessages }) {
             .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
             .forEach(([operationId, operation]) => {
             translationLog(`Process operation '${operationId}'...`);
-            const operationString = Oas3Tools.getOperationString(operation, data.oass);
             let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions);
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
@@ -178,7 +177,7 @@ provideErrorExtensions, equivalentToMessages }) {
                                     `'${fieldName}' and security requirement ` +
                                     `'${securityRequirement}'. GraphQL field names must be ` +
                                     `unique so only one can be added to the authentication ` +
-                                    `viewer. Operation '${operationString}' will be ignored.`,
+                                    `viewer. Operation '${operation.operationString}' will be ignored.`,
                                 data,
                                 log: translationLog
                             });
@@ -204,7 +203,7 @@ provideErrorExtensions, equivalentToMessages }) {
                             message: `Multiple operations have the same name ` +
                                 `'${fieldName}'. GraphQL field names must be ` +
                                 `unique so only one can be added to the Query object. ` +
-                                `Operation '${operationString}' will be ignored.`,
+                                `Operation '${operation.operationString}' will be ignored.`,
                             data,
                             log: translationLog
                         });
@@ -232,7 +231,7 @@ provideErrorExtensions, equivalentToMessages }) {
                                     `'${saneFieldName}' and security requirement ` +
                                     `'${securityRequirement}'. GraphQL field names must be ` +
                                     `unique so only one can be added to the authentication ` +
-                                    `viewer. Operation '${operationString}' will be ignored.`,
+                                    `viewer. Operation '${operation.operationString}' will be ignored.`,
                                 data,
                                 log: translationLog
                             });
@@ -249,7 +248,7 @@ provideErrorExtensions, equivalentToMessages }) {
                             message: `Multiple operations have the same name ` +
                                 `'${saneFieldName}'. GraphQL field names must be ` +
                                 `unique so only one can be added to the Mutation object. ` +
-                                `Operation '${operationString}' will be ignored.`,
+                                `Operation '${operation.operationString}' will be ignored.`,
                             data,
                             log: translationLog
                         });

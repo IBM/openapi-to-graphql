@@ -31,7 +31,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         typeof customResolvers[title] === 'object' &&
         typeof customResolvers[title][path] === 'object' &&
         typeof customResolvers[title][path][method] === 'function') {
-        translationLog(`Use custom resolver for ${Oas3Tools.getOperationString(operation, data.oass)}`);
+        translationLog(`Use custom resolver for ${operation.operationString}`);
         return customResolvers[title][path][method];
     }
     // Return resolve function:
@@ -237,7 +237,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 }
                 else if (response.statusCode < 200 || response.statusCode > 299) {
                     httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
-                    const errorString = `Could not invoke operation ${Oas3Tools.getOperationString(operation, data.oass)}`;
+                    const errorString = `Could not invoke operation ${operation.operationString}`;
                     if (data.options.provideErrorExtensions) {
                         let responseBody;
                         try {
@@ -274,7 +274,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                         if (!(response.headers['content-type'].includes(operation.responseContentType) ||
                             operation.responseContentType.includes(response.headers['content-type']))) {
                             const errorString = `Operation ` +
-                                `${Oas3Tools.getOperationString(operation, data.oass)} ` +
+                                `${operation.operationString} ` +
                                 `should have a content-type '${operation.responseContentType}' ` +
                                 `but has '${response.headers['content-type']}' instead`;
                             httpLog(errorString);
@@ -294,7 +294,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                 }
                                 catch (e) {
                                     const errorString = `Cannot JSON parse response body of ` +
-                                        `operation ${Oas3Tools.getOperationString(operation, data.oass)} ` +
+                                        `operation ${operation.operationString} ` +
                                         `even though it has content-type 'application/json'`;
                                     httpLog(errorString);
                                     reject(errorString);

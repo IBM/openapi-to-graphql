@@ -60,6 +60,17 @@ export type Operation = {
   operationId: string
 
   /**
+   * A combination of the operation method and path (and the title of the OAS
+   * where the operation originates from if multiple OASs are provided) in the
+   * form of:
+   *
+   * {title of OAS (if applicable)} {method in ALL_CAPS} {path}
+   *
+   * Used for documentation and logging
+   */
+  operationString: string
+
+  /**
    * Human-readable description of the operation
    */
   description: string

@@ -1086,22 +1086,6 @@ export function isOperation(method: string): boolean {
 }
 
 /**
- * Creates a string that describes an operation in the form:
- * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
- */
-export function getOperationString(operation: Operation, oass: Oas3[]): string {
-  if (oass.length === 1) {
-    return formatOperationString(operation.method, operation.path)
-  } else {
-    return formatOperationString(
-      operation.method,
-      operation.path,
-      operation.oas.info.title
-    )
-  }
-}
-
-/**
  * Formats a string that describes an operation in the form:
  * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
  *
