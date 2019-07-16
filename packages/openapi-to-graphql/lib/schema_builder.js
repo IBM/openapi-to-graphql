@@ -95,12 +95,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
              * cannot create a GraphQL Object Type for it because in GraphQL, all Object
              * Type properties must be named.
              *
-             * Instead, stringify the response.
-             *
-             * NOTE: there is a similar check in the resolver_builder.ts so that the
-             * response data is properly stringified.
-             *
-             * See stringifyObjectsWithNoProperties() function
+             * Instead, store response in an arbitray JSON type.
              */
             if (typeof def.schema.properties === 'undefined') {
                 utils_1.handleWarning({
@@ -113,7 +108,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
                     data,
                     log: translationLog
                 });
-                return graphql_1.GraphQLString;
+                return GraphQLJSON;
             }
             const description = typeof schema.description !== 'undefined'
                 ? schema.description

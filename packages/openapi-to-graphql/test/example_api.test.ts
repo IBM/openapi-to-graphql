@@ -1259,7 +1259,7 @@ test('Content property in parameter object', () => {
   })
 })
 
-test('Stringify objects without defined properties', () => {
+test('Handle objects without defined properties with arbitrary GraphQL JSON type', () => {
   const query = `{
     trashcan(username:"arlene") {
       brand,
@@ -1272,28 +1272,50 @@ test('Stringify objects without defined properties', () => {
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        trashcan: {
-          brand: '"Garbage Emporium"',
-          contents: [
-            '{"type":"apple","message":"Half-eaten"}',
-            '{"type":"sock","message":"Lost one"}'
+        "trashcan": {
+          "brand": "Garbage Emporium",
+          "contents": [
+            {
+              "type": "apple",
+              "message": "Half-eaten"
+            },
+            {
+              "type": "sock",
+              "message": "Lost one"
+            }
           ]
         },
-        trashcans: [
+        "trashcans": [
           {
-            contents: [
-              '{"type":"apple","message":"Half-eaten"}',
-              '{"type":"sock","message":"Lost one"}'
+            "contents": [
+              {
+                "type": "apple",
+                "message": "Half-eaten"
+              },
+              {
+                "type": "sock",
+                "message": "Lost one"
+              }
             ]
           },
           {
-            contents: ['{"type":"sock","message":"Lost one"}']
+            "contents": [
+              {
+                "type": "sock",
+                "message": "Lost one"
+              }
+            ]
           },
           {
-            contents: []
+            "contents": []
           },
           {
-            contents: ['{"type":"tissue","message":"Used"}']
+            "contents": [
+              {
+                "type": "tissue",
+                "message": "Used"
+              }
+            ]
           }
         ]
       }
