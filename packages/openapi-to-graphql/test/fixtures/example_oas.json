@@ -199,6 +199,27 @@
         }
       }
     },
+    "/cars": {
+      "get": {
+        "operationId": "getAllCars",
+        "description": "Returns information about all employee cars",
+        "responses": {
+          "200": {
+            "description": "Everyone's cars",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/car"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/companies/{id}": {
       "get": {
         "operationId": "getCompanyById",
@@ -893,7 +914,7 @@
         ],
         "responses": {
           "200": {
-            "description": "A user represents a natural person.",
+            "description": "A trashcan",
             "content": {
               "application/json": {
                 "schema": {
@@ -911,7 +932,7 @@
         "description": "Returns the (contents of a) trashcan from a specific office",
         "responses": {
           "200": {
-            "description": "A user represents a natural person.",
+            "description": "Many trashcans",
             "content": {
               "application/json": {
                 "schema": {
@@ -1082,7 +1103,7 @@
           },
           "kind": {
             "type": "string",
-            "enum": ["SEDAN", "SUV", "MINIVAN", "LIMOSINE"]
+            "enum": ["SEDAN", "SUV", "MINIVAN", "LIMOSINE", "RACE_CAR"]
           }
         }
       },

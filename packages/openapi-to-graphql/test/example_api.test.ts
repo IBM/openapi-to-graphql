@@ -801,24 +801,37 @@ test('Request data is correctly de-sanitized to be sent', () => {
   })
 })
 
+// Testing additionalProperties field in schemas
 test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
   const query = `{
-    car (username: "arlene") {
-      color
-      model
+    cars {
       tags
     }
   }`
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        car: {
-          color: 'black',
-          model: 'BMW 7 series',
-          tags: {
-            impression: 'decadent'
+        "cars": [
+          {
+            "tags": null
+          },
+          {
+            "tags": {
+              "speed": "extreme"
+            }
+          },
+          {
+            "tags": {
+              "impression": "decadent",
+              "condition": "slightly beat-up"
+            }
+          },
+          {
+            "tags": {
+              "impression": "decadent"
+            }
           }
-        }
+        ]
       }
     })
   })
@@ -834,7 +847,7 @@ test('Capitalized enum values can be returned', () => {
     expect(result).toEqual({
       data: {
         car: {
-          kind: 'LIMOSINE'
+          kind: 'SEDAN'
         }
       }
     })

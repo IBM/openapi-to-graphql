@@ -93,6 +93,39 @@ function startServer(PORT) {
     }
   }
 
+  const Cars = {
+    arlene: {
+      model: 'Retro Rides',
+      color: 'yellow',
+      kind: 'SEDAN'
+    },
+    will: {
+      model: 'Speedzone Speedster',
+      color: 'red',
+      tags: {
+        speed: 'extreme'
+      },
+      kind: 'RACE_CAR'
+    },
+    johnny: {
+      model: 'Glossy German',
+      color: 'silver',
+      tags: {
+        impression: 'decadent',
+        condition: 'slightly beat-up'
+      },
+      kind: 'LIMOSINE'
+    },
+    heather: {
+      model: 'Glossy German',
+      color: 'black',
+      tags: {
+        impression: 'decadent'
+      },
+      kind: 'LIMOSINE'
+    }
+  }
+
   const Companies = {
     binsol: {
       id: 'binsol',
@@ -344,18 +377,8 @@ function startServer(PORT) {
 
   app.get('/api/users/:username/car', (req, res) => {
     console.log(req.method, req.path)
-    if (
-      typeof req.params.username === 'string' &&
-      req.params.username in Users
-    ) {
-      res.send({
-        model: 'BMW 7 series',
-        color: 'black',
-        tags: {
-          impression: 'decadent'
-        },
-        kind: 'LIMOSINE'
-      })
+    if (req.params.username in Users) {
+      res.send(Cars[req.params.username])
     } else {
       res.status(404).send({
         message: 'Wrong username.'
@@ -397,6 +420,11 @@ function startServer(PORT) {
       Users[user.name] = user
       res.status(201).send(user)
     }
+  })
+
+  app.get('/api/cars', (req, res) => {
+    console.log(req.method, req.path)
+    res.send(Array.from(Object.values(Cars)))
   })
 
   app.get('/api/companies/:id', (req, res) => {
