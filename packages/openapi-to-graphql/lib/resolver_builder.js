@@ -300,7 +300,6 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                     reject(errorString);
                                 }
                                 resolveData.responseHeaders = response.headers;
-                                responseBody = stringifyObjectsWithNoProperties(responseBody, operation.responseDefinition);
                                 // Deal with the fact that the server might send unsanitized data
                                 let saneData = Oas3Tools.sanitizeObjKeys(responseBody);
                                 // Pass on _openapiToGraphql to subsequent resolvers
@@ -692,33 +691,5 @@ function getIdentifierRecursive(path) {
  */
 function graphQLErrorWithExtensions(message, extensions) {
     return new graphql_1.GraphQLError(message, null, null, null, null, null, extensions);
-}
-/**
- * Ideally, all objects should be defined with properties. However, if they are
- * not, then we can at least stringify the data.
- *
- * This function recursively ensures that objects have properties, if not
- * stringify the data to match the mitigation.
- */
-function stringifyObjectsWithNoProperties(data, dataDef) {
-    if (typeof dataDef !== 'undefined') {
-        if (dataDef.type === 'array') {
-            data = data.map(element => {
-                return stringifyObjectsWithNoProperties(element, dataDef.subDefinitions);
-            });
-        }
-        else if (dataDef.type === 'object') {
-            if (typeof dataDef.schema.properties !== 'undefined') {
-                Object.keys(data).forEach(propertyName => {
-                    data[propertyName] = stringifyObjectsWithNoProperties(data[propertyName], dataDef.subDefinitions[propertyName]);
-                });
-                // Schema does not have properties defined, therefore stringify
-            }
-            else {
-                return JSON.stringify(data);
-            }
-        }
-    }
-    return data;
 }
 //# sourceMappingURL=resolver_builder.js.map

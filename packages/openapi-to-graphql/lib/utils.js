@@ -20,7 +20,7 @@ exports.mitigations = {
     UNRESOLVABLE_REFERENCE: `The schema will not be resolved.`,
     UNSUPPORTED_HTTP_SECURITY_SCHEME: `Ignore security scheme.`,
     NON_APPLICATION_JSON_SCHEMA: `Ignore schema`,
-    OBJECT_MISSING_PROPERTIES: `The (sub-)object will be stringified. The property will return a string in the interface.`,
+    OBJECT_MISSING_PROPERTIES: `The (sub-)object will be stored in an arbitray JSON type.`,
     // Links
     UNRESOLVABLE_LINK: `Ignore link.`,
     AMBIGUOUS_LINK: `Use first occurance of '#/'.`,
