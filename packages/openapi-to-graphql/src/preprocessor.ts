@@ -415,6 +415,9 @@ export function createDataDef(
 
   // Resolve allOf element in schema if applicable
   if ('allOf' in schema) {
+    schema.allOf = schema.allOf.map((entry: SchemaObject) => {
+      return entry.$ref ? Oas3Tools.resolveRef(entry.$ref, oas) : entry
+    })
     schema = mergeAllOf(schema)
   } else if ('anyOf' in schema) {
     throw new Error(
