@@ -1108,6 +1108,14 @@
   },
   "components": {
     "schemas": {
+      "suborderObject": {
+        "type": "object",
+        "properties": {
+          "suborder": {
+            "type": "string"
+          }
+        }
+      },
       "address": {
         "type": "object",
         "description": "The legal address of a user",
@@ -1332,11 +1340,7 @@
             "type": "object",
             "allOf": [
               {
-                "properties": {
-                  "suborder": {
-                    "type": "string"
-                  }
-                }
+                "$ref": "#/components/schemas/suborderObject"
               },
               {
                 "properties": {

@@ -21,6 +21,7 @@ export declare type SchemaObject = {
     items?: SchemaObject | ReferenceObject;
     additionalItems?: boolean | string[];
     enum?: string[];
+    allOf?: object[];
 };
 export declare type ReferenceObject = {
     $ref: string;
