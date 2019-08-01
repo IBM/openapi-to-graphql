@@ -373,7 +373,7 @@ function reuseOrCreateList({
  * Returns an existing Enum Type or creates a new one, and stores it in data
  */
 function reuseOrCreateEnum({ def, data }: ReuseOrCreateEnum): GraphQLEnumType {
-  // Rry to reuse existing Enum Type
+  // Try to reuse existing Enum Type
   if (def.ot && typeof def.ot !== 'undefined') {
     translationLog(`Reuse  GraphQLEnumType '${def.otName}'`)
     return def.ot as GraphQLEnumType
@@ -381,7 +381,8 @@ function reuseOrCreateEnum({ def, data }: ReuseOrCreateEnum): GraphQLEnumType {
     translationLog(`Create GraphQLEnumType '${def.otName}'`)
     const values = {}
     def.schema.enum.forEach(e => {
-      values[Oas3Tools.sanitize(e, false)] = {
+      // Force enum values to string
+      values[Oas3Tools.sanitize(e.toString(), false)] = {
         value: e
       }
     })

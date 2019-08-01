@@ -97,7 +97,8 @@ function startServer(PORT) {
     arlene: {
       model: 'Retro Rides',
       color: 'yellow',
-      kind: 'SEDAN'
+      kind: 'SEDAN',
+      rating: 100
     },
     will: {
       model: 'Speedzone Speedster',
@@ -105,7 +106,8 @@ function startServer(PORT) {
       tags: {
         speed: 'extreme'
       },
-      kind: 'RACE_CAR'
+      kind: 'RACE_CAR',
+      rating: 100
     },
     johnny: {
       model: 'Glossy German',
@@ -114,7 +116,8 @@ function startServer(PORT) {
         impression: 'decadent',
         condition: 'slightly beat-up'
       },
-      kind: 'LIMOSINE'
+      kind: 'LIMOSINE',
+      rating: 101
     },
     heather: {
       model: 'Glossy German',
@@ -122,7 +125,8 @@ function startServer(PORT) {
       tags: {
         impression: 'decadent'
       },
-      kind: 'LIMOSINE'
+      kind: 'LIMOSINE',
+      rating: 200
     }
   }
 
