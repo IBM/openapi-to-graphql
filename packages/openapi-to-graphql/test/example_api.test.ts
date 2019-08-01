@@ -67,6 +67,9 @@ test('Get descriptions', () => {
               description: 'The model of the car.'
             },
             {
+              description: 'The rating of the car.'
+            },
+            {
               description: 'Arbitrary (string) tags describing an entity.'
             }
           ]
@@ -849,6 +852,23 @@ test('Capitalized enum values can be returned', () => {
       data: {
         car: {
           kind: 'SEDAN'
+        }
+      }
+    })
+  })
+})
+
+test('Enum values that started as numbers in OAS can be returned as strings', () => {
+  const query = `{
+    car (username: "arlene") {
+      rating
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        car: {
+          rating: '_100'
         }
       }
     })

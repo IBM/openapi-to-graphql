@@ -1140,6 +1140,11 @@
           "kind": {
             "type": "string",
             "enum": ["SEDAN", "SUV", "MINIVAN", "LIMOSINE", "RACE_CAR"]
+          },
+          "rating": {
+            "type": "number",
+            "enum": [100, 101, 200],
+            "description": "The rating of the car."
           }
         }
       },
