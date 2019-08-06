@@ -10,6 +10,9 @@ import * as yaml from 'js-yaml'
 import { printSchema } from 'graphql'
 
 import { createGraphQlSchema } from 'openapi-to-graphql'
+import { Oas2 } from 'openapi-to-graphql/lib/types/oas2'
+import { Oas3 } from 'openapi-to-graphql/lib/types/oas3'
+import { Options } from 'openapi-to-graphql/lib/types/options'
 
 const app = express()
 let program = require('commander')
@@ -47,6 +50,14 @@ program
     'add a limit argument on fields returning lists of objects/lists to control the data size'
   )
 
+  // Resolver options
+  .option(
+    '-H, --header <key:value>',
+    'add headers to every request; repeatable flag; set using key:value notation',
+    collect,
+    []
+  )
+
   // Authentication options
   .option(
     '--no-viewer',
@@ -65,9 +76,62 @@ program
   .parse(process.argv)
 
 // Select the port on which to host the GraphQL server
-const portNumber: number | string = program.port ? program.port : 3000
+const portNumber: number = program.port ? program.port : 3000
 
-const filePaths = program.args
+/**
+ * Assemble headers so that they are in the proper format for the
+ * OpenAPI-to-GraphQL library
+ */
+const headers: { [key: string]: string } = {}
+if (Array.isArray(program.header)) {
+  ;(program.header as string[]).forEach(header => {
+    const headerSeperator = header.indexOf(':')
+
+    if (headerSeperator === -1) {
+      console.warn(
+        `The header '${header}' does not have a ':' separating ` +
+          `the key from the value. It will be ignored.`
+      )
+    } else {
+      const headerKey = header.substr(0, headerSeperator)
+      // Trim, may have leading white space
+      const headerValue = header.substr(headerSeperator + 1).trim()
+
+      if (headerKey in headers) {
+        console.warn(
+          `Multiple headers have the same key '${headerKey}'. ` +
+            `The header '${header}' will be ignored.`
+        )
+      } else {
+        headers[headerKey] = headerValue
+      }
+    }
+  })
+}
+
+const options: Options = {
+  strict: program.strict,
+
+  // Resolver options
+  baseUrl: program.url,
+
+  // Schema options
+  operationIdFieldNames: program.operationIdFieldNames,
+  fillEmptyResponses: program.fillEmptyResponses,
+  addLimitArgument: program.addLimitArgument,
+
+  // Resolver options
+  headers,
+
+  // Authentication options
+  viewer: program.viewer,
+
+  // Logging options
+  provideErrorExtensions: program.extensions,
+  equivalentToMessages: program.equivalentToMessages
+}
+
+const filePaths: string[] = program.args
 
 if (typeof filePaths === 'undefined' || filePaths.length === 0) {
   console.error('No path(s) provided')
@@ -80,7 +144,7 @@ if (typeof filePaths === 'undefined' || filePaths.length === 0) {
 // Load the OASs based off of the provided paths
 Promise.all(
   filePaths.map(filePath => {
-    return new Promise((resolve, reject) => {
+    return new Promise<Oas3>((resolve, reject) => {
       // Check if the file exists
       if (fs.existsSync(path.resolve(filePath))) {
         try {
@@ -107,7 +171,7 @@ Promise.all(
   })
 )
   .then(oass => {
-    startGraphQLServer(oass, portNumber)
+    startGraphQLServer(oass, options, portNumber)
   })
   .catch(error => {
     console.error(error)
@@ -115,21 +179,31 @@ Promise.all(
   })
 
 /**
+ * For list arguments, collect all values and store them in a list
+ *
+ * @param value the current value
+ * @param previous the store of all values
+ */
+function collect(value: string, previous: string[]): string[] {
+  return previous.concat([value])
+}
+
+/**
  * Returns content of read JSON/YAML file.
  *
  * @param  {string} path Path to file to read
  * @return {object}      Content of read file
  */
-function readFile(path) {
+function readFile(path): Oas3 {
   if (/json$/.test(path)) {
     return JSON.parse(fs.readFileSync(path, 'utf8'))
-
   } else if (/yaml$/.test(path) || /yml$/.test(path)) {
     return yaml.safeLoad(fs.readFileSync(path, 'utf8'))
-
   } else {
-    throw new Error(`Failed to parse JSON/YAML. Ensure file '${path}' has ` + 
-    `the correct extension (i.e. '.json', '.yaml', or '.yml).`)
+    throw new Error(
+      `Failed to parse JSON/YAML. Ensure file '${path}' has ` +
+        `the correct extension (i.e. '.json', '.yaml', or '.yml).`
+    )
   }
 }
 
@@ -137,8 +211,8 @@ function readFile(path) {
  * reads a remote file content using http protocol
  * @param {string} url specifies a valid URL path including the port number
  */
-function getRemoteFileSpec(uri) {
-  return new Promise((resolve, reject) => {
+function getRemoteFileSpec(uri): Promise<Oas3> {
+  return new Promise<Oas3>((resolve, reject) => {
     request(
       {
         uri
@@ -177,26 +251,13 @@ function getRemoteFileSpec(uri) {
  * @param {object} oas the OAS specification file
  * @param {number} port the port number to listen on on this server
  */
-function startGraphQLServer(oas, port) {
+function startGraphQLServer(
+  oas: Oas3 | Oas2 | (Oas3 | Oas2)[],
+  options: Options,
+  port: number
+): void {
   // Create GraphQL interface
-  createGraphQlSchema(oas, {
-    strict: program.strict,
-
-    // Resolver options
-    baseUrl: program.url,
-
-    // Schema options
-    operationIdFieldNames: program.operationIdFieldNames,
-    fillEmptyResponses: program.fillEmptyResponses,
-    addLimitArgument: program.addLimitArgument,
-
-    // Authentication options
-    viewer: program.viewer,
-
-    // Logging options
-    provideErrorExtensions: program.extensions,
-    equivalentToMessages: program.equivalentToMessages
-  })
+  createGraphQlSchema(oas, options)
     .then(({ schema, report }) => {
       console.log(JSON.stringify(report, null, 2))
 
@@ -233,7 +294,7 @@ function startGraphQLServer(oas, port) {
  * saves a grahpQL schema generated by OpenAPI-to-GraphQL to a file
  * @param {createGraphQlSchema} schema
  */
-function writeSchema(schema) {
+function writeSchema(schema): void {
   fs.writeFile(program.save, printSchema(schema), err => {
     if (err) throw err
     console.log(

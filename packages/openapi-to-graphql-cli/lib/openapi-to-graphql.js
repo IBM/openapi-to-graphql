@@ -26,6 +26,8 @@ program
     .option('-o, --operationIdFieldNames', 'create field names based on the operationId')
     .option('-f, --fillEmptyResponses', 'create placeholder schemas for operations with no response body rather than ignore them')
     .option('-a, --addLimitArgument', 'add a limit argument on fields returning lists of objects/lists to control the data size')
+    // Resolver options
+    .option('-H, --header <key:value>', 'add headers to every request; repeatable flag; set using key:value notation', collect, [])
     // Authentication options
     .option('--no-viewer', 'do not create GraphQL viewer objects for passing authentication credentials')
     // Logging options
@@ -34,6 +36,49 @@ program
     .parse(process.argv);
 // Select the port on which to host the GraphQL server
 const portNumber = program.port ? program.port : 3000;
+/**
+ * Assemble headers so that they are in the proper format for the
+ * OpenAPI-to-GraphQL library
+ */
+const headers = {};
+if (Array.isArray(program.header)) {
+    ;
+    program.header.forEach(header => {
+        const headerSeperator = header.indexOf(':');
+        if (headerSeperator === -1) {
+            console.warn(`The header '${header}' does not have a ':' separating ` +
+                `the key from the value. It will be ignored.`);
+        }
+        else {
+            const headerKey = header.substr(0, headerSeperator);
+            // Trim, may have leading white space
+            const headerValue = header.substr(headerSeperator + 1).trim();
+            if (headerKey in headers) {
+                console.warn(`Multiple headers have the same key '${headerKey}'. ` +
+                    `The header '${header}' will be ignored.`);
+            }
+            else {
+                headers[headerKey] = headerValue;
+            }
+        }
+    });
+}
+const options = {
+    strict: program.strict,
+    // Resolver options
+    baseUrl: program.url,
+    // Schema options
+    operationIdFieldNames: program.operationIdFieldNames,
+    fillEmptyResponses: program.fillEmptyResponses,
+    addLimitArgument: program.addLimitArgument,
+    // Resolver options
+    headers,
+    // Authentication options
+    viewer: program.viewer,
+    // Logging options
+    provideErrorExtensions: program.extensions,
+    equivalentToMessages: program.equivalentToMessages
+};
 const filePaths = program.args;
 if (typeof filePaths === 'undefined' || filePaths.length === 0) {
     console.error('No path(s) provided');
@@ -69,12 +114,21 @@ Promise.all(filePaths.map(filePath => {
     });
 }))
     .then(oass => {
-    startGraphQLServer(oass, portNumber);
+    startGraphQLServer(oass, options, portNumber);
 })
     .catch(error => {
     console.error(error);
     process.exit(1);
 });
+/**
+ * For list arguments, collect all values and store them in a list
+ *
+ * @param value the current value
+ * @param previous the store of all values
+ */
+function collect(value, previous) {
+    return previous.concat([value]);
+}
 /**
  * Returns content of read JSON/YAML file.
  *
@@ -132,22 +186,9 @@ function getRemoteFileSpec(uri) {
  * @param {object} oas the OAS specification file
  * @param {number} port the port number to listen on on this server
  */
-function startGraphQLServer(oas, port) {
+function startGraphQLServer(oas, options, port) {
     // Create GraphQL interface
-    openapi_to_graphql_1.createGraphQlSchema(oas, {
-        strict: program.strict,
-        // Resolver options
-        baseUrl: program.url,
-        // Schema options
-        operationIdFieldNames: program.operationIdFieldNames,
-        fillEmptyResponses: program.fillEmptyResponses,
-        addLimitArgument: program.addLimitArgument,
-        // Authentication options
-        viewer: program.viewer,
-        // Logging options
-        provideErrorExtensions: program.extensions,
-        equivalentToMessages: program.equivalentToMessages
-    })
+    openapi_to_graphql_1.createGraphQlSchema(oas, options)
         .then(({ schema, report }) => {
         console.log(JSON.stringify(report, null, 2));
         // Save local file if required

@@ -34,8 +34,10 @@ Options:
   -f, --fillEmptyResponses     create placeholder schemas for operations with no response body rather than ignore them
   -a, --addLimitArgument       add a limit argument on fields returning lists of objects/lists to control the data size
 
+  -H, --header <key:value>     add headers to every request; repeatable flag; set using key:value notation (default: [])
+
   --no-viewer                  do not create GraphQL viewer objects for passing authentication credentials
-  
+
   --no-extensions              do not add extentions, containing information about failed REST calls, to the GraphQL errors objects
   --no-equivalentToMessages    do not append information about the underlying REST operations to the description of fields
   -h, --help                   output usage information
