@@ -28,6 +28,7 @@ program
     .option('-a, --addLimitArgument', 'add a limit argument on fields returning lists of objects/lists to control the data size')
     // Resolver options
     .option('-H, --header <key:value>', 'add headers to every request; repeatable flag; set using key:value notation', collect, [])
+    .option('-Q, --queryString <key:value>', 'add query parameters to every request; repeatable flag; set using key:value notation', collect, [])
     // Authentication options
     .option('--no-viewer', 'do not create GraphQL viewer objects for passing authentication credentials')
     // Logging options
@@ -40,29 +41,8 @@ const portNumber = program.port ? program.port : 3000;
  * Assemble headers so that they are in the proper format for the
  * OpenAPI-to-GraphQL library
  */
-const headers = {};
-if (Array.isArray(program.header)) {
-    ;
-    program.header.forEach(header => {
-        const headerSeperator = header.indexOf(':');
-        if (headerSeperator === -1) {
-            console.warn(`The header '${header}' does not have a ':' separating ` +
-                `the key from the value. It will be ignored.`);
-        }
-        else {
-            const headerKey = header.substr(0, headerSeperator);
-            // Trim, may have leading white space
-            const headerValue = header.substr(headerSeperator + 1).trim();
-            if (headerKey in headers) {
-                console.warn(`Multiple headers have the same key '${headerKey}'. ` +
-                    `The header '${header}' will be ignored.`);
-            }
-            else {
-                headers[headerKey] = headerValue;
-            }
-        }
-    });
-}
+const headers = parseKeyValuePairs(program.header);
+const qs = parseKeyValuePairs(program.queryString);
 const options = {
     strict: program.strict,
     // Resolver options
@@ -73,6 +53,7 @@ const options = {
     addLimitArgument: program.addLimitArgument,
     // Resolver options
     headers,
+    qs,
     // Authentication options
     viewer: program.viewer,
     // Logging options
@@ -225,5 +206,36 @@ function writeSchema(schema) {
             throw err;
         console.log(`OpenAPI-to-GraphQL successfully saved your schema at ${program.save}`);
     });
+}
+/**
+ * Parse key value pairs in the form `key:string`
+ *
+ * @param keyValues Raw unparsed key value pairs from the CLI
+ */
+function parseKeyValuePairs(keyValues) {
+    const parsedKeyValues = {};
+    if (Array.isArray(keyValues)) {
+        ;
+        keyValues.forEach(keyValue => {
+            const separator = keyValue.indexOf(':');
+            if (separator === -1) {
+                console.warn(`The key value pair '${keyValue}' does not have a ':' separating ` +
+                    `the key from the value. It will be ignored.`);
+            }
+            else {
+                const key = keyValue.substr(0, separator);
+                // Trim, may have leading white space
+                const value = keyValue.substr(separator + 1).trim();
+                if (key in parsedKeyValues) {
+                    console.warn(`Multiple key value pairs have the same key '${key}'. ` +
+                        `The key value pair '${keyValue}' will be ignored.`);
+                }
+                else {
+                    parsedKeyValues[key] = value;
+                }
+            }
+        });
+    }
+    return parsedKeyValues;
 }
 //# sourceMappingURL=openapi-to-graphql.js.map

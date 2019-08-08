@@ -57,6 +57,12 @@ program
     collect,
     []
   )
+  .option(
+    '-Q, --queryString <key:value>',
+    'add query parameters to every request; repeatable flag; set using key:value notation',
+    collect,
+    []
+  )
 
   // Authentication options
   .option(
@@ -82,32 +88,8 @@ const portNumber: number = program.port ? program.port : 3000
  * Assemble headers so that they are in the proper format for the
  * OpenAPI-to-GraphQL library
  */
-const headers: { [key: string]: string } = {}
-if (Array.isArray(program.header)) {
-  ;(program.header as string[]).forEach(header => {
-    const headerSeperator = header.indexOf(':')
-
-    if (headerSeperator === -1) {
-      console.warn(
-        `The header '${header}' does not have a ':' separating ` +
-          `the key from the value. It will be ignored.`
-      )
-    } else {
-      const headerKey = header.substr(0, headerSeperator)
-      // Trim, may have leading white space
-      const headerValue = header.substr(headerSeperator + 1).trim()
-
-      if (headerKey in headers) {
-        console.warn(
-          `Multiple headers have the same key '${headerKey}'. ` +
-            `The header '${header}' will be ignored.`
-        )
-      } else {
-        headers[headerKey] = headerValue
-      }
-    }
-  })
-}
+const headers: { [key: string]: string } = parseKeyValuePairs(program.header)
+const qs: { [key: string]: string } = parseKeyValuePairs(program.queryString)
 
 const options: Options = {
   strict: program.strict,
@@ -122,6 +104,7 @@ const options: Options = {
 
   // Resolver options
   headers,
+  qs,
 
   // Authentication options
   viewer: program.viewer,
@@ -301,4 +284,41 @@ function writeSchema(schema): void {
       `OpenAPI-to-GraphQL successfully saved your schema at ${program.save}`
     )
   })
+}
+
+/**
+ * Parse key value pairs in the form `key:string`
+ *
+ * @param keyValues Raw unparsed key value pairs from the CLI
+ */
+function parseKeyValuePairs(keyValues: string[]): { [key: string]: string } {
+  const parsedKeyValues: { [key: string]: string } = {}
+
+  if (Array.isArray(keyValues)) {
+    ;(keyValues as string[]).forEach(keyValue => {
+      const separator = keyValue.indexOf(':')
+
+      if (separator === -1) {
+        console.warn(
+          `The key value pair '${keyValue}' does not have a ':' separating ` +
+            `the key from the value. It will be ignored.`
+        )
+      } else {
+        const key = keyValue.substr(0, separator)
+        // Trim, may have leading white space
+        const value = keyValue.substr(separator + 1).trim()
+
+        if (key in parsedKeyValues) {
+          console.warn(
+            `Multiple key value pairs have the same key '${key}'. ` +
+              `The key value pair '${keyValue}' will be ignored.`
+          )
+        } else {
+          parsedKeyValues[key] = value
+        }
+      }
+    })
+  }
+
+  return parsedKeyValues
 }
