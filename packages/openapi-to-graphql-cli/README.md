@@ -22,25 +22,26 @@ npm i -g openapi-to-graphql-cli
 Usage: openapi-to-graphql <OAS JSON file path(s) and/or remote url(s)> [options]
 
 Options:
-  -V, --version                output the version number
-  -s, --strict                 throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS
-  --save <file path>           save schema to path and do not start server
+  -V, --version                  output the version number
+  -s, --strict                   throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS
+  --save <file path>             save schema to path and do not start server
 
-  -p, --port <port>            select the port where the server will start
-  -u, --url <url>              select the base url which paths will be built on
-  --cors                       enable Cross-origin resource sharing (CORS)
+  -p, --port <port>              select the port where the server will start
+  -u, --url <url>                select the base url which paths will be built on
+  --cors                         enable Cross-origin resource sharing (CORS)
 
-  -o, --operationIdFieldNames  create field names based on the operationId
-  -f, --fillEmptyResponses     create placeholder schemas for operations with no response body rather than ignore them
-  -a, --addLimitArgument       add a limit argument on fields returning lists of objects/lists to control the data size
+  -o, --operationIdFieldNames    create field names based on the operationId
+  -f, --fillEmptyResponses       create placeholder schemas for operations with no response body rather than ignore them
+  -a, --addLimitArgument         add a limit argument on fields returning lists of objects/lists to control the data size
 
-  -H, --header <key:value>     add headers to every request; repeatable flag; set using key:value notation (default: [])
+  -H, --header <key:value>       add headers to every request; repeatable flag; set using key:value notation (default: [])
+  -Q, --queryString <key:value>  add query parameters to every request; repeatable flag; set using key:value notation (default: [])
 
-  --no-viewer                  do not create GraphQL viewer objects for passing authentication credentials
+  --no-viewer                    do not create GraphQL viewer objects for passing authentication credentials
 
-  --no-extensions              do not add extentions, containing information about failed REST calls, to the GraphQL errors objects
-  --no-equivalentToMessages    do not append information about the underlying REST operations to the description of fields
-  -h, --help                   output usage information
+  --no-extensions                do not add extentions, containing information about failed REST calls, to the GraphQL errors objects
+  --no-equivalentToMessages      do not append information about the underlying REST operations to the description of fields
+  -h, --help                     output usage information
 ```
 
 The basic usage of the CLI takes the specified OAS, creates a GraphQL interface for it, and starts a server to host the GraphQL interface.
@@ -69,6 +70,14 @@ OpenAPI-to-GraphQL can also save a GraphQL schema to a local file, which you can
 
 ```sh
 openapi-to-graphql oas.json --save schema.graphql
+```
+
+---
+
+You can use multiple `header` and `queryString` to add headers and query strings to the resolvers. Use the syntax: `{key}:{value}`.
+
+```sh
+openapi-to-graphql oas.json -H someHeader:someValue -H anotherHeader:anotherValue -Q "exampleQueryString:This one contains spaces!"
 ```
 
 ---

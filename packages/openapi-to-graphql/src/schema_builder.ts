@@ -375,7 +375,7 @@ function reuseOrCreateList({
 function reuseOrCreateEnum({ def, data }: ReuseOrCreateEnum): GraphQLEnumType {
   // Try to reuse existing Enum Type
   if (def.ot && typeof def.ot !== 'undefined') {
-    translationLog(`Reuse  GraphQLEnumType '${def.otName}'`)
+    translationLog(`Reuse GraphQLEnumType '${def.otName}'`)
     return def.ot as GraphQLEnumType
   } else {
     translationLog(`Create GraphQLEnumType '${def.otName}'`)
@@ -652,7 +652,7 @@ function linkOpRefToOpId({
             typeKey: 'AMBIGUOUS_LINK',
             message:
               `The link '${linkKey}' in operation '${operation.operationString}' ` +
-              `contains an ambiguous operationRef '${operationRef}',  ` +
+              `contains an ambiguous operationRef '${operationRef}', ` +
               `meaning it has multiple instances of the string '#/paths/'`,
             data,
             log: translationLog
