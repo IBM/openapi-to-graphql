@@ -1,6 +1,6 @@
 {
   "name": "openapi-to-graphql",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Generates a GraphQL schema for a given OpenAPI Specification (OAS)",
   "copyright.owner": "IBM Corp.",
   "contributors": [
