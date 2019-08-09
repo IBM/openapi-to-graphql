@@ -1626,3 +1626,14 @@ test('Option idFormats', () => {
       })
     })
 })
+
+test('Required properties for input object types', () => {
+  const userInputType = createdSchema.getType('UserInput')
+  // The exclamation mark shows that it is a required property
+  expect(userInputType.toConfig().fields.address.type.toString()).toEqual(
+    'AddressInput!'
+  )
+  expect(userInputType.toConfig().fields.address2.type.toString()).toEqual(
+    'AddressInput'
+  )
+})

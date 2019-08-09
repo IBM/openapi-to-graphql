@@ -431,7 +431,7 @@ function getScalarType({ def, data }: ReuseOrCreateScalar): GraphQLScalarType {
 }
 
 /**
- * Creates the fields object to be used by an ObjectType
+ * Creates the fields object to be used by an (input) object type
  */
 function createFields({
   def,
@@ -464,8 +464,8 @@ function createFields({
     // Determine if this property is required in mutations
     const reqMutationProp =
       isMutation &&
-      'required' in schema &&
-      schema.required.includes(fieldTypeKey)
+      'required' in def.schema && // The full schema, not subschema, will contain the required property
+      def.schema.required.includes(fieldTypeKey)
 
     // Finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
@@ -488,11 +488,11 @@ function createFields({
 
   // Create fields for links
   if (
-    iteration === 0 && // Only for operation-level object types
-    operation &&
+    iteration === 0 &&
+    operation && // Only for operation-level object types
     typeof operation === 'object' && // Operation is provided
     typeof links === 'object' && // Links are present
-    !isMutation // Only if we are not talking INPUT object type
+    !isMutation // Only object type (input object types cannot make use of links)
   ) {
     for (let saneLinkKey in links) {
       translationLog(`Create link '${saneLinkKey}'...`)
