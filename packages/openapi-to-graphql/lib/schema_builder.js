@@ -288,8 +288,8 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
         });
         // Determine if this property is required in mutations
         const reqMutationProp = isMutation &&
-            'required' in schema &&
-            schema.required.includes(fieldTypeKey);
+            (('required' in schema && schema.required.includes(fieldTypeKey)) ||
+                ('required' in def.schema && def.schema.required.includes(fieldTypeKey)));
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const sanePropName = Oas3Tools.sanitizeAndStore(fieldTypeKey, data.saneMap);

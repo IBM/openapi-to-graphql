@@ -9,6 +9,7 @@
 
 import * as openapiToGraphql from '../lib/index.js'
 import { Options } from '../lib/types/options.js'
+import { GraphQLObjectType } from 'graphql'
 const { graphql, parse, validate } = require('graphql')
 const { startServer, stopServer } = require('./example_api_server')
 
@@ -1566,5 +1567,21 @@ test('Option idFormats', () => {
           }
         })
       })
+    })
+})
+
+test('Add ! on type for required properties', () => {
+  const options: Options = {}
+
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      const userInputType = schema.getType('UserInput') as GraphQLObjectType
+      expect(userInputType.toConfig().fields.address.type.toString()).toEqual(
+        'AddressInput!'
+      )
+      expect(userInputType.toConfig().fields.address2.type.toString()).toEqual(
+        'AddressInput'
+      )
     })
 })
