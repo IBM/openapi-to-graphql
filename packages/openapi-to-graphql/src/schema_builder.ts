@@ -440,8 +440,6 @@ function createFields({
     // Determine if this property is required in mutations
     const reqMutationProp =
       isMutation &&
-      // 'required' in schema &&
-      // schema.required.includes(fieldTypeKey)
       (('required' in schema && schema.required.includes(fieldTypeKey)) ||
         ('required' in def.schema &&
           def.schema.required.includes(fieldTypeKey)))
