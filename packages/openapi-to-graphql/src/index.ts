@@ -20,10 +20,10 @@
  *
  * - To pass data between resolve functions, OpenAPI-to-GraphQL uses a _openapiToGraphql object
  *   returned by every resolver in addition to its original data (OpenAPI-to-GraphQL does
- *   not use the context to do so, which is an anti-pattern according to=
+ *   not use the context to do so, which is an anti-pattern according to
  *   https://github.com/graphql/graphql-js/issues/953).
  *
- * - OpenAPI-to-GraphQL can handle basic authentication and api key-based authentication
+ * - OpenAPI-to-GraphQL can handle basic authentication and API key-based authentication
  *   through GraphQL. To do this, OpenAPI-to-GraphQL creates two new intermediate Object
  *   Types called QueryViewer and MutationViewer that take as input security
  *   credentials and pass them on using the _openapiToGraphql object to other resolve
