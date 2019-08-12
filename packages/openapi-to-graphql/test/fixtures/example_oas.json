@@ -924,6 +924,42 @@
             }
           }
         }
+      },
+      "post": {
+        "operationId": "postOfficeTrashCan",
+        "description": "Add new contents to the trashcan of a specific owner",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Identifier of a user."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A trashcan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/trashcan"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/trashcans": {

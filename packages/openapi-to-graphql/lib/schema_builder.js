@@ -132,7 +132,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
         // CASE: mutation - create or reuse IOT
     }
     else {
-        if (typeof def.iot !== 'undefined') {
+        if (def.iot && typeof def.iot !== 'undefined') {
             translationLog(`Reuse Input Object Type '${def.iotName}'` +
                 (typeof operation === 'object'
                     ? ` (for operation '${operation.operationId}')`
@@ -144,6 +144,26 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
                 (typeof operation === 'object'
                     ? ` (for operation '${operation.operationId}')`
                     : ''));
+            /**
+             * If the schema does not contain any properties, then OpenAPI-to-GraphQL
+             * cannot create a GraphQL Object Type for it because in GraphQL, all Object
+             * Type properties must be named.
+             *
+             * Instead, store response in an arbitray JSON type.
+             */
+            if (typeof def.schema.properties === 'undefined') {
+                utils_1.handleWarning({
+                    typeKey: 'OBJECT_MISSING_PROPERTIES',
+                    message: `The operation ` +
+                        `'${operation.operationString}' contains ` +
+                        `a object schema ${JSON.stringify(def)} with no properties. ` +
+                        `GraphQL objects must have well-defined properties so a one to ` +
+                        `one conversion cannot be achieved.`,
+                    data,
+                    log: translationLog
+                });
+                return GraphQLJSON;
+            }
             schema.description =
                 typeof schema.description !== 'undefined'
                     ? schema.description

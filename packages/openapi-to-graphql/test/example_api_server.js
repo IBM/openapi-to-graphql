@@ -231,7 +231,7 @@ function startServer(PORT) {
     }
   }
 
-  const Trash = {
+  const TrashCans = {
     arlene: {
       brand: 'Garbage Emporium',
       contents: [
@@ -673,13 +673,28 @@ function startServer(PORT) {
 
   app.get('/api/trashcans', (req, res) => {
     console.log(req.method, req.path)
-    res.send(Array.from(Object.values(Trash)))
+    res.send(Array.from(Object.values(TrashCans)))
   })
 
   app.get('/api/trashcans/:username', (req, res) => {
     console.log(req.method, req.path)
     if (req.params.username in Users) {
-      res.send(Trash[req.params.username])
+      res.send(TrashCans[req.params.username])
+    } else {
+      res.status(404).send({
+        message: 'Wrong username.'
+      })
+    }
+  })
+
+  app.post('/api/trashcans/:username', (req, res) => {
+    console.log(req.method, req.path)
+    const trashItem = req.body
+
+    if (req.params.username in Users) {
+      const trashCan = TrashCans[req.params.username]
+      trashCan.contents.push(trashItem)
+      res.send(TrashCans[req.params.username])
     } else {
       res.status(404).send({
         message: 'Wrong username.'

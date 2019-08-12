@@ -325,7 +325,7 @@ function getSchemaType(schema, data) {
     }
     // CASE: a type is present
     if (typeof schema.type === 'string') {
-        // Special edge cases involving the schema format 
+        // Special edge cases involving the schema format
         if (typeof schema.format === 'string') {
             /**
              * CASE: 64 bit int - return number instead of integer, leading to use of
