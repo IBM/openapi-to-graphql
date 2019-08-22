@@ -7,14 +7,15 @@
 
 /* globals beforeAll, test, expect */
 
-import * as openapiToGraphql from '../lib/index.js'
 import { graphql } from 'graphql'
+
+import * as openapiToGraphql from '../lib/index'
+import { startServer, stopServer } from './example_api_server'
 
 const oas = require('./fixtures/example_oas.json')
 const PORT = 3003
 // update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
-const { startServer, stopServer } = require('./example_api_server')
 
 let createdSchema
 

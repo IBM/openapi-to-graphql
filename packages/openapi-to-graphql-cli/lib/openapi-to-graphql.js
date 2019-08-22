@@ -9,9 +9,10 @@ const request = require("request");
 const fs = require("fs");
 const yaml = require("js-yaml");
 const graphql_1 = require("graphql");
+const commander_1 = require("commander");
 const openapi_to_graphql_1 = require("openapi-to-graphql");
 const app = express();
-let program = require('commander');
+const program = new commander_1.Command();
 program
     .version(require('../package.json').version)
     .usage('<OAS JSON file path(s) and/or remote url(s)> [options]')

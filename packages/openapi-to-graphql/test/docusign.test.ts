@@ -7,8 +7,8 @@
 
 /* globals test, expect */
 
-import * as openapiToGraphql from '../lib/index.js'
-import { Options } from '../lib/types/options.js'
+import * as openapiToGraphql from '../lib/index'
+import { Options } from '../lib/types/options'
 
 const oas = require('./fixtures/docusign_oas.json')
 

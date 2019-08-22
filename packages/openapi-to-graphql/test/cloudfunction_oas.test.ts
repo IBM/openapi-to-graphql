@@ -7,7 +7,7 @@
 
 /* globals beforeAll, test, expect */
 
-import * as openapiToGraphql from '../lib/index.js'
+import * as openapiToGraphql from '../lib/index'
 const { parse, validate } = require('graphql')
 
 const oas = require('./fixtures/cloudfunction_oas.json')

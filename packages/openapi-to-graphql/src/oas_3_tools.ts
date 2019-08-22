@@ -26,7 +26,7 @@ import {
   MediaTypesObject,
   SecuritySchemeObject,
   SecurityRequirementObject
-} from './types/oas3.js'
+} from './types/oas3'
 import {
   PreprocessingData,
   ProcessedSecurityScheme

@@ -21,7 +21,7 @@ import { Args, ResolveFunction } from './types/graphql'
 import {
   PreprocessingData,
   ProcessedSecurityScheme
-} from './types/preprocessing_data.js'
+} from './types/preprocessing_data'
 
 // Imports:
 import { getGraphQLType } from './schema_builder'

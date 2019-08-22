@@ -7,7 +7,7 @@
 
 /* globals beforeAll, test, expect */
 
-import * as openapiToGraphql from '../lib/index.js'
+import * as openapiToGraphql from '../lib/index'
 
 /**
  * Set up the schema first

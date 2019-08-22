@@ -1,6 +1,6 @@
 import { GraphQLObjectType as GQObjectType } from 'graphql';
 import { Args, ResolveFunction } from './types/graphql';
-import { PreprocessingData } from './types/preprocessing_data.js';
+import { PreprocessingData } from './types/preprocessing_data';
 declare type Viewer = {
     type: GQObjectType;
     resolve: ResolveFunction;
