@@ -7,9 +7,10 @@
 
 /* globals beforeAll, test, expect */
 
-import * as openapiToGraphql from '../lib/index.js'
-import { Options } from '../lib/types/options.js'
-const { graphql, parse, validate } = require('graphql')
+import * as openapiToGraphql from '../lib/index'
+import { Options } from '../lib/types/options'
+import { graphql, parse, validate } from 'graphql'
+
 const api = require('./example_api_server')
 const api2 = require('./example_api3_server')
 

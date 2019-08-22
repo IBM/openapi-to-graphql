@@ -5,7 +5,7 @@
 
 'use strict'
 
-const openapiToGraphql = require('../../lib/index.js')
+const openapiToGraphql = require('../../lib/index')
 const Glob = require('glob')
 const fs = require('fs')
 const YAML = require('js-yaml')

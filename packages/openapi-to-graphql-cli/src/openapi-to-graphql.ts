@@ -8,6 +8,7 @@ import * as request from 'request'
 import * as fs from 'fs'
 import * as yaml from 'js-yaml'
 import { printSchema } from 'graphql'
+import { Command } from 'commander'
 
 import { createGraphQlSchema } from 'openapi-to-graphql'
 import { Oas2 } from 'openapi-to-graphql/lib/types/oas2'
@@ -15,8 +16,8 @@ import { Oas3 } from 'openapi-to-graphql/lib/types/oas3'
 import { Options } from 'openapi-to-graphql/lib/types/options'
 
 const app = express()
-let program = require('commander')
 
+const program = new Command()
 program
   .version(require('../package.json').version)
   .usage('<OAS JSON file path(s) and/or remote url(s)> [options]')

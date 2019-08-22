@@ -7,9 +7,10 @@
 
 /* globals beforeAll, test, expect */
 
-import * as openapiToGraphql from '../lib/index.js';
-const { graphql, parse, validate } = require('graphql')
-const { startServer, stopServer } = require('./example_api2_server')
+import { graphql, parse, validate } from 'graphql'
+
+import * as openapiToGraphql from '../lib/index'
+import { startServer, stopServer } from './example_api2_server'
 
 const oas = require('./fixtures/example_oas2.json')
 const PORT = 3004
