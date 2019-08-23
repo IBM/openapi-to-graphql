@@ -9,7 +9,6 @@ const Oas3Tools = require("./oas_3_tools");
 const deepEqual = require("deep-equal");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const mergeAllOf = require("json-schema-merge-allof");
 const preprocessingLog = debug_1.default('preprocessing');
 /**
  * Extract information from the OAS and put it inside a data structure that
@@ -307,22 +306,6 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         throw new Error(`Cannot create data definition for invalid schema ` +
             `'${JSON.stringify(schema)}'`);
     }
-    // Resolve allOf element in schema if applicable
-    if ('allOf' in schema) {
-        schema.allOf = schema.allOf.map((entry) => {
-            return entry.$ref ? Oas3Tools.resolveRef(entry.$ref, oas) : entry;
-        });
-        schema = mergeAllOf(schema);
-    }
-    else if ('anyOf' in schema) {
-        throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(schema)}'`);
-    }
-    else if ('oneOf' in schema) {
-        throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(schema)}'`);
-    }
-    else if ('not' in schema) {
-        throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(schema)}'`);
-    }
     const preferredName = getPreferredName(names);
     const saneLinks = {};
     if (typeof links === 'object') {
@@ -378,10 +361,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
         // Determine the type of the schema
         const type = Oas3Tools.getSchemaType(schema, data);
-        if (!type) {
-            throw new Error(`Cannot process schema '${JSON.stringify(schema)}'. Cannot identify type of schema.`);
-        }
-        else {
+        if (type) {
             // Add the names to the master list
             data.usedOTNames.push(saneName);
             data.usedOTNames.push(saneInputName);
@@ -423,6 +403,58 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
             }
             else if (type === 'object') {
                 def.subDefinitions = {};
+                // Resolve allOf element in schema if applicable
+                if ('allOf' in schema) {
+                    schema.allOf.forEach((subSchema) => {
+                        // Dereference subSchema
+                        if ('$ref' in subSchema) {
+                            if (oas) {
+                                subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas);
+                            }
+                            else {
+                                // TODO: Should this simply throw an error?
+                                utils_1.handleWarning({
+                                    typeKey: 'UNRESOLVABLE_REFERENCE',
+                                    message: `A schema reference could not be resolved due to unknown OAS origin.`,
+                                    data,
+                                    log: preprocessingLog
+                                });
+                            }
+                        }
+                        for (let propertyKey in subSchema.properties) {
+                            let propSchemaName = propertyKey;
+                            let propSchema = subSchema.properties[propertyKey];
+                            if ('$ref' in propSchema) {
+                                if (oas) {
+                                    propSchemaName = propSchema['$ref'].split('/').pop();
+                                    propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
+                                }
+                                else {
+                                    // TODO: Should this simply throw an error?
+                                    utils_1.handleWarning({
+                                        typeKey: 'UNRESOLVABLE_REFERENCE',
+                                        message: `A schema reference could not be resolved due to unknown OAS origin.`,
+                                        data,
+                                        log: preprocessingLog
+                                    });
+                                }
+                            }
+                            const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
+                            // Add field type references
+                            def.subDefinitions[propertyKey] = subDefinition;
+                        }
+                    });
+                }
+                else if ('anyOf' in schema) {
+                    throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(schema)}'`);
+                }
+                else if ('oneOf' in schema) {
+                    throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(schema)}'`);
+                }
+                else if ('not' in schema) {
+                    throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(schema)}'`);
+                }
+                // Regular object type
                 for (let propertyKey in schema.properties) {
                     let propSchemaName = propertyKey;
                     let propSchema = schema.properties[propertyKey];
@@ -447,6 +479,9 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 }
             }
             return def;
+        }
+        else {
+            throw new Error(`Cannot process schema '${JSON.stringify(schema)}'. Cannot identify type of schema.`);
         }
     }
 }
@@ -495,7 +530,7 @@ function getPreferredName(names) {
         // CASE: placeholder name
     }
     else {
-        schemaName = 'RandomName';
+        schemaName = 'PlaceholderName';
     }
     return Oas3Tools.sanitize(schemaName);
 }
@@ -513,6 +548,13 @@ function getSchemaName(usedNames, names) {
         throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`);
     }
     let schemaName;
+    // // CASE: preferred name already known
+    // if (typeof names.preferred === 'string') {
+    //   const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.preferred))
+    //   if (!usedNames.includes(saneName)) {
+    //     schemaName = names.preferred
+    //   }
+    // }
     // CASE: name from reference
     if (typeof names.fromRef === 'string') {
         const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.fromRef));
@@ -542,7 +584,7 @@ function getSchemaName(usedNames, names) {
                 ? names.fromSchema
                 : typeof names.fromPath === 'string'
                     ? names.fromPath
-                    : 'RandomName'));
+                    : 'PlaceholderName'));
         let appendix = 2;
         /**
          * GraphQL Objects cannot share the name so if the name already exists in

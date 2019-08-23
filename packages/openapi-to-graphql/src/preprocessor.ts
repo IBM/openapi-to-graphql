@@ -17,7 +17,6 @@ import * as Oas3Tools from './oas_3_tools'
 import * as deepEqual from 'deep-equal'
 import debug from 'debug'
 import { handleWarning, getCommonPropertyNames } from './utils'
-import * as mergeAllOf from 'json-schema-merge-allof'
 
 const preprocessingLog = debug('preprocessing')
 
@@ -413,32 +412,6 @@ export function createDataDef(
     )
   }
 
-  // Resolve allOf element in schema if applicable
-  if ('allOf' in schema) {
-    schema.allOf = schema.allOf.map((entry: SchemaObject) => {
-      return entry.$ref ? Oas3Tools.resolveRef(entry.$ref, oas) : entry
-    })
-    schema = mergeAllOf(schema)
-  } else if ('anyOf' in schema) {
-    throw new Error(
-      `OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(
-        schema
-      )}'`
-    )
-  } else if ('oneOf' in schema) {
-    throw new Error(
-      `OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(
-        schema
-      )}'`
-    )
-  } else if ('not' in schema) {
-    throw new Error(
-      `OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(
-        schema
-      )}'`
-    )
-  }
-
   const preferredName = getPreferredName(names)
 
   const saneLinks = {}
@@ -507,13 +480,7 @@ export function createDataDef(
 
     // Determine the type of the schema
     const type = Oas3Tools.getSchemaType(schema as SchemaObject, data)
-    if (!type) {
-      throw new Error(
-        `Cannot process schema '${JSON.stringify(
-          schema
-        )}'. Cannot identify type of schema.`
-      )
-    } else {
+    if (type) {
       // Add the names to the master list
       data.usedOTNames.push(saneName)
       data.usedOTNames.push(saneInputName)
@@ -566,6 +533,76 @@ export function createDataDef(
       } else if (type === 'object') {
         def.subDefinitions = {}
 
+        // Resolve allOf element in schema if applicable
+        if ('allOf' in schema) {
+          schema.allOf.forEach(subSchema => {
+            // Dereference subSchema
+            if ('$ref' in subSchema) {
+              if (oas) {
+                subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas)
+              } else {
+                // TODO: Should this simply throw an error?
+                handleWarning({
+                  typeKey: 'UNRESOLVABLE_REFERENCE',
+                  message: `A schema reference could not be resolved due to unknown OAS origin.`,
+                  data,
+                  log: preprocessingLog
+                })
+              }
+            }
+
+            for (let propertyKey in subSchema.properties) {
+              let propSchemaName = propertyKey
+              let propSchema = subSchema.properties[propertyKey]
+
+              if ('$ref' in propSchema) {
+                if (oas) {
+                  propSchemaName = propSchema['$ref'].split('/').pop()
+                  propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas)
+                } else {
+                  // TODO: Should this simply throw an error?
+                  handleWarning({
+                    typeKey: 'UNRESOLVABLE_REFERENCE',
+                    message: `A schema reference could not be resolved due to unknown OAS origin.`,
+                    data,
+                    log: preprocessingLog
+                  })
+                }
+              }
+
+              const subDefinition = createDataDef(
+                { fromRef: propSchemaName },
+                propSchema as SchemaObject,
+                isInputObjectType,
+                data,
+                undefined,
+                oas
+              )
+              // Add field type references
+              def.subDefinitions[propertyKey] = subDefinition
+            }
+          })
+        } else if ('anyOf' in schema) {
+          throw new Error(
+            `OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(
+              schema
+            )}'`
+          )
+        } else if ('oneOf' in schema) {
+          throw new Error(
+            `OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(
+              schema
+            )}'`
+          )
+        } else if ('not' in schema) {
+          throw new Error(
+            `OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(
+              schema
+            )}'`
+          )
+        }
+
+        // Regular object type
         for (let propertyKey in schema.properties) {
           let propSchemaName = propertyKey
           let propSchema = schema.properties[propertyKey]
@@ -599,6 +636,12 @@ export function createDataDef(
       }
 
       return def
+    } else {
+      throw new Error(
+        `Cannot process schema '${JSON.stringify(
+          schema
+        )}'. Cannot identify type of schema.`
+      )
     }
   }
 }
@@ -655,7 +698,7 @@ function getPreferredName(names: Oas3Tools.SchemaNames): string {
 
     // CASE: placeholder name
   } else {
-    schemaName = 'RandomName'
+    schemaName = 'PlaceholderName'
   }
 
   return Oas3Tools.sanitize(schemaName)
@@ -718,7 +761,7 @@ function getSchemaName(
           ? names.fromSchema
           : typeof names.fromPath === 'string'
           ? names.fromPath
-          : 'RandomName'
+          : 'PlaceholderName'
       )
     )
     let appendix = 2
