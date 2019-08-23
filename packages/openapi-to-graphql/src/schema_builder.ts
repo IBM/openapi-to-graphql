@@ -49,7 +49,7 @@ type GetGraphQLTypeParams = {
   operation?: Operation
   data: PreprocessingData // Data produced by preprocessing
   iteration?: number // Count of recursions used to create type
-  isMutation?: boolean // Whether to create an Input Type
+  isInputObjectType?: boolean // Whether to create an Input Type
 }
 
 type GetArgsParams = {
@@ -63,7 +63,7 @@ type CreateOrReuseOtParams = {
   def: DataDefinition
   operation?: Operation
   iteration: number
-  isMutation: boolean
+  isInputObjectType: boolean
   data: PreprocessingData
 }
 
@@ -71,7 +71,7 @@ type ReuseOrCreateListParams = {
   def: DataDefinition
   operation?: Operation
   iteration: number
-  isMutation: boolean
+  isInputObjectType: boolean
   data: PreprocessingData
 }
 
@@ -90,7 +90,7 @@ type CreateFieldsParams = {
   links: { [key: string]: LinkObject }
   operation?: Operation
   iteration: number
-  isMutation: boolean
+  isInputObjectType: boolean
   data: PreprocessingData
 }
 
@@ -111,9 +111,9 @@ export function getGraphQLType({
   operation,
   data,
   iteration = 0,
-  isMutation = false
+  isInputObjectType = false
 }: GetGraphQLTypeParams): GraphQLType {
-  const name = isMutation ? def.iotName : def.otName
+  const name = isInputObjectType ? def.iotName : def.otName
 
   // Avoid excessive iterations
   if (iteration === 50) {
@@ -129,7 +129,7 @@ export function getGraphQLType({
       operation,
       data,
       iteration,
-      isMutation
+      isInputObjectType
     })
 
     // CASE: array - create ArrayType
@@ -139,7 +139,7 @@ export function getGraphQLType({
       operation,
       data,
       iteration,
-      isMutation
+      isInputObjectType
     })
 
     // CASE: enum - create EnumType
@@ -178,12 +178,12 @@ function createOrReuseOt({
   operation,
   data,
   iteration,
-  isMutation
+  isInputObjectType
 }: CreateOrReuseOtParams): GraphQLType {
   const schema = def.schema
 
   // CASE: query - create or reuse OT
-  if (!isMutation) {
+  if (!isInputObjectType) {
     if (def.ot && typeof def.ot !== 'undefined') {
       translationLog(
         `Reuse Object Type '${def.otName}'` +
@@ -243,7 +243,7 @@ function createOrReuseOt({
             operation,
             data,
             iteration,
-            isMutation
+            isInputObjectType
           })
         }
       })
@@ -309,7 +309,7 @@ function createOrReuseOt({
             operation,
             data,
             iteration,
-            isMutation
+            isInputObjectType
           })
         }
       })
@@ -326,16 +326,16 @@ function reuseOrCreateList({
   def,
   operation,
   iteration,
-  isMutation,
+  isInputObjectType,
   data
 }: ReuseOrCreateListParams): GraphQLList<any> {
-  const name = isMutation ? def.iotName : def.otName
+  const name = isInputObjectType ? def.iotName : def.otName
 
   // Try to reuse existing Object Type
-  if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
+  if (!isInputObjectType && def.ot && typeof def.ot !== 'undefined') {
     translationLog(`Reuse GraphQLList '${def.otName}'`)
     return def.ot as GraphQLList<any>
-  } else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
+  } else if (isInputObjectType && def.iot && typeof def.iot !== 'undefined') {
     translationLog(`Reuse GraphQLList '${def.iotName}'`)
     return def.iot as GraphQLList<any>
   }
@@ -356,14 +356,14 @@ function reuseOrCreateList({
     data,
     operation,
     iteration: iteration + 1,
-    isMutation
+    isInputObjectType
   })
 
   if (itemsType !== null) {
     const listObjectType = new GraphQLList(itemsType)
 
     // Store newly created List Object Type
-    if (!isMutation) {
+    if (!isInputObjectType) {
       def.ot = listObjectType
     } else {
       def.iot = listObjectType
@@ -445,7 +445,7 @@ function createFields({
   operation,
   data,
   iteration,
-  isMutation
+  isInputObjectType
 }: CreateFieldsParams): GraphQLFieldConfigMap<any, any> {
   let fields: GraphQLFieldConfigMap<any, any> = {}
 
@@ -464,12 +464,12 @@ function createFields({
       operation,
       data,
       iteration: iteration + 1,
-      isMutation
+      isInputObjectType
     })
 
     // Determine if this property is required in mutations
     const reqMutationProp =
-      isMutation &&
+      isInputObjectType &&
       'required' in def.schema && // The full schema, not subschema, will contain the required property
       def.schema.required.includes(fieldTypeKey)
 
@@ -498,7 +498,7 @@ function createFields({
     operation && // Only for operation-level object types
     typeof operation === 'object' && // Operation is provided
     typeof links === 'object' && // Links are present
-    !isMutation // Only object type (input object types cannot make use of links)
+    !isInputObjectType // Only object type (input object types cannot make use of links)
   ) {
     for (let saneLinkKey in links) {
       translationLog(`Create link '${saneLinkKey}'...`)
@@ -964,7 +964,7 @@ export function getArgs({
       operation,
       data,
       iteration: 0,
-      isMutation: true
+      isInputObjectType: true
     })
 
     /**
@@ -1033,7 +1033,7 @@ export function getArgs({
       def,
       data,
       operation,
-      isMutation: true
+      isInputObjectType: true
     })
 
     // Sanitize the argument name

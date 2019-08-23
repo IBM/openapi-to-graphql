@@ -159,7 +159,7 @@ const getViewerAnyAuthOT = (name, queryFields, data) => {
         const type = schema_builder_1.getGraphQLType({
             def,
             data,
-            isMutation: true
+            isInputObjectType: true
         });
         args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = { type };
     }
