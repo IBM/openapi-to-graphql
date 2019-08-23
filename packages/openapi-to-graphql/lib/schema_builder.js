@@ -16,8 +16,8 @@ const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
-function getGraphQLType({ def, operation, data, iteration = 0, isMutation = false }) {
-    const name = isMutation ? def.iotName : def.otName;
+function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType = false }) {
+    const name = isInputObjectType ? def.iotName : def.otName;
     // Avoid excessive iterations
     if (iteration === 50) {
         throw new Error(`Too many iterations when creating schema ${name}`);
@@ -30,7 +30,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isMutation = fals
             operation,
             data,
             iteration,
-            isMutation
+            isInputObjectType
         });
         // CASE: array - create ArrayType
     }
@@ -40,7 +40,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isMutation = fals
             operation,
             data,
             iteration,
-            isMutation
+            isInputObjectType
         });
         // CASE: enum - create EnumType
     }
@@ -74,10 +74,10 @@ exports.getGraphQLType = getGraphQLType;
  *       resolve   // Optional function defining how to obtain this type
  *   })
  */
-function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
+function createOrReuseOt({ def, operation, data, iteration, isInputObjectType }) {
     const schema = def.schema;
     // CASE: query - create or reuse OT
-    if (!isMutation) {
+    if (!isInputObjectType) {
         if (def.ot && typeof def.ot !== 'undefined') {
             translationLog(`Reuse Object Type '${def.otName}'` +
                 (typeof operation === 'object'
@@ -124,7 +124,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
                         operation,
                         data,
                         iteration,
-                        isMutation
+                        isInputObjectType
                     });
                 }
             });
@@ -181,7 +181,7 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
                         operation,
                         data,
                         iteration,
-                        isMutation
+                        isInputObjectType
                     });
                 }
             });
@@ -192,14 +192,14 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
 /**
  * Returns an existing List or creates a new one, and stores it in data
  */
-function reuseOrCreateList({ def, operation, iteration, isMutation, data }) {
-    const name = isMutation ? def.iotName : def.otName;
+function reuseOrCreateList({ def, operation, iteration, isInputObjectType, data }) {
+    const name = isInputObjectType ? def.iotName : def.otName;
     // Try to reuse existing Object Type
-    if (!isMutation && def.ot && typeof def.ot !== 'undefined') {
+    if (!isInputObjectType && def.ot && typeof def.ot !== 'undefined') {
         translationLog(`Reuse GraphQLList '${def.otName}'`);
         return def.ot;
     }
-    else if (isMutation && def.iot && typeof def.iot !== 'undefined') {
+    else if (isInputObjectType && def.iot && typeof def.iot !== 'undefined') {
         translationLog(`Reuse GraphQLList '${def.iotName}'`);
         return def.iot;
     }
@@ -216,12 +216,12 @@ function reuseOrCreateList({ def, operation, iteration, isMutation, data }) {
         data,
         operation,
         iteration: iteration + 1,
-        isMutation
+        isInputObjectType
     });
     if (itemsType !== null) {
         const listObjectType = new graphql_1.GraphQLList(itemsType);
         // Store newly created List Object Type
-        if (!isMutation) {
+        if (!isInputObjectType) {
             def.ot = listObjectType;
         }
         else {
@@ -294,7 +294,7 @@ function getScalarType({ def, data }) {
 /**
  * Creates the fields object to be used by an (input) object type
  */
-function createFields({ def, links, operation, data, iteration, isMutation }) {
+function createFields({ def, links, operation, data, iteration, isInputObjectType }) {
     let fields = {};
     const fieldTypeDefinitions = def.subDefinitions;
     // Create fields for properties
@@ -307,10 +307,10 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
             operation,
             data,
             iteration: iteration + 1,
-            isMutation
+            isInputObjectType
         });
         // Determine if this property is required in mutations
-        const reqMutationProp = isMutation &&
+        const reqMutationProp = isInputObjectType &&
             'required' in def.schema && // The full schema, not subschema, will contain the required property
             def.schema.required.includes(fieldTypeKey);
         // Finally, add the object type to the fields (using sanitized field name)
@@ -331,7 +331,7 @@ function createFields({ def, links, operation, data, iteration, isMutation }) {
         operation && // Only for operation-level object types
         typeof operation === 'object' && // Operation is provided
         typeof links === 'object' && // Links are present
-        !isMutation // Only object type (input object types cannot make use of links)
+        !isInputObjectType // Only object type (input object types cannot make use of links)
     ) {
         for (let saneLinkKey in links) {
             translationLog(`Create link '${saneLinkKey}'...`);
@@ -719,7 +719,7 @@ function getArgs({ def, parameters, operation, data }) {
             operation,
             data,
             iteration: 0,
-            isMutation: true
+            isInputObjectType: true
         });
         /**
          * Sanitize the argument name
@@ -780,7 +780,7 @@ function getArgs({ def, parameters, operation, data }) {
             def,
             data,
             operation,
-            isMutation: true
+            isInputObjectType: true
         });
         // Sanitize the argument name
         const saneName = Oas3Tools.sanitize(def.iotName);

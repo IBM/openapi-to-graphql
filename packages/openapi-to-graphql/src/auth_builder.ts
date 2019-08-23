@@ -236,7 +236,7 @@ const getViewerAnyAuthOT = (
     const type = getGraphQLType({
       def,
       data,
-      isMutation: true
+      isInputObjectType: true
     })
 
     args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = { type }

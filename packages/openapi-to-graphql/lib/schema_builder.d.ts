@@ -10,7 +10,7 @@ declare type GetGraphQLTypeParams = {
     operation?: Operation;
     data: PreprocessingData;
     iteration?: number;
-    isMutation?: boolean;
+    isInputObjectType?: boolean;
 };
 declare type GetArgsParams = {
     def?: DataDefinition;
@@ -21,7 +21,7 @@ declare type GetArgsParams = {
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
-export declare function getGraphQLType({ def, operation, data, iteration, isMutation }: GetGraphQLTypeParams): GraphQLType;
+export declare function getGraphQLType({ def, operation, data, iteration, isInputObjectType }: GetGraphQLTypeParams): GraphQLType;
 /**
  * Creates an object with the arguments for resolving a GraphQL (Input) Object
  * Type
