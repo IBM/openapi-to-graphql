@@ -1108,14 +1108,6 @@
   },
   "components": {
     "schemas": {
-      "suborderObject": {
-        "type": "object",
-        "properties": {
-          "suborder": {
-            "type": "string"
-          }
-        }
-      },
       "address": {
         "type": "object",
         "description": "The legal address of a user",
@@ -1197,6 +1189,28 @@
             "type": "number"
           }
         }
+      },
+      "familyObject": {
+        "type": "object",
+        "allOf": [
+          {
+            "properties": {
+              "family": {
+                "$ref": "#/components/schemas/familyString"
+              }
+            }
+          },
+          {
+            "properties": {
+              "familyCircular": {
+                "$ref": "#/components/schemas/familyObject"
+              }
+            }
+          }
+        ]
+      },
+      "familyString": {
+        "type": "string"
       },
       "office": {
         "description": "An office",
@@ -1308,6 +1322,14 @@
           "type": "string"
         }
       },
+      "suborderObject": {
+        "type": "object",
+        "properties": {
+          "suborder": {
+            "type": "string"
+          }
+        }
+      },
       "user": {
         "type": "object",
         "description": "A user represents a natural person",
@@ -1343,17 +1365,17 @@
                 "$ref": "#/components/schemas/suborderObject"
               },
               {
+                "$ref": "#/components/schemas/familyObject"
+              },
+              {
                 "properties": {
-                  "family": {
+                  "genus": {
                     "type": "string"
                   }
                 }
               }
             ],
             "properties": {
-              "genus": {
-                "type": "string"
-              },
               "species": {
                 "type": "string"
               }

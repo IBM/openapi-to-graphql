@@ -904,13 +904,38 @@ test('Define header and query options', () => {
     })
 })
 
-test('Resolve allOf', () => {
+test('Resolve simple allOf', () => {
+  const query = `{
+    user (username: "arlene") {
+      name
+      nomenclature {
+        genus
+        species
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Arlene L McMahon',
+          nomenclature: {
+            genus: 'Homo',
+            species: 'sapiens'
+          }
+        }
+      }
+    })
+  })
+})
+
+// The $ref is contained in the suborder field
+test('Resolve ref in allOf', () => {
   const query = `{
     user (username: "arlene") {
       name
       nomenclature {
         suborder
-        family
         genus
         species
       }
@@ -923,11 +948,65 @@ test('Resolve allOf', () => {
           name: 'Arlene L McMahon',
           nomenclature: {
             suborder: 'Haplorhini',
+            genus: 'Homo',
+            species: 'sapiens'
+          }
+        }
+      }
+    })
+  })
+})
+
+// The nested allOf is contained in the family field
+test('Resolve nested allOf', () => {
+  const query = `{
+    user (username: "arlene") {
+      name
+      nomenclature {
+        family
+        genus
+        species
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        user: {
+          name: 'Arlene L McMahon',
+          nomenclature: {
             family: 'Hominidae',
             genus: 'Homo',
             species: 'sapiens'
           }
         }
+      }
+    })
+  })
+})
+
+// The circular nested allOf is contained in the familyCircular field
+test('Resolve circular allOf', () => {
+  const query = `{
+    __type(name: "FamilyObject") {
+      fields {
+        name
+        type {
+          name
+        }
+      }
+    }
+  }
+  `
+  return graphql(createdSchema, query, null, {}).then(result => {
+    expect(
+      result.data['__type']['fields'].find(field => {
+        return field.name === 'familyCircular'
+      })
+    ).toEqual({
+      name: 'familyCircular',
+      type: {
+        name: 'FamilyObject'
       }
     })
   })

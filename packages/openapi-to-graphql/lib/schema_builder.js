@@ -97,7 +97,8 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
              *
              * Instead, store response in an arbitray JSON type.
              */
-            if (typeof def.schema.properties === 'undefined') {
+            if (typeof def.schema.properties === 'undefined' &&
+                typeof def.schema.allOf === 'undefined') {
                 utils_1.handleWarning({
                     typeKey: 'OBJECT_MISSING_PROPERTIES',
                     message: `The operation ` +
@@ -151,7 +152,8 @@ function createOrReuseOt({ def, operation, data, iteration, isMutation }) {
              *
              * Instead, store response in an arbitray JSON type.
              */
-            if (typeof def.schema.properties === 'undefined') {
+            if (typeof def.schema.properties === 'undefined' &&
+                typeof def.schema.allOf === 'undefined') {
                 utils_1.handleWarning({
                     typeKey: 'OBJECT_MISSING_PROPERTIES',
                     message: `The operation ` +
