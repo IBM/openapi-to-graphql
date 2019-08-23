@@ -17,7 +17,6 @@ exports.mitigations = {
     MISSING_RESPONSE_SCHEMA: `Ignore operation.`,
     DUPLICATE_FIELD_NAME: `Ignore field and maintain preexisting field.`,
     DUPLICATE_LINK_KEY: `Ignore link and maintain preexisting link.`,
-    UNRESOLVABLE_REFERENCE: `The schema will not be resolved.`,
     UNSUPPORTED_HTTP_SECURITY_SCHEME: `Ignore security scheme.`,
     NON_APPLICATION_JSON_SCHEMA: `Ignore schema`,
     OBJECT_MISSING_PROPERTIES: `The (sub-)object will be stored in an arbitray JSON type.`,

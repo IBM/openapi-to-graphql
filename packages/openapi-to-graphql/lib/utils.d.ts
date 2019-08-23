@@ -11,7 +11,6 @@ export declare const mitigations: {
     MISSING_RESPONSE_SCHEMA: string;
     DUPLICATE_FIELD_NAME: string;
     DUPLICATE_LINK_KEY: string;
-    UNRESOLVABLE_REFERENCE: string;
     UNSUPPORTED_HTTP_SECURITY_SCHEME: string;
     NON_APPLICATION_JSON_SCHEMA: string;
     OBJECT_MISSING_PROPERTIES: string;

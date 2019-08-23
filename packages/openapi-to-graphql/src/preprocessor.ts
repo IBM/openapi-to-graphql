@@ -504,19 +504,10 @@ export function createDataDef(
       if (type === 'array' && typeof schema.items === 'object') {
         let itemsSchema = schema.items
         let itemsName = `${name}ListItem`
+
         if ('$ref' in itemsSchema) {
-          if (oas) {
-            itemsName = schema.items['$ref'].split('/').pop()
-            itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
-          } else {
-            // TODO: Should this simply throw an error?
-            handleWarning({
-              typeKey: 'UNRESOLVABLE_REFERENCE',
-              message: `A schema reference could not be resolved due to unknown OAS origin.`,
-              data,
-              log: preprocessingLog
-            })
-          }
+          itemsName = schema.items['$ref'].split('/').pop()
+          itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
         }
 
         const subDefinition = createDataDef(
@@ -535,53 +526,7 @@ export function createDataDef(
 
         // Resolve allOf element in schema if applicable
         if ('allOf' in schema) {
-          schema.allOf.forEach(subSchema => {
-            // Dereference subSchema
-            if ('$ref' in subSchema) {
-              if (oas) {
-                subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas)
-              } else {
-                // TODO: Should this simply throw an error?
-                handleWarning({
-                  typeKey: 'UNRESOLVABLE_REFERENCE',
-                  message: `A schema reference could not be resolved due to unknown OAS origin.`,
-                  data,
-                  log: preprocessingLog
-                })
-              }
-            }
-
-            for (let propertyKey in subSchema.properties) {
-              let propSchemaName = propertyKey
-              let propSchema = subSchema.properties[propertyKey]
-
-              if ('$ref' in propSchema) {
-                if (oas) {
-                  propSchemaName = propSchema['$ref'].split('/').pop()
-                  propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas)
-                } else {
-                  // TODO: Should this simply throw an error?
-                  handleWarning({
-                    typeKey: 'UNRESOLVABLE_REFERENCE',
-                    message: `A schema reference could not be resolved due to unknown OAS origin.`,
-                    data,
-                    log: preprocessingLog
-                  })
-                }
-              }
-
-              const subDefinition = createDataDef(
-                { fromRef: propSchemaName },
-                propSchema as SchemaObject,
-                isInputObjectType,
-                data,
-                undefined,
-                oas
-              )
-              // Add field type references
-              def.subDefinitions[propertyKey] = subDefinition
-            }
-          })
+          addAllOfToDataDef(def, schema, isInputObjectType, data, oas)
         } else if ('anyOf' in schema) {
           throw new Error(
             `OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(
@@ -600,39 +545,16 @@ export function createDataDef(
               schema
             )}'`
           )
-        }
+        } 
 
-        // Regular object type
-        for (let propertyKey in schema.properties) {
-          let propSchemaName = propertyKey
-          let propSchema = schema.properties[propertyKey]
-
-          if ('$ref' in propSchema) {
-            if (oas) {
-              propSchemaName = propSchema['$ref'].split('/').pop()
-              propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas)
-            } else {
-              // TODO: Should this simply throw an error?
-              handleWarning({
-                typeKey: 'UNRESOLVABLE_REFERENCE',
-                message: `A schema reference could not be resolved due to unknown OAS origin.`,
-                data,
-                log: preprocessingLog
-              })
-            }
-          }
-
-          const subDefinition = createDataDef(
-            { fromRef: propSchemaName },
-            propSchema as SchemaObject,
-            isInputObjectType,
-            data,
-            undefined,
-            oas
-          )
-          // Add field type references
-          def.subDefinitions[propertyKey] = subDefinition
-        }
+        // Add properties (regular object type)
+        addObjectPropertiesToDataDef(
+          def,
+          schema,
+          isInputObjectType,
+          data,
+          oas
+        )
       }
 
       return def
@@ -778,4 +700,64 @@ function getSchemaName(
   }
 
   return schemaName
+}
+
+/**
+ * Recursively add the (nested) allOf schemas to the root-level data definition
+ *
+ * @param def Root-level data definition
+ */
+function addAllOfToDataDef(
+  def: DataDefinition,
+  schema: SchemaObject,
+  isInputObjectType: boolean,
+  data: PreprocessingData,
+  oas?: Oas3
+) {
+  schema.allOf.forEach(subSchema => {
+    // Dereference subSchema
+    if ('$ref' in subSchema) {
+      subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas)
+    }
+
+    // Recurse into nested allOf (if applicable)
+    if ('allOf' in subSchema) {
+      addAllOfToDataDef(def, subSchema, isInputObjectType, data, oas)
+    }
+
+    // Add properties of the subSchema
+    addObjectPropertiesToDataDef(def, subSchema, isInputObjectType, data, oas)
+  })
+}
+
+/**
+ * Add the properties to the data definition
+ */
+function addObjectPropertiesToDataDef(
+  def: DataDefinition,
+  schema: SchemaObject,
+  isInputObjectType: boolean,
+  data: PreprocessingData,
+  oas?: Oas3
+) {
+  for (let propertyKey in schema.properties) {
+    let propSchemaName = propertyKey
+    let propSchema = schema.properties[propertyKey]
+
+    if ('$ref' in propSchema) {
+      propSchemaName = propSchema['$ref'].split('/').pop()
+      propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas)
+    }
+
+    const subDefinition = createDataDef(
+      { fromRef: propSchemaName },
+      propSchema as SchemaObject,
+      isInputObjectType,
+      data,
+      undefined,
+      oas
+    )
+    // Add field type references
+    def.subDefinitions[propertyKey] = subDefinition
+  }
 }

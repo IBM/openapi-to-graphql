@@ -383,19 +383,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 let itemsSchema = schema.items;
                 let itemsName = `${name}ListItem`;
                 if ('$ref' in itemsSchema) {
-                    if (oas) {
-                        itemsName = schema.items['$ref'].split('/').pop();
-                        itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas);
-                    }
-                    else {
-                        // TODO: Should this simply throw an error?
-                        utils_1.handleWarning({
-                            typeKey: 'UNRESOLVABLE_REFERENCE',
-                            message: `A schema reference could not be resolved due to unknown OAS origin.`,
-                            data,
-                            log: preprocessingLog
-                        });
-                    }
+                    itemsName = schema.items['$ref'].split('/').pop();
+                    itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas);
                 }
                 const subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
                 // Add list item reference
@@ -405,45 +394,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 def.subDefinitions = {};
                 // Resolve allOf element in schema if applicable
                 if ('allOf' in schema) {
-                    schema.allOf.forEach((subSchema) => {
-                        // Dereference subSchema
-                        if ('$ref' in subSchema) {
-                            if (oas) {
-                                subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas);
-                            }
-                            else {
-                                // TODO: Should this simply throw an error?
-                                utils_1.handleWarning({
-                                    typeKey: 'UNRESOLVABLE_REFERENCE',
-                                    message: `A schema reference could not be resolved due to unknown OAS origin.`,
-                                    data,
-                                    log: preprocessingLog
-                                });
-                            }
-                        }
-                        for (let propertyKey in subSchema.properties) {
-                            let propSchemaName = propertyKey;
-                            let propSchema = subSchema.properties[propertyKey];
-                            if ('$ref' in propSchema) {
-                                if (oas) {
-                                    propSchemaName = propSchema['$ref'].split('/').pop();
-                                    propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
-                                }
-                                else {
-                                    // TODO: Should this simply throw an error?
-                                    utils_1.handleWarning({
-                                        typeKey: 'UNRESOLVABLE_REFERENCE',
-                                        message: `A schema reference could not be resolved due to unknown OAS origin.`,
-                                        data,
-                                        log: preprocessingLog
-                                    });
-                                }
-                            }
-                            const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
-                            // Add field type references
-                            def.subDefinitions[propertyKey] = subDefinition;
-                        }
-                    });
+                    addAllOfToDataDef(def, schema, isInputObjectType, data, oas);
                 }
                 else if ('anyOf' in schema) {
                     throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(schema)}'`);
@@ -454,29 +405,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 else if ('not' in schema) {
                     throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(schema)}'`);
                 }
-                // Regular object type
-                for (let propertyKey in schema.properties) {
-                    let propSchemaName = propertyKey;
-                    let propSchema = schema.properties[propertyKey];
-                    if ('$ref' in propSchema) {
-                        if (oas) {
-                            propSchemaName = propSchema['$ref'].split('/').pop();
-                            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
-                        }
-                        else {
-                            // TODO: Should this simply throw an error?
-                            utils_1.handleWarning({
-                                typeKey: 'UNRESOLVABLE_REFERENCE',
-                                message: `A schema reference could not be resolved due to unknown OAS origin.`,
-                                data,
-                                log: preprocessingLog
-                            });
-                        }
-                    }
-                    const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
-                    // Add field type references
-                    def.subDefinitions[propertyKey] = subDefinition;
-                }
+                // Add properties (regular object type)
+                addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas);
             }
             return def;
         }
@@ -548,13 +478,6 @@ function getSchemaName(usedNames, names) {
         throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`);
     }
     let schemaName;
-    // // CASE: preferred name already known
-    // if (typeof names.preferred === 'string') {
-    //   const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.preferred))
-    //   if (!usedNames.includes(saneName)) {
-    //     schemaName = names.preferred
-    //   }
-    // }
     // CASE: name from reference
     if (typeof names.fromRef === 'string') {
         const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.fromRef));
@@ -597,5 +520,40 @@ function getSchemaName(usedNames, names) {
         schemaName = `${tempName}${appendix}`;
     }
     return schemaName;
+}
+/**
+ * Recursively add the (nested) allOf schemas to the root-level data definition
+ *
+ * @param def Root-level data definition
+ */
+function addAllOfToDataDef(def, schema, isInputObjectType, data, oas) {
+    schema.allOf.forEach(subSchema => {
+        // Dereference subSchema
+        if ('$ref' in subSchema) {
+            subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas);
+        }
+        // Recurse into nested allOf (if applicable)
+        if ('allOf' in subSchema) {
+            addAllOfToDataDef(def, subSchema, isInputObjectType, data, oas);
+        }
+        // Add properties of the subSchema
+        addObjectPropertiesToDataDef(def, subSchema, isInputObjectType, data, oas);
+    });
+}
+/**
+ * Add the properties to the data definition
+ */
+function addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas) {
+    for (let propertyKey in schema.properties) {
+        let propSchemaName = propertyKey;
+        let propSchema = schema.properties[propertyKey];
+        if ('$ref' in propSchema) {
+            propSchemaName = propSchema['$ref'].split('/').pop();
+            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
+        }
+        const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
+        // Add field type references
+        def.subDefinitions[propertyKey] = subDefinition;
+    }
 }
 //# sourceMappingURL=preprocessor.js.map
