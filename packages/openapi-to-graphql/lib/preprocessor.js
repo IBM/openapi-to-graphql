@@ -46,7 +46,7 @@ function preprocessOas(oass, options) {
             });
         });
         // Do not overwrite preexisting security schemes
-        data.security = Object.assign({}, currentSecurity, data.security);
+        data.security = Object.assign(Object.assign({}, currentSecurity), data.security);
         // Process all operations
         for (let path in oas.paths) {
             for (let method in oas.paths[path]) {
@@ -344,7 +344,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                  *
                  * Avoid overwriting preexisting links
                  */
-                existingDataDef.links = Object.assign({}, saneLinks, existingDataDef.links);
+                existingDataDef.links = Object.assign(Object.assign({}, saneLinks), existingDataDef.links);
             }
             else {
                 // No preexisting links, so simply assign the links
@@ -405,7 +405,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 else if ('not' in schema) {
                     throw new Error(`OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(schema)}'`);
                 }
-                // Add properties (regular object type)
+                // Add existing properties (regular object type)
                 addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas);
             }
             return def;
