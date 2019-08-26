@@ -545,16 +545,10 @@ export function createDataDef(
               schema
             )}'`
           )
-        } 
+        }
 
-        // Add properties (regular object type)
-        addObjectPropertiesToDataDef(
-          def,
-          schema,
-          isInputObjectType,
-          data,
-          oas
-        )
+        // Add existing properties (regular object type)
+        addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas)
       }
 
       return def
