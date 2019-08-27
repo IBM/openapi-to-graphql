@@ -367,6 +367,14 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
             data.usedOTNames.push(saneInputName);
             const def = {
                 preferredName,
+                /**
+                 * Note that schema may contain $ref or schema composition (e.g. allOf)
+                 *
+                 * TODO: the schema is used in getSchemaIndex, which allows us to check
+                 * whether a dataDef has already been created for that particular
+                 * schema and name pair. The look up should resolve references but
+                 * currently, it does not.
+                 */
                 schema,
                 type,
                 subDefinitions: undefined,
@@ -422,14 +430,21 @@ exports.createDataDef = createDataDef;
  * that schema could not be found.
  */
 function getSchemaIndex(preferredName, schema, dataDefs) {
-    let index = -1;
-    for (let def of dataDefs) {
-        index++;
+    /**
+     * TODO: instead of iterating through the whole list every time, create a
+     * hashing function and store all of the DataDefinitions in a hashmap.
+     */
+    for (let index = 0; index < dataDefs.length; index++) {
+        const def = dataDefs[index];
+        /**
+         * TODO: deepEquals is not sufficient. We also need to resolve references.
+         * However, deepEquals should work for vast majority of cases.
+         */
         if (preferredName === def.preferredName && deepEqual(schema, def.schema)) {
             return index;
         }
     }
-    // If the schema could not be found in the master list
+    // The schema could not be found in the master list
     return -1;
 }
 /**

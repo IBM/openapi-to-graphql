@@ -348,10 +348,6 @@ function getSchemaType(schema, data) {
         }
         return schema.type;
     }
-    // CASE: nullable - default to string
-    if (typeof schema.nullable !== 'undefined') {
-        return 'string';
-    }
     return null;
 }
 exports.getSchemaType = getSchemaType;
