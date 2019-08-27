@@ -518,15 +518,12 @@ export function getResolver({
              * if that is the case, that would explain why there is not
              * a content-type
              */
-            const {
-              responseContentType,
-              responseSchema
-            } = Oas3Tools.getResponseSchema(
+            const { responseContentType } = Oas3Tools.getResponseObject(
               operation,
               operation.statusCode,
               operation.oas
             )
-            if (responseSchema === null) {
+            if (responseContentType === null) {
               resolve(null)
             } else {
               const errorString =
