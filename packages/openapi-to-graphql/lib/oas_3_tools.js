@@ -126,25 +126,38 @@ exports.countOperationsWithPayload = countOperationsWithPayload;
 /**
  * Resolves the given reference in the given object.
  */
-function resolveRef(ref, obj, parts) {
-    if (typeof parts === 'undefined') {
-        parts = ref.split('/');
-    }
-    if (parts.length === 0) {
-        return obj;
-    }
-    const firstElement = parts.splice(0, 1)[0];
-    if (firstElement === '#') {
-        return resolveRef(ref, obj, parts);
-    }
-    if (firstElement in obj) {
-        return resolveRef(ref, obj[firstElement], parts);
+function resolveRef(ref, oas) {
+    // Break path into individual tokens
+    const parts = ref.split('/');
+    const resolvedObject = resolveRefHelper(oas, parts);
+    if (resolvedObject !== null) {
+        return resolvedObject;
     }
     else {
         throw new Error(`Could not resolve reference '${ref}'`);
     }
 }
 exports.resolveRef = resolveRef;
+/**
+ * Helper for resolveRef
+ *
+ * @param parts The path to be resolved, but broken into tokens
+ */
+function resolveRefHelper(obj, parts) {
+    if (parts.length === 0) {
+        return obj;
+    }
+    const firstElement = parts.splice(0, 1)[0];
+    if (firstElement in obj) {
+        return resolveRefHelper(obj[firstElement], parts);
+    }
+    else if (firstElement === '#') {
+        return resolveRefHelper(obj, parts);
+    }
+    else {
+        return null;
+    }
+}
 /**
  * Returns the base URL to use for the given operation.
  */

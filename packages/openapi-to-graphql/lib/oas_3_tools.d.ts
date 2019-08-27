@@ -54,7 +54,7 @@ export declare function countOperationsWithPayload(oas: Oas3): number;
 /**
  * Resolves the given reference in the given object.
  */
-export declare function resolveRef(ref: string, obj: object, parts?: string[]): any;
+export declare function resolveRef(ref: string, oas: Oas3): any;
 /**
  * Returns the base URL to use for the given operation.
  */
