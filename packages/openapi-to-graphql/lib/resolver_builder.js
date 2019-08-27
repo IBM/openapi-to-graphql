@@ -379,8 +379,8 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                          * if that is the case, that would explain why there is not
                          * a content-type
                          */
-                        const { responseContentType, responseSchema } = Oas3Tools.getResponseSchema(operation, operation.statusCode, operation.oas);
-                        if (responseSchema === null) {
+                        const { responseContentType } = Oas3Tools.getResponseObject(operation, operation.statusCode, operation.oas);
+                        if (responseContentType === null) {
                             resolve(null);
                         }
                         else {

@@ -480,31 +480,32 @@ export function inferResourceNameFromPath(path: string): string {
  * Returns JSON-compatible schema required by the given endpoint - or null if it
  * does not exist.
  */
-export function getRequestSchema(
+export function getRequestBodyObject(
   endpoint: OperationObject,
   oas: Oas3
-): { payloadContentType: string; payloadSchema: SchemaObject } | null {
+): { payloadContentType: string; requestBodyObject: RequestBodyObject } | null {
   if (typeof endpoint.requestBody === 'object') {
-    let requestBody: RequestBodyObject | ReferenceObject = endpoint.requestBody
+    let requestBodyObject: RequestBodyObject | ReferenceObject =
+      endpoint.requestBody
 
     // Make sure we have a RequestBodyObject:
-    if (typeof (requestBody as ReferenceObject).$ref === 'string') {
-      requestBody = resolveRef(
-        (requestBody as ReferenceObject).$ref,
+    if (typeof (requestBodyObject as ReferenceObject).$ref === 'string') {
+      requestBodyObject = resolveRef(
+        (requestBodyObject as ReferenceObject).$ref,
         oas
       ) as RequestBodyObject
     } else {
-      requestBody = (requestBody as any) as RequestBodyObject
+      requestBodyObject = (requestBodyObject as any) as RequestBodyObject
     }
 
-    if (typeof requestBody.content === 'object') {
-      const content: MediaTypesObject = requestBody.content
+    if (typeof requestBodyObject.content === 'object') {
+      const content: MediaTypesObject = requestBodyObject.content
 
       // Prioritize content-type JSON
       if (Object.keys(content).includes('application/json')) {
         return {
           payloadContentType: 'application/json',
-          payloadSchema: content['application/json'].schema as SchemaObject
+          requestBodyObject
         }
       } else {
         // Pick first (random) content type
@@ -512,12 +513,12 @@ export function getRequestSchema(
 
         return {
           payloadContentType: randomContentType,
-          payloadSchema: content[randomContentType].schema as SchemaObject
+          requestBodyObject
         }
       }
     }
   }
-  return { payloadContentType: null, payloadSchema: null }
+  return { payloadContentType: null, requestBodyObject: null }
 }
 
 /**
@@ -531,37 +532,37 @@ export function getRequestSchemaAndNames(
   oas: Oas3
 ): RequestSchemaAndNames {
   const endpoint: OperationObject = oas.paths[path][method]
-  let payloadRequired = false
-  let payloadSchemaNames: any = {}
-  let { payloadContentType, payloadSchema } = getRequestSchema(endpoint, oas)
+  const { payloadContentType, requestBodyObject } = getRequestBodyObject(
+    endpoint,
+    oas
+  )
 
-  if (payloadSchema) {
-    let requestBody = endpoint.requestBody
+  if (payloadContentType) {
+    let payloadSchema = requestBodyObject.content[payloadContentType].schema
 
-    // Determine if request body is required:
-    if (typeof requestBody === 'object') {
-      // Resolve reference if needed:
-      if (typeof (requestBody as ReferenceObject).$ref === 'string') {
-        requestBody = resolveRef(requestBody['$ref'], oas)
-      }
-      if (typeof (requestBody as RequestBodyObject).required === 'boolean') {
-        payloadRequired = (requestBody as RequestBodyObject).required
-      }
-    }
-
-    payloadSchemaNames.fromPath = inferResourceNameFromPath(path)
-
+    // Get resource name from different sources
+    let fromRef: string
     if ('$ref' in payloadSchema) {
-      payloadSchemaNames.fromRef = payloadSchema['$ref'].split('/').pop()
+      fromRef = payloadSchema['$ref'].split('/').pop()
       payloadSchema = resolveRef(payloadSchema['$ref'], oas)
     }
-    if ('title' in payloadSchema) {
-      payloadSchemaNames.fromSchema = payloadSchema.title
+
+    let payloadSchemaNames: any = {
+      fromPath: inferResourceNameFromPath(path),
+      fromRef,
+      fromSchema: (payloadSchema as SchemaObject).title
     }
 
+    // Determine if request body is required:
+    const payloadRequired =
+      typeof requestBodyObject.required === 'boolean'
+        ? requestBodyObject.required
+        : false
+
     /**
-     * If request body content-type is not application/json, do not parse.
-     * Rather, interpret the request body as a string
+     * Edge case: if request body content-type is not application/json, do not
+     * parse. Instead, treat the request body as a black box (allowing it to be
+     * defined as a string) and sending it with the appropriate content-type
      */
     if (payloadContentType !== 'application/json') {
       const saneContentTypeName = uncapitalize(
@@ -605,34 +606,38 @@ export function getRequestSchemaAndNames(
  * Returns JSON-compatible schema produced by the given endpoint - or null if it
  * does not exist.
  */
-export function getResponseSchema(
+export function getResponseObject(
   endpoint: OperationObject,
   statusCode: string,
   oas: Oas3
-): { responseContentType: string; responseSchema: SchemaObject } | null {
+): { responseContentType: string; responseObject: ResponseObject } | null {
   if (typeof endpoint.responses === 'object') {
     const responses: ResponsesObject = endpoint.responses
     if (typeof responses[statusCode] === 'object') {
-      let response: ResponseObject | ReferenceObject = responses[statusCode]
+      let responseObject: ResponseObject | ReferenceObject =
+        responses[statusCode]
 
       // Make sure we have a ResponseObject:
-      if (typeof (response as ReferenceObject).$ref === 'string') {
-        response = resolveRef(
-          (response as ReferenceObject).$ref,
+      if (typeof (responseObject as ReferenceObject).$ref === 'string') {
+        responseObject = resolveRef(
+          (responseObject as ReferenceObject).$ref,
           oas
         ) as ResponseObject
       } else {
-        response = (response as any) as ResponseObject
+        responseObject = (responseObject as any) as ResponseObject
       }
 
-      if (response.content && typeof response.content !== 'undefined') {
-        const content: MediaTypesObject = response.content
+      if (
+        responseObject.content &&
+        typeof responseObject.content !== 'undefined'
+      ) {
+        const content: MediaTypesObject = responseObject.content
 
         // Prioritize content-type JSON
         if (Object.keys(content).includes('application/json')) {
           return {
             responseContentType: 'application/json',
-            responseSchema: content['application/json'].schema as SchemaObject
+            responseObject
           }
         } else {
           // Pick first (random) content type
@@ -640,13 +645,13 @@ export function getResponseSchema(
 
           return {
             responseContentType: randomContentType,
-            responseSchema: content[randomContentType].schema as SchemaObject
+            responseObject
           }
         }
       }
     }
   }
-  return { responseContentType: null, responseSchema: null }
+  return { responseContentType: null, responseObject: null }
 }
 
 /**
@@ -662,31 +667,34 @@ export function getResponseSchemaAndNames(
   options: InternalOptions
 ): ResponseSchemaAndNames {
   const endpoint: OperationObject = oas.paths[path][method]
-  const responseSchemaNames: any = {}
   const statusCode = getResponseStatusCode(path, method, oas, data)
   if (!statusCode) {
     return {}
   }
-  let { responseContentType, responseSchema } = getResponseSchema(
+  let { responseContentType, responseObject } = getResponseObject(
     endpoint,
     statusCode,
     oas
   )
 
-  if (responseSchema) {
-    responseSchemaNames.fromPath = inferResourceNameFromPath(path)
-
+  if (responseContentType) {
+    let responseSchema = responseObject.content[responseContentType].schema
+    let fromRef: string
     if ('$ref' in responseSchema) {
-      responseSchemaNames.fromRef = responseSchema['$ref'].split('/').pop()
+      fromRef = responseSchema['$ref'].split('/').pop()
       responseSchema = resolveRef(responseSchema['$ref'], oas)
     }
-    if ('title' in responseSchema) {
-      responseSchemaNames.fromSchema = responseSchema.title
+
+    const responseSchemaNames = {
+      fromPath: inferResourceNameFromPath(path),
+      fromRef,
+      fromSchema: (responseSchema as SchemaObject).title
     }
 
     /**
-     * If request body content-type is not application/json, do not parse.
-     * Rather, interpret the request body as a string
+     * Edge case: if request body content-type is not application/json, do not
+     * parse. Instead, treat the request body as a black box (allowing it to be
+     * defined as a string) and sending it with the appropriate content-type
      */
     if (responseContentType !== 'application/json') {
       let description =

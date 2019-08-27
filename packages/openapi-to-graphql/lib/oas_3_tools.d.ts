@@ -3,7 +3,7 @@
  */
 import { Oas2 } from './types/oas2';
 import { Operation } from './types/operation';
-import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
+import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, RequestBodyObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
@@ -95,9 +95,9 @@ export declare function inferResourceNameFromPath(path: string): string;
  * Returns JSON-compatible schema required by the given endpoint - or null if it
  * does not exist.
  */
-export declare function getRequestSchema(endpoint: OperationObject, oas: Oas3): {
+export declare function getRequestBodyObject(endpoint: OperationObject, oas: Oas3): {
     payloadContentType: string;
-    payloadSchema: SchemaObject;
+    requestBodyObject: RequestBodyObject;
 } | null;
 /**
  * Returns the request schema (if any) for an endpoint at given path and method,
@@ -109,9 +109,9 @@ export declare function getRequestSchemaAndNames(path: string, method: string, o
  * Returns JSON-compatible schema produced by the given endpoint - or null if it
  * does not exist.
  */
-export declare function getResponseSchema(endpoint: OperationObject, statusCode: string, oas: Oas3): {
+export declare function getResponseObject(endpoint: OperationObject, statusCode: string, oas: Oas3): {
     responseContentType: string;
-    responseSchema: SchemaObject;
+    responseObject: ResponseObject;
 } | null;
 /**
  * Returns the response schema for endpoint at given path and method and with

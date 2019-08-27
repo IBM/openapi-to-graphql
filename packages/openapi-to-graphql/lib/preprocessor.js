@@ -306,6 +306,9 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         throw new Error(`Cannot create data definition for invalid schema ` +
             `'${JSON.stringify(schema)}'`);
     }
+    if ('$ref' in schema) {
+        schema = Oas3Tools.resolveRef(schema['$ref'], oas);
+    }
     const preferredName = getPreferredName(names);
     const saneLinks = {};
     if (typeof links === 'object') {
@@ -392,7 +395,6 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 let itemsName = `${name}ListItem`;
                 if ('$ref' in itemsSchema) {
                     itemsName = schema.items['$ref'].split('/').pop();
-                    itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas);
                 }
                 const subDefinition = createDataDef({ fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
                 // Add list item reference
@@ -564,7 +566,6 @@ function addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas)
         let propSchema = schema.properties[propertyKey];
         if ('$ref' in propSchema) {
             propSchemaName = propSchema['$ref'].split('/').pop();
-            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
         }
         const subDefinition = createDataDef({ fromRef: propSchemaName }, propSchema, isInputObjectType, data, undefined, oas);
         // Add field type references

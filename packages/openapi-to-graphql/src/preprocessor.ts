@@ -412,6 +412,10 @@ export function createDataDef(
     )
   }
 
+  if ('$ref' in schema) {
+    schema = Oas3Tools.resolveRef(schema['$ref'], oas)
+  }
+
   const preferredName = getPreferredName(names)
 
   const saneLinks = {}
@@ -517,7 +521,6 @@ export function createDataDef(
 
         if ('$ref' in itemsSchema) {
           itemsName = schema.items['$ref'].split('/').pop()
-          itemsSchema = Oas3Tools.resolveRef(itemsSchema['$ref'], oas)
         }
 
         const subDefinition = createDataDef(
@@ -757,7 +760,6 @@ function addObjectPropertiesToDataDef(
 
     if ('$ref' in propSchema) {
       propSchemaName = propSchema['$ref'].split('/').pop()
-      propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas)
     }
 
     const subDefinition = createDataDef(
