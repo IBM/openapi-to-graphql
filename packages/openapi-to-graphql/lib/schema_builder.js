@@ -35,7 +35,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
         // CASE: array - create ArrayType
     }
     else if (type === 'array') {
-        return reuseOrCreateList({
+        return createOrReuseList({
             def,
             operation,
             data,
@@ -45,7 +45,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
         // CASE: enum - create EnumType
     }
     else if (type === 'enum') {
-        return reuseOrCreateEnum({
+        return createOrReuseEnum({
             def,
             data
         });
@@ -110,6 +110,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
      */
     if (typeof def.schema.properties === 'undefined' &&
         typeof def.schema.allOf === 'undefined' // allOf can provide all the properties
+    // TODO: Add oneOf and anyOf
     ) {
         utils_1.handleWarning({
             typeKey: 'OBJECT_MISSING_PROPERTIES',
@@ -175,7 +176,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
 /**
  * Returns an existing List or creates a new one, and stores it in data
  */
-function reuseOrCreateList({ def, operation, iteration, isInputObjectType, data }) {
+function createOrReuseList({ def, operation, iteration, isInputObjectType, data }) {
     const name = isInputObjectType ? def.iotName : def.otName;
     // Try to reuse existing Object Type
     if (!isInputObjectType && def.ot && typeof def.ot !== 'undefined') {
@@ -218,10 +219,14 @@ function reuseOrCreateList({ def, operation, iteration, isInputObjectType, data 
     }
 }
 /**
- * Returns an existing Enum Type or creates a new one, and stores it in data
+ * Returns an existing enum type or creates a new one, and stores it in data
  */
-function reuseOrCreateEnum({ def, data }) {
-    // Try to reuse existing Enum Type
+function createOrReuseEnum({ def, data }) {
+    /**
+     * Try to reuse existing enum type
+     *
+     * Enum types do not have an input variant so only check def.ot
+     */
     if (def.ot && typeof def.ot !== 'undefined') {
         translationLog(`Reuse GraphQLEnumType '${def.otName}'`);
         return def.ot;
@@ -268,9 +273,7 @@ function getScalarType({ def, data }) {
             def.ot = GraphQLJSON;
             break;
         default:
-            // If the type is not known, try to stringify
-            def.ot = graphql_1.GraphQLString;
-            break;
+            throw new Error(`Cannot process schema type '${def.type}'.`);
     }
     return def.ot;
 }

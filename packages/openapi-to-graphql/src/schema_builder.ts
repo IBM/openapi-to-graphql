@@ -15,10 +15,9 @@ import {
   SchemaObject,
   ParameterObject,
   ReferenceObject,
-  LinkObject,
-  LinksObject
+  LinkObject
 } from './types/oas3'
-import { Args, Field, GraphQLType } from './types/graphql'
+import { Args, GraphQLType } from './types/graphql'
 import {
   GraphQLScalarType,
   GraphQLObjectType,
@@ -67,7 +66,7 @@ type CreateOrReuseOtParams = {
   data: PreprocessingData
 }
 
-type ReuseOrCreateListParams = {
+type CreateOrReuseListParams = {
   def: DataDefinition
   operation?: Operation
   iteration: number
@@ -75,12 +74,12 @@ type ReuseOrCreateListParams = {
   data: PreprocessingData
 }
 
-type ReuseOrCreateEnum = {
+type CreateOrReuseEnumParams = {
   def: DataDefinition
   data: PreprocessingData
 }
 
-type ReuseOrCreateScalar = {
+type CreateOrReuseScalarParams = {
   def: DataDefinition
   data: PreprocessingData
 }
@@ -134,7 +133,7 @@ export function getGraphQLType({
 
     // CASE: array - create ArrayType
   } else if (type === 'array') {
-    return reuseOrCreateList({
+    return createOrReuseList({
       def,
       operation,
       data,
@@ -144,7 +143,7 @@ export function getGraphQLType({
 
     // CASE: enum - create EnumType
   } else if (type === 'enum') {
-    return reuseOrCreateEnum({
+    return createOrReuseEnum({
       def,
       data
     })
@@ -229,6 +228,7 @@ function createOrReuseOt({
   if (
     typeof def.schema.properties === 'undefined' &&
     typeof def.schema.allOf === 'undefined' // allOf can provide all the properties
+    // TODO: Add oneOf and anyOf
   ) {
     handleWarning({
       typeKey: 'OBJECT_MISSING_PROPERTIES',
@@ -305,13 +305,13 @@ function createOrReuseOt({
 /**
  * Returns an existing List or creates a new one, and stores it in data
  */
-function reuseOrCreateList({
+function createOrReuseList({
   def,
   operation,
   iteration,
   isInputObjectType,
   data
-}: ReuseOrCreateListParams): GraphQLList<any> {
+}: CreateOrReuseListParams): GraphQLList<any> {
   const name = isInputObjectType ? def.iotName : def.otName
 
   // Try to reuse existing Object Type
@@ -359,15 +359,23 @@ function reuseOrCreateList({
 }
 
 /**
- * Returns an existing Enum Type or creates a new one, and stores it in data
+ * Returns an existing enum type or creates a new one, and stores it in data
  */
-function reuseOrCreateEnum({ def, data }: ReuseOrCreateEnum): GraphQLEnumType {
-  // Try to reuse existing Enum Type
+function createOrReuseEnum({
+  def,
+  data
+}: CreateOrReuseEnumParams): GraphQLEnumType {
+  /**
+   * Try to reuse existing enum type
+   *
+   * Enum types do not have an input variant so only check def.ot
+   */
   if (def.ot && typeof def.ot !== 'undefined') {
     translationLog(`Reuse GraphQLEnumType '${def.otName}'`)
     return def.ot as GraphQLEnumType
   } else {
     translationLog(`Create GraphQLEnumType '${def.otName}'`)
+
     const values = {}
     def.schema.enum.forEach(e => {
       // Force enum values to string
@@ -381,6 +389,7 @@ function reuseOrCreateEnum({ def, data }: ReuseOrCreateEnum): GraphQLEnumType {
       name: def.otName,
       values
     })
+
     return def.ot
   }
 }
@@ -388,7 +397,10 @@ function reuseOrCreateEnum({ def, data }: ReuseOrCreateEnum): GraphQLEnumType {
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType({ def, data }: ReuseOrCreateScalar): GraphQLScalarType {
+function getScalarType({
+  def,
+  data
+}: CreateOrReuseScalarParams): GraphQLScalarType {
   const type = def.type
 
   switch (type) {
@@ -411,9 +423,7 @@ function getScalarType({ def, data }: ReuseOrCreateScalar): GraphQLScalarType {
       def.ot = GraphQLJSON
       break
     default:
-      // If the type is not known, try to stringify
-      def.ot = GraphQLString
-      break
+      throw new Error(`Cannot process schema type '${def.type}'.`)
   }
 
   return def.ot as GraphQLScalarType
