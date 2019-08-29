@@ -41,9 +41,10 @@ import { handleWarning } from './utils'
 
 // Type definitions & exports:
 export type SchemaNames = {
-  fromPath?: string
-  fromSchema?: string
+  // Sorted in the following priority order
   fromRef?: string
+  fromSchema?: string
+  fromPath?: string
 
   /**
    * Used when the preferred name is known, i.e. a new data def does not need to
@@ -423,8 +424,13 @@ export function getSchemaType(
     'properties' in schema ||
     Array.isArray(schema.allOf)
   ) {
-    // CASE: arbitrary JSON
-    if (typeof schema.additionalProperties === 'object') {
+    // CASE: union type
+    if (schema.oneOf) {
+      return 'union'
+
+      // TODO: additionalProperties is more like a flag than a type itself
+      // CASE: arbitrary JSON
+    } else if (typeof schema.additionalProperties === 'object') {
       return 'json'
     } else {
       return 'object'
@@ -562,9 +568,9 @@ export function getRequestSchemaAndNames(
     }
 
     let payloadSchemaNames: any = {
-      fromPath: inferResourceNameFromPath(path),
       fromRef,
-      fromSchema: (payloadSchema as SchemaObject).title
+      fromSchema: (payloadSchema as SchemaObject).title,
+      fromPath: inferResourceNameFromPath(path)
     }
 
     // Determine if request body is required:
@@ -700,9 +706,9 @@ export function getResponseSchemaAndNames(
     }
 
     const responseSchemaNames = {
-      fromPath: inferResourceNameFromPath(path),
       fromRef,
-      fromSchema: (responseSchema as SchemaObject).title
+      fromSchema: (responseSchema as SchemaObject).title,
+      fromPath: inferResourceNameFromPath(path)
     }
 
     /**

@@ -15,6 +15,8 @@ export declare const mitigations: {
     NON_APPLICATION_JSON_SCHEMA: string;
     OBJECT_MISSING_PROPERTIES: string;
     UNSUPPORTED_JSON_SCHEMA_KEYWORD: string;
+    UNION_MEMBER_NON_OBJECT: string;
+    AMBIGUOUS_UNION_MEMBERS: string;
     UNRESOLVABLE_LINK: string;
     AMBIGUOUS_LINK: string;
     LINK_NAME_COLLISION: string;

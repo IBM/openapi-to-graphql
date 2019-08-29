@@ -418,13 +418,33 @@ function startServer(PORT) {
       'employerId' in user &&
       'hobbies' in user
     ) {
-      Users[user.name] = user
       res.status(201).send(user)
     } else {
       res.status(400).send({
         message: 'Wrong data'
       })
     }
+  })
+
+  app.get('/api/assets/:companyId', (req, res) => {
+    console.log(req.method, req.path)
+
+    const assets = []
+    Object.entries(Users).forEach(([username, user]) => {
+      if (req.params.companyId === user.employerId) {
+        assets.push(user)
+
+        if (username in Cars) {
+          assets.push(Cars[username])
+        }
+
+        if (username in TrashCans) {
+          assets.push(TrashCans[username])
+        }
+      }
+    })
+
+    res.send(assets)
   })
 
   app.get('/api/cars', (req, res) => {

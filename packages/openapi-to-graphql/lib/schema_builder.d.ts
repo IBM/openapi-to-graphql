@@ -19,7 +19,7 @@ declare type GetArgsParams = {
     data: PreprocessingData;
 };
 /**
- * Creates and returns a GraphQL (Input) Type for the given JSON schema.
+ * Creates and returns a GraphQL type for the given JSON schema.
  */
 export declare function getGraphQLType({ def, operation, data, iteration, isInputObjectType }: GetGraphQLTypeParams): GraphQLType;
 /**

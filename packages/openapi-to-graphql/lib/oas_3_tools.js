@@ -326,8 +326,13 @@ function getSchemaType(schema, data) {
     if (schema.type === 'object' ||
         'properties' in schema ||
         Array.isArray(schema.allOf)) {
-        // CASE: arbitrary JSON
-        if (typeof schema.additionalProperties === 'object') {
+        // CASE: union type
+        if (schema.oneOf) {
+            return 'union';
+            // TODO: additionalProperties is more like a flag than a type itself
+            // CASE: arbitrary JSON
+        }
+        else if (typeof schema.additionalProperties === 'object') {
             return 'json';
         }
         else {
@@ -440,9 +445,9 @@ function getRequestSchemaAndNames(path, method, oas) {
             payloadSchema = resolveRef(payloadSchema['$ref'], oas);
         }
         let payloadSchemaNames = {
-            fromPath: inferResourceNameFromPath(path),
             fromRef,
-            fromSchema: payloadSchema.title
+            fromSchema: payloadSchema.title,
+            fromPath: inferResourceNameFromPath(path)
         };
         // Determine if request body is required:
         const payloadRequired = typeof requestBodyObject.required === 'boolean'
@@ -542,9 +547,9 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
             responseSchema = resolveRef(responseSchema['$ref'], oas);
         }
         const responseSchemaNames = {
-            fromPath: inferResourceNameFromPath(path),
             fromRef,
-            fromSchema: responseSchema.title
+            fromSchema: responseSchema.title,
+            fromPath: inferResourceNameFromPath(path)
         };
         /**
          * Edge case: if request body content-type is not application/json, do not

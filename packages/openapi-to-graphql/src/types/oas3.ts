@@ -29,6 +29,7 @@ export type SchemaObject = {
   additionalItems?: boolean | string[]
   enum?: string[]
   allOf?: SchemaObject[]
+  oneOf?: SchemaObject[]
 }
 
 export type ReferenceObject = {
