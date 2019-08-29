@@ -957,7 +957,7 @@ test('Define header and query options', () => {
       return graphql(schema, query).then(result => {
         expect(result).toEqual({
           data: {
-            status2: 'Ok.'
+            status2: 'Ok'
           }
         })
       })
@@ -1266,7 +1266,6 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
       'Example API': {
         '/products/{product-id}': {
           get: (obj, args, context, info) => {
-            console.log(args)
             return {
               // Note that the argument name is sanitized
               productName: 'abcdef'
