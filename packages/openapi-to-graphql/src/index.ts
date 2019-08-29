@@ -8,14 +8,14 @@
  *
  * Some general notes:
  *
- * - GraphQL interfaces rely on sanitized strings for (Input) Object Type names
+ * - GraphQL interfaces rely on sanitized strings for (input) object type names
  *   and fields. We perform sanitization only when assigning (field-) names, but
  *   keep keys in the OAS otherwise as-is, to ensure that inner-OAS references
  *   work as expected.
  *
- * - GraphQL (Input) Object Types must have a unique name. Thus, sometimes Input
- *   Object Types and Object Types need separate names, despite them having the
- *   same structure. We thus append 'Input' to every Input Object Type's name
+ * - GraphQL (input) object types must have a unique name. Thus, sometimes Input
+ *   object types and object types need separate names, despite them having the
+ *   same structure. We thus append 'Input' to every input object type's name
  *   as a convention.
  *
  * - To pass data between resolve functions, OpenAPI-to-GraphQL uses a _openAPIToGraphQL object
@@ -442,10 +442,10 @@ async function translateOpenAPIToGraphQL(
   }
 
   /**
-   * Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
+   * Fill in yet undefined object types to avoid GraphQLSchema from breaking.
    *
    * The reason: once creating the schema, the 'fields' thunks will resolve and
-   * if a field references an undefined Object Types, GraphQL will throw.
+   * if a field references an undefined object types, GraphQL will throw.
    */
   Object.entries(data.operations).forEach(([opId, operation]) => {
     if (typeof operation.responseDefinition.graphQLType === 'undefined') {

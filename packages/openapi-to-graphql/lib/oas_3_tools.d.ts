@@ -7,9 +7,9 @@ import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, Res
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
-    fromPath?: string;
-    fromSchema?: string;
     fromRef?: string;
+    fromSchema?: string;
+    fromPath?: string;
     /**
      * Used when the preferred name is known, i.e. a new data def does not need to
      * be created

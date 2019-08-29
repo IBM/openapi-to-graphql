@@ -24,6 +24,8 @@ export const mitigations = {
   NON_APPLICATION_JSON_SCHEMA: `Ignore schema`,
   OBJECT_MISSING_PROPERTIES: `The (sub-)object will be stored in an arbitray JSON type.`,
   UNSUPPORTED_JSON_SCHEMA_KEYWORD: `Ignore keyword and continue.`,
+  UNION_MEMBER_NON_OBJECT: `Ignore union member type and continue.`,
+  AMBIGUOUS_UNION_MEMBERS: `Ignore issue and continue.`,
 
   // Links
   UNRESOLVABLE_LINK: `Ignore link.`,

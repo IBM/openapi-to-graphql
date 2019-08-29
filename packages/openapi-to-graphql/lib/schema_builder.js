@@ -14,7 +14,7 @@ const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const translationLog = debug_1.default('translation');
 /**
- * Creates and returns a GraphQL (Input) Type for the given JSON schema.
+ * Creates and returns a GraphQL type for the given JSON schema.
  */
 function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType = false }) {
     const name = isInputObjectType
@@ -22,47 +22,52 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
         : def.graphQLTypeName;
     // Avoid excessive iterations
     if (iteration === 50) {
-        throw new Error(`Too many iterations when creating schema ${name}`);
+        throw new Error(`GraphQL type ${name} has excessive nesting of other types`);
     }
-    const type = def.type;
-    // CASE: object - create ObjectType
-    if (type === 'object') {
-        return createOrReuseOt({
-            def,
-            operation,
-            data,
-            iteration,
-            isInputObjectType
-        });
+    switch (def.type) {
+        // CASE: object - create ObjectType
+        case 'object':
+            return createOrReuseOt({
+                def,
+                operation,
+                data,
+                iteration,
+                isInputObjectType
+            });
+        // CASE: union - create UnionType
+        case 'union':
+            return createOrReuseUnion({
+                def,
+                operation,
+                data,
+                iteration
+            });
         // CASE: array - create ArrayType
-    }
-    else if (type === 'array') {
-        return createOrReuseList({
-            def,
-            operation,
-            data,
-            iteration,
-            isInputObjectType
-        });
+        case 'array':
+            return createOrReuseList({
+                def,
+                operation,
+                data,
+                iteration,
+                isInputObjectType
+            });
         // CASE: enum - create EnumType
-    }
-    else if (type === 'enum') {
-        return createOrReuseEnum({
-            def,
-            data
-        });
+        case 'enum':
+            return createOrReuseEnum({
+                def,
+                data
+            });
         // CASE: scalar - return scalar
-    }
-    else {
-        return getScalarType({
-            def,
-            data
-        });
+        default:
+            return getScalarType({
+                def,
+                data
+            });
     }
 }
 exports.getGraphQLType = getGraphQLType;
 /**
- * Returns an existing (Input) Object Type or creates a new one, and stores it
+ * Creates an (input) object type or return an existing one, and stores it
  * in data
  *
  * A returned GraphQLObjectType has the following internal structure:
@@ -104,7 +109,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     const description = schema.description;
     /**
      * If the schema does not contain any properties, then OpenAPI-to-GraphQL
-     * cannot create a GraphQL Object Type for it because in GraphQL, all Object
+     * cannot create a GraphQL object type for it because in GraphQL, all Object
      * Type properties must be named.
      *
      * Instead, store response in an arbitray JSON type.
@@ -157,9 +162,6 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
         def.graphQLInputObjectType = new graphql_1.GraphQLInputObjectType({
             name: def.graphQLInputObjectTypeName,
             description,
-            /**
-             * There
-             */
             // @ts-ignore
             fields: () => {
                 return createFields({
@@ -176,7 +178,124 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     }
 }
 /**
- * Returns an existing List or creates a new one, and stores it in data
+ * Creates a union type or return an existing one, and stores it in data
+ */
+function createOrReuseUnion({ def, operation, data, iteration }) {
+    // Try to reuse existing union type
+    if (def.graphQLType && typeof def.graphQLType !== 'undefined') {
+        translationLog(`Reuse union type '${def.graphQLTypeName}'` +
+            (typeof operation === 'object'
+                ? ` (for operation '${operation.operationId}')`
+                : ''));
+        return def.graphQLType;
+    }
+    else {
+        translationLog(`Create union type '${def.graphQLTypeName}'` +
+            (typeof operation === 'object'
+                ? ` (for operation '${operation.operationId}')`
+                : ''));
+        const schema = def.schema;
+        const description = typeof schema.description !== 'undefined'
+            ? schema.description
+            : 'No description available.';
+        const memberTypeDefinitions = def.subDefinitions;
+        const types = Object.values(memberTypeDefinitions).map(memberTypeDefinition => {
+            return getGraphQLType({
+                def: memberTypeDefinition,
+                operation,
+                data,
+                iteration: iteration + 1,
+                isInputObjectType: false
+            });
+        });
+        /**
+         * Check for ambiguous member types
+         *
+         * i.e. member types that can be confused with each other.
+         */
+        checkAmbiguousMemberTypes(def, types, data);
+        def.graphQLType = new graphql_1.GraphQLUnionType({
+            name: def.graphQLTypeName,
+            description,
+            types,
+            resolveType: (source, context, info) => {
+                const properties = Object.keys(source);
+                // Remove custom _openAPIToGraphQL property used to pass data
+                const otgIndex = properties.indexOf('_openAPIToGraphQL');
+                if (otgIndex !== -1) {
+                    properties.splice(otgIndex, 1);
+                }
+                /**
+                 * Find appropriate member type
+                 *
+                 * TODO: currently, the check is performed by only checking the property
+                 * names. In the future, we should also check the types of those
+                 * properties.
+                 *
+                 * TODO: there is a chance a that an intended member type cannot be
+                 * identified if, for whatever reason, the return data is a superset
+                 * of the fields specified in the OAS
+                 */
+                return types.find(type => {
+                    const typeFields = Object.keys(type.getFields());
+                    if (properties.length <= typeFields.length) {
+                        for (let i = 0; i < properties.length; i++) {
+                            if (!typeFields.includes(properties[i])) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    }
+                    return false;
+                });
+            }
+        });
+        return def.graphQLType;
+    }
+}
+/**
+ * Check for ambiguous member types
+ *
+ * i.e. member types that can be confused with each other.
+ */
+function checkAmbiguousMemberTypes(def, types, data) {
+    types.sort((a, b) => {
+        const aFieldLength = Object.keys(a.getFields()).length;
+        const bFieldLength = Object.keys(b.getFields()).length;
+        if (aFieldLength < bFieldLength) {
+            return -1;
+        }
+        else if (aFieldLength < bFieldLength) {
+            return 1;
+        }
+        else {
+            return 0;
+        }
+    });
+    for (let i = 0; i < types.length - 1; i++) {
+        const currentType = types[i];
+        for (let j = i + 1; j < types.length; j++) {
+            const otherType = types[j];
+            // TODO: Check the value, not just the field name
+            if (Object.keys(currentType.getFields()).every(field => {
+                return Object.keys(otherType.getFields()).includes(field);
+            })) {
+                utils_1.handleWarning({
+                    typeKey: 'AMBIGUOUS_UNION_MEMBERS',
+                    message: `Union created from schema '${JSON.stringify(def)}' contains ` +
+                        `member types such as '${currentType}' and '${otherType}' ` +
+                        `which are ambiguous. Ambiguous member types can cause ` +
+                        `problems when trying to resolve types.`,
+                    data,
+                    log: translationLog
+                });
+                return;
+            }
+        }
+    }
+}
+/**
+ * Creates a list type or returns an existing one, and stores it in data
  */
 function createOrReuseList({ def, operation, iteration, isInputObjectType, data }) {
     const name = isInputObjectType
@@ -212,7 +331,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
     });
     if (itemsType !== null) {
         const listObjectType = new graphql_1.GraphQLList(itemsType);
-        // Store newly created List Object Type
+        // Store newly created list type
         if (!isInputObjectType) {
             def.graphQLType = listObjectType;
         }
@@ -227,7 +346,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
     }
 }
 /**
- * Returns an existing enum type or creates a new one, and stores it in data
+ * Creates an enum type or returns an existing one, and stores it in data
  */
 function createOrReuseEnum({ def, data }) {
     /**
@@ -333,7 +452,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                 utils_1.handleWarning({
                     typeKey: 'LINK_NAME_COLLISION',
                     message: `Cannot create link '${saneLinkKey}' because parent ` +
-                        `Object Type already contains a field with the same (sanitized) name.`,
+                        `object type already contains a field with the same (sanitized) name.`,
                     data,
                     log: translationLog
                 });
@@ -384,12 +503,20 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         operation: linkedOp,
                         data
                     });
-                    /**
-                     * Get response object type
-                     * Use the reference here
-                     * OT will be built up some other time
-                     */
-                    const resObjectType = linkedOp.responseDefinition.graphQLType;
+                    // Get response object type
+                    let resObjectType;
+                    if (linkedOp.responseDefinition.graphQLType !== undefined) {
+                        resObjectType = linkedOp.responseDefinition.graphQLType;
+                    }
+                    else {
+                        resObjectType = getGraphQLType({
+                            def: linkedOp.responseDefinition,
+                            operation,
+                            data,
+                            iteration: iteration + 1,
+                            isInputObjectType: false
+                        });
+                    }
                     let description = link.description;
                     if (data.options.equivalentToMessages && description) {
                         description += `\n\nEquivalent to ${linkedOp.operationString}`;
@@ -406,7 +533,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                 else {
                     utils_1.handleWarning({
                         typeKey: 'UNRESOLVABLE_LINK',
-                        message: `Cannot resolve target of link '${saneLinkKey}`,
+                        message: `Cannot resolve target of link '${saneLinkKey}'`,
                         data,
                         log: translationLog
                     });
@@ -719,7 +846,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas);
         }
         // TODO: remove
-        const paramDef = preprocessor_1.createDataDef({ fromRef: parameter.name }, schema, true, data);
+        const paramDef = preprocessor_1.createDataDef({ fromSchema: parameter.name }, schema, true, data);
         // @ts-ignore
         type = getGraphQLType({
             def: paramDef,

@@ -22,6 +22,7 @@ export declare type SchemaObject = {
     additionalItems?: boolean | string[];
     enum?: string[];
     allOf?: SchemaObject[];
+    oneOf?: SchemaObject[];
 };
 export declare type ReferenceObject = {
     $ref: string;
