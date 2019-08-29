@@ -21,8 +21,11 @@ import {
   GraphQLObjectType,
   GraphQLInputObjectType,
   GraphQLList,
-  GraphQLEnumType
+  GraphQLEnumType,
+  GraphQLUnionType
 } from 'graphql'
+
+import * as GraphQLJSON from 'graphql-type-json'
 
 export type DataDefinition = {
   // OAS-related:
@@ -33,8 +36,15 @@ export type DataDefinition = {
   // The schema of the data type, why may have gone through some resolution, and is used with preferredName to identify a specific GraphQL type
   schema: SchemaObject
 
-  // Type of the schema
-  type: string
+  /**
+   * Similar to the required property in object schemas but because of certain
+   * keywords to combine schemas, e.g. "allOf", this resolves the required
+   * property in all subschemas
+   */
+  required: string[]
+
+  // The type GraphQL type this dataDefintion will be created into
+  targetGraphQLType: string
 
   // Collapsed link objects from all operations returning the same response data
   links: { [key: string]: LinkObject }
@@ -47,8 +57,14 @@ export type DataDefinition = {
    *
    * Or if the dataDef is an object type, the subDefinitions are references to
    * the field types
+   *
+   * Or if the dataDef is a union type, the subDefinitions are references to
+   * the member types
    */
-  subDefinitions: DataDefinition | { [fieldName: string]: DataDefinition }
+  subDefinitions:
+    | DataDefinition // For GraphQL list type
+    | { [fieldName: string]: DataDefinition } // For GraphQL (input) object type
+    | DataDefinition[] // For GraphQL union type
 
   // GraphQL-related:
 
@@ -61,9 +77,11 @@ export type DataDefinition = {
   // The GraphQL type if it is created
   graphQLType?:
     | GraphQLObjectType
-    | GraphQLScalarType
     | GraphQLList<any>
+    | GraphQLUnionType
     | GraphQLEnumType
+    | GraphQLScalarType
+    | GraphQLJSON
 
   // The GraphQL input object type if it is created
   graphQLInputObjectType?: GraphQLInputObjectType | GraphQLList<any>

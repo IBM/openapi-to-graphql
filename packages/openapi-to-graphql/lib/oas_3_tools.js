@@ -18,6 +18,7 @@ const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const rfdc = require("rfdc");
 const httpLog = debug_1.default('http');
 const preprocessingLog = debug_1.default('preprocessing');
 const translationLog = debug_1.default('translation');
@@ -54,7 +55,14 @@ function getValidOAS3(spec) {
                 throw new Error(`Validation of OpenAPI Specification failed.`);
             }
             preprocessingLog(`OpenAPI Specification is validated`);
-            return spec;
+            /**
+             * OtG current changes the OAS as part of the preprocessing step (resolving
+             * JSON schema combining keywords like allOf, oneOf, anyOf, and not)
+             *
+             * To prevent unintended changes to the OAS from passing on to the user,
+             * make a deep copy.
+             */
+            return rfdc()(spec);
         }
         else {
             throw new Error(`Invalid specification provided`);
@@ -318,14 +326,14 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
 }
 exports.instantiatePathAndGetQuery = instantiatePathAndGetQuery;
 /**
- * Returns the "type" of the given JSON schema. Makes best guesses if the type
- * is not explicitly defined.
+ * Returns the GraphQL type that the provided schema should be made into
+ *
+ * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
-function getSchemaType(schema, data) {
+function getSchemaTargetGraphQLType(schema, data) {
     // CASE: object
-    if (schema.type === 'object' ||
-        'properties' in schema ||
-        Array.isArray(schema.allOf)) {
+    if (schema.type === 'object' || typeof schema.properties === 'object') {
+        // TODO: additionalProperties is more like a flag than a type itself
         // CASE: arbitrary JSON
         if (typeof schema.additionalProperties === 'object') {
             return 'json';
@@ -366,7 +374,7 @@ function getSchemaType(schema, data) {
     }
     return null;
 }
-exports.getSchemaType = getSchemaType;
+exports.getSchemaTargetGraphQLType = getSchemaTargetGraphQLType;
 /**
  * Determines an approximate name for the resource at the given path.
  */
@@ -440,9 +448,9 @@ function getRequestSchemaAndNames(path, method, oas) {
             payloadSchema = resolveRef(payloadSchema['$ref'], oas);
         }
         let payloadSchemaNames = {
-            fromPath: inferResourceNameFromPath(path),
             fromRef,
-            fromSchema: payloadSchema.title
+            fromSchema: payloadSchema.title,
+            fromPath: inferResourceNameFromPath(path)
         };
         // Determine if request body is required:
         const payloadRequired = typeof requestBodyObject.required === 'boolean'
@@ -542,9 +550,9 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
             responseSchema = resolveRef(responseSchema['$ref'], oas);
         }
         const responseSchemaNames = {
-            fromPath: inferResourceNameFromPath(path),
             fromRef,
-            fromSchema: responseSchema.title
+            fromSchema: responseSchema.title,
+            fromPath: inferResourceNameFromPath(path)
         };
         /**
          * Edge case: if request body content-type is not application/json, do not

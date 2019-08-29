@@ -7,9 +7,9 @@ import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, Res
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
-    fromPath?: string;
-    fromSchema?: string;
     fromRef?: string;
+    fromSchema?: string;
+    fromPath?: string;
     /**
      * Used when the preferred name is known, i.e. a new data def does not need to
      * be created
@@ -83,10 +83,11 @@ export declare function instantiatePathAndGetQuery(path: string, parameters: Par
     };
 };
 /**
- * Returns the "type" of the given JSON schema. Makes best guesses if the type
- * is not explicitly defined.
+ * Returns the GraphQL type that the provided schema should be made into
+ *
+ * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
-export declare function getSchemaType(schema: SchemaObject, data: PreprocessingData): string | null;
+export declare function getSchemaTargetGraphQLType(schema: SchemaObject, data: PreprocessingData): string | null;
 /**
  * Determines an approximate name for the resource at the given path.
  */

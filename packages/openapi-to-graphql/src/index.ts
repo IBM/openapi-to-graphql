@@ -8,14 +8,14 @@
  *
  * Some general notes:
  *
- * - GraphQL interfaces rely on sanitized strings for (Input) Object Type names
+ * - GraphQL interfaces rely on sanitized strings for (input) object type names
  *   and fields. We perform sanitization only when assigning (field-) names, but
  *   keep keys in the OAS otherwise as-is, to ensure that inner-OAS references
  *   work as expected.
  *
- * - GraphQL (Input) Object Types must have a unique name. Thus, sometimes Input
- *   Object Types and Object Types need separate names, despite them having the
- *   same structure. We thus append 'Input' to every Input Object Type's name
+ * - GraphQL (input) object types must have a unique name. Thus, sometimes Input
+ *   object types and object types need separate names, despite them having the
+ *   same structure. We thus append 'Input' to every input object type's name
  *   as a convention.
  *
  * - To pass data between resolve functions, OpenAPI-to-GraphQL uses a _openAPIToGraphQL object
@@ -34,7 +34,7 @@
 import { Options, InternalOptions, Report } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, Field, GraphQLOperationType } from './types/graphql'
+import { Args, Field } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
 import { GraphQLSchema, GraphQLObjectType } from 'graphql'
@@ -220,75 +220,34 @@ async function translateOpenAPIToGraphQL(
   let mutationFields = {}
   let authQueryFields = {}
   let authMutationFields = {}
-  Object.entries(data.operations)
-    /**
-     * Start with operations that return objects rather than arrays
-     *
-     * First, build up the GraphQL object so that operations that return arrays
-     * can use them
-     */
-    .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
-    .forEach(([operationId, operation]) => {
-      translationLog(`Process operation '${operationId}'...`)
+  Object.entries(data.operations).forEach(([operationId, operation]) => {
+    translationLog(`Process operation '${operationId}'...`)
 
-      let field = getFieldForOperation(
-        operation,
-        options.baseUrl,
-        data,
-        requestOptions
+    let field = getFieldForOperation(
+      operation,
+      options.baseUrl,
+      data,
+      requestOptions
+    )
+
+    const saneOperationId = Oas3Tools.sanitize(
+      operationId,
+      Oas3Tools.CaseStyle.camelCase
+    )
+
+    // Check if the operation should be added as a Query or Mutation field
+    if (!operation.isMutation) {
+      let fieldName = Oas3Tools.uncapitalize(
+        operation.responseDefinition.graphQLTypeName
       )
-
-      const saneOperationId = Oas3Tools.sanitize(
-        operationId,
-        Oas3Tools.CaseStyle.camelCase
-      )
-
-      // Check if the operation should be added as a Query or Mutation field
-      if (!operation.isMutation) {
-        let fieldName = Oas3Tools.uncapitalize(
-          operation.responseDefinition.graphQLTypeName
-        )
-        if (operation.inViewer) {
-          for (let securityRequirement of operation.securityRequirements) {
-            if (typeof authQueryFields[securityRequirement] !== 'object') {
-              authQueryFields[securityRequirement] = {}
-            }
-            // Avoid overwriting fields that return the same data:
-            if (
-              fieldName in authQueryFields[securityRequirement] ||
-              /**
-               * If the option is set operationIdFieldNames, the fieldName is
-               * forced to be the operationId
-               */
-              operationIdFieldNames
-            ) {
-              fieldName = Oas3Tools.storeSaneName(
-                saneOperationId,
-                operationId,
-                data.saneMap
-              )
-            }
-
-            if (fieldName in authQueryFields[securityRequirement]) {
-              handleWarning({
-                typeKey: 'DUPLICATE_FIELD_NAME',
-                message:
-                  `Multiple operations have the same name ` +
-                  `'${fieldName}' and security requirement ` +
-                  `'${securityRequirement}'. GraphQL field names must be ` +
-                  `unique so only one can be added to the authentication ` +
-                  `viewer. Operation '${operation.operationString}' will be ignored.`,
-                data,
-                log: translationLog
-              })
-            } else {
-              authQueryFields[securityRequirement][fieldName] = field
-            }
+      if (operation.inViewer) {
+        for (let securityRequirement of operation.securityRequirements) {
+          if (typeof authQueryFields[securityRequirement] !== 'object') {
+            authQueryFields[securityRequirement] = {}
           }
-        } else {
           // Avoid overwriting fields that return the same data:
           if (
-            fieldName in queryFields ||
+            fieldName in authQueryFields[securityRequirement] ||
             /**
              * If the option is set operationIdFieldNames, the fieldName is
              * forced to be the operationId
@@ -302,72 +261,105 @@ async function translateOpenAPIToGraphQL(
             )
           }
 
-          if (fieldName in queryFields) {
+          if (fieldName in authQueryFields[securityRequirement]) {
             handleWarning({
               typeKey: 'DUPLICATE_FIELD_NAME',
               message:
                 `Multiple operations have the same name ` +
-                `'${fieldName}'. GraphQL field names must be ` +
-                `unique so only one can be added to the Query object. ` +
-                `Operation '${operation.operationString}' will be ignored.`,
+                `'${fieldName}' and security requirement ` +
+                `'${securityRequirement}'. GraphQL field names must be ` +
+                `unique so only one can be added to the authentication ` +
+                `viewer. Operation '${operation.operationString}' will be ignored.`,
               data,
               log: translationLog
             })
           } else {
-            queryFields[fieldName] = field
+            authQueryFields[securityRequirement][fieldName] = field
           }
         }
       } else {
-        /**
-         * Use operationId to avoid problems differentiating operations with the
-         * same path but differnet methods
-         */
+        // Avoid overwriting fields that return the same data:
+        if (
+          fieldName in queryFields ||
+          /**
+           * If the option is set operationIdFieldNames, the fieldName is
+           * forced to be the operationId
+           */
+          operationIdFieldNames
+        ) {
+          fieldName = Oas3Tools.storeSaneName(
+            saneOperationId,
+            operationId,
+            data.saneMap
+          )
+        }
 
-        let saneFieldName = Oas3Tools.storeSaneName(
-          saneOperationId,
-          operationId,
-          data.saneMap
-        )
-        if (operation.inViewer) {
-          for (let securityRequirement of operation.securityRequirements) {
-            if (typeof authMutationFields[securityRequirement] !== 'object') {
-              authMutationFields[securityRequirement] = {}
-            }
-
-            if (saneFieldName in authMutationFields[securityRequirement]) {
-              handleWarning({
-                typeKey: 'DUPLICATE_FIELD_NAME',
-                message:
-                  `Multiple operations have the same name ` +
-                  `'${saneFieldName}' and security requirement ` +
-                  `'${securityRequirement}'. GraphQL field names must be ` +
-                  `unique so only one can be added to the authentication ` +
-                  `viewer. Operation '${operation.operationString}' will be ignored.`,
-                data,
-                log: translationLog
-              })
-            } else {
-              authMutationFields[securityRequirement][saneFieldName] = field
-            }
-          }
+        if (fieldName in queryFields) {
+          handleWarning({
+            typeKey: 'DUPLICATE_FIELD_NAME',
+            message:
+              `Multiple operations have the same name ` +
+              `'${fieldName}'. GraphQL field names must be ` +
+              `unique so only one can be added to the Query object. ` +
+              `Operation '${operation.operationString}' will be ignored.`,
+            data,
+            log: translationLog
+          })
         } else {
-          if (saneFieldName in mutationFields) {
+          queryFields[fieldName] = field
+        }
+      }
+    } else {
+      /**
+       * Use operationId to avoid problems differentiating operations with the
+       * same path but differnet methods
+       */
+
+      let saneFieldName = Oas3Tools.storeSaneName(
+        saneOperationId,
+        operationId,
+        data.saneMap
+      )
+      if (operation.inViewer) {
+        for (let securityRequirement of operation.securityRequirements) {
+          if (typeof authMutationFields[securityRequirement] !== 'object') {
+            authMutationFields[securityRequirement] = {}
+          }
+
+          if (saneFieldName in authMutationFields[securityRequirement]) {
             handleWarning({
               typeKey: 'DUPLICATE_FIELD_NAME',
               message:
                 `Multiple operations have the same name ` +
-                `'${saneFieldName}'. GraphQL field names must be ` +
-                `unique so only one can be added to the Mutation object. ` +
-                `Operation '${operation.operationString}' will be ignored.`,
+                `'${saneFieldName}' and security requirement ` +
+                `'${securityRequirement}'. GraphQL field names must be ` +
+                `unique so only one can be added to the authentication ` +
+                `viewer. Operation '${operation.operationString}' will be ignored.`,
               data,
               log: translationLog
             })
           } else {
-            mutationFields[saneFieldName] = field
+            authMutationFields[securityRequirement][saneFieldName] = field
           }
         }
+      } else {
+        if (saneFieldName in mutationFields) {
+          handleWarning({
+            typeKey: 'DUPLICATE_FIELD_NAME',
+            message:
+              `Multiple operations have the same name ` +
+              `'${saneFieldName}'. GraphQL field names must be ` +
+              `unique so only one can be added to the Mutation object. ` +
+              `Operation '${operation.operationString}' will be ignored.`,
+            data,
+            log: translationLog
+          })
+        } else {
+          mutationFields[saneFieldName] = field
+        }
       }
-    })
+    }
+  })
 
   // Sorting fields
   queryFields = sortObject(queryFields)
@@ -436,10 +428,10 @@ async function translateOpenAPIToGraphQL(
   }
 
   /**
-   * Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
+   * Fill in yet undefined object types to avoid GraphQLSchema from breaking.
    *
    * The reason: once creating the schema, the 'fields' thunks will resolve and
-   * if a field references an undefined Object Types, GraphQL will throw.
+   * if a field references an undefined object types, GraphQL will throw.
    */
   Object.entries(data.operations).forEach(([opId, operation]) => {
     if (typeof operation.responseDefinition.graphQLType === 'undefined') {
@@ -503,43 +495,6 @@ function getFieldForOperation(
     resolve,
     args,
     description: operation.description
-  }
-}
-
-/**
- * Helper function for sorting operations based on the return type and method
- *
- * You cannot define links for operations that return arrays in the OAS
- *
- * These links are instead created by reusing the return type from other
- * operations
- *
- * Therefore, operations that return objects should be created first
- *
- * In addition, process GET operations first because their field names are based
- * on the return type (so long as there are no naming collisions).
- */
-function sortOperations(op1: Operation, op2: Operation): number {
-  // Sort by object/array type
-  if (
-    op1.responseDefinition.schema.type === 'array' &&
-    op2.responseDefinition.schema.type !== 'array'
-  ) {
-    return 1
-  } else if (
-    op1.responseDefinition.schema.type !== 'array' &&
-    op2.responseDefinition.schema.type === 'array'
-  ) {
-    return -1
-  } else {
-    // Sort by GET/non-GET method
-    if (op1.method === 'get' && op2.method !== 'get') {
-      return -1
-    } else if (op1.method !== 'get' && op2.method === 'get') {
-      return 1
-    } else {
-      return 0
-    }
   }
 }
 

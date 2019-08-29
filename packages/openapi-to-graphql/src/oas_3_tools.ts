@@ -38,12 +38,14 @@ import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning } from './utils'
+import * as rfdc from 'rfdc'
 
 // Type definitions & exports:
 export type SchemaNames = {
-  fromPath?: string
-  fromSchema?: string
+  // Sorted in the following priority order
   fromRef?: string
+  fromSchema?: string
+  fromPath?: string
 
   /**
    * Used when the preferred name is known, i.e. a new data def does not need to
@@ -113,7 +115,15 @@ export async function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
     }
 
     preprocessingLog(`OpenAPI Specification is validated`)
-    return spec as Oas3
+
+    /**
+     * OtG current changes the OAS as part of the preprocessing step (resolving
+     * JSON schema combining keywords like allOf, oneOf, anyOf, and not)
+     *
+     * To prevent unintended changes to the OAS from passing on to the user,
+     * make a deep copy.
+     */
+    return rfdc()(spec) as Oas3
   } else {
     throw new Error(`Invalid specification provided`)
   }
@@ -410,19 +420,17 @@ export function instantiatePathAndGetQuery(
 }
 
 /**
- * Returns the "type" of the given JSON schema. Makes best guesses if the type
- * is not explicitly defined.
+ * Returns the GraphQL type that the provided schema should be made into
+ *
+ * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
-export function getSchemaType(
+export function getSchemaTargetGraphQLType(
   schema: SchemaObject,
   data: PreprocessingData
 ): string | null {
   // CASE: object
-  if (
-    schema.type === 'object' ||
-    'properties' in schema ||
-    Array.isArray(schema.allOf)
-  ) {
+  if (schema.type === 'object' || typeof schema.properties === 'object') {
+    // TODO: additionalProperties is more like a flag than a type itself
     // CASE: arbitrary JSON
     if (typeof schema.additionalProperties === 'object') {
       return 'json'
@@ -562,9 +570,9 @@ export function getRequestSchemaAndNames(
     }
 
     let payloadSchemaNames: any = {
-      fromPath: inferResourceNameFromPath(path),
       fromRef,
-      fromSchema: (payloadSchema as SchemaObject).title
+      fromSchema: (payloadSchema as SchemaObject).title,
+      fromPath: inferResourceNameFromPath(path)
     }
 
     // Determine if request body is required:
@@ -700,9 +708,9 @@ export function getResponseSchemaAndNames(
     }
 
     const responseSchemaNames = {
-      fromPath: inferResourceNameFromPath(path),
       fromRef,
-      fromSchema: (responseSchema as SchemaObject).title
+      fromSchema: (responseSchema as SchemaObject).title,
+      fromPath: inferResourceNameFromPath(path)
     }
 
     /**

@@ -199,6 +199,48 @@
         }
       }
     },
+    "/assets/{companyId}": {
+      "get": {
+        "operationId": "getAllAssets",
+        "description": "Returns all company assets",
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A company's assets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/car"
+                      },
+                      {
+                        "$ref": "#/components/schemas/user"
+                      },
+                      {
+                        "$ref": "#/components/schemas/trashcan"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/cars": {
       "get": {
         "operationId": "getAllCars",
@@ -897,92 +939,6 @@
         }
       }
     },
-    "/trashcans/{username}": {
-      "get": {
-        "operationId": "getOfficeTrashCan",
-        "description": "Returns the (contents of a) trashcan from a specific owner",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Identifier of a user."
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "A trashcan",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/trashcan"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "operationId": "postOfficeTrashCan",
-        "description": "Add new contents to the trashcan of a specific owner",
-        "parameters": [
-          {
-            "name": "username",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string"
-            },
-            "description": "Identifier of a user."
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "A trashcan",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/trashcan"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/trashcans": {
-      "get": {
-        "operationId": "getAllTrashCans",
-        "description": "Returns the (contents of a) trashcan from a specific office",
-        "responses": {
-          "200": {
-            "description": "Many trashcans",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/trashcan"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/snack": {
       "get": {
         "operationId": "getSnack",
@@ -1104,6 +1060,124 @@
           }
         }
       }
+    },
+    "/trashcans": {
+      "get": {
+        "operationId": "getAllTrashCans",
+        "description": "Returns the (contents of a) trashcan from a specific office",
+        "responses": {
+          "200": {
+            "description": "Many trashcans",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/trashcan"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/trashcans/{username}": {
+      "get": {
+        "operationId": "getOfficeTrashCan",
+        "description": "Returns the (contents of a) trashcan from a specific owner",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Identifier of a user."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A trashcan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/trashcan"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "postOfficeTrashCan",
+        "description": "Add new contents to the trashcan of a specific owner",
+        "parameters": [
+          {
+            "name": "username",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Identifier of a user."
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A trashcan",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/trashcan"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/mystery": {
+      "get": {
+        "description": "It could be anything!",
+        "responses": {
+          "200": {
+            "description": "Mystery object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "properties": {
+                        "common_attribute": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "different_attribute": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1201,7 +1275,8 @@
               "family": {
                 "$ref": "#/components/schemas/familyString"
               }
-            }
+            },
+            "required": ["family"]
           },
           {
             "properties": {
@@ -1283,7 +1358,7 @@
       },
       "project-with-id": {
         "type": "object",
-        "description": "A patent",
+        "description": "A project",
         "properties": {
           "project-id": {
             "type": "integer",

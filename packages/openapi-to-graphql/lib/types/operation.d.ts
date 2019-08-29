@@ -3,11 +3,18 @@
  * operation in the OAS.
  */
 import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
-import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType } from 'graphql';
+import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
+import * as GraphQLJSON from 'graphql-type-json';
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
-    type: string;
+    /**
+     * Similar to the required property in object schemas but because of certain
+     * keywords to combine schemas, e.g. "allOf", this resolves the required
+     * property in all subschemas
+     */
+    required: string[];
+    targetGraphQLType: string;
     links: {
         [key: string]: LinkObject;
     };
@@ -19,13 +26,16 @@ export declare type DataDefinition = {
      *
      * Or if the dataDef is an object type, the subDefinitions are references to
      * the field types
+     *
+     * Or if the dataDef is a union type, the subDefinitions are references to
+     * the member types
      */
     subDefinitions: DataDefinition | {
         [fieldName: string]: DataDefinition;
-    };
+    } | DataDefinition[];
     graphQLTypeName: string;
     graphQLInputObjectTypeName: string;
-    graphQLType?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType;
+    graphQLType?: GraphQLObjectType | GraphQLList<any> | GraphQLUnionType | GraphQLEnumType | GraphQLScalarType | GraphQLJSON;
     graphQLInputObjectType?: GraphQLInputObjectType | GraphQLList<any>;
 };
 export declare type Operation = {

@@ -1,0 +1,232 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Example API 4",
+    "description": "An API to test converting Open API Specs 3.0 to GraphQL",
+    "version": "1.0.0",
+    "termsOfService": "http://example.com/terms/",
+    "contact": {
+      "name": "Erik Wittern",
+      "url": "http://www.example.com/support",
+      "email": "witternj@us.ibm.com"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "externalDocs": {
+    "url": "http://example.com/docs",
+    "description": "Some more natural language description."
+  },
+  "tags": [
+    {
+      "name": "test",
+      "description": "Indicates this API is for testing"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:{port}/{basePath}",
+      "description": "The location of the local test server.",
+      "variables": {
+        "port": {
+          "default": "3001"
+        },
+        "basePath": {
+          "default": "api"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/oneOf": {
+      "get": {
+        "description": "It could be anything!",
+        "responses": {
+          "200": {
+            "description": "Mystery object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/differentAttributeObject"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf": {
+      "get": {
+        "description": "It could be anything!",
+        "responses": {
+          "200": {
+            "description": "Mystery object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf2": {
+      "get": {
+        "description": "It could be anything!",
+        "responses": {
+          "200": {
+            "description": "Mystery object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/differentAttributeObject"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf3": {
+      "get": {
+        "description": "It could be anything!",
+        "responses": {
+          "200": {
+            "description": "Mystery object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "commonAttribute": {
+                          "$ref": "#/components/schemas/commonAttributeObject"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "commonAttribute": {
+                          "$ref": "#/components/schemas/commonAttributeObject"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf4": {
+      "get": {
+        "description": "It could be anything!",
+        "responses": {
+          "200": {
+            "description": "Mystery object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "commonAttribute": {
+                          "$ref": "#/components/schemas/commonAttributeObject"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "differentAttribute": {
+                          "$ref": "#/components/schemas/commonAttributeObject"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf5": {
+      "get": {
+        "description": "It could be anything!",
+        "responses": {
+          "200": {
+            "description": "Mystery object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "commonAttribute": {
+                          "$ref": "#/components/schemas/commonAttributeObject"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "differentAttribute": {
+                          "$ref": "#/components/schemas/differentAttributeObject"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "commonAttributeObject": {
+        "type": "object",
+        "properties": {
+          "commonAttribute": {
+            "type": "string"
+          }
+        }
+      },
+      "differentAttributeObject": {
+        "type": "object",
+        "properties": {
+          "differentAttribute": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
