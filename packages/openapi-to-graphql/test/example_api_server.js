@@ -188,10 +188,6 @@ function startServer(PORT) {
     }
   ]
 
-  const Products = {
-    'product-name': 'Super Product'
-  }
-
   const Patents = {
     'CCC OSv1': {
       'patent-id': '100',
@@ -298,11 +294,11 @@ function startServer(PORT) {
 
   const authMiddleware = (req, res, next) => {
     if (req.headers.authorization) {
-      let encoded = req.headers.authorization.split(' ')[1]
-      let decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
+      const encoded = req.headers.authorization.split(' ')[1]
+      const decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
 
       if (decoded.length === 2) {
-        let credentials = {
+        const credentials = {
           username: decoded[0],
           password: decoded[1]
         }
@@ -360,6 +356,7 @@ function startServer(PORT) {
 
   app.get('/api/users', (req, res) => {
     console.log(req.method, req.path)
+
     const limit = req.query.limit
     if (typeof limit === 'string') {
       res.send(Object.values(Users).slice(0, Number(limit)))
@@ -370,6 +367,7 @@ function startServer(PORT) {
 
   app.get('/api/users/:username', (req, res) => {
     console.log(req.method, req.path)
+
     if (req.params.username in Users) {
       res.send(Users[req.params.username])
     } else {
@@ -381,6 +379,7 @@ function startServer(PORT) {
 
   app.get('/api/users/:username/car', (req, res) => {
     console.log(req.method, req.path)
+
     if (req.params.username in Users) {
       res.send(Cars[req.params.username])
     } else {
@@ -392,15 +391,13 @@ function startServer(PORT) {
 
   app.get('/api/users/:username/friends', (req, res) => {
     console.log(req.method, req.path)
-    if (
-      typeof req.params.username === 'string' &&
-      req.params.username in Users
-    ) {
+
+    if (req.params.username in Users) {
       const friends = Users[req.params.username].friends.map(friendName => {
         return Users[friendName]
       })
 
-      res.send(friends)
+      res.status(200).send(friends)
     } else {
       res.status(404).send({
         message: 'Wrong username.'
@@ -410,34 +407,44 @@ function startServer(PORT) {
 
   app.post('/api/users', (req, res) => {
     console.log(req.method, req.path)
-    let user = req.body
+
+    const user = req.body
     if (
-      !('name' in user) ||
-      !('address' in user) ||
-      !('employerId' in user) ||
-      !('hobbies' in user)
+      'name' in user &&
+      'address' in user &&
+      'employerId' in user &&
+      'hobbies' in user
     ) {
+      Users[user.name] = user
+      res.status(201).send(user)
+    } else {
       res.status(400).send({
         message: 'wrong data'
       })
-    } else {
-      Users[user.name] = user
-      res.status(201).send(user)
     }
   })
 
   app.get('/api/cars', (req, res) => {
     console.log(req.method, req.path)
-    res.send(Array.from(Object.values(Cars)))
+
+    res.send(Object.values(Cars))
   })
 
   app.get('/api/companies/:id', (req, res) => {
     console.log(req.method, req.path)
-    res.send(Companies[req.params.id])
+
+    if (req.params.id in Companies) {
+      res.status(200).send(Companies[req.params.id])
+    } else {
+      res.status(404).send({
+        message: 'Wrong company ID.'
+      })
+    }
   })
 
   app.get('/api/coffeeLocation', (req, res) => {
     console.log(req.method, req.path)
+
     res.send({
       lat: parseFloat(req.query.lat) + 5,
       long: parseFloat(req.query.long) + 5
@@ -446,6 +453,7 @@ function startServer(PORT) {
 
   app.get('/api/cookie', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
+
     if ('cookie' in req.headers) {
       res
         .set('Content-Type', 'text/plain')
@@ -458,6 +466,7 @@ function startServer(PORT) {
 
   app.get('/api/copier', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
+
     res.status(200).send({
       body: req.query.query
     })
@@ -465,31 +474,40 @@ function startServer(PORT) {
 
   app.get('/api/cleanDesks', (req, res) => {
     console.log(req.method, req.path)
-    res.set('Content-Type', 'text/plain').send('5 clean desks')
+
+    res
+      .set('Content-Type', 'text/plain')
+      .status(200)
+      .send('5 clean desks')
   })
 
   app.get('/api/dirtyDesks', (req, res) => {
     console.log(req.method, req.path)
-    res.set('Content-Type', 'text/plain').send('5 dirty desks')
+
+    res
+      .set('Content-Type', 'text/plain')
+      .status(200)
+      .send('5 dirty desks')
   })
 
   app.get('/api/bonuses', (req, res) => {
     console.log(req.method, req.path)
+
     res.status(204).send()
   })
 
   app.get('/api/offices/:id', (req, res) => {
     console.log(req.method, req.path)
 
-    let accept = req.headers['accept']
+    const accept = req.headers['accept']
     if (accept.includes('text/plain')) {
       res
         .set('Content-Type', 'text/plain')
-        .status(201)
+        .status(200)
         .send('You asked for text!')
     } else if (accept.includes('application/json')) {
       if (req.params.id >= 0 && req.params.id < Offices.length) {
-        res.status(201).send(Offices[req.params.id])
+        res.status(200).send(Offices[req.params.id])
       } else {
         res.status(404).send({
           message: 'Cannot find office'
@@ -498,127 +516,147 @@ function startServer(PORT) {
     } else {
       res
         .set('Content-Type', 'text/plain')
-        .status(201)
+        .status(412)
         .send('Please try with an accept parameter!')
+    }
+  })
+
+  app.post('/api/products', (req, res) => {
+    console.log(req.method, req.path)
+
+    const product = req.body
+
+    if (
+      'product-name' in product &&
+      'product-id' in product &&
+      'product-tag' in product
+    ) {
+      res.status(201).send(product)
+    } else {
+      res.status(400).send({
+        message: 'wrong data'
+      })
     }
   })
 
   app.get('/api/products/:id', (req, res) => {
     console.log(req.method, req.path, req.params, req.query)
-    Products['product_id'] = req.params['id']
-    Products['product-tag'] = req.query['product-tag']
-    res.send(Products)
+
+    if (
+      typeof req.params['id'] !== 'undefined' &&
+      typeof req.query['product-tag'] !== 'undefined'
+    ) {
+      const product = {
+        product_id: req.params['id'],
+        'product-tag': req.query['product-tag'],
+        'product-name': 'Super Product'
+      }
+
+      res.status(200).send(product)
+    } else {
+      res.status(400).send({
+        message: 'wrong data'
+      })
+    }
   })
 
   app.get('/api/products/:id/reviews', (req, res) => {
     console.log(req.method, req.path, req.params, req.query)
-    console.log(typeof req.params.id === 'undefined')
-    console.log(req.params.id === 'undefined')
-    console.log(typeof req.query['product-tag'] === 'undefined')
-    console.log(req.query['product-tag'] === 'undefined')
 
     if (
-      typeof req.params.id === 'undefined' ||
-      req.params.id === 'undefined' ||
-      typeof req.query['product-tag'] === 'undefined' ||
-      req.query['product-tag'] === 'undefined'
+      typeof req.params.id !== 'undefined' &&
+      typeof req.query['product-tag'] !== 'undefined'
     ) {
-      res.status(400).send({
-        message: 'wrong data'
-      })
-    } else {
       res
         .status(200)
         .send([
           { text: 'Great product', timestamp: 1502787600000000 },
           { text: 'I love it', timestamp: 1502787400000000 }
         ])
+    } else {
+      res.status(400).send({
+        message: 'wrong data'
+      })
     }
   })
 
   app.get('/api/papers', (req, res) => {
     console.log(req.method, req.path)
-    res.send(Object.values(Papers))
+
+    res.status(200).send(Object.values(Papers))
   })
 
   app.post('/api/papers', (req, res) => {
     console.log(req.method, req.path)
 
-    let contentType = req.headers['content-type']
-    if (!contentType.includes('text/plain')) {
+    const contentType = req.headers['content-type']
+    if (contentType.includes('text/plain')) {
+      res
+        .set('Content-Type', 'text/plain')
+        .status(201)
+        .send('You sent the paper idea: ' + req.body)
+    } else {
       res.status(400).send({
         message:
           "wrong content-type, expected 'text/plain' but received " +
           contentType
       })
-    } else {
-      res
-        .set('Content-Type', 'text/plain')
-        .status(201)
-        .send('You sent the paper idea: ' + req.body)
     }
   })
 
   app.get('/api/patents/:id', authMiddleware, (req, res) => {
     console.log(req.method, req.path)
-    for (let patent in Patents) {
-      if (Patents[patent]['patent-id'] === req.params.id) {
-        return res.send(Patents[patent])
-      }
-      res.status(404).send({ message: 'Patent does not exist.' })
-    }
-  })
 
-  app.get('/api/projects/:id', authMiddleware, (req, res) => {
-    console.log(req.method, req.path)
-    let p
-    for (let project in Projects) {
-      if (Projects[project].projectId === Number(req.params.id)) {
-        p = Projects[project]
-      }
-    }
-    if (p) {
-      res.send(p)
+    // Find patent based off of patent ID
+    const patent = Object.values(Patents).find(currentPatent => {
+      return currentPatent['patent-id'] === req.params.id
+    })
+
+    if (typeof patent === 'object') {
+      res.status(200).send(patent)
     } else {
-      res.status(404).send({ message: 'Project does not exist.' })
+      res.status(404).send({ message: 'Patent does not exist.' })
     }
   })
 
   app.post('/api/projects', authMiddleware, (req, res) => {
     console.log(req.method, req.path)
-    let project = req.body
-    if (!('project-id' in project) || !('lead-id' in project)) {
+
+    const project = req.body
+
+    if ('project-id' in project && 'lead-id' in project) {
+      res.status(201).send(project)
+    } else {
       res.status(400).send({
         message: 'wrong data'
       })
-    } else {
-      res.status(201).send(project)
     }
   })
 
-  app.post('/api/products', (req, res) => {
+  app.get('/api/projects/:id', authMiddleware, (req, res) => {
     console.log(req.method, req.path)
-    let product = req.body
-    if (
-      !('product-name' in product) ||
-      !('product-id' in product) ||
-      !('product-tag' in product)
-    ) {
-      res.status(400).send({
-        message: 'wrong data'
-      })
+
+    // Find project based off of projectId
+    const project = Object.values(Projects).find(currentProject => {
+      return currentProject.projectId === Number(req.params.id)
+    })
+
+    if (typeof project === 'object') {
+      res.status(200).send(project)
     } else {
-      res.status(201).send(product)
+      res.status(404).send({ message: 'Project does not exist.' })
     }
   })
 
   app.get('/api/scanner', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
+
     res.status(200).send({ body: req.query.query })
   })
 
   app.post('/api/scanner/:path', (req, res) => {
     console.log(req.method, req.path)
+
     res.status(200).send({
       body: `req.body: ${req.body}, req.query.query: ${req.query.query}, req.path.path: ${req.params.path}`
     })
@@ -626,6 +664,7 @@ function startServer(PORT) {
 
   app.get('/api/snack', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
+
     if ('snack_type' in req.headers && 'snack_size' in req.headers) {
       res
         .set('Content-Type', 'text/plain')
@@ -638,25 +677,27 @@ function startServer(PORT) {
 
   app.get('/api/status', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
+
     if (
-      typeof req.query.limit === 'undefined' ||
-      typeof req.get('exampleHeader') === 'undefined'
+      typeof req.query.limit !== 'undefined' &&
+      typeof req.get('exampleHeader') !== 'undefined'
     ) {
-      res.status(400).send({
-        message: 'wrong request'
-      })
-    } else {
       res
         .set('Content-Type', 'text/plain')
         .status(200)
-        .send('Ok.')
+        .send('Ok')
+    } else {
+      res.status(400).send({
+        message: 'wrong request'
+      })
     }
   })
 
   app.post('/api/status', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
+
     if ('hello' in req.body && req.body['hello'] === 'world') {
-      res.status(201).send('success')
+      res.status(200).send('success')
     } else {
       res.status(400).send({
         message: "wrong data, try 'hello': 'world'"
@@ -666,24 +707,30 @@ function startServer(PORT) {
 
   app.get('/api/secure', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
-    if (req.get('authorization') !== 'Bearer abcdef') {
-      res.status(401).send({
-        message: 'missing authorization header'
-      })
+
+    if (req.get('authorization') === 'Bearer abcdef') {
+      res
+        .status(200)
+        .set('Content-Type', 'text/plain')
+        .send('A secure message.')
     } else {
-      res.set('Content-Type', 'text/plain').send('A secure message.')
+      res.status(401).send({
+        message: 'Missing authorization header'
+      })
     }
   })
 
   app.get('/api/trashcans', (req, res) => {
     console.log(req.method, req.path)
-    res.send(Array.from(Object.values(TrashCans)))
+
+    res.status(200).send(Array.from(Object.values(TrashCans)))
   })
 
   app.get('/api/trashcans/:username', (req, res) => {
     console.log(req.method, req.path)
+
     if (req.params.username in Users) {
-      res.send(TrashCans[req.params.username])
+      res.status(200).send(TrashCans[req.params.username])
     } else {
       res.status(404).send({
         message: 'Wrong username.'
@@ -693,12 +740,13 @@ function startServer(PORT) {
 
   app.post('/api/trashcans/:username', (req, res) => {
     console.log(req.method, req.path)
+
     const trashItem = req.body
 
     if (req.params.username in Users) {
       const trashCan = TrashCans[req.params.username]
       trashCan.contents.push(trashItem)
-      res.send(TrashCans[req.params.username])
+      res.status(201).send(TrashCans[req.params.username])
     } else {
       res.status(404).send({
         message: 'Wrong username.'
