@@ -199,6 +199,48 @@
         }
       }
     },
+    "/assets/{companyId}": {
+      "get": {
+        "operationId": "getAllAssets",
+        "description": "Returns all company assets",
+        "parameters": [
+          {
+            "name": "companyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A company's assets",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "oneOf": [
+                      {
+                        "$ref": "#/components/schemas/car"
+                      },
+                      {
+                        "$ref": "#/components/schemas/user"
+                      },
+                      {
+                        "$ref": "#/components/schemas/trashcan"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/cars": {
       "get": {
         "operationId": "getAllCars",
@@ -1280,7 +1322,7 @@
       },
       "project-with-id": {
         "type": "object",
-        "description": "A patent",
+        "description": "A project",
         "properties": {
           "project-id": {
             "type": "integer",

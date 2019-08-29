@@ -389,10 +389,10 @@ function getProcessedSecuritySchemes(
 /**
  * Method to either create a new or reuse an existing, centrally stored data
  * definition. Data definitions are objects that hold a schema (= JSON schema),
- * an otName (= String to use as the name for Object Types), and an iotName
- * (= String to use as the name for Input Object Types). Eventually, data
- * definitions also hold an ot (= the Object Type for the schema) and an iot
- * (= the Input Object Type for the schema).
+ * an otName (= String to use as the name for object types), and an iotName
+ * (= String to use as the name for input object types). Eventually, data
+ * definitions also hold an ot (= the object type for the schema) and an iot
+ * (= the input object type for the schema).
  *
  * Either names or preferredName should exist.
  */
@@ -484,6 +484,7 @@ export function createDataDef(
 
     // Determine the type of the schema
     const type = Oas3Tools.getSchemaType(schema as SchemaObject, data)
+
     if (type) {
       // Add the names to the master list
       data.usedOTNames.push(saneName)
@@ -524,6 +525,7 @@ export function createDataDef(
         }
 
         const subDefinition = createDataDef(
+          // Is this the correct classification for this name? It does not matter in the long run.
           { fromRef: itemsName },
           itemsSchema as SchemaObject,
           isInputObjectType,
@@ -546,12 +548,6 @@ export function createDataDef(
               schema
             )}'`
           )
-        } else if ('oneOf' in schema) {
-          throw new Error(
-            `OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(
-              schema
-            )}'`
-          )
         } else if ('not' in schema) {
           throw new Error(
             `OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(
@@ -562,14 +558,55 @@ export function createDataDef(
 
         // Add existing properties (regular object type)
         addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas)
+      } else if (type === 'union') {
+        def.subDefinitions = []
+
+        schema.oneOf.forEach(subSchema => {
+          // Dereference subSchema
+          let fromRef: string
+          if ('$ref' in subSchema) {
+            fromRef = subSchema['$ref'].split('/').pop()
+            subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas)
+          }
+
+          // TODO: properties should be handled like interfaces, which also means they need to be passed into the subschemas
+
+          // TODO: ensure that unions are not composed of other unions
+          // Member types of GraphQL unions must be object base types
+          if (subSchema.type === 'object') {
+            const subDefinition = createDataDef(
+              {
+                fromRef,
+                fromSchema: subSchema.title,
+                fromPath: `${saneName}Member`
+              },
+              subSchema as SchemaObject,
+              isInputObjectType,
+              data,
+              undefined,
+              oas
+            )
+            ;(def.subDefinitions as DataDefinition[]).push(subDefinition)
+          } else {
+            handleWarning({
+              typeKey: 'UNION_MEMBER_NON_OBJECT',
+              message:
+                `Union member type '${JSON.stringify(subSchema)}' in ` +
+                `union type '${JSON.stringify(schema)}' is not an object ` +
+                `type. Union member types must be object base types.`,
+              data,
+              log: preprocessingLog
+            })
+          }
+        })
       }
 
       return def
     } else {
       throw new Error(
-        `Cannot process schema '${JSON.stringify(
+        `Cannot identify target GraphQL type of schema '${JSON.stringify(
           schema
-        )}'. Cannot identify type of schema.`
+        )}'`
       )
     }
   }
@@ -763,7 +800,10 @@ function addObjectPropertiesToDataDef(
     }
 
     const subDefinition = createDataDef(
-      { fromRef: propSchemaName },
+      {
+        fromRef: propSchemaName,
+        fromSchema: propSchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
+      },
       propSchema as SchemaObject,
       isInputObjectType,
       data,

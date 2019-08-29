@@ -12,15 +12,17 @@ import {
   GraphQLScalarType,
   GraphQLInputObjectType,
   GraphQLList,
-  GraphQLEnumType
+  GraphQLEnumType,
+  GraphQLUnionType
 } from 'graphql'
 
 export type GraphQLType =
-  | GraphQLScalarType
   | GraphQLObjectType
-  | GraphQLEnumType
   | GraphQLInputObjectType
   | GraphQLList<any>
+  | GraphQLUnionType
+  | GraphQLEnumType
+  | GraphQLScalarType
 
 type Arg = {
   type: any

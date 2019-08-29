@@ -3,7 +3,7 @@
  * operation in the OAS.
  */
 import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
-import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType } from 'graphql';
+import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
@@ -16,16 +16,19 @@ export declare type DataDefinition = {
      *
      * Or if the dataDef is an object type, the subDefinitions are references to
      * the field types
+     *
+     * Or if the dataDef is a union type, the subDefinitions are references to
+     * the member types
      */
     subDefinitions: DataDefinition | {
         [fieldName: string]: DataDefinition;
-    };
+    } | DataDefinition[];
     links: {
         [key: string]: LinkObject;
     };
     otName: string;
     iotName: string;
-    ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType;
+    ot?: GraphQLObjectType | GraphQLList<any> | GraphQLUnionType | GraphQLEnumType | GraphQLScalarType;
     iot?: GraphQLInputObjectType | GraphQLList<any>;
 };
 export declare type Operation = {

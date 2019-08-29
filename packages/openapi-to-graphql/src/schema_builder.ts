@@ -31,7 +31,9 @@ import {
   GraphQLInputObjectType,
   GraphQLEnumType,
   GraphQLFieldConfigMap,
-  GraphQLOutputType
+  GraphQLOutputType,
+  GraphQLUnionType,
+  GraphQLIsTypeOfFn
 } from 'graphql'
 
 // Imports:
@@ -63,6 +65,13 @@ type CreateOrReuseOtParams = {
   operation?: Operation
   iteration: number
   isInputObjectType: boolean
+  data: PreprocessingData
+}
+
+type CreateOrReuseUnionParams = {
+  def: DataDefinition
+  operation?: Operation
+  iteration: number
   data: PreprocessingData
 }
 
@@ -103,7 +112,7 @@ type LinkOpRefToOpIdParams = {
 const translationLog = debug('translation')
 
 /**
- * Creates and returns a GraphQL (Input) Type for the given JSON schema.
+ * Creates and returns a GraphQL type for the given JSON schema.
  */
 export function getGraphQLType({
   def,
@@ -111,54 +120,63 @@ export function getGraphQLType({
   data,
   iteration = 0,
   isInputObjectType = false
-}: GetGraphQLTypeParams): GraphQLType {
+}: // TODO: return GraphQL provided GraphQLType type
+GetGraphQLTypeParams): GraphQLType {
   const name = isInputObjectType ? def.iotName : def.otName
 
   // Avoid excessive iterations
   if (iteration === 50) {
-    throw new Error(`Too many iterations when creating schema ${name}`)
+    throw new Error(`GraphQL type ${name} has excessive nesting of other types`)
   }
 
-  const type = def.type
+  switch (def.type) {
+    // CASE: object - create ObjectType
+    case 'object':
+      return createOrReuseOt({
+        def,
+        operation,
+        data,
+        iteration,
+        isInputObjectType
+      })
 
-  // CASE: object - create ObjectType
-  if (type === 'object') {
-    return createOrReuseOt({
-      def,
-      operation,
-      data,
-      iteration,
-      isInputObjectType
-    })
+    // CASE: union - create UnionType
+    case 'union':
+      return createOrReuseUnion({
+        def,
+        operation,
+        data,
+        iteration
+      })
 
     // CASE: array - create ArrayType
-  } else if (type === 'array') {
-    return createOrReuseList({
-      def,
-      operation,
-      data,
-      iteration,
-      isInputObjectType
-    })
+    case 'array':
+      return createOrReuseList({
+        def,
+        operation,
+        data,
+        iteration,
+        isInputObjectType
+      })
 
     // CASE: enum - create EnumType
-  } else if (type === 'enum') {
-    return createOrReuseEnum({
-      def,
-      data
-    })
+    case 'enum':
+      return createOrReuseEnum({
+        def,
+        data
+      })
 
     // CASE: scalar - return scalar
-  } else {
-    return getScalarType({
-      def,
-      data
-    })
+    default:
+      return getScalarType({
+        def,
+        data
+      })
   }
 }
 
 /**
- * Returns an existing (Input) Object Type or creates a new one, and stores it
+ * Creates an (input) object type or return an existing one, and stores it
  * in data
  *
  * A returned GraphQLObjectType has the following internal structure:
@@ -178,7 +196,10 @@ function createOrReuseOt({
   data,
   iteration,
   isInputObjectType
-}: CreateOrReuseOtParams): GraphQLType {
+}: CreateOrReuseOtParams):
+  | GraphQLObjectType
+  | GraphQLInputObjectType
+  | GraphQLJSON {
   // Try to reuse a preexisting (input) object type
 
   // CASE: query - reuse object type
@@ -190,10 +211,7 @@ function createOrReuseOt({
             ? ` (for operation '${operation.operationId}')`
             : '')
       )
-      return def.ot as (
-        | GraphQLObjectType
-        | GraphQLInputObjectType
-        | GraphQLScalarType)
+      return def.ot as GraphQLObjectType
     }
 
     // CASE: mutation - reuse input object type
@@ -220,7 +238,7 @@ function createOrReuseOt({
 
   /**
    * If the schema does not contain any properties, then OpenAPI-to-GraphQL
-   * cannot create a GraphQL Object Type for it because in GraphQL, all Object
+   * cannot create a GraphQL object type for it because in GraphQL, all Object
    * Type properties must be named.
    *
    * Instead, store response in an arbitray JSON type.
@@ -282,9 +300,6 @@ function createOrReuseOt({
     def.iot = new GraphQLInputObjectType({
       name: def.iotName,
       description,
-      /**
-       * There
-       */
       // @ts-ignore
       fields: () => {
         return createFields({
@@ -303,7 +318,158 @@ function createOrReuseOt({
 }
 
 /**
- * Returns an existing List or creates a new one, and stores it in data
+ * Creates a union type or return an existing one, and stores it in data
+ */
+function createOrReuseUnion({
+  def,
+  operation,
+  data,
+  iteration
+}: CreateOrReuseUnionParams): GraphQLUnionType {
+  // Try to reuse existing union type
+  if (def.ot && typeof def.ot !== 'undefined') {
+    translationLog(
+      `Reuse union type '${def.otName}'` +
+        (typeof operation === 'object'
+          ? ` (for operation '${operation.operationId}')`
+          : '')
+    )
+    return def.ot as (GraphQLUnionType)
+  } else {
+    translationLog(
+      `Create union type '${def.otName}'` +
+        (typeof operation === 'object'
+          ? ` (for operation '${operation.operationId}')`
+          : '')
+    )
+
+    const schema = def.schema
+
+    const description =
+      typeof schema.description !== 'undefined'
+        ? schema.description
+        : 'No description available.'
+
+    const memberTypeDefinitions = def.subDefinitions as DataDefinition[]
+
+    const types = Object.values(memberTypeDefinitions).map(
+      memberTypeDefinition => {
+        return getGraphQLType({
+          def: memberTypeDefinition,
+          operation,
+          data,
+          iteration: iteration + 1,
+          isInputObjectType: false
+        }) as GraphQLObjectType
+      }
+    )
+
+    /**
+     * Check for ambiguous member types
+     *
+     * i.e. member types that can be confused with each other.
+     */
+    checkAmbiguousMemberTypes(def, types, data)
+
+    def.ot = new GraphQLUnionType({
+      name: def.otName,
+      description,
+      types,
+      resolveType: (source, context, info) => {
+        const properties = Object.keys(source)
+
+        // Remove custom _openapiToGraphql property used to pass data
+        const otgIndex = properties.indexOf('_openapiToGraphql')
+        if (otgIndex !== -1) {
+          properties.splice(otgIndex, 1)
+        }
+
+        /**
+         * Find appropriate member type
+         *
+         * TODO: currently, the check is performed by only checking the property
+         * names. In the future, we should also check the types of those
+         * properties.
+         *
+         * TODO: there is a chance a that an intended member type cannot be
+         * identified if, for whatever reason, the return data is a superset
+         * of the fields specified in the OAS
+         */
+        return types.find(type => {
+          const typeFields = Object.keys(type.getFields())
+
+          if (properties.length <= typeFields.length) {
+            for (let i = 0; i < properties.length; i++) {
+              if (!typeFields.includes(properties[i])) {
+                return false
+              }
+            }
+            return true
+          }
+
+          return false
+        })
+      }
+    })
+
+    return def.ot
+  }
+}
+
+/**
+ * Check for ambiguous member types
+ *
+ * i.e. member types that can be confused with each other.
+ */
+function checkAmbiguousMemberTypes(
+  def: DataDefinition,
+  types: GraphQLObjectType[],
+  data: PreprocessingData
+): void {
+  types.sort((a, b) => {
+    const aFieldLength = Object.keys(a.getFields()).length
+    const bFieldLength = Object.keys(b.getFields()).length
+
+    if (aFieldLength < bFieldLength) {
+      return -1
+    } else if (aFieldLength < bFieldLength) {
+      return 1
+    } else {
+      return 0
+    }
+  })
+
+  for (let i = 0; i < types.length - 1; i++) {
+    const currentType = types[i]
+
+    for (let j = i + 1; j < types.length; j++) {
+      const otherType = types[j]
+
+      // TODO: Check the value, not just the field name
+      if (
+        Object.keys(currentType.getFields()).every(field => {
+          return Object.keys(otherType.getFields()).includes(field)
+        })
+      ) {
+        handleWarning({
+          typeKey: 'AMBIGUOUS_UNION_MEMBERS',
+          message:
+            `Union created from schema '${JSON.stringify(def)}' contains ` +
+            `member types such as '${currentType}' and '${otherType}' ` +
+            `which are ambiguous. Ambiguous member types can cause ` +
+            `problems when trying to resolve types.`,
+          data,
+          log: translationLog
+        })
+
+        return
+      }
+    }
+  }
+}
+
+/**
+ * Creates a list type or returns an existing one, and stores it in data
  */
 function createOrReuseList({
   def,
@@ -314,7 +480,7 @@ function createOrReuseList({
 }: CreateOrReuseListParams): GraphQLList<any> {
   const name = isInputObjectType ? def.iotName : def.otName
 
-  // Try to reuse existing Object Type
+  // Try to reuse existing object type
   if (!isInputObjectType && def.ot && typeof def.ot !== 'undefined') {
     translationLog(`Reuse GraphQLList '${def.otName}'`)
     return def.ot as GraphQLList<any>
@@ -323,7 +489,7 @@ function createOrReuseList({
     return def.iot as GraphQLList<any>
   }
 
-  // Create new List Object Type
+  // Create new list type
   translationLog(`Create GraphQLList '${def.otName}'`)
 
   // Get definition of the list item, which should be in the sub definitions
@@ -345,7 +511,7 @@ function createOrReuseList({
   if (itemsType !== null) {
     const listObjectType = new GraphQLList(itemsType)
 
-    // Store newly created List Object Type
+    // Store newly created list type
     if (!isInputObjectType) {
       def.ot = listObjectType
     } else {
@@ -359,7 +525,7 @@ function createOrReuseList({
 }
 
 /**
- * Returns an existing enum type or creates a new one, and stores it in data
+ * Creates an enum type or returns an existing one, and stores it in data
  */
 function createOrReuseEnum({
   def,
@@ -384,7 +550,7 @@ function createOrReuseEnum({
       }
     })
 
-    // Store newly created Enum Object Type
+    // Store newly created enum type
     def.ot = new GraphQLEnumType({
       name: def.otName,
       values
@@ -502,7 +668,7 @@ function createFields({
           typeKey: 'LINK_NAME_COLLISION',
           message:
             `Cannot create link '${saneLinkKey}' because parent ` +
-            `Object Type already contains a field with the same (sanitized) name.`,
+            `object type already contains a field with the same (sanitized) name.`,
           data,
           log: translationLog
         })
@@ -560,12 +726,19 @@ function createFields({
             data
           })
 
-          /**
-           * Get response object type
-           * Use the reference here
-           * OT will be built up some other time
-           */
-          const resObjectType = linkedOp.responseDefinition.ot
+          // Get response object type
+          let resObjectType
+          if (linkedOp.responseDefinition.ot !== undefined) {
+            resObjectType = linkedOp.responseDefinition.ot
+          } else {
+            resObjectType = getGraphQLType({
+              def: linkedOp.responseDefinition,
+              operation,
+              data,
+              iteration: iteration + 1,
+              isInputObjectType: false
+            })
+          }
 
           let description = link.description
 
@@ -589,7 +762,7 @@ function createFields({
         } else {
           handleWarning({
             typeKey: 'UNRESOLVABLE_LINK',
-            message: `Cannot resolve target of link '${saneLinkKey}`,
+            message: `Cannot resolve target of link '${saneLinkKey}'`,
             data,
             log: translationLog
           })
@@ -945,7 +1118,7 @@ export function getArgs({
 
     // TODO: remove
     const paramDef = createDataDef(
-      { fromRef: parameter.name },
+      { fromSchema: parameter.name },
       schema as SchemaObject,
       true,
       data

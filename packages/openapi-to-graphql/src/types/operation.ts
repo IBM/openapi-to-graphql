@@ -21,7 +21,8 @@ import {
   GraphQLObjectType,
   GraphQLInputObjectType,
   GraphQLList,
-  GraphQLEnumType
+  GraphQLEnumType,
+  GraphQLUnionType
 } from 'graphql'
 
 export type DataDefinition = {
@@ -38,8 +39,14 @@ export type DataDefinition = {
    *
    * Or if the dataDef is an object type, the subDefinitions are references to
    * the field types
+   *
+   * Or if the dataDef is a union type, the subDefinitions are references to
+   * the member types
    */
-  subDefinitions: DataDefinition | { [fieldName: string]: DataDefinition }
+  subDefinitions:
+    | DataDefinition // For GraphQL list type
+    | { [fieldName: string]: DataDefinition } // For GraphQL (input) object type
+    | DataDefinition[] // For GraphQL union type
 
   links: { [key: string]: LinkObject }
 
@@ -47,9 +54,10 @@ export type DataDefinition = {
   iotName: string
   ot?:
     | GraphQLObjectType
-    | GraphQLScalarType
     | GraphQLList<any>
+    | GraphQLUnionType
     | GraphQLEnumType
+    | GraphQLScalarType
   iot?: GraphQLInputObjectType | GraphQLList<any>
 }
 

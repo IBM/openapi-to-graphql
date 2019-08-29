@@ -314,10 +314,10 @@ provideErrorExtensions, equivalentToMessages }) {
                 : null
         };
         /**
-         * Fill in yet undefined Object Types to avoid GraphQLSchema from breaking.
+         * Fill in yet undefined object types to avoid GraphQLSchema from breaking.
          *
          * The reason: once creating the schema, the 'fields' thunks will resolve and
-         * if a field references an undefined Object Types, GraphQL will throw.
+         * if a field references an undefined object types, GraphQL will throw.
          */
         Object.entries(data.operations).forEach(([opId, operation]) => {
             if (typeof operation.responseDefinition.ot === 'undefined') {

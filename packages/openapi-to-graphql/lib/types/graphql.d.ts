@@ -1,8 +1,8 @@
 /**
  * Custom type definitions for GraphQL.
  */
-import { GraphQLObjectType, GraphQLScalarType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType } from 'graphql';
-export declare type GraphQLType = GraphQLScalarType | GraphQLObjectType | GraphQLEnumType | GraphQLInputObjectType | GraphQLList<any>;
+import { GraphQLObjectType, GraphQLScalarType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
+export declare type GraphQLType = GraphQLObjectType | GraphQLInputObjectType | GraphQLList<any> | GraphQLUnionType | GraphQLEnumType | GraphQLScalarType;
 declare type Arg = {
     type: any;
     description?: string;
