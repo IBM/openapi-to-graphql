@@ -50,6 +50,9 @@ The basic usage of the CLI takes the specified OAS, creates a GraphQL interface 
 openapi-to-graphql oas.json
 ```
 
+> **NOTE:** CLI supports only JSON files. If your API definition is in YAML format please transform it to json
+`npx yamljs yourfile.yml` 
+
 You can also create a GraphQL interface using multiple OASs.
 
 ```sh
