@@ -403,13 +403,12 @@ export function getSchemaType(
   schema: SchemaObject,
   data: PreprocessingData
 ): string | null {
-  // CASE: enum
-  if (Array.isArray(schema.enum)) {
-    return 'enum'
-  }
-
   // CASE: object
-  if (schema.type === 'object' || 'properties' in schema) {
+  if (
+    schema.type === 'object' ||
+    'properties' in schema ||
+    Array.isArray(schema.allOf)
+  ) {
     // CASE: arbitrary JSON
     if (typeof schema.additionalProperties === 'object') {
       return 'json'
@@ -421,6 +420,11 @@ export function getSchemaType(
   // CASE: array
   if (schema.type === 'array' || 'items' in schema) {
     return 'array'
+  }
+
+  // CASE: enum
+  if (Array.isArray(schema.enum)) {
+    return 'enum'
   }
 
   // CASE: a type is present

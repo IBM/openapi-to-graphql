@@ -305,12 +305,10 @@ exports.instantiatePathAndGetQuery = instantiatePathAndGetQuery;
  * is not explicitly defined.
  */
 function getSchemaType(schema, data) {
-    // CASE: enum
-    if (Array.isArray(schema.enum)) {
-        return 'enum';
-    }
     // CASE: object
-    if (schema.type === 'object' || 'properties' in schema) {
+    if (schema.type === 'object' ||
+        'properties' in schema ||
+        Array.isArray(schema.allOf)) {
         // CASE: arbitrary JSON
         if (typeof schema.additionalProperties === 'object') {
             return 'json';
@@ -322,6 +320,10 @@ function getSchemaType(schema, data) {
     // CASE: array
     if (schema.type === 'array' || 'items' in schema) {
         return 'array';
+    }
+    // CASE: enum
+    if (Array.isArray(schema.enum)) {
+        return 'enum';
     }
     // CASE: a type is present
     if (typeof schema.type === 'string') {
