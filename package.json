@@ -5,7 +5,7 @@
     "test": "cd packages/openapi-to-graphql/ && npm test"
   },
   "devDependencies": {
-    "@types/jest": "^24.0.16",
+    "@types/jest": "^24.0.18",
     "graphql": "^14.5.0",
     "jest": "^24.8.0",
     "lerna": "^3.4.3",

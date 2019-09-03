@@ -184,3 +184,42 @@ test('Properly treat null values during sanitization', () => {
     })
   })
 })
+
+test('Identify allOf as an object', () => {
+  const schema = {
+    allOf: [
+      {
+        $ref: '#/components/schemas/User'
+      }
+    ]
+  }
+
+  expect(
+    Oas3Tools.getSchemaType(schema, {
+      operations: {},
+      usedOTNames: [],
+      defs: [],
+      security: {},
+      saneMap: {},
+      options: {
+        strict: false,
+        report: {
+          warnings: [],
+          numOps: 0,
+          numOpsQuery: 0,
+          numOpsMutation: 0,
+          numQueriesCreated: 0,
+          numMutationsCreated: 0
+        },
+        operationIdFieldNames: false,
+        fillEmptyResponses: false,
+        addLimitArgument: false,
+        viewer: true,
+        sendOAuthTokenInQuery: false,
+        provideErrorExtensions: true,
+        equivalentToMessages: true
+      },
+      oass: []
+    })
+  ).toEqual('object')
+})
