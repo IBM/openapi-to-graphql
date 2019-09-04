@@ -83,10 +83,9 @@ export declare function instantiatePathAndGetQuery(path: string, parameters: Par
     };
 };
 /**
- * Returns the "type" of the given JSON schema. Makes best guesses if the type
- * is not explicitly defined.
+ * Returns the GraphQL type that the provided schema should be made into
  */
-export declare function getSchemaType(schema: SchemaObject, data: PreprocessingData): string | null;
+export declare function getSchemaTargetGraphQLType(schema: SchemaObject, data: PreprocessingData): string | null;
 /**
  * Determines an approximate name for the resource at the given path.
  */

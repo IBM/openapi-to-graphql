@@ -385,9 +385,9 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         const otName = Oas3Tools.capitalize(Oas3Tools.storeSaneName(saneName, name, data.saneMap));
         const iotName = otName + 'Input';
         // Determine the type of the schema
-        const type = Oas3Tools.getSchemaType(schema, data);
+        const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(schema, data);
         // Only add type names if a type will be created
-        if (type === 'object' || type === 'array' || type === 'enum') {
+        if (targetGraphQLType === 'object' || targetGraphQLType === 'array' || targetGraphQLType === 'enum') {
             // Add the names to the master list
             data.usedTypeNames.push(otName);
             // TODO: selectively add input object type names if they will be created
@@ -404,19 +404,19 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
              * currently, it does not.
              */
             schema,
-            type,
+            targetGraphQLType,
             subDefinitions: undefined,
             links: saneLinks,
             graphQLTypeName: otName,
             graphQLInputObjectTypeName: iotName
         };
-        if (type) {
+        if (targetGraphQLType) {
             // Add the def to the master list
             data.defs.push(def);
             // Break schema down into component parts
             // I.e. if it is an list type, create a reference to the list item type
             // Or if it is an object type, create references to all of the field types
-            if (type === 'array' && typeof schema.items === 'object') {
+            if (targetGraphQLType === 'array' && typeof schema.items === 'object') {
                 let itemsSchema = schema.items;
                 let itemsName = `${name}ListItem`;
                 if ('$ref' in itemsSchema) {
@@ -428,7 +428,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 // Add list item reference
                 def.subDefinitions = subDefinition;
             }
-            else if (type === 'object') {
+            else if (targetGraphQLType === 'object') {
                 def.subDefinitions = {};
                 // Resolve allOf element in schema if applicable
                 if ('allOf' in schema) {
@@ -461,7 +461,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 // Add existing properties (regular object type)
                 addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas);
             }
-            else if (type === 'union') {
+            else if (targetGraphQLType === 'union') {
                 def.subDefinitions = [];
                 schema.oneOf.forEach(subSchema => {
                     // Dereference subSchema
