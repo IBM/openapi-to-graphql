@@ -315,10 +315,9 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
 }
 exports.instantiatePathAndGetQuery = instantiatePathAndGetQuery;
 /**
- * Returns the "type" of the given JSON schema. Makes best guesses if the type
- * is not explicitly defined.
+ * Returns the GraphQL type that the provided schema should be made into
  */
-function getSchemaType(schema, data) {
+function getSchemaTargetGraphQLType(schema, data) {
     // CASE: object
     if (schema.type === 'object' ||
         'properties' in schema ||
@@ -368,7 +367,7 @@ function getSchemaType(schema, data) {
     }
     return null;
 }
-exports.getSchemaType = getSchemaType;
+exports.getSchemaTargetGraphQLType = getSchemaTargetGraphQLType;
 /**
  * Determines an approximate name for the resource at the given path.
  */

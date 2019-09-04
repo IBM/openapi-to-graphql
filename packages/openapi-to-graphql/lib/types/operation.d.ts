@@ -4,10 +4,11 @@
  */
 import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
+import * as GraphQLJSON from 'graphql-type-json';
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
-    type: string;
+    targetGraphQLType: string;
     /**
      * Data definitions of subschemas in the schema
      *
@@ -28,7 +29,7 @@ export declare type DataDefinition = {
     };
     otName: string;
     iotName: string;
-    ot?: GraphQLObjectType | GraphQLList<any> | GraphQLUnionType | GraphQLEnumType | GraphQLScalarType;
+    ot?: GraphQLObjectType | GraphQLList<any> | GraphQLUnionType | GraphQLEnumType | GraphQLScalarType | GraphQLJSON;
     iot?: GraphQLInputObjectType | GraphQLList<any>;
 };
 export declare type Operation = {

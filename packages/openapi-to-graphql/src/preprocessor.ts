@@ -483,9 +483,12 @@ export function createDataDef(
     const saneInputName = Oas3Tools.capitalize(saneName + 'Input')
 
     // Determine the type of the schema
-    const type = Oas3Tools.getSchemaType(schema as SchemaObject, data)
+    const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(
+      schema as SchemaObject,
+      data
+    )
 
-    if (type) {
+    if (targetGraphQLType) {
       // Add the names to the master list
       data.usedOTNames.push(saneName)
       data.usedOTNames.push(saneInputName)
@@ -503,7 +506,7 @@ export function createDataDef(
          */
         schema,
 
-        type,
+        targetGraphQLType,
         subDefinitions: undefined,
         links: saneLinks,
         otName: saneName,
@@ -516,7 +519,7 @@ export function createDataDef(
       // Break schema down into component parts
       // I.e. if it is an list type, create a reference to the list item type
       // Or if it is an object type, create references to all of the field types
-      if (type === 'array' && typeof schema.items === 'object') {
+      if (targetGraphQLType === 'array' && typeof schema.items === 'object') {
         let itemsSchema = schema.items
         let itemsName = `${name}ListItem`
 
@@ -536,7 +539,7 @@ export function createDataDef(
 
         // Add list item reference
         def.subDefinitions = subDefinition
-      } else if (type === 'object') {
+      } else if (targetGraphQLType === 'object') {
         def.subDefinitions = {}
 
         // Resolve allOf element in schema if applicable
@@ -558,7 +561,7 @@ export function createDataDef(
 
         // Add existing properties (regular object type)
         addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas)
-      } else if (type === 'union') {
+      } else if (targetGraphQLType === 'union') {
         def.subDefinitions = []
 
         schema.oneOf.forEach(subSchema => {

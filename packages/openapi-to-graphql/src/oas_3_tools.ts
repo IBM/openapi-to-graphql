@@ -409,10 +409,9 @@ export function instantiatePathAndGetQuery(
 }
 
 /**
- * Returns the "type" of the given JSON schema. Makes best guesses if the type
- * is not explicitly defined.
+ * Returns the GraphQL type that the provided schema should be made into
  */
-export function getSchemaType(
+export function getSchemaTargetGraphQLType(
   schema: SchemaObject,
   data: PreprocessingData
 ): string | null {

@@ -25,11 +25,14 @@ import {
   GraphQLUnionType
 } from 'graphql'
 
+import * as GraphQLJSON from 'graphql-type-json'
+
 export type DataDefinition = {
   preferredName: string
   schema: SchemaObject
 
-  type: string
+  // The type GraphQL type this dataDefintion will be created into
+  targetGraphQLType: string
 
   /**
    * Data definitions of subschemas in the schema
@@ -58,6 +61,7 @@ export type DataDefinition = {
     | GraphQLUnionType
     | GraphQLEnumType
     | GraphQLScalarType
+    | GraphQLJSON
   iot?: GraphQLInputObjectType | GraphQLList<any>
 }
 

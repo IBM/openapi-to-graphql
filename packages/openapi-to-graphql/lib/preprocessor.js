@@ -363,8 +363,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         const saneName = Oas3Tools.capitalize(Oas3Tools.sanitizeAndStore(name, data.saneMap));
         const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
         // Determine the type of the schema
-        const type = Oas3Tools.getSchemaType(schema, data);
-        if (type) {
+        const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(schema, data);
+        if (targetGraphQLType) {
             // Add the names to the master list
             data.usedOTNames.push(saneName);
             data.usedOTNames.push(saneInputName);
@@ -379,7 +379,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                  * currently, it does not.
                  */
                 schema,
-                type,
+                targetGraphQLType,
                 subDefinitions: undefined,
                 links: saneLinks,
                 otName: saneName,
@@ -390,7 +390,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
             // Break schema down into component parts
             // I.e. if it is an list type, create a reference to the list item type
             // Or if it is an object type, create references to all of the field types
-            if (type === 'array' && typeof schema.items === 'object') {
+            if (targetGraphQLType === 'array' && typeof schema.items === 'object') {
                 let itemsSchema = schema.items;
                 let itemsName = `${name}ListItem`;
                 if ('$ref' in itemsSchema) {
@@ -402,7 +402,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 // Add list item reference
                 def.subDefinitions = subDefinition;
             }
-            else if (type === 'object') {
+            else if (targetGraphQLType === 'object') {
                 def.subDefinitions = {};
                 // Resolve allOf element in schema if applicable
                 if ('allOf' in schema) {
@@ -417,7 +417,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 // Add existing properties (regular object type)
                 addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas);
             }
-            else if (type === 'union') {
+            else if (targetGraphQLType === 'union') {
                 def.subDefinitions = [];
                 schema.oneOf.forEach(subSchema => {
                     // Dereference subSchema
