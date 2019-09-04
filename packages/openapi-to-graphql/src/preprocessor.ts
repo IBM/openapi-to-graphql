@@ -518,10 +518,13 @@ export function createDataDef(
     const iotName = otName + 'Input'
 
     // Determine the type of the schema
-    const type = Oas3Tools.getSchemaType(schema as SchemaObject, data)
+    const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(
+      schema as SchemaObject,
+      data
+    )
 
     // Only add type names if a type will be created
-    if (type === 'object' || type === 'array' || type === 'enum') {
+    if (targetGraphQLType === 'object' || targetGraphQLType === 'array' || targetGraphQLType === 'enum') {
       // Add the names to the master list
       data.usedTypeNames.push(otName)
 
@@ -541,22 +544,21 @@ export function createDataDef(
        * currently, it does not.
        */
       schema,
-
-      type,
+      targetGraphQLType,
       subDefinitions: undefined,
       links: saneLinks,
       graphQLTypeName: otName,
       graphQLInputObjectTypeName: iotName
     }
 
-    if (type) {
+    if (targetGraphQLType) {
       // Add the def to the master list
       data.defs.push(def)
 
       // Break schema down into component parts
       // I.e. if it is an list type, create a reference to the list item type
       // Or if it is an object type, create references to all of the field types
-      if (type === 'array' && typeof schema.items === 'object') {
+      if (targetGraphQLType === 'array' && typeof schema.items === 'object') {
         let itemsSchema = schema.items
         let itemsName = `${name}ListItem`
 
@@ -576,7 +578,7 @@ export function createDataDef(
 
         // Add list item reference
         def.subDefinitions = subDefinition
-      } else if (type === 'object') {
+      } else if (targetGraphQLType === 'object') {
         def.subDefinitions = {}
 
         // Resolve allOf element in schema if applicable
@@ -613,7 +615,7 @@ export function createDataDef(
 
         // Add existing properties (regular object type)
         addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas)
-      } else if (type === 'union') {
+      } else if (targetGraphQLType === 'union') {
         def.subDefinitions = []
 
         schema.oneOf.forEach(subSchema => {

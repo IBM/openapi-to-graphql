@@ -25,6 +25,8 @@ import {
   GraphQLUnionType
 } from 'graphql'
 
+import * as GraphQLJSON from 'graphql-type-json'
+
 export type DataDefinition = {
   // OAS-related:
 
@@ -34,8 +36,8 @@ export type DataDefinition = {
   // The schema of the data type, why may have gone through some resolution, and is used with preferredName to identify a specific GraphQL type
   schema: SchemaObject
 
-  // Type of the schema
-  type: string
+  // The type GraphQL type this dataDefintion will be created into
+  targetGraphQLType: string
 
   // Collapsed link objects from all operations returning the same response data
   links: { [key: string]: LinkObject }
@@ -72,7 +74,8 @@ export type DataDefinition = {
     | GraphQLUnionType
     | GraphQLEnumType
     | GraphQLScalarType
-
+    | GraphQLJSON
+  
   // The GraphQL input object type if it is created
   graphQLInputObjectType?: GraphQLInputObjectType | GraphQLList<any>
 }

@@ -205,7 +205,7 @@ test('Identify allOf as an object', () => {
   }
 
   expect(
-    Oas3Tools.getSchemaType(schema, {
+    Oas3Tools.getSchemaTargetGraphQLType(schema, {
       operations: {},
       usedTypeNames: [],
       defs: [],

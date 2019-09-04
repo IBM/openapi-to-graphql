@@ -24,7 +24,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
     if (iteration === 50) {
         throw new Error(`GraphQL type ${name} has excessive nesting of other types`);
     }
-    switch (def.type) {
+    switch (def.targetGraphQLType) {
         // CASE: object - create ObjectType
         case 'object':
             return createOrReuseOt({
@@ -129,7 +129,8 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
             data,
             log: translationLog
         });
-        return GraphQLJSON;
+        def.graphQLType = GraphQLJSON;
+        return def.graphQLType;
     }
     // CASE: query - create object type
     if (!isInputObjectType) {
@@ -379,8 +380,7 @@ function createOrReuseEnum({ def, data }) {
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
 function getScalarType({ def, data }) {
-    const type = def.type;
-    switch (type) {
+    switch (def.targetGraphQLType) {
         case 'id':
             def.graphQLType = graphql_1.GraphQLID;
             break;
@@ -400,7 +400,7 @@ function getScalarType({ def, data }) {
             def.graphQLType = GraphQLJSON;
             break;
         default:
-            throw new Error(`Cannot process schema type '${def.type}'.`);
+            throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`);
     }
     return def.graphQLType;
 }

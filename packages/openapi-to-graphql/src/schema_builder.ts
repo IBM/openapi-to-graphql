@@ -130,7 +130,7 @@ export function getGraphQLType({
     throw new Error(`GraphQL type ${name} has excessive nesting of other types`)
   }
 
-  switch (def.type) {
+  switch (def.targetGraphQLType) {
     // CASE: object - create ObjectType
     case 'object':
       return createOrReuseOt({
@@ -263,7 +263,9 @@ function createOrReuseOt({
       data,
       log: translationLog
     })
-    return GraphQLJSON
+
+    def.graphQLType = GraphQLJSON
+    return def.graphQLType
   }
 
   // CASE: query - create object type
@@ -581,9 +583,7 @@ function getScalarType({
   def,
   data
 }: CreateOrReuseScalarParams): GraphQLScalarType {
-  const type = def.type
-
-  switch (type) {
+  switch (def.targetGraphQLType) {
     case 'id':
       def.graphQLType = GraphQLID
       break
@@ -603,7 +603,7 @@ function getScalarType({
       def.graphQLType = GraphQLJSON
       break
     default:
-      throw new Error(`Cannot process schema type '${def.type}'.`)
+      throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`)
   }
 
   return def.graphQLType as GraphQLScalarType
