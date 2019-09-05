@@ -1,3 +1,7 @@
+/**
+ * Functions to create viewers that allow users to pass credentials to resolve
+ * functions used by OpenAPI-to-GraphQL.
+ */
 import { GraphQLObjectType as GQObjectType } from 'graphql';
 import { Args, ResolveFunction } from './types/graphql';
 import { PreprocessingData } from './types/preprocessing_data';
