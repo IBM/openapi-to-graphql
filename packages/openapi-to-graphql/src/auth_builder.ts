@@ -9,7 +9,6 @@
  */
 
 // Type imports:
-import { Oas3 } from './types/oas3'
 import {
   GraphQLObjectType as GQObjectType,
   GraphQLString,

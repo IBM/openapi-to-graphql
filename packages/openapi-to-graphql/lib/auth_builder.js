@@ -4,6 +4,11 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Functions to create viewers that allow users to pass credentials to resolve
+ * functions used by OpenAPI-to-GraphQL.
+ */
+// Type imports:
 const graphql_1 = require("graphql");
 // Imports:
 const schema_builder_1 = require("./schema_builder");

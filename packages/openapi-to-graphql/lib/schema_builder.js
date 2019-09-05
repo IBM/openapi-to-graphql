@@ -146,7 +146,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
                     operation,
                     data,
                     iteration,
-                    isInputObjectType
+                    isInputObjectType: false
                 });
             }
         });
@@ -165,11 +165,11 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
             fields: () => {
                 return createFields({
                     def,
-                    links: undefined,
+                    links: {},
                     operation,
                     data,
                     iteration,
-                    isInputObjectType
+                    isInputObjectType: true
                 });
             }
         });
@@ -431,11 +431,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             };
         }
     }
-    // Create fields for links
-    if (iteration === 0 &&
-        operation && // Only for operation-level object types
-        typeof operation === 'object' && // Operation is provided
-        typeof links === 'object' && // Links are present
+    if (typeof links === 'object' && // Links are present
         !isInputObjectType // Only object type (input object types cannot make use of links)
     ) {
         for (let saneLinkKey in links) {
