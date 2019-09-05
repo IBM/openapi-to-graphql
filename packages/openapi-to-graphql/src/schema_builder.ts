@@ -32,8 +32,7 @@ import {
   GraphQLEnumType,
   GraphQLFieldConfigMap,
   GraphQLOutputType,
-  GraphQLUnionType,
-  GraphQLIsTypeOfFn
+  GraphQLUnionType
 } from 'graphql'
 
 // Imports:
@@ -44,15 +43,6 @@ import { createDataDef } from './preprocessor'
 import debug from 'debug'
 import { handleWarning, sortObject } from './utils'
 
-// Type definitions & exports:
-type GetGraphQLTypeParams = {
-  def: DataDefinition
-  operation?: Operation
-  data: PreprocessingData // Data produced by preprocessing
-  iteration?: number // Count of recursions used to create type
-  isInputObjectType?: boolean // Whether to create an Input Type
-}
-
 type GetArgsParams = {
   def?: DataDefinition
   parameters: ParameterObject[]
@@ -60,35 +50,15 @@ type GetArgsParams = {
   data: PreprocessingData
 }
 
-type CreateOrReuseOtParams = {
+type CreateOrReuseComplexTypeParams = {
   def: DataDefinition
   operation?: Operation
-  iteration: number
-  isInputObjectType: boolean
-  data: PreprocessingData
+  iteration?: number // Count of recursions used to create type
+  isInputObjectType?: boolean // Does not require isInputObjectType because unions must be composed of objects
+  data: PreprocessingData // Data produced by preprocessing
 }
 
-type CreateOrReuseUnionParams = {
-  def: DataDefinition
-  operation?: Operation
-  iteration: number
-  data: PreprocessingData
-}
-
-type CreateOrReuseListParams = {
-  def: DataDefinition
-  operation?: Operation
-  iteration: number
-  isInputObjectType: boolean
-  data: PreprocessingData
-}
-
-type CreateOrReuseEnumParams = {
-  def: DataDefinition
-  data: PreprocessingData
-}
-
-type CreateOrReuseScalarParams = {
+type CreateOrReuseSimpleTypeParams = {
   def: DataDefinition
   data: PreprocessingData
 }
@@ -121,7 +91,7 @@ export function getGraphQLType({
   iteration = 0,
   isInputObjectType = false
 }: // TODO: return GraphQL provided GraphQLType type
-GetGraphQLTypeParams): GraphQLType {
+CreateOrReuseComplexTypeParams): GraphQLType {
   const name = isInputObjectType ? def.iotName : def.otName
 
   // Avoid excessive iterations
@@ -196,7 +166,7 @@ function createOrReuseOt({
   data,
   iteration,
   isInputObjectType
-}: CreateOrReuseOtParams):
+}: CreateOrReuseComplexTypeParams):
   | GraphQLObjectType
   | GraphQLInputObjectType
   | GraphQLJSON {
@@ -327,7 +297,7 @@ function createOrReuseUnion({
   operation,
   data,
   iteration
-}: CreateOrReuseUnionParams): GraphQLUnionType {
+}: CreateOrReuseComplexTypeParams): GraphQLUnionType {
   // Try to reuse existing union type
   if (def.ot && typeof def.ot !== 'undefined') {
     translationLog(
@@ -479,7 +449,7 @@ function createOrReuseList({
   iteration,
   isInputObjectType,
   data
-}: CreateOrReuseListParams): GraphQLList<any> {
+}: CreateOrReuseComplexTypeParams): GraphQLList<any> {
   const name = isInputObjectType ? def.iotName : def.otName
 
   // Try to reuse existing object type
@@ -532,7 +502,7 @@ function createOrReuseList({
 function createOrReuseEnum({
   def,
   data
-}: CreateOrReuseEnumParams): GraphQLEnumType {
+}: CreateOrReuseSimpleTypeParams): GraphQLEnumType {
   /**
    * Try to reuse existing enum type
    *
@@ -568,7 +538,7 @@ function createOrReuseEnum({
 function getScalarType({
   def,
   data
-}: CreateOrReuseScalarParams): GraphQLScalarType {
+}: CreateOrReuseSimpleTypeParams): GraphQLScalarType {
   switch (def.targetGraphQLType) {
     case 'id':
       def.ot = GraphQLID
