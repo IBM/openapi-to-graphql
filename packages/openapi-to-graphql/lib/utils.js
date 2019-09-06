@@ -23,6 +23,7 @@ exports.mitigations = {
     UNSUPPORTED_JSON_SCHEMA_KEYWORD: `Ignore keyword and continue.`,
     UNION_MEMBER_NON_OBJECT: `Ignore union member type and continue.`,
     AMBIGUOUS_UNION_MEMBERS: `Ignore issue and continue.`,
+    CANNOT_GET_FIELD_TYPE: `Ignore field and continue.`,
     // Links
     UNRESOLVABLE_LINK: `Ignore link.`,
     AMBIGUOUS_LINK: `Use first occurance of '#/'.`,

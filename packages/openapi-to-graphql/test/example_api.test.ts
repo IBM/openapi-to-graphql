@@ -1901,8 +1901,11 @@ test('Option idFormats', () => {
       fields {
         name
         type {
-          name
           kind
+          ofType {
+            name
+            kind
+          }
         }
       }
     }
@@ -1922,8 +1925,11 @@ test('Option idFormats', () => {
         ).toEqual({
           name: 'patentId',
           type: {
-            name: 'ID',
-            kind: 'SCALAR'
+            kind: 'NON_NULL',
+            ofType: {
+              name: 'ID',
+              kind: 'SCALAR'
+            }
           }
         })
       })
@@ -1933,7 +1939,7 @@ test('Option idFormats', () => {
 test('Required properties for input object types', () => {
   const userInputType = createdSchema.getType('UserInput')
 
-  // The exclamation mark shows that it is a required property
+  // The exclamation mark shows that it is a required (non-nullable) property
   expect(userInputType.toConfig().fields.address.type.toString()).toEqual(
     'AddressInput!'
   )
@@ -2184,6 +2190,14 @@ test('Query string arguments are not created when they are provided through requ
         })
       })
     })
+})
+
+test('Non-nullable properties for object types', () => {
+  const coordinates = createdSchema.getType('Coordinates')
+
+  // The exclamation mark shows that it is a required (non-nullable) property
+  expect(coordinates.toConfig().fields.lat.type.toString()).toEqual('Float!')
+  expect(coordinates.toConfig().fields.long.type.toString()).toEqual('Float!')
 })
 
 test('Option genericPayloadArgName', () => {
