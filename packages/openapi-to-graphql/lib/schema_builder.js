@@ -405,7 +405,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
     // Create fields for properties
     for (let fieldTypeKey in fieldTypeDefinitions) {
         const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey];
-        const schema = fieldTypeDefinition.schema;
+        const fieldSchema = fieldTypeDefinition.schema;
         // Get object type describing the property
         const objectType = getGraphQLType({
             def: fieldTypeDefinition,
@@ -414,21 +414,27 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             iteration: iteration + 1,
             isInputObjectType
         });
-        // Determine if this property is required in mutations
-        const reqMutationProp = isInputObjectType &&
-            'required' in def.schema && // The full schema, not subschema, will contain the required property
-            def.schema.required.includes(fieldTypeKey);
+        const requiredProperty = 'required' in def.schema && def.schema.required.includes(fieldTypeKey); // The full schema, not field schema, will contain the required property
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const sanePropName = Oas3Tools.sanitizeAndStore(fieldTypeKey, data.saneMap);
             fields[sanePropName] = {
-                type: reqMutationProp
+                type: requiredProperty
                     ? new graphql_1.GraphQLNonNull(objectType)
                     : objectType,
-                description: typeof schema.description === 'undefined'
+                description: typeof fieldSchema.description === 'undefined'
                     ? 'No description available.'
-                    : schema.description
+                    : fieldSchema.description
             };
+        }
+        else {
+            utils_1.handleWarning({
+                typeKey: 'CANNOT_GET_FIELD_TYPE',
+                message: `Cannot obtain GraphQL type for field '${fieldTypeKey}' in ` +
+                    `GraphQL type '${JSON.stringify(def.schema)}'.`,
+                data,
+                log: translationLog
+            });
         }
     }
     if (typeof links === 'object' && // Links are present

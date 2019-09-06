@@ -16,6 +16,7 @@ export declare const mitigations: {
     OBJECT_MISSING_PROPERTIES: string;
     UNION_MEMBER_NON_OBJECT: string;
     AMBIGUOUS_UNION_MEMBERS: string;
+    CANNOT_GET_FIELD_TYPE: string;
     UNRESOLVABLE_LINK: string;
     AMBIGUOUS_LINK: string;
     LINK_NAME_COLLISION: string;

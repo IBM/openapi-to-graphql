@@ -585,7 +585,7 @@ function createFields({
   // Create fields for properties
   for (let fieldTypeKey in fieldTypeDefinitions) {
     const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey]
-    const schema = fieldTypeDefinition.schema
+    const fieldSchema = fieldTypeDefinition.schema
 
     // Get object type describing the property
     const objectType = getGraphQLType({
@@ -596,11 +596,8 @@ function createFields({
       isInputObjectType
     })
 
-    // Determine if this property is required in mutations
-    const reqMutationProp =
-      isInputObjectType &&
-      'required' in def.schema && // The full schema, not subschema, will contain the required property
-      def.schema.required.includes(fieldTypeKey)
+    const requiredProperty =
+      'required' in def.schema && def.schema.required.includes(fieldTypeKey) // The full schema, not field schema, will contain the required property
 
     // Finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
@@ -609,15 +606,24 @@ function createFields({
         data.saneMap
       )
       fields[sanePropName] = {
-        type: reqMutationProp
+        type: requiredProperty
           ? new GraphQLNonNull(objectType)
           : (objectType as GraphQLOutputType),
 
         description:
-          typeof schema.description === 'undefined'
+          typeof fieldSchema.description === 'undefined'
             ? 'No description available.'
-            : schema.description
+            : fieldSchema.description
       }
+    } else {
+      handleWarning({
+        typeKey: 'CANNOT_GET_FIELD_TYPE',
+        message:
+          `Cannot obtain GraphQL type for field '${fieldTypeKey}' in ` +
+          `GraphQL type '${JSON.stringify(def.schema)}'.`,
+        data,
+        log: translationLog
+      })
     }
   }
 
