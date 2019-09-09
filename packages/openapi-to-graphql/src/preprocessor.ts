@@ -544,6 +544,7 @@ export function createDataDef(
        * currently, it does not.
        */
       schema,
+      required: [],
       targetGraphQLType,
       subDefinitions: undefined,
       links: saneLinks,
@@ -583,7 +584,14 @@ export function createDataDef(
 
         // Resolve allOf element in schema if applicable
         if ('allOf' in schema) {
-          addAllOfToDataDef(def, schema, isInputObjectType, data, oas)
+          addAllOfToDataDef(
+            def,
+            schema,
+            def.required,
+            isInputObjectType,
+            data,
+            oas
+          )
         } else if ('anyOf' in schema) {
           handleWarning({
             typeKey: 'UNSUPPORTED_JSON_SCHEMA_KEYWORD',
@@ -614,7 +622,14 @@ export function createDataDef(
         }
 
         // Add existing properties (regular object type)
-        addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas)
+        addObjectPropertiesToDataDef(
+          def,
+          schema,
+          def.required,
+          isInputObjectType,
+          data,
+          oas
+        )
       } else if (targetGraphQLType === 'union') {
         def.subDefinitions = []
 
@@ -822,6 +837,7 @@ function getSchemaName(
 function addAllOfToDataDef(
   def: DataDefinition,
   schema: SchemaObject,
+  required: string[],
   isInputObjectType: boolean,
   data: PreprocessingData,
   oas?: Oas3
@@ -834,11 +850,18 @@ function addAllOfToDataDef(
 
     // Recurse into nested allOf (if applicable)
     if ('allOf' in subSchema) {
-      addAllOfToDataDef(def, subSchema, isInputObjectType, data, oas)
+      addAllOfToDataDef(def, subSchema, required, isInputObjectType, data, oas)
     }
 
     // Add properties of the subSchema
-    addObjectPropertiesToDataDef(def, subSchema, isInputObjectType, data, oas)
+    addObjectPropertiesToDataDef(
+      def,
+      subSchema,
+      required,
+      isInputObjectType,
+      data,
+      oas
+    )
   })
 }
 
@@ -848,10 +871,22 @@ function addAllOfToDataDef(
 function addObjectPropertiesToDataDef(
   def: DataDefinition,
   schema: SchemaObject,
+  required: string[],
   isInputObjectType: boolean,
   data: PreprocessingData,
   oas?: Oas3
 ) {
+  /**
+   * Resolve all required properties
+   *
+   * TODO: required may contain duplicates, which is not necessarily a problem
+   */
+  if (Array.isArray(schema.required)) {
+    schema.required.forEach(requiredProperty => {
+      required.push(requiredProperty)
+    })
+  }
+
   for (let propertyKey in schema.properties) {
     let propSchemaName = propertyKey
     let propSchema = schema.properties[propertyKey]

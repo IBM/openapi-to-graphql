@@ -422,7 +422,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             iteration: iteration + 1,
             isInputObjectType
         });
-        const requiredProperty = 'required' in def.schema && def.schema.required.includes(fieldTypeKey); // The full schema, not field schema, will contain the required property
+        const requiredProperty = typeof def.required === 'object' && def.required.includes(fieldTypeKey);
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const saneFieldTypeKey = Oas3Tools.sanitize(fieldTypeKey, Oas3Tools.CaseStyle.camelCase);
@@ -919,14 +919,13 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             isInputObjectType: true // Request payloads will always be an input object type
         });
         // Sanitize the argument name
-        const saneName = data.options.genericPayloadArgName
-            ? 'requestBody'
-            : Oas3Tools.sanitize(requestPayloadDef.graphQLInputObjectTypeName, Oas3Tools.CaseStyle.camelCase);
-        let reqRequired = false;
-        if (typeof operation === 'object' &&
-            typeof operation.payloadRequired === 'boolean') {
-            reqRequired = operation.payloadRequired;
-        }
+        const saneName = data.options.genericPayloadArgName ?
+            'requestBody' :
+            Oas3Tools.sanitize(requestPayloadDef.graphQLInputObjectTypeName, Oas3Tools.CaseStyle.camelCase);
+        const reqRequired = typeof operation === 'object' &&
+            typeof operation.payloadRequired === 'boolean'
+            ? operation.payloadRequired
+            : false;
         args[saneName] = {
             type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : reqObjectType,
             // TODO: addendum to the description explaining this is the request body

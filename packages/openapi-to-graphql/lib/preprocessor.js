@@ -404,6 +404,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
              * currently, it does not.
              */
             schema,
+            required: [],
             targetGraphQLType,
             subDefinitions: undefined,
             links: saneLinks,
@@ -432,7 +433,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                 def.subDefinitions = {};
                 // Resolve allOf element in schema if applicable
                 if ('allOf' in schema) {
-                    addAllOfToDataDef(def, schema, isInputObjectType, data, oas);
+                    addAllOfToDataDef(def, schema, def.required, isInputObjectType, data, oas);
                 }
                 else if ('anyOf' in schema) {
                     utils_1.handleWarning({
@@ -459,7 +460,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                     });
                 }
                 // Add existing properties (regular object type)
-                addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas);
+                addObjectPropertiesToDataDef(def, schema, def.required, isInputObjectType, data, oas);
             }
             else if (targetGraphQLType === 'union') {
                 def.subDefinitions = [];
@@ -615,7 +616,7 @@ function getSchemaName(names, usedNames) {
  *
  * @param def Root-level data definition
  */
-function addAllOfToDataDef(def, schema, isInputObjectType, data, oas) {
+function addAllOfToDataDef(def, schema, required, isInputObjectType, data, oas) {
     schema.allOf.forEach(subSchema => {
         // Dereference subSchema
         if ('$ref' in subSchema) {
@@ -623,16 +624,26 @@ function addAllOfToDataDef(def, schema, isInputObjectType, data, oas) {
         }
         // Recurse into nested allOf (if applicable)
         if ('allOf' in subSchema) {
-            addAllOfToDataDef(def, subSchema, isInputObjectType, data, oas);
+            addAllOfToDataDef(def, subSchema, required, isInputObjectType, data, oas);
         }
         // Add properties of the subSchema
-        addObjectPropertiesToDataDef(def, subSchema, isInputObjectType, data, oas);
+        addObjectPropertiesToDataDef(def, subSchema, required, isInputObjectType, data, oas);
     });
 }
 /**
  * Add the properties to the data definition
  */
-function addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas) {
+function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, data, oas) {
+    /**
+     * Resolve all required properties
+     *
+     * TODO: required may contain duplicates, which is not necessarily a problem
+     */
+    if (Array.isArray(schema.required)) {
+        schema.required.forEach(requiredProperty => {
+            required.push(requiredProperty);
+        });
+    }
     for (let propertyKey in schema.properties) {
         let propSchemaName = propertyKey;
         let propSchema = schema.properties[propertyKey];
