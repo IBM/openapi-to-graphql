@@ -1240,7 +1240,8 @@
               "family": {
                 "$ref": "#/components/schemas/familyString"
               }
-            }
+            },
+            "required": ["family"]
           },
           {
             "properties": {

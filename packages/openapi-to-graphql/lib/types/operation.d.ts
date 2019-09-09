@@ -8,6 +8,12 @@ import * as GraphQLJSON from 'graphql-type-json';
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
+    /**
+     * Similar to the required property in object schemas but because of certain
+     * keywords to combine schemas, e.g. "allOf", this resolves the required
+     * property in all subschemas
+     */
+    required: string[];
     targetGraphQLType: string;
     /**
      * Data definitions of subschemas in the schema

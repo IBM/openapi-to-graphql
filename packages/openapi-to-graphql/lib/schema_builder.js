@@ -414,7 +414,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             iteration: iteration + 1,
             isInputObjectType
         });
-        const requiredProperty = 'required' in def.schema && def.schema.required.includes(fieldTypeKey); // The full schema, not field schema, will contain the required property
+        const requiredProperty = typeof def.required === 'object' && def.required.includes(fieldTypeKey);
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const sanePropName = Oas3Tools.sanitizeAndStore(fieldTypeKey, data.saneMap);
@@ -899,12 +899,9 @@ function getArgs({ def, parameters, operation, data }) {
         });
         // Sanitize the argument name
         const saneName = Oas3Tools.sanitize(def.iotName);
-        let reqRequired = false;
-        if (operation &&
-            typeof operation === 'object' &&
-            typeof operation.payloadRequired === 'boolean') {
-            reqRequired = operation.payloadRequired;
-        }
+        const reqRequired = typeof operation === 'object' && typeof operation.payloadRequired === 'boolean' ?
+            operation.payloadRequired :
+            false;
         args[saneName] = {
             type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : reqObjectType,
             description: typeof def.schema.description === 'undefined'
