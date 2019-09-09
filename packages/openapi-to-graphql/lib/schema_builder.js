@@ -98,9 +98,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     }
     // Cannot reuse preexisting (input) object type, therefore create one
     const schema = def.schema;
-    const description = typeof schema.description !== 'undefined'
-        ? schema.description
-        : 'No description available.';
+    const description = schema.description;
     /**
      * If the schema does not contain any properties, then OpenAPI-to-GraphQL
      * cannot create a GraphQL Object Type for it because in GraphQL, all Object
@@ -306,9 +304,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                 type: reqMutationProp
                     ? new graphql_1.GraphQLNonNull(objectType)
                     : objectType,
-                description: typeof schema.description === 'undefined'
-                    ? 'No description available.'
-                    : schema.description
+                description: schema.description
             };
         }
     }
@@ -384,10 +380,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                      */
                     const resObjectType = linkedOp.responseDefinition.ot;
                     let description = link.description;
-                    if (typeof description !== 'string') {
-                        description = 'No description available.';
-                    }
-                    if (data.options.equivalentToMessages) {
+                    if (data.options.equivalentToMessages && description) {
                         description += `\n\nEquivalent to ${linkedOp.operationString}`;
                     }
                     // Finally, add the object type to the fields (using sanitized field name)
@@ -778,9 +771,7 @@ function getArgs({ def, parameters, operation, data }) {
         }
         args[saneName] = {
             type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : reqObjectType,
-            description: typeof def.schema.description === 'undefined'
-                ? 'No description available.'
-                : def.schema.description
+            description: def.schema.description
         };
     }
     args = utils_1.sortObject(args);
