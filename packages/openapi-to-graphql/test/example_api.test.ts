@@ -62,7 +62,7 @@ test('Get descriptions', () => {
               description: 'The color of the car.'
             },
             {
-              description: 'No description available.'
+              description: null
             },
             {
               description: 'The model of the car.'
