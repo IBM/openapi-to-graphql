@@ -2259,3 +2259,43 @@ test('Option genericPayloadArgName', () => {
 
   return Promise.all([promise, promise2])
 })
+
+test('Non-nullable properties from nested allOf', () => {
+  // Check query/mutation field descriptions
+  const query = `{
+    __type(name: "Nomenclature") {
+      fields {
+        name
+        type {
+          kind
+          ofType {
+            name
+            kind
+          }
+        }
+      }
+    }
+  }`
+
+  return openAPIToGraphQL.createGraphQlSchema(oas).then(({ schema }) => {
+    const ast = parse(query)
+    const errors = validate(schema, ast)
+    expect(errors).toEqual([])
+    return graphql(schema, query).then(result => {
+      expect(
+        result.data['__type'].fields.find(field => {
+          return field.name === 'family'
+        })
+      ).toEqual({
+        name: 'family',
+        type: {
+          kind: 'NON_NULL',
+          ofType: {
+            name: 'String',
+            kind: 'SCALAR'
+          }
+        }
+      })
+    })
+  })
+})

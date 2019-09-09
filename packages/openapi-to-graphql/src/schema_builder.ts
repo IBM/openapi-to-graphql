@@ -612,7 +612,7 @@ function createFields({
     })
 
     const requiredProperty =
-      'required' in def.schema && def.schema.required.includes(fieldTypeKey) // The full schema, not field schema, will contain the required property
+      typeof def.required === 'object' && def.required.includes(fieldTypeKey)
 
     // Finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
@@ -1217,20 +1217,19 @@ export function getArgs({
     })
 
     // Sanitize the argument name
-    const saneName = data.options.genericPayloadArgName
-      ? 'requestBody'
-      : Oas3Tools.sanitize(
+    const saneName = data.options.genericPayloadArgName ?
+      'requestBody' :
+      Oas3Tools.sanitize(
         requestPayloadDef.graphQLInputObjectTypeName,
         Oas3Tools.CaseStyle.camelCase
       )
     
-    let reqRequired = false
-    if (
+    const reqRequired =
       typeof operation === 'object' &&
       typeof operation.payloadRequired === 'boolean'
-    ) {
-      reqRequired = operation.payloadRequired
-    }
+        ? operation.payloadRequired
+        : false
+
     args[saneName] = {
       type: reqRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
       // TODO: addendum to the description explaining this is the request body
