@@ -11,14 +11,16 @@ const graphqlHTTP = require('express-graphql')
 const app = express()
 const openAPIToGraphQL = require('../lib/index')
 
-// const oas = require('./fixtures/example_oas.json')
+const oas = require('./fixtures/example_oas.json')
 // const oas2 = require('./fixtures/example_oas2.json')
 // const oas3 = require('./fixtures/example_oas3.json')
+// const oas4 = require('./fixtures/example_oas4.json')
 
 // const oas = require('./fixtures/github_oas.json')
 // const oas = require('./fixtures/instagram.json')
-const oas = require('./fixtures/government_social_work_api.json')
+// const oas = require('./fixtures/government_social_work_api.json')
 // const oas = require('./fixtures/weather_underground_api.json')
+// const oas = require('./fixtures/stripe_oas.json')
 
 // const yamljs = require('yamljs')
 // const fs = require('fs')

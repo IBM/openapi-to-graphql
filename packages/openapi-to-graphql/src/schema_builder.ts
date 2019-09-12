@@ -90,8 +90,7 @@ export function getGraphQLType({
   data,
   iteration = 0,
   isInputObjectType = false
-}: // TODO: return GraphQL provided GraphQLType type
-CreateOrReuseComplexTypeParams): GraphQLType {
+}: CreateOrReuseComplexTypeParams): GraphQLType {
   const name = isInputObjectType
     ? def.graphQLInputObjectTypeName
     : def.graphQLTypeName
@@ -104,6 +103,17 @@ CreateOrReuseComplexTypeParams): GraphQLType {
   switch (def.targetGraphQLType) {
     // CASE: object - create ObjectType
     case 'object':
+      return createOrReuseOt({
+        def,
+        operation,
+        data,
+        iteration,
+        isInputObjectType
+      })
+
+    // CASE: combine schemas
+    case 'combination':
+      // TODO: currently assuming that the combined schema is an object type
       return createOrReuseOt({
         def,
         operation,
@@ -207,21 +217,21 @@ function createOrReuseOt({
   // Cannot reuse preexisting (input) object type, therefore create one
 
   const schema = def.schema
-
   const description = schema.description
 
   /**
    * If the schema does not contain any properties, then OpenAPI-to-GraphQL
-   * cannot create a GraphQL object type for it because in GraphQL, all Object
-   * Type properties must be named.
+   * cannot create a GraphQL object type for it because in GraphQL, all object
+   * type properties must be named.
    *
    * Instead, store response in an arbitray JSON type.
    */
   if (
     (typeof def.schema.properties === 'undefined' ||
       Object.keys(def.schema.properties).length === 0) && // Empty object
-    typeof def.schema.allOf === 'undefined' // allOf can provide all the properties
-    // TODO: Add oneOf and anyOf
+    typeof def.schema.allOf === 'undefined' &&
+    typeof def.schema.oneOf === 'undefined' &&
+    typeof def.schema.anyOf === 'undefined'
   ) {
     handleWarning({
       typeKey: 'OBJECT_MISSING_PROPERTIES',
@@ -304,7 +314,7 @@ function createOrReuseUnion({
   iteration
 }: CreateOrReuseComplexTypeParams): GraphQLUnionType {
   // Try to reuse existing union type
-  if (def.graphQLType && typeof def.graphQLType !== 'undefined') {
+  if (typeof def.graphQLType !== 'undefined') {
     translationLog(
       `Reuse union type '${def.graphQLTypeName}'` +
         (typeof operation === 'object'
@@ -716,18 +726,16 @@ function createFields({
           })
 
           // Get response object type
-          let resObjectType
-          if (linkedOp.responseDefinition.graphQLType !== undefined) {
-            resObjectType = linkedOp.responseDefinition.graphQLType
-          } else {
-            resObjectType = getGraphQLType({
-              def: linkedOp.responseDefinition,
-              operation,
-              data,
-              iteration: iteration + 1,
-              isInputObjectType: false
-            })
-          }
+          const resObjectType =
+          linkedOp.responseDefinition.graphQLType !== undefined
+            ? linkedOp.responseDefinition.graphQLType
+            : getGraphQLType({
+                def: linkedOp.responseDefinition,
+                operation,
+                data,
+                iteration: iteration + 1,
+                isInputObjectType: false
+              })
 
           let description = link.description
 

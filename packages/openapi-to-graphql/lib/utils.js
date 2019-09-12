@@ -21,9 +21,10 @@ exports.mitigations = {
     NON_APPLICATION_JSON_SCHEMA: `Ignore schema`,
     OBJECT_MISSING_PROPERTIES: `The (sub-)object will be stored in an arbitray JSON type.`,
     UNSUPPORTED_JSON_SCHEMA_KEYWORD: `Ignore keyword and continue.`,
-    UNION_MEMBER_NON_OBJECT: `Ignore union member type and continue.`,
     AMBIGUOUS_UNION_MEMBERS: `Ignore issue and continue.`,
     CANNOT_GET_FIELD_TYPE: `Ignore field and continue.`,
+    COMBINE_SCHEMAS: `Ignore combine schema keyword and continue.`,
+    UNKNOWN_TARGET_TYPE: `The response will be stored in an arbitrary JSON type.`,
     // Links
     UNRESOLVABLE_LINK: `Ignore link.`,
     AMBIGUOUS_LINK: `Use first occurance of '#/'.`,

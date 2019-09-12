@@ -18,6 +18,7 @@ const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const rfdc = require("rfdc");
 const httpLog = debug_1.default('http');
 const preprocessingLog = debug_1.default('preprocessing');
 const translationLog = debug_1.default('translation');
@@ -54,7 +55,14 @@ function getValidOAS3(spec) {
                 throw new Error(`Validation of OpenAPI Specification failed.`);
             }
             preprocessingLog(`OpenAPI Specification is validated`);
-            return spec;
+            /**
+             * OtG current changes the OAS as part of the preprocessing step (resolving
+             * JSON schema combining keywords like allOf, oneOf, anyOf, and not)
+             *
+             * To prevent unintended changes to the OAS from passing on to the user,
+             * make a deep copy.
+             */
+            return rfdc()(spec);
         }
         else {
             throw new Error(`Invalid specification provided`);
@@ -319,19 +327,15 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
 exports.instantiatePathAndGetQuery = instantiatePathAndGetQuery;
 /**
  * Returns the GraphQL type that the provided schema should be made into
+ *
+ * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
 function getSchemaTargetGraphQLType(schema, data) {
     // CASE: object
-    if (schema.type === 'object' ||
-        'properties' in schema ||
-        Array.isArray(schema.allOf)) {
-        // CASE: union type
-        if (schema.oneOf) {
-            return 'union';
-            // TODO: additionalProperties is more like a flag than a type itself
-            // CASE: arbitrary JSON
-        }
-        else if (typeof schema.additionalProperties === 'object') {
+    if (schema.type === 'object' || typeof schema.properties === 'object') {
+        // TODO: additionalProperties is more like a flag than a type itself
+        // CASE: arbitrary JSON
+        if (typeof schema.additionalProperties === 'object') {
             return 'json';
         }
         else {

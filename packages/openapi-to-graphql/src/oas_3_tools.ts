@@ -38,6 +38,7 @@ import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning } from './utils'
+import * as rfdc from 'rfdc'
 
 // Type definitions & exports:
 export type SchemaNames = {
@@ -114,7 +115,15 @@ export async function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
     }
 
     preprocessingLog(`OpenAPI Specification is validated`)
-    return spec as Oas3
+
+    /**
+     * OtG current changes the OAS as part of the preprocessing step (resolving
+     * JSON schema combining keywords like allOf, oneOf, anyOf, and not)
+     *
+     * To prevent unintended changes to the OAS from passing on to the user,
+     * make a deep copy.
+     */
+    return rfdc()(spec) as Oas3
   } else {
     throw new Error(`Invalid specification provided`)
   }
@@ -412,24 +421,18 @@ export function instantiatePathAndGetQuery(
 
 /**
  * Returns the GraphQL type that the provided schema should be made into
+ *
+ * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
 export function getSchemaTargetGraphQLType(
   schema: SchemaObject,
   data: PreprocessingData
 ): string | null {
   // CASE: object
-  if (
-    schema.type === 'object' ||
-    'properties' in schema ||
-    Array.isArray(schema.allOf)
-  ) {
-    // CASE: union type
-    if (schema.oneOf) {
-      return 'union'
-
-      // TODO: additionalProperties is more like a flag than a type itself
-      // CASE: arbitrary JSON
-    } else if (typeof schema.additionalProperties === 'object') {
+  if (schema.type === 'object' || typeof schema.properties === 'object') {
+    // TODO: additionalProperties is more like a flag than a type itself
+    // CASE: arbitrary JSON
+    if (typeof schema.additionalProperties === 'object') {
       return 'json'
     } else {
       return 'object'
