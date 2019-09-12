@@ -32,6 +32,16 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 iteration,
                 isInputObjectType
             });
+        // CASE: combine schemas
+        case 'combination':
+            // TODO: currently assuming that the combined schema is an object type
+            return createOrReuseOt({
+                def,
+                operation,
+                data,
+                iteration,
+                isInputObjectType
+            });
         // CASE: union - create UnionType
         case 'union':
             return createOrReuseUnion({
@@ -899,9 +909,10 @@ function getArgs({ def, parameters, operation, data }) {
         });
         // Sanitize the argument name
         const saneName = Oas3Tools.sanitize(def.iotName);
-        const reqRequired = typeof operation === 'object' && typeof operation.payloadRequired === 'boolean' ?
-            operation.payloadRequired :
-            false;
+        const reqRequired = typeof operation === 'object' &&
+            typeof operation.payloadRequired === 'boolean'
+            ? operation.payloadRequired
+            : false;
         args[saneName] = {
             type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : reqObjectType,
             description: typeof def.schema.description === 'undefined'

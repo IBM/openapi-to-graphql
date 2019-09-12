@@ -110,6 +110,17 @@ CreateOrReuseComplexTypeParams): GraphQLType {
         isInputObjectType
       })
 
+    // CASE: combine schemas
+    case 'combination':
+      // TODO: currently assuming that the combined schema is an object type
+      return createOrReuseOt({
+        def,
+        operation,
+        data,
+        iteration,
+        isInputObjectType
+      })
+
     // CASE: union - create UnionType
     case 'union':
       return createOrReuseUnion({

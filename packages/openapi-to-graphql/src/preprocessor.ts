@@ -518,35 +518,38 @@ export function createDataDef(
       // Add the def to the master list
       data.defs.push(def)
 
-      // Break schema down into component parts
-      // I.e. if it is an list type, create a reference to the list item type
-      // Or if it is an object type, create references to all of the field types
-      if (targetGraphQLType === 'array' && typeof schema.items === 'object') {
-        let itemsSchema = schema.items
-        let itemsName = `${name}ListItem`
+      switch (targetGraphQLType) {
+        case 'array':
+          if (typeof schema.items === 'object') {
+            // Break schema down into component parts
+            // I.e. if it is an list type, create a reference to the list item type
+            // Or if it is an object type, create references to all of the field types
+            let itemsSchema = schema.items
+            let itemsName = `${name}ListItem`
 
-        if ('$ref' in itemsSchema) {
-          itemsName = schema.items['$ref'].split('/').pop()
-        }
+            if ('$ref' in itemsSchema) {
+              itemsName = schema.items['$ref'].split('/').pop()
+            }
 
-        const subDefinition = createDataDef(
-          // Is this the correct classification for this name? It does not matter in the long run.
-          { fromRef: itemsName },
-          itemsSchema as SchemaObject,
-          isInputObjectType,
-          data,
-          undefined,
-          oas
-        )
+            const subDefinition = createDataDef(
+              // Is this the correct classification for this name? It does not matter in the long run.
+              { fromRef: itemsName },
+              itemsSchema as SchemaObject,
+              isInputObjectType,
+              data,
+              undefined,
+              oas
+            )
 
-        // Add list item reference
-        def.subDefinitions = subDefinition
-      } else if (targetGraphQLType === 'object') {
-        def.subDefinitions = {}
+            // Add list item reference
+            def.subDefinitions = subDefinition
+          }
+          break
 
-        // Resolve allOf element in schema if applicable
-        if ('allOf' in schema) {
-          addAllOfToDataDef(
+        case 'object':
+          def.subDefinitions = {}
+
+          addObjectPropertiesToDataDef(
             def,
             schema,
             def.required,
@@ -554,70 +557,79 @@ export function createDataDef(
             data,
             oas
           )
-        } else if ('anyOf' in schema) {
-          throw new Error(
-            `OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(
-              schema
-            )}'`
-          )
-        } else if ('not' in schema) {
-          throw new Error(
-            `OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(
-              schema
-            )}'`
-          )
-        }
+          break
 
-        // Add existing properties (regular object type)
-        addObjectPropertiesToDataDef(
-          def,
-          schema,
-          def.required,
-          isInputObjectType,
-          data,
-          oas
-        )
-      } else if (targetGraphQLType === 'union') {
-        def.subDefinitions = []
+        case 'combination':
+          // TODO: Currently assuming that this is an object type
+          if (
+            schema.type === 'object' ||
+            typeof schema.properties === 'object'
+          ) {
+            def.subDefinitions = {}
 
-        schema.oneOf.forEach(subSchema => {
-          // Dereference subSchema
-          let fromRef: string
-          if ('$ref' in subSchema) {
-            fromRef = subSchema['$ref'].split('/').pop()
-            subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas)
-          }
-
-          // TODO: properties should be handled like interfaces, which also means they need to be passed into the subschemas
-
-          // TODO: ensure that unions are not composed of other unions
-          // Member types of GraphQL unions must be object base types
-          if (subSchema.type === 'object') {
-            const subDefinition = createDataDef(
-              {
-                fromRef,
-                fromSchema: subSchema.title,
-                fromPath: `${saneName}Member`
-              },
-              subSchema as SchemaObject,
+            addAllOfToDataDef(
+              def,
+              schema,
+              def.required,
               isInputObjectType,
               data,
-              undefined,
               oas
             )
-            ;(def.subDefinitions as DataDefinition[]).push(subDefinition)
-          } else {
-            handleWarning({
-              typeKey: 'UNION_MEMBER_NON_OBJECT',
-              message:
-                `Union member type '${JSON.stringify(subSchema)}' in ` +
-                `union type '${JSON.stringify(schema)}' is not an object ` +
-                `type. Union member types must be object base types.`,
+
+            // Add existing properties (regular object type)
+            addObjectPropertiesToDataDef(
+              def,
+              schema,
+              def.required,
+              isInputObjectType,
               data,
-              log: preprocessingLog
-            })
+              oas
+            )
           }
-        })
+          break
+
+        case 'union':
+          def.subDefinitions = []
+
+          schema.oneOf.forEach(subSchema => {
+            // Dereference subSchema
+            let fromRef: string
+            if ('$ref' in subSchema) {
+              fromRef = subSchema['$ref'].split('/').pop()
+              subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas)
+            }
+
+            // TODO: properties should be handled like interfaces, which also means they need to be passed into the subschemas
+
+            // TODO: ensure that unions are not composed of other unions
+            // Member types of GraphQL unions must be object base types
+            if (subSchema.type === 'object') {
+              const subDefinition = createDataDef(
+                {
+                  fromRef,
+                  fromSchema: subSchema.title,
+                  fromPath: `${saneName}Member`
+                },
+                subSchema as SchemaObject,
+                isInputObjectType,
+                data,
+                undefined,
+                oas
+              )
+              ;(def.subDefinitions as DataDefinition[]).push(subDefinition)
+            } else {
+              handleWarning({
+                typeKey: 'UNION_MEMBER_NON_OBJECT',
+                message:
+                  `Union member type '${JSON.stringify(subSchema)}' in ` +
+                  `union type '${JSON.stringify(schema)}' is not an object ` +
+                  `type. Union member types must be object base types.`,
+                data,
+                log: preprocessingLog
+              })
+            }
+          })
+          break
       }
 
       return def
@@ -832,24 +844,40 @@ function addObjectPropertiesToDataDef(
 
   for (let propertyKey in schema.properties) {
     let propSchemaName = propertyKey
-    let propSchema = schema.properties[propertyKey]
+    const propSchema = schema.properties[propertyKey]
 
     if ('$ref' in propSchema) {
       propSchemaName = propSchema['$ref'].split('/').pop()
     }
 
-    const subDefinition = createDataDef(
-      {
-        fromRef: propSchemaName,
-        fromSchema: propSchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
-      },
-      propSchema as SchemaObject,
-      isInputObjectType,
-      data,
-      undefined,
-      oas
-    )
-    // Add field type references
-    def.subDefinitions[propertyKey] = subDefinition
+    if (!(propertyKey in def.subDefinitions)) {
+      const subDefinition = createDataDef(
+        {
+          fromRef: propSchemaName,
+          fromSchema: propSchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
+        },
+        propSchema as SchemaObject,
+        isInputObjectType,
+        data,
+        undefined,
+        oas
+      )
+
+      // Add field type references
+      def.subDefinitions[propertyKey] = subDefinition
+    } else {
+      handleWarning({
+        typeKey: 'DUPLICATE_FIELD_NAME',
+        message:
+          `By way of resolving 'allOf', multiple schemas contain ` +
+          `properties with the same name, preventing consolidation. Cannot ` +
+          `add property '${propertyKey}' from schema '${JSON.stringify(
+            schema
+          )}' ` +
+          `to dataDefinition '${JSON.stringify(def)}'`,
+        data,
+        log: preprocessingLog
+      })
+    }
   }
 }

@@ -415,19 +415,29 @@ export function getSchemaTargetGraphQLType(
   schema: SchemaObject,
   data: PreprocessingData
 ): string | null {
-  // CASE: object
-  if (
-    schema.type === 'object' ||
-    'properties' in schema ||
-    Array.isArray(schema.allOf)
-  ) {
-    // CASE: union type
-    if (schema.oneOf) {
-      return 'union'
+  if (Array.isArray(schema.allOf) || Array.isArray(schema.anyOf)) {
+    return 'combination'
+  }
 
-      // TODO: additionalProperties is more like a flag than a type itself
-      // CASE: arbitrary JSON
-    } else if (typeof schema.additionalProperties === 'object') {
+  // CASE: union type
+  if (Array.isArray(schema.oneOf)) {
+    return 'union'
+  }
+
+  /**
+   * CASE: arbitrary type
+   *
+   * not means little to GraphQL.
+   */
+  if (Array.isArray(schema.not)) {
+    return 'json'
+  }
+
+  // CASE: object
+  if (schema.type === 'object' || typeof schema.properties === 'object') {
+    // TODO: additionalProperties is more like a flag than a type itself
+    // CASE: arbitrary JSON
+    if (typeof schema.additionalProperties === 'object') {
       return 'json'
     } else {
       return 'object'
