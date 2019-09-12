@@ -51,7 +51,7 @@ function preprocessOas(oass, options) {
         // Process all operations
         for (let path in oas.paths) {
             for (let method in oas.paths[path]) {
-                //  Only consider Operation Objects
+                // Only consider Operation Objects
                 if (!Oas3Tools.isOperation(method)) {
                     continue;
                 }
@@ -65,7 +65,7 @@ function preprocessOas(oass, options) {
                     typeof endpoint.summary === 'string') {
                     description = endpoint.summary;
                 }
-                if (data.options.equivalentToMessages && description) {
+                if (data.options.equivalentToMessages && typeof description === 'string') {
                     description += `\n\nEquivalent to ${operationString}`;
                 }
                 // Hold on to the operationId
@@ -141,8 +141,7 @@ function preprocessOas(oass, options) {
                     statusCode,
                     oas
                 };
-                // Handle operationId property name collision
-                // May occur if multiple OAS are provided
+                // Handle operationId property name collision // May occur if multiple OAS are provided
                 if (operationId in data.operations) {
                     utils_1.handleWarning({
                         typeKey: 'DUPLICATE_OPERATIONID',
@@ -205,8 +204,8 @@ function getProcessedSecuritySchemes(oas, data) {
     // Loop through all the security protocols
     for (let key in security) {
         const protocol = security[key];
-        let schema;
         // Determine the parameters and the schema for the security protocol
+        let schema;
         let parameters = {};
         let description;
         switch (protocol.type) {
@@ -265,7 +264,6 @@ function getProcessedSecuritySchemes(oas, data) {
                         });
                 }
                 break;
-            // TODO: Implement
             case 'openIdConnect':
                 utils_1.handleWarning({
                     typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
@@ -274,6 +272,7 @@ function getProcessedSecuritySchemes(oas, data) {
                     data,
                     log: preprocessingLog
                 });
+                // TODO: Implement
                 break;
             case 'oauth2':
                 utils_1.handleWarning({
@@ -283,7 +282,7 @@ function getProcessedSecuritySchemes(oas, data) {
                     data,
                     log: preprocessingLog
                 });
-                // Continue because we do not want to create an oauth viewer
+                // Continue because we do not want to create an OAuth viewer
                 continue;
             default:
                 utils_1.handleWarning({
@@ -335,7 +334,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     // Determine the index of possible existing data definition
     const index = getSchemaIndex(preferredName, schema, data.defs);
     if (index !== -1) {
-        // Found existing data definition. Fetch it
+        // Found existing data definition and fetch it
         const existingDataDef = data.defs[index];
         /**
          * Collapse links if possible, i.e. if the current operation has links,
@@ -375,24 +374,21 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     else {
         // Else, define a new name, store the def, and return it
         const name = getSchemaName(names, data.usedTypeNames);
+        // Store and sanitize the name
+        const saneName = Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase);
+        const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
+        Oas3Tools.storeSaneName(saneName, name, data.saneMap);
+        // TODO: selectively add usedTypeName if a type is created
+        // Add the names to the master list
+        data.usedTypeNames.push(saneName);
+        data.usedTypeNames.push(saneInputName);
         /**
-         * Store and sanitize the name
+         * TODO: is there a better way of copying the schema object?
          *
-         * TODO: Fix saneName store to avoid using camelCase and capitalizing it
-         * Can just use PascalCase from the beginning
+         * Perhaps, just copy it at the root level (operation schema)
          */
-        const saneName = Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.camelCase);
-        const otName = Oas3Tools.capitalize(Oas3Tools.storeSaneName(saneName, name, data.saneMap));
-        const iotName = otName + 'Input';
-        // Determine the type of the schema
-        const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(schema, data);
-        // Only add type names if a type will be created
-        if (targetGraphQLType === 'object' || targetGraphQLType === 'array' || targetGraphQLType === 'enum') {
-            // Add the names to the master list
-            data.usedTypeNames.push(otName);
-            // TODO: selectively add input object type names if they will be created
-            data.usedTypeNames.push(iotName);
-        }
+        const consolidatedSchema = collapseAllOf(schema, {}, oas);
+        const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(consolidatedSchema, data);
         const def = {
             preferredName,
             /**
@@ -408,97 +404,272 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
             targetGraphQLType,
             subDefinitions: undefined,
             links: saneLinks,
-            graphQLTypeName: otName,
-            graphQLInputObjectTypeName: iotName
+            graphQLTypeName: saneName,
+            graphQLInputObjectTypeName: saneInputName
         };
-        if (targetGraphQLType) {
-            // Add the def to the master list
-            data.defs.push(def);
-            // Break schema down into component parts
-            // I.e. if it is an list type, create a reference to the list item type
-            // Or if it is an object type, create references to all of the field types
-            if (targetGraphQLType === 'array' && typeof schema.items === 'object') {
-                let itemsSchema = schema.items;
-                let itemsName = `${name}ListItem`;
-                if ('$ref' in itemsSchema) {
-                    itemsName = schema.items['$ref'].split('/').pop();
-                }
-                const subDefinition = createDataDef(
-                // Is this the correct classification for this name? It does not matter in the long run.
-                { fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
-                // Add list item reference
-                def.subDefinitions = subDefinition;
-            }
-            else if (targetGraphQLType === 'object') {
-                def.subDefinitions = {};
-                // Resolve allOf element in schema if applicable
-                if ('allOf' in schema) {
-                    addAllOfToDataDef(def, schema, def.required, isInputObjectType, data, oas);
-                }
-                else if ('anyOf' in schema) {
-                    utils_1.handleWarning({
-                        typeKey: 'UNSUPPORTED_JSON_SCHEMA_KEYWORD',
-                        message: `OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(schema)}'`,
-                        data,
-                        log: preprocessingLog
+        // Add the def to the master list
+        data.defs.push(def);
+        if (Array.isArray(consolidatedSchema.anyOf) &&
+            Array.isArray(consolidatedSchema.oneOf)) {
+            // TODO: warning currently do not support both anyOf and oneOf
+            def.targetGraphQLType = 'json';
+            return def;
+        }
+        const anyOfData = Array.isArray(consolidatedSchema.anyOf)
+            ? getMemberSchemaData(consolidatedSchema.anyOf, data, oas)
+            : null;
+        const oneOfData = Array.isArray(consolidatedSchema.oneOf)
+            ? getMemberSchemaData(consolidatedSchema.oneOf, data, oas)
+            : null;
+        // oneOf will ideally be turned into a union type
+        if (oneOfData &&
+            oneOfData.allTargetGraphQLTypes.some(
+            // Some because not all member schemas have a type, could just be a required field, for example
+            memberTargetGraphQLTypes => {
+                return memberTargetGraphQLTypes === 'object';
+            })) {
+            // unions must be created from object types
+            if (oneOfData.allTargetGraphQLTypes.every(
+            // Some because not all member schemas have a type, could just be a required field, for example
+            memberTargetGraphQLTypes => {
+                return memberTargetGraphQLTypes === 'object';
+            }) &&
+                // Redundant check
+                oneOfData.allProperties.length > 0) {
+                // Ensure that parent schema is compatiable with oneOf
+                if (targetGraphQLType === null || targetGraphQLType === 'object') {
+                    def.subDefinitions = [];
+                    // TODO
+                    // if (Array.isArray(consolidatedSchema.oneOf)) {
+                    // }
+                    consolidatedSchema.oneOf.forEach(subSchema => {
+                        // Dereference subSchema
+                        let fromRef;
+                        if ('$ref' in subSchema) {
+                            fromRef = subSchema['$ref'].split('/').pop();
+                            subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas);
+                        }
+                        // TODO: properties should be handled like interfaces, which also means they need to be passed into the subschemas
+                        // TODO: ensure that unions are not composed of other unions
+                        // Member types of GraphQL unions must be object base types
+                        if (subSchema.type === 'object') {
+                            const subDefinition = createDataDef({
+                                fromRef,
+                                fromSchema: subSchema.title,
+                                fromPath: `${saneName}Member`
+                            }, subSchema, isInputObjectType, data, undefined, oas);
+                            def.subDefinitions.push(subDefinition);
+                        }
+                        else {
+                            utils_1.handleWarning({
+                                typeKey: 'COMBINE_SCHEMAS',
+                                message: `Schema '${JSON.stringify(schema)}' contains 'oneOf' so ` +
+                                    `create a GraphQL union type but subschema '${JSON.stringify(subSchema)}' ` +
+                                    `is not an object type and union member types must be ` +
+                                    `object base types.`,
+                                data,
+                                log: preprocessingLog
+                            });
+                        }
                     });
-                }
-                else if ('oneOf' in schema) {
-                    utils_1.handleWarning({
-                        typeKey: 'UNSUPPORTED_JSON_SCHEMA_KEYWORD',
-                        message: `OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(schema)}'`,
-                        data,
-                        log: preprocessingLog
-                    });
-                }
-                else if ('not' in schema) {
-                    utils_1.handleWarning({
-                        typeKey: 'UNSUPPORTED_JSON_SCHEMA_KEYWORD',
-                        message: `OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(schema)}'`,
-                        data,
-                        log: preprocessingLog
-                    });
-                }
-                // Add existing properties (regular object type)
-                addObjectPropertiesToDataDef(def, schema, def.required, isInputObjectType, data, oas);
-            }
-            else if (targetGraphQLType === 'union') {
-                def.subDefinitions = [];
-                schema.oneOf.forEach(subSchema => {
-                    // Dereference subSchema
-                    let fromRef;
-                    if ('$ref' in subSchema) {
-                        fromRef = subSchema['$ref'].split('/').pop();
-                        subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas);
-                    }
-                    // TODO: properties should be handled like interfaces, which also means they need to be passed into the subschemas
-                    // TODO: ensure that unions are not composed of other unions
-                    // Member types of GraphQL unions must be object base types
-                    if (subSchema.type === 'object') {
-                        const subDefinition = createDataDef({
-                            fromRef,
-                            fromSchema: subSchema.title,
-                            fromPath: `${saneName}Member`
-                        }, subSchema, isInputObjectType, data, undefined, oas);
-                        def.subDefinitions.push(subDefinition);
+                    // Not all subschemas may have been turned into GraphQL member types
+                    if (def.subDefinitions.length > 0) {
+                        def.targetGraphQLType = 'union';
                     }
                     else {
                         utils_1.handleWarning({
-                            typeKey: 'UNION_MEMBER_NON_OBJECT',
-                            message: `Union member type '${JSON.stringify(subSchema)}' in ` +
-                                `union type '${JSON.stringify(schema)}' is not an object ` +
-                                `type. Union member types must be object base types.`,
+                            typeKey: 'COMBINE_SCHEMAS',
+                            message: `Schema '${JSON.stringify(schema)}' contains 'oneOf' so ` +
+                                `create a GraphQL union type but all subschemas are not` +
+                                `object types and union member types must be object types.`,
+                            mitigationAddendum: `Create arbitrary JSON type instead.`,
                             data,
                             log: preprocessingLog
                         });
+                        // Default arbitrary JSON type
+                        def.targetGraphQLType = 'json';
                     }
-                });
+                    return def;
+                }
+                else {
+                    // The parent schema is incompatible with the member schemas
+                    utils_1.handleWarning({
+                        typeKey: 'COMBINE_SCHEMAS',
+                        message: `Schema '${JSON.stringify(schema)}' contains 'oneOf' so create ` +
+                            `a GraphQL union type but the parent schema is a non-object ` +
+                            `type and member types must be object types.`,
+                        mitigationAddendum: `The schema will be made into an arbitrary JSON type.`,
+                        data,
+                        log: preprocessingLog
+                    });
+                    def.targetGraphQLType = 'json';
+                    return def;
+                }
             }
-            return def;
+            else {
+                // The member schemas are not all object types
+                utils_1.handleWarning({
+                    typeKey: 'COMBINE_SCHEMAS',
+                    message: `Schema '${JSON.stringify(schema)}' contains 'oneOf' so create ` +
+                        `a GraphQL union type but some member schemas are non-object ` +
+                        `types and union member types must be object types.`,
+                    mitigationAddendum: `The schema will be made into an arbitrary JSON type.`,
+                    data,
+                    log: preprocessingLog
+                });
+                def.targetGraphQLType = 'json';
+                return def;
+            }
+        }
+        /**
+         * anyOf will ideally be turned into an object type
+         *
+         * Fields common to all member schemas will be made non-null
+         */
+        if (anyOfData &&
+            anyOfData.allTargetGraphQLTypes.some(memberTargetGraphQLTypes => {
+                return memberTargetGraphQLTypes === 'object';
+            })) {
+            // Every member type should be an object
+            if (anyOfData.allTargetGraphQLTypes.every(memberTargetGraphQLTypes => {
+                return memberTargetGraphQLTypes === 'object';
+            }) &&
+                // Redundant check
+                anyOfData.allProperties.length > 0) {
+                // Ensure that parent schema is compatiable with oneOf
+                if (targetGraphQLType === null || targetGraphQLType === 'object') {
+                    const allProperties = {};
+                    const incompatibleProperties = new Set();
+                    if (Array.isArray(consolidatedSchema.properties)) {
+                        Object.keys(consolidatedSchema.properties).forEach(propertyName => {
+                            allProperties[propertyName] = [
+                                consolidatedSchema.properties[propertyName]
+                            ];
+                        });
+                    }
+                    // Check if any member schema has conflicting properties
+                    anyOfData.allProperties.forEach(properties => {
+                        Object.keys(properties).forEach(propertyName => {
+                            if (!incompatibleProperties.has(propertyName) && // Has not been already identified as a problematic property
+                                propertyName in allProperties &&
+                                allProperties[propertyName].some(property => {
+                                    // Property does not match a recorded one
+                                    return !deepEqual(property, properties[propertyName]);
+                                })) {
+                                incompatibleProperties.add(propertyName);
+                            }
+                            // Add property in the store
+                            if (!(propertyName in allProperties)) {
+                                allProperties[propertyName] = [];
+                            }
+                            allProperties[propertyName].push(properties[propertyName]);
+                        });
+                    });
+                    def.subDefinitions = {};
+                    addObjectPropertiesToDataDef(def, consolidatedSchema, def.required, isInputObjectType, data, oas);
+                    anyOfData.allProperties.forEach(properties => {
+                        Object.keys(properties).forEach(propertyName => {
+                            if (!incompatibleProperties.has(propertyName)) {
+                                // Dereferenced by processing anyOfData
+                                const propertySchema = properties[propertyName];
+                                const subDefinition = createDataDef({
+                                    fromRef: propertyName,
+                                    fromSchema: propertySchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
+                                }, propertySchema, isInputObjectType, data, undefined, oas);
+                                // Add field type references
+                                def.subDefinitions[propertyName] = subDefinition;
+                            }
+                        });
+                    });
+                    //  Add in incompatible properties
+                    incompatibleProperties.forEach(propertyName => {
+                        //  TODO: add description
+                        def.subDefinitions[propertyName] = {
+                            targetGraphQLType: 'json'
+                        };
+                    });
+                    def.targetGraphQLType = 'object';
+                    return def;
+                }
+                else {
+                    // The parent schema is incompatible with the member schemas
+                    utils_1.handleWarning({
+                        typeKey: 'COMBINE_SCHEMAS',
+                        message: `Schema '${JSON.stringify(schema)}' contains 'anyOf' and ` +
+                            `some member schemas are object types so create a GraphQL ` +
+                            `object type but the parent schema is a non-object type ` +
+                            `so they are not compatible.`,
+                        mitigationAddendum: `The schema will be made into an arbitrary JSON type.`,
+                        data,
+                        log: preprocessingLog
+                    });
+                    def.targetGraphQLType = 'json';
+                    return def;
+                }
+            }
+            else {
+                utils_1.handleWarning({
+                    typeKey: 'COMBINE_SCHEMAS',
+                    message: `Schema '${JSON.stringify(schema)}' contains 'anyOf' and ` +
+                        `some member schemas are object types so create a GraphQL ` +
+                        `object type but some member schemas are non-object types ` +
+                        `so they are not compatible.`,
+                    data,
+                    log: preprocessingLog
+                });
+                def.targetGraphQLType = 'json';
+                return def;
+            }
+        }
+        if (targetGraphQLType) {
+            switch (targetGraphQLType) {
+                case 'array':
+                    if (typeof consolidatedSchema.items === 'object') {
+                        // Break schema down into component parts
+                        // I.e. if it is an list type, create a reference to the list item type
+                        // Or if it is an object type, create references to all of the field types
+                        let itemsSchema = consolidatedSchema.items;
+                        let itemsName = `${name}ListItem`;
+                        if ('$ref' in itemsSchema) {
+                            itemsName = consolidatedSchema.items['$ref'].split('/').pop();
+                        }
+                        const subDefinition = createDataDef(
+                        // Is this the correct classification for this name? It does not matter in the long run.
+                        { fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
+                        // Add list item reference
+                        def.subDefinitions = subDefinition;
+                    }
+                    break;
+                case 'object':
+                    def.subDefinitions = {};
+                    if (typeof consolidatedSchema.properties === 'object' &&
+                        Object.keys(consolidatedSchema.properties).length > 0) {
+                        addObjectPropertiesToDataDef(def, consolidatedSchema, def.required, isInputObjectType, data, oas);
+                    }
+                    else {
+                        // handleWarning({
+                        //   typeKey: 'UNKNOWN_TARGET_TYPE',
+                        //   message: `No GraphQL target type could be identified for schema '${JSON.stringify(
+                        //     schema
+                        //   )}'.`,
+                        //   data,
+                        //   log: preprocessingLog
+                        // })
+                        def.targetGraphQLType = 'json';
+                    }
+                    break;
+            }
         }
         else {
-            throw new Error(`Cannot identify target GraphQL type of schema '${JSON.stringify(schema)}'`);
+            utils_1.handleWarning({
+                typeKey: 'UNKNOWN_TARGET_TYPE',
+                message: `No GraphQL target type could be identified for schema '${JSON.stringify(schema)}'.`,
+                data,
+                log: preprocessingLog
+            });
+            def.targetGraphQLType = 'json';
         }
+        return def;
     }
 }
 exports.createDataDef = createDataDef;
@@ -534,23 +705,18 @@ function getSchemaIndex(preferredName, schema, dataDefs) {
  * been taken.
  */
 function getPreferredName(names) {
-    let schemaName;
-    // CASE: preferred name already known
+    let schemaName; // CASE: preferred name already known
     if (typeof names.preferred === 'string') {
-        schemaName = names.preferred;
-        // CASE: name from reference
+        schemaName = names.preferred; // CASE: name from reference
     }
     else if (typeof names.fromRef === 'string') {
-        schemaName = names.fromRef;
-        // CASE: name from schema (i.e., "title" property in schema)
+        schemaName = names.fromRef; // CASE: name from schema (i.e., "title" property in schema)
     }
     else if (typeof names.fromSchema === 'string') {
-        schemaName = names.fromSchema;
-        // CASE: name from path
+        schemaName = names.fromSchema; // CASE: name from path
     }
     else if (typeof names.fromPath === 'string') {
-        schemaName = names.fromPath;
-        // CASE: placeholder name
+        schemaName = names.fromPath; // CASE: placeholder name
     }
     else {
         schemaName = 'PlaceholderName';
@@ -612,25 +778,6 @@ function getSchemaName(names, usedNames) {
     return schemaName;
 }
 /**
- * Recursively add the (nested) allOf schemas to the root-level data definition
- *
- * @param def Root-level data definition
- */
-function addAllOfToDataDef(def, schema, required, isInputObjectType, data, oas) {
-    schema.allOf.forEach(subSchema => {
-        // Dereference subSchema
-        if ('$ref' in subSchema) {
-            subSchema = Oas3Tools.resolveRef(subSchema['$ref'], oas);
-        }
-        // Recurse into nested allOf (if applicable)
-        if ('allOf' in subSchema) {
-            addAllOfToDataDef(def, subSchema, required, isInputObjectType, data, oas);
-        }
-        // Add properties of the subSchema
-        addObjectPropertiesToDataDef(def, subSchema, required, isInputObjectType, data, oas);
-    });
-}
-/**
  * Add the properties to the data definition
  */
 function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, data, oas) {
@@ -649,13 +796,140 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
         let propSchema = schema.properties[propertyKey];
         if ('$ref' in propSchema) {
             propSchemaName = propSchema['$ref'].split('/').pop();
+            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
         }
-        const subDefinition = createDataDef({
-            fromRef: propSchemaName,
-            fromSchema: propSchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
-        }, propSchema, isInputObjectType, data, undefined, oas);
-        // Add field type references
-        def.subDefinitions[propertyKey] = subDefinition;
+        if (!(propertyKey in def.subDefinitions)) {
+            const subDefinition = createDataDef({
+                fromRef: propSchemaName,
+                fromSchema: propSchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
+            }, propSchema, isInputObjectType, data, undefined, oas);
+            // Add field type references
+            def.subDefinitions[propertyKey] = subDefinition;
+        }
+        else {
+            utils_1.handleWarning({
+                typeKey: 'DUPLICATE_FIELD_NAME',
+                message: `By way of resolving 'allOf', multiple schemas contain ` +
+                    `properties with the same name, preventing consolidation. Cannot ` +
+                    `add property '${propertyKey}' from schema '${JSON.stringify(schema)}' ` +
+                    `to dataDefinition '${JSON.stringify(def)}'`,
+                data,
+                log: preprocessingLog
+            });
+        }
     }
+}
+/**
+ * Recursively traverse a schema and resolve allOf by appending the data to the
+ * parent schema
+ */
+function collapseAllOf(schema, references, oas) {
+    // Dereference schema
+    if ('$ref' in schema) {
+        const referenceLocation = schema['$ref'];
+        schema = Oas3Tools.resolveRef(schema['$ref'], oas);
+        if (referenceLocation in references) {
+            return references[referenceLocation];
+        }
+        else {
+            // Store references in case of circular allOf
+            references[referenceLocation] = schema;
+        }
+    }
+    /**
+     * TODO: store consolidated collapsed schema
+     *
+     * Added due to Typescript typing issues
+     */
+    const collapsedSchema = JSON.parse(JSON.stringify(schema));
+    // Resolve allOf
+    if (Array.isArray(collapsedSchema.allOf)) {
+        collapsedSchema.allOf.forEach(subSchema => {
+            // Collapse type if applicable
+            const resolvedSchema = collapseAllOf(subSchema, references, oas);
+            if (resolvedSchema.type) {
+                if (!collapsedSchema.type) {
+                    collapsedSchema.type = resolvedSchema.type;
+                    // Add type if applicable
+                }
+                else if (collapsedSchema.type !== resolvedSchema.type) {
+                    // TODO: throw error different types
+                }
+            }
+            // Collapse properties if applicable
+            if ('properties' in resolvedSchema) {
+                if (!('properties' in collapsedSchema)) {
+                    collapsedSchema.properties = {};
+                }
+                Object.entries(resolvedSchema.properties).forEach(([propertyName, property]) => {
+                    if (propertyName in collapsedSchema) {
+                        // TODO: throw error conflicting property
+                    }
+                    else {
+                        // TODO: store consolidated collapsed schema
+                        collapsedSchema.properties[propertyName] = JSON.parse(JSON.stringify(property));
+                    }
+                });
+            }
+            // Collapse required if applicable
+            if ('required' in resolvedSchema) {
+                if (!('required' in collapsedSchema)) {
+                    collapsedSchema.required = [];
+                }
+                resolvedSchema.required.forEach(requiredProperty => {
+                    if (!collapsedSchema.required.includes(requiredProperty)) {
+                        collapsedSchema.required.push(requiredProperty);
+                    }
+                });
+            }
+        });
+    }
+    if (Array.isArray(collapsedSchema.oneOf)) {
+        collapsedSchema.oneOf.forEach(subSchema => { });
+    }
+    return collapsedSchema;
+}
+/**
+ * In the context of schemas that use keywords that combine member schemas,
+ * collect data on certain aspects so it is all in one place for processing.
+ */
+function getMemberSchemaData(schemas, data, oas) {
+    const result = {
+        allTargetGraphQLTypes: [],
+        allProperties: [],
+        allRequired: []
+    };
+    schemas.forEach(schema => {
+        // Dereference schemas
+        if ('$ref' in schema) {
+            schema = Oas3Tools.resolveRef(schema['$ref'], oas);
+        }
+        /**
+         * Handle allOf
+         *
+         * NOTE: should be redundant because collapseAllOf() is called before
+         */
+        if (Array.isArray(schema.allOf)) {
+            const nestedConsolidated = getMemberSchemaData(schema.allOf, data, oas);
+            // Consolidate properties
+            result.allProperties = result.allProperties.concat(nestedConsolidated.allProperties);
+            // Consolidate required
+            result.allRequired = result.allRequired.concat(nestedConsolidated.allRequired);
+        }
+        // Consolidate target GraphQL type
+        const memberTargetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(schema, data);
+        if (memberTargetGraphQLType) {
+            result.allTargetGraphQLTypes.push(memberTargetGraphQLType);
+        }
+        // Consolidate properties
+        if (schema.properties) {
+            result.allProperties.push(schema.properties);
+        }
+        // Consolidate required
+        if (schema.required) {
+            result.allRequired = result.allRequired.concat(schema.required);
+        }
+    });
+    return result;
 }
 //# sourceMappingURL=preprocessor.js.map

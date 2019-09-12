@@ -34,6 +34,16 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 iteration,
                 isInputObjectType
             });
+        // CASE: combine schemas
+        case 'combination':
+            // TODO: currently assuming that the combined schema is an object type
+            return createOrReuseOt({
+                def,
+                operation,
+                data,
+                iteration,
+                isInputObjectType
+            });
         // CASE: union - create UnionType
         case 'union':
             return createOrReuseUnion({
@@ -109,16 +119,16 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     const description = schema.description;
     /**
      * If the schema does not contain any properties, then OpenAPI-to-GraphQL
-     * cannot create a GraphQL object type for it because in GraphQL, all Object
-     * Type properties must be named.
+     * cannot create a GraphQL object type for it because in GraphQL, all object
+     * type properties must be named.
      *
      * Instead, store response in an arbitray JSON type.
      */
     if ((typeof def.schema.properties === 'undefined' ||
         Object.keys(def.schema.properties).length === 0) && // Empty object
-        typeof def.schema.allOf === 'undefined' // allOf can provide all the properties
-    // TODO: Add oneOf and anyOf
-    ) {
+        typeof def.schema.allOf === 'undefined' &&
+        typeof def.schema.oneOf === 'undefined' &&
+        typeof def.schema.anyOf === 'undefined') {
         utils_1.handleWarning({
             typeKey: 'OBJECT_MISSING_PROPERTIES',
             message: `The operation ` +
@@ -183,7 +193,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
  */
 function createOrReuseUnion({ def, operation, data, iteration }) {
     // Try to reuse existing union type
-    if (def.graphQLType && typeof def.graphQLType !== 'undefined') {
+    if (typeof def.graphQLType !== 'undefined') {
         translationLog(`Reuse union type '${def.graphQLTypeName}'` +
             (typeof operation === 'object'
                 ? ` (for operation '${operation.operationId}')`
@@ -506,19 +516,15 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         data
                     });
                     // Get response object type
-                    let resObjectType;
-                    if (linkedOp.responseDefinition.graphQLType !== undefined) {
-                        resObjectType = linkedOp.responseDefinition.graphQLType;
-                    }
-                    else {
-                        resObjectType = getGraphQLType({
+                    const resObjectType = linkedOp.responseDefinition.graphQLType !== undefined
+                        ? linkedOp.responseDefinition.graphQLType
+                        : getGraphQLType({
                             def: linkedOp.responseDefinition,
                             operation,
                             data,
                             iteration: iteration + 1,
                             isInputObjectType: false
                         });
-                    }
                     let description = link.description;
                     if (data.options.equivalentToMessages && description) {
                         description += `\n\nEquivalent to ${linkedOp.operationString}`;
