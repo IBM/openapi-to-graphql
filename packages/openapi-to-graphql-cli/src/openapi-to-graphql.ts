@@ -80,6 +80,10 @@ program
     '--no-equivalentToMessages',
     'do not append information about the underlying REST operations to the description of fields'
   )
+  .option(
+    '--debug <tag>',
+    'Allow debugging messages by debug tag (full logging enabled by default)'
+  )
   .parse(process.argv)
 
 // Select the port on which to host the GraphQL server
@@ -113,6 +117,12 @@ const options: Options = {
   // Logging options
   provideErrorExtensions: program.extensions,
   equivalentToMessages: program.equivalentToMessages
+}
+
+if (program.debug) {
+  process.env.DEBUG = program.debug
+} else {
+  process.env.DEBUG = '*'
 }
 
 const filePaths: string[] = program.args
