@@ -35,7 +35,7 @@ program
     // Logging options
     .option('--no-extensions', 'do not add extentions, containing information about failed REST calls, to the GraphQL errors objects')
     .option('--no-equivalentToMessages', 'do not append information about the underlying REST operations to the description of fields')
-    .option('--debug <debug>', 'Allow debugging messages by debug tag (enabled by default)')
+    .option('--debug <tag>', 'Allow debugging messages by debug tag (full logging enabled by default)')
     .parse(process.argv);
 // Select the port on which to host the GraphQL server
 const portNumber = program.port ? program.port : 3000;
@@ -63,12 +63,10 @@ const options = {
     equivalentToMessages: program.equivalentToMessages
 };
 if (program.debug) {
-    console.log("test");
     process.env.DEBUG = program.debug;
 }
 else {
-    console.log("test1");
-    process.env.DEBUG = "*";
+    process.env.DEBUG = 'preprocessing,translation,http';
 }
 const filePaths = program.args;
 if (typeof filePaths === 'undefined' || filePaths.length === 0) {

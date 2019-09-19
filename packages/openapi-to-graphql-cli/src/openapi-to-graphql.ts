@@ -122,7 +122,7 @@ const options: Options = {
 if (program.debug) {
   process.env.DEBUG = program.debug
 } else {
-  process.env.DEBUG = '*'
+  process.env.DEBUG = 'preprocessing,translation,http'
 }
 
 const filePaths: string[] = program.args
