@@ -415,24 +415,6 @@ export function getSchemaTargetGraphQLType(
   schema: SchemaObject,
   data: PreprocessingData
 ): string | null {
-  if (Array.isArray(schema.allOf) || Array.isArray(schema.anyOf)) {
-    return 'combination'
-  }
-
-  // CASE: union type
-  if (Array.isArray(schema.oneOf)) {
-    return 'union'
-  }
-
-  /**
-   * CASE: arbitrary type
-   *
-   * not means little to GraphQL.
-   */
-  if (Array.isArray(schema.not)) {
-    return 'json'
-  }
-
   // CASE: object
   if (schema.type === 'object' || typeof schema.properties === 'object') {
     // TODO: additionalProperties is more like a flag than a type itself
