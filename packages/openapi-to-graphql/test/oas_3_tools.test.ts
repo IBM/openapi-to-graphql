@@ -219,7 +219,8 @@ test('Identify allOf as an object', () => {
         provideErrorExtensions: true,
         equivalentToMessages: true
       },
-      oass: []
+      oass: [],
+      loggers: {}
     })
   ).toEqual('object')
 })

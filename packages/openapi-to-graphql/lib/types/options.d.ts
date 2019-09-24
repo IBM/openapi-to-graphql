@@ -1,5 +1,6 @@
 import * as NodeRequest from 'request';
 import { ResolveFunction } from './graphql';
+import * as debug from 'debug';
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
  */
@@ -16,6 +17,9 @@ export declare type Report = {
     numOpsMutation: number;
     numQueriesCreated: number;
     numMutationsCreated: number;
+};
+export declare type Loggers = {
+    [loggerName: string]: debug.Debugger;
 };
 export declare type Options = {
     /**

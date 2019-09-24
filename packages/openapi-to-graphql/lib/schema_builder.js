@@ -10,9 +10,7 @@ const GraphQLJSON = require("graphql-type-json");
 const Oas3Tools = require("./oas_3_tools");
 const resolver_builder_1 = require("./resolver_builder");
 const preprocessor_1 = require("./preprocessor");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
  */
@@ -79,7 +77,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     // CASE: query - reuse object type
     if (!isInputObjectType) {
         if (def.ot && typeof def.ot !== 'undefined') {
-            translationLog(`Reuse object type '${def.otName}'` +
+            data.loggers.translationLog(`Reuse object type '${def.otName}'` +
                 (typeof operation === 'object'
                     ? ` (for operation '${operation.operationId}')`
                     : ''));
@@ -89,7 +87,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     }
     else {
         if (def.iot && typeof def.iot !== 'undefined') {
-            translationLog(`Reuse input object type '${def.iotName}'` +
+            data.loggers.translationLog(`Reuse input object type '${def.iotName}'` +
                 (typeof operation === 'object'
                     ? ` (for operation '${operation.operationId}')`
                     : ''));
@@ -118,13 +116,13 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
                 `GraphQL objects must have well-defined properties so a one to ` +
                 `one conversion cannot be achieved.`,
             data,
-            log: translationLog
+            log: data.loggers.translationLog
         });
         return GraphQLJSON;
     }
     // CASE: query - create object type
     if (!isInputObjectType) {
-        translationLog(`Create object type '${def.otName}'` +
+        data.loggers.translationLog(`Create object type '${def.otName}'` +
             (typeof operation === 'object'
                 ? ` (for operation '${operation.operationId}')`
                 : ''));
@@ -146,7 +144,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
         // CASE: mutation - create input object type
     }
     else {
-        translationLog(`Create input object type '${def.iotName}'` +
+        data.loggers.translationLog(`Create input object type '${def.iotName}'` +
             (typeof operation === 'object'
                 ? ` (for operation '${operation.operationId}')`
                 : ''));
@@ -178,15 +176,15 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
     const name = isInputObjectType ? def.iotName : def.otName;
     // Try to reuse existing Object Type
     if (!isInputObjectType && def.ot && typeof def.ot !== 'undefined') {
-        translationLog(`Reuse GraphQLList '${def.otName}'`);
+        data.loggers.translationLog(`Reuse GraphQLList '${def.otName}'`);
         return def.ot;
     }
     else if (isInputObjectType && def.iot && typeof def.iot !== 'undefined') {
-        translationLog(`Reuse GraphQLList '${def.iotName}'`);
+        data.loggers.translationLog(`Reuse GraphQLList '${def.iotName}'`);
         return def.iot;
     }
     // Create new List Object Type
-    translationLog(`Create GraphQLList '${def.otName}'`);
+    data.loggers.translationLog(`Create GraphQLList '${def.otName}'`);
     // Get definition of the list item, which should be in the sub definitions
     const itemDef = def.subDefinitions;
     // Equivalent to schema.items
@@ -226,11 +224,11 @@ function createOrReuseEnum({ def, data }) {
      * Enum types do not have an input variant so only check def.ot
      */
     if (def.ot && typeof def.ot !== 'undefined') {
-        translationLog(`Reuse GraphQLEnumType '${def.otName}'`);
+        data.loggers.translationLog(`Reuse GraphQLEnumType '${def.otName}'`);
         return def.ot;
     }
     else {
-        translationLog(`Create GraphQLEnumType '${def.otName}'`);
+        data.loggers.translationLog(`Create GraphQLEnumType '${def.otName}'`);
         const values = {};
         def.schema.enum.forEach(e => {
             // Force enum values to string
@@ -299,7 +297,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             def.schema.required.includes(fieldTypeKey);
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
-            const sanePropName = Oas3Tools.sanitizeAndStore(fieldTypeKey, data.saneMap);
+            const sanePropName = Oas3Tools.sanitizeAndStore(fieldTypeKey, data.saneMap, data.loggers);
             fields[sanePropName] = {
                 type: reqMutationProp
                     ? new graphql_1.GraphQLNonNull(objectType)
@@ -316,7 +314,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         !isInputObjectType // Only object type (input object types cannot make use of links)
     ) {
         for (let saneLinkKey in links) {
-            translationLog(`Create link '${saneLinkKey}'...`);
+            data.loggers.translationLog(`Create link '${saneLinkKey}'...`);
             // Check if key is already in fields
             if (saneLinkKey in fields) {
                 utils_1.handleWarning({
@@ -324,7 +322,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                     message: `Cannot create link '${saneLinkKey}' because parent ` +
                         `Object Type already contains a field with the same (sanitized) name.`,
                     data,
-                    log: translationLog
+                    log: data.loggers.translationLog
                 });
             }
             else {
@@ -384,7 +382,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         description += `\n\nEquivalent to ${linkedOp.operationString}`;
                     }
                     // Finally, add the object type to the fields (using sanitized field name)
-                    Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap);
+                    Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap, data.loggers);
                     // TODO: check if fields already has this field name
                     fields[saneLinkKey] = {
                         type: resObjectType,
@@ -398,7 +396,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         typeKey: 'UNRESOLVABLE_LINK',
                         message: `Cannot resolve target of link '${saneLinkKey}`,
                         data,
-                        log: translationLog
+                        log: data.loggers.translationLog
                     });
                 }
             }
@@ -449,7 +447,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                             `contains an ambiguous operationRef '${operationRef}', ` +
                             `meaning it has multiple instances of the string '#/paths/'`,
                         data,
-                        log: translationLog
+                        log: data.loggers.translationLog
                     });
                     return;
                 }
@@ -464,7 +462,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                         `does not contain a valid path in operationRef '${operationRef}', ` +
                         `meaning it does not contain a string '#/paths/'`,
                     data,
-                    log: translationLog
+                    log: data.loggers.translationLog
                 });
                 return;
             }
@@ -501,7 +499,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                             message: `The operationRef '${operationRef}' contains an ` +
                                 `invalid HTTP method '${linkMethod}'`,
                             data,
-                            log: translationLog
+                            log: data.loggers.translationLog
                         });
                         return;
                     }
@@ -513,7 +511,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                         message: `The operationRef '${operationRef}' does not contain an` +
                             `HTTP method`,
                         data,
-                        log: translationLog
+                        log: data.loggers.translationLog
                     });
                     return;
                 }
@@ -560,7 +558,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                                     `Note that the operationId may be autogenerated but ` +
                                     `regardless, the link could not be matched to an operation.`,
                                 data,
-                                log: translationLog
+                                log: data.loggers.translationLog
                             });
                             return;
                         }
@@ -573,7 +571,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                                 `'${linkMethod}' respectively, from operationRef ` +
                                 `'${operationRef}' in link '${linkKey}'`,
                             data,
-                            log: translationLog
+                            log: data.loggers.translationLog
                         });
                         return;
                     }
@@ -585,7 +583,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                         message: `The link '${link.operationRef}' references an external OAS ` +
                             `but it was not provided`,
                         data,
-                        log: translationLog
+                        log: data.loggers.translationLog
                     });
                     return;
                 }
@@ -597,7 +595,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                     message: `Cannot extract path and/or method from operationRef ` +
                         `'${operationRef}' in link '${linkKey}'`,
                     data,
-                    log: translationLog
+                    log: data.loggers.translationLog
                 });
                 return;
             }
@@ -609,7 +607,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 message: `Cannot extract path and/or method from operationRef ` +
                     `'${operationRef}' in link '${linkKey}'`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
             });
             return;
         }
@@ -630,7 +628,7 @@ function getArgs({ def, parameters, operation, data }) {
                 message: `The operation '${operation.operationString}' contains a ` +
                     `parameter '${JSON.stringify(parameter)}' with no 'name' property`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
             });
             continue;
         }
@@ -670,7 +668,7 @@ function getArgs({ def, parameters, operation, data }) {
                         `property but no schemas in application/json format. The ` +
                         `parameter will not be created`,
                     data,
-                    log: translationLog
+                    log: data.loggers.translationLog
                 });
                 continue;
             }
@@ -683,7 +681,7 @@ function getArgs({ def, parameters, operation, data }) {
                     `parameter '${JSON.stringify(parameter)}' with no 'schema' or ` +
                     `'content' property`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
             });
             continue;
         }
@@ -741,7 +739,7 @@ function getArgs({ def, parameters, operation, data }) {
                     `because of a preexisting argument in ` +
                     `operation ${operation.operationString}`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
             });
         }
         else {
@@ -812,7 +810,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
                     message: `The operationRef '${link.operationRef}' references an ` +
                         `OAS '${linkLocation}' but multiple OASs share the same title`,
                     data,
-                    log: translationLog
+                    log: data.loggers.translationLog
                 });
             }
             else {
@@ -822,7 +820,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
                     message: `The operationRef '${link.operationRef}' references an ` +
                         `OAS '${linkLocation}' but no such OAS was provided`,
                     data,
-                    log: translationLog
+                    log: data.loggers.translationLog
                 });
             }
             break;
@@ -841,7 +839,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
                     `'${link.operationRef}' is currently not supported\n` +
                     `Currently only the title of the OAS is supported`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
             });
     }
 }

@@ -8,7 +8,7 @@
  */
 
 import { Operation, DataDefinition } from './operation'
-import { InternalOptions } from './options'
+import { InternalOptions, Loggers } from './options'
 import { SecuritySchemeObject, SchemaObject, Oas3, LinkObject } from './oas3'
 
 export type ProcessedSecurityScheme = {
@@ -71,4 +71,13 @@ export type PreprocessingData = {
    * All of the provided OASs
    */
   oass: Oas3[]
+
+  /**
+   * Debug loggers
+   *
+   * From the debug module
+   *
+   * Loggers for preprocessing, translation, and http
+   */
+  loggers: Loggers
 }

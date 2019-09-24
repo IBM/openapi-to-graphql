@@ -9,7 +9,6 @@
  */
 
 // Type imports:
-import { Oas3 } from './types/oas3'
 import {
   GraphQLObjectType as GQObjectType,
   GraphQLString,
@@ -26,7 +25,6 @@ import {
 // Imports:
 import { getGraphQLType } from './schema_builder'
 import * as Oas3Tools from './oas_3_tools'
-import debug from 'debug'
 import { handleWarning, sortObject } from './utils'
 import { createDataDef } from './preprocessor'
 
@@ -37,8 +35,6 @@ type Viewer = {
   args: Args
   description: string
 }
-
-const translationLog = debug('translation')
 
 /**
  * Load the field object in the appropriate root object
@@ -98,7 +94,7 @@ export function createAndLoadViewer(
               `Currently unsupported HTTP authentication protocol ` +
               `type 'http' and scheme '${scheme}'`,
             data,
-            log: translationLog
+            log: data.loggers.translationLog
           })
 
           continue
@@ -160,7 +156,9 @@ const getViewerOT = (
   // Resolve function:
   const resolve = (root, args, ctx) => {
     const security = {}
-    security[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = args
+    security[
+      Oas3Tools.sanitizeAndStore(protocolName, data.saneMap, data.loggers)
+    ] = args
 
     /**
      * Viewers are always root, so we can instantiate _openapiToGraphql here without
@@ -239,7 +237,9 @@ const getViewerAnyAuthOT = (
       isInputObjectType: true
     })
 
-    args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = { type }
+    args[
+      Oas3Tools.sanitizeAndStore(protocolName, data.saneMap, data.loggers)
+    ] = { type }
   }
   args = sortObject(args)
 

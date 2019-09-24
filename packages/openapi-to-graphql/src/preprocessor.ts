@@ -5,7 +5,7 @@
 
 // Type imports:
 import { Oas3, SchemaObject, LinkObject } from './types/oas3'
-import { InternalOptions } from './types/options'
+import { InternalOptions, Loggers } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
 import {
   PreprocessingData,
@@ -15,10 +15,7 @@ import {
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
 import * as deepEqual from 'deep-equal'
-import debug from 'debug'
 import { handleWarning, getCommonPropertyNames } from './utils'
-
-const preprocessingLog = debug('preprocessing')
 
 /**
  * Extract information from the OAS and put it inside a data structure that
@@ -26,7 +23,8 @@ const preprocessingLog = debug('preprocessing')
  */
 export function preprocessOas(
   oass: Oas3[],
-  options: InternalOptions
+  options: InternalOptions,
+  loggers: Loggers
 ): PreprocessingData {
   const data: PreprocessingData = {
     usedOTNames: [
@@ -38,7 +36,8 @@ export function preprocessOas(
     saneMap: {},
     security: {},
     options,
-    oass
+    oass,
+    loggers
   }
 
   oass.forEach(oas => {
@@ -61,7 +60,7 @@ export function preprocessOas(
           `The security scheme from OAS ` +
           `'${currentSecurity[propertyName].oas.info.title}' will be ignored`,
         data,
-        log: preprocessingLog
+        log: data.loggers.preprocessingLog
       })
     })
     // Do not overwrite preexisting security schemes
@@ -142,7 +141,7 @@ export function preprocessOas(
               `You can use the fillEmptyResponses option to create a ` +
               `placeholder schema`,
             data,
-            log: preprocessingLog
+            log: data.loggers.preprocessingLog
           })
           continue
         }
@@ -160,7 +159,12 @@ export function preprocessOas(
         )
 
         // Parameters
-        const parameters = Oas3Tools.getParameters(path, method, oas)
+        const parameters = Oas3Tools.getParameters(
+          path,
+          method,
+          oas,
+          data.loggers
+        )
 
         // Security protocols
         const securityRequirements = options.viewer
@@ -205,7 +209,7 @@ export function preprocessOas(
             message: `Multiple OASs share operations with the same operationId '${operationId}'`,
             mitigationAddendum: `The operation from the OAS '${operation.oas.info.title}' will be ignored`,
             data,
-            log: preprocessingLog
+            log: data.loggers.preprocessingLog
           })
         } else {
           data.operations[operationId] = operation
@@ -329,7 +333,7 @@ function getProcessedSecuritySchemes(
                 `type 'http' and scheme '${protocol.scheme}' in OAS ` +
                 `'${oas.info.title}'`,
               data,
-              log: preprocessingLog
+              log: data.loggers.preprocessingLog
             })
         }
         break
@@ -342,7 +346,7 @@ function getProcessedSecuritySchemes(
             `Currently unsupported HTTP authentication protocol ` +
             `type 'openIdConnect' in OAS '${oas.info.title}'`,
           data,
-          log: preprocessingLog
+          log: data.loggers.preprocessingLog
         })
         break
 
@@ -353,7 +357,7 @@ function getProcessedSecuritySchemes(
             `OAuth security scheme found in OAS '${oas.info.title}'. ` +
             `OAuth support is provided using the 'tokenJSONpath' option`,
           data,
-          log: preprocessingLog
+          log: data.loggers.preprocessingLog
         })
 
         // Continue because we do not want to create an oauth viewer
@@ -366,7 +370,7 @@ function getProcessedSecuritySchemes(
             `Unsupported HTTP authentication protocol` +
             `type '${protocol.type}' in OAS '${oas.info.title}'`,
           data,
-          log: preprocessingLog
+          log: data.loggers.preprocessingLog
         })
     }
 
@@ -450,7 +454,7 @@ export function createDataDef(
                 `'${JSON.stringify(existingDataDef.links[saneLinkKey])}' and ` +
                 `'${JSON.stringify(saneLinks[saneLinkKey])}'.`,
               data,
-              log: preprocessingLog
+              log: data.loggers.preprocessingLog
             })
           }
         })
@@ -474,7 +478,7 @@ export function createDataDef(
 
     // Store and sanitize the name
     const saneName = Oas3Tools.capitalize(
-      Oas3Tools.sanitizeAndStore(name, data.saneMap)
+      Oas3Tools.sanitizeAndStore(name, data.saneMap, data.loggers)
     )
     const saneInputName = Oas3Tools.capitalize(saneName + 'Input')
 

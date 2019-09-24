@@ -9,10 +9,7 @@ const NodeRequest = require("request");
 const Oas3Tools = require("./oas_3_tools");
 const querystring = require("querystring");
 const JSONPath = require("jsonpath-plus");
-const debug_1 = require("debug");
 const graphql_1 = require("graphql");
-const translationLog = debug_1.debug('translation');
-const httpLog = debug_1.debug('http');
 /**
  * Creates and returns a resolver function that performs API requests for the
  * given GraphQL query
@@ -20,7 +17,7 @@ const httpLog = debug_1.debug('http');
 function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl, requestOptions }) {
     // Determine the appropriate URL:
     if (typeof baseUrl === 'undefined') {
-        baseUrl = Oas3Tools.getBaseUrl(operation);
+        baseUrl = Oas3Tools.getBaseUrl(operation, data.loggers);
     }
     // Return custom resolver if it is defined
     const customResolvers = data.options.customResolvers;
@@ -31,7 +28,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         typeof customResolvers[title] === 'object' &&
         typeof customResolvers[title][path] === 'object' &&
         typeof customResolvers[title][path][method] === 'function') {
-        translationLog(`Use custom resolver for ${operation.operationString}`);
+        data.loggers.translationLog(`Use custom resolver for ${operation.operationString}`);
         return customResolvers[title][path][method];
     }
     // Return resolve function:
@@ -99,14 +96,14 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
              */
             if (value.search(/{|}/) === -1) {
                 args[paramNameWithoutLocation] = isRuntimeExpression(value)
-                    ? resolveLinkParameter(paramName, value, resolveData, root, args)
+                    ? resolveLinkParameter(paramName, value, resolveData, root, args, data.loggers)
                     : value;
             }
             else {
                 // Replace link parameters with appropriate values
                 const linkParams = value.match(/{([^}]*)}/g);
                 linkParams.forEach(linkParam => {
-                    value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args));
+                    value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args, data.loggers));
                 });
                 args[paramNameWithoutLocation] = value;
             }
@@ -114,7 +111,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         // Stored used parameters to future requests:
         resolveData.usedParams = Object.assign(resolveData.usedParams, args);
         // Build URL (i.e., fill in path parameters):
-        const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(operation.path, operation.parameters, args);
+        const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(operation.path, operation.parameters, args, data.loggers);
         const url = baseUrl + path;
         /**
          * The Content-type and accept property should not be changed because the
@@ -227,16 +224,16 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         resolveData.usedRequestOptions = options;
         resolveData.usedStatusCode = operation.statusCode;
         // Make the call
-        httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}\n` +
+        data.loggers.httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}\n` +
             `headers:${JSON.stringify(options.headers)}`);
         return new Promise((resolve, reject) => {
             NodeRequest(options, (err, response, body) => {
                 if (err) {
-                    httpLog(err);
+                    data.loggers.httpLog(err);
                     reject(err);
                 }
                 else if (response.statusCode < 200 || response.statusCode > 299) {
-                    httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
+                    data.loggers.httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
                     const errorString = `Could not invoke operation ${operation.operationString}`;
                     if (data.options.provideErrorExtensions) {
                         let responseBody;
@@ -261,7 +258,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                     // Successful response 200-299
                 }
                 else {
-                    httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
+                    data.loggers.httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
                     if (response.headers['content-type']) {
                         /**
                          * Throw warning if the non-application/json content does not
@@ -277,7 +274,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                 `${operation.operationString} ` +
                                 `should have a content-type '${operation.responseContentType}' ` +
                                 `but has '${response.headers['content-type']}' instead`;
-                            httpLog(errorString);
+                            data.loggers.httpLog(errorString);
                             reject(errorString);
                         }
                         else {
@@ -296,7 +293,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                     const errorString = `Cannot JSON parse response body of ` +
                                         `operation ${operation.operationString} ` +
                                         `even though it has content-type 'application/json'`;
-                                    httpLog(errorString);
+                                    data.loggers.httpLog(errorString);
                                     reject(errorString);
                                 }
                                 resolveData.responseHeaders = response.headers;
@@ -385,7 +382,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                         }
                         else {
                             const errorString = 'Response does not have a Content-Type property';
-                            httpLog(errorString);
+                            data.loggers.httpLog(errorString);
                             reject(errorString);
                         }
                     }
@@ -414,7 +411,7 @@ function extractToken(data, ctx) {
         };
     }
     else {
-        httpLog(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`);
+        data.loggers.httpLog(`Warning: could not extract OAuth token from context at '${tokenJSONpath}'`);
         return {};
     }
 }
@@ -437,7 +434,7 @@ function createOAuthHeader(data, ctx) {
         };
     }
     else {
-        httpLog(`Warning: could not extract OAuth token from context at ` +
+        data.loggers.httpLog(`Warning: could not extract OAuth token from context at ` +
             `'${tokenJSONpath}'`);
         return {};
     }
@@ -542,7 +539,8 @@ function getAuthReqAndProtcolName(operation, _openapiToGraphql) {
  * The link parameter is a reference to data contained in the
  * url/method/statuscode or response/request body/query/path/header
  */
-function resolveLinkParameter(paramName, value, resolveData, root, args) {
+function resolveLinkParameter(paramName, value, resolveData, root, args, // TODO: This is not being used. Should it be removed?
+loggers) {
     if (value === '$url') {
         return resolveData.usedRequestOptions.url;
     }
@@ -567,7 +565,7 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
                 return tokens[0];
             }
             else {
-                httpLog(`Warning: could not extract parameter '${paramName}' from link`);
+                loggers.httpLog(`Warning: could not extract parameter '${paramName}' from link`);
             }
             // CASE: parameter in previous query parameter
         }
@@ -610,7 +608,7 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
                 return tokens[0];
             }
             else {
-                httpLog(`Warning: could not extract parameter '${paramName}' from link`);
+                loggers.httpLog(`Warning: could not extract parameter '${paramName}' from link`);
             }
             // CASE: parameter in query parameter
         }

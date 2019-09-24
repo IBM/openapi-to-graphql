@@ -4,14 +4,17 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+/**
+ * Functions to create viewers that allow users to pass credentials to resolve
+ * functions used by OpenAPI-to-GraphQL.
+ */
+// Type imports:
 const graphql_1 = require("graphql");
 // Imports:
 const schema_builder_1 = require("./schema_builder");
 const Oas3Tools = require("./oas_3_tools");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const preprocessor_1 = require("./preprocessor");
-const translationLog = debug_1.default('translation');
 /**
  * Load the field object in the appropriate root object
  *
@@ -60,7 +63,7 @@ function createAndLoadViewer(queryFields, data, isMutation = false) {
                         message: `Currently unsupported HTTP authentication protocol ` +
                             `type 'http' and scheme '${scheme}'`,
                         data,
-                        log: translationLog
+                        log: data.loggers.translationLog
                     });
                     continue;
             }
@@ -100,7 +103,7 @@ const getViewerOT = (name, protocolName, securityType, queryFields, data) => {
     // Resolve function:
     const resolve = (root, args, ctx) => {
         const security = {};
-        security[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = args;
+        security[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap, data.loggers)] = args;
         /**
          * Viewers are always root, so we can instantiate _openapiToGraphql here without
          * previously checking for its existence
@@ -161,7 +164,7 @@ const getViewerAnyAuthOT = (name, queryFields, data) => {
             data,
             isInputObjectType: true
         });
-        args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = { type };
+        args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap, data.loggers)] = { type };
     }
     args = utils_1.sortObject(args);
     // Pass object containing security information to fields

@@ -7,14 +7,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
 const deepEqual = require("deep-equal");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const preprocessingLog = debug_1.default('preprocessing');
 /**
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OpenAPI-to-GraphQL to use
  */
-function preprocessOas(oass, options) {
+function preprocessOas(oass, options, loggers) {
     const data = {
         usedOTNames: [
             'Query',
@@ -25,7 +23,8 @@ function preprocessOas(oass, options) {
         saneMap: {},
         security: {},
         options,
-        oass
+        oass,
+        loggers
     };
     oass.forEach(oas => {
         // Store stats on OAS:
@@ -42,7 +41,7 @@ function preprocessOas(oass, options) {
                 mitigationAddendum: `The security scheme from OAS ` +
                     `'${currentSecurity[propertyName].oas.info.title}' will be ignored`,
                 data,
-                log: preprocessingLog
+                log: data.loggers.preprocessingLog
             });
         });
         // Do not overwrite preexisting security schemes
@@ -85,7 +84,7 @@ function preprocessOas(oass, options) {
                             `You can use the fillEmptyResponses option to create a ` +
                             `placeholder schema`,
                         data,
-                        log: preprocessingLog
+                        log: data.loggers.preprocessingLog
                     });
                     continue;
                 }
@@ -93,7 +92,7 @@ function preprocessOas(oass, options) {
                 const links = Oas3Tools.getEndpointLinks(path, method, oas, data);
                 const responseDefinition = createDataDef(responseSchemaNames, responseSchema, false, data, links, oas);
                 // Parameters
-                const parameters = Oas3Tools.getParameters(path, method, oas);
+                const parameters = Oas3Tools.getParameters(path, method, oas, data.loggers);
                 // Security protocols
                 const securityRequirements = options.viewer
                     ? Oas3Tools.getSecurityRequirements(path, method, data.security, oas)
@@ -131,7 +130,7 @@ function preprocessOas(oass, options) {
                         message: `Multiple OASs share operations with the same operationId '${operationId}'`,
                         mitigationAddendum: `The operation from the OAS '${operation.oas.info.title}' will be ignored`,
                         data,
-                        log: preprocessingLog
+                        log: data.loggers.preprocessingLog
                     });
                 }
                 else {
@@ -243,7 +242,7 @@ function getProcessedSecuritySchemes(oas, data) {
                                 `type 'http' and scheme '${protocol.scheme}' in OAS ` +
                                 `'${oas.info.title}'`,
                             data,
-                            log: preprocessingLog
+                            log: data.loggers.preprocessingLog
                         });
                 }
                 break;
@@ -254,7 +253,7 @@ function getProcessedSecuritySchemes(oas, data) {
                     message: `Currently unsupported HTTP authentication protocol ` +
                         `type 'openIdConnect' in OAS '${oas.info.title}'`,
                     data,
-                    log: preprocessingLog
+                    log: data.loggers.preprocessingLog
                 });
                 break;
             case 'oauth2':
@@ -263,7 +262,7 @@ function getProcessedSecuritySchemes(oas, data) {
                     message: `OAuth security scheme found in OAS '${oas.info.title}'. ` +
                         `OAuth support is provided using the 'tokenJSONpath' option`,
                     data,
-                    log: preprocessingLog
+                    log: data.loggers.preprocessingLog
                 });
                 // Continue because we do not want to create an oauth viewer
                 continue;
@@ -273,7 +272,7 @@ function getProcessedSecuritySchemes(oas, data) {
                     message: `Unsupported HTTP authentication protocol` +
                         `type '${protocol.type}' in OAS '${oas.info.title}'`,
                     data,
-                    log: preprocessingLog
+                    log: data.loggers.preprocessingLog
                 });
         }
         // Add protocol data to the output
@@ -335,7 +334,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                                 `'${JSON.stringify(existingDataDef.links[saneLinkKey])}' and ` +
                                 `'${JSON.stringify(saneLinks[saneLinkKey])}'.`,
                             data,
-                            log: preprocessingLog
+                            log: data.loggers.preprocessingLog
                         });
                     }
                 });
@@ -357,7 +356,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         // Else, define a new name, store the def, and return it
         const name = getSchemaName(data.usedOTNames, names);
         // Store and sanitize the name
-        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitizeAndStore(name, data.saneMap));
+        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitizeAndStore(name, data.saneMap, data.loggers));
         const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
         // Determine the type of the schema
         const type = Oas3Tools.getSchemaType(schema, data);

@@ -31,12 +31,11 @@ import {
   PreprocessingData,
   ProcessedSecurityScheme
 } from './types/preprocessing_data'
-import { InternalOptions } from './types/options'
+import { InternalOptions, Loggers } from './types/options'
 
 // Imports:
 import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
-import debug from 'debug'
 import { handleWarning } from './utils'
 
 // Type definitions & exports:
@@ -66,11 +65,6 @@ export type ResponseSchemaAndNames = {
   statusCode?: string
 }
 
-const httpLog = debug('http')
-const preprocessingLog = debug('preprocessing')
-
-const translationLog = debug('translation')
-
 // OAS constants
 export const OAS_OPERATIONS = [
   'get',
@@ -87,13 +81,16 @@ export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export async function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
+export async function getValidOAS3(
+  spec: Oas2 | Oas3,
+  loggers: Loggers
+): Promise<Oas3> {
   // CASE: translate
   if (
     typeof (spec as Oas2).swagger === 'string' &&
     (spec as Oas2).swagger === '2.0'
   ) {
-    preprocessingLog(
+    loggers.preprocessingLog(
       `Received OpenAPI Specification 2.0 - going to translate...`
     )
     const result: { openapi: Oas3 } = await Swagger2OpenAPI.convertObj(spec, {})
@@ -104,7 +101,7 @@ export async function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
     typeof (spec as Oas3).openapi === 'string' &&
     /^3/.test((spec as Oas3).openapi)
   ) {
-    preprocessingLog(
+    loggers.preprocessingLog(
       `Received OpenAPI Specification 3.0.x - going to validate...`
     )
     const valid = OASValidator.validateSync(spec, {})
@@ -112,7 +109,7 @@ export async function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
       throw new Error(`Validation of OpenAPI Specification failed.`)
     }
 
-    preprocessingLog(`OpenAPI Specification is validated`)
+    loggers.preprocessingLog(`OpenAPI Specification is validated`)
     return spec as Oas3
   } else {
     throw new Error(`Invalid specification provided`)
@@ -220,7 +217,7 @@ function resolveRefHelper(obj: object, parts?: string[]): any {
 /**
  * Returns the base URL to use for the given operation.
  */
-export function getBaseUrl(operation: Operation): string {
+export function getBaseUrl(operation: Operation, loggers: Loggers): string {
   // Check for servers:
   if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
     throw new Error(
@@ -233,7 +230,7 @@ export function getBaseUrl(operation: Operation): string {
     const url = buildUrl(operation.servers[0])
 
     if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-      httpLog(`Warning: Randomly selected first server '${url}'`)
+      loggers.httpLog(`Warning: Randomly selected first server '${url}'`)
     }
 
     return url.replace(/\/$/, '')
@@ -245,7 +242,7 @@ export function getBaseUrl(operation: Operation): string {
     const url = buildUrl(oas.servers[0])
 
     if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-      httpLog(`Warning: Randomly selected first server '${url}'`)
+      loggers.httpLog(`Warning: Randomly selected first server '${url}'`)
     }
 
     return url.replace(/\/$/, '')
@@ -348,7 +345,8 @@ export function desanitizeObjKeys(
 export function instantiatePathAndGetQuery(
   path: string,
   parameters: ParameterObject[],
-  args: object // NOTE: argument keys are sanitized!
+  args: object, // NOTE: argument keys are sanitized!
+  loggers: Loggers
 ): {
   path: string
   query: { [key: string]: string }
@@ -389,14 +387,14 @@ export function instantiatePathAndGetQuery(
             break
 
           default:
-            httpLog(
+            loggers.httpLog(
               `Warning: The parameter location '${param.in}' in the ` +
                 `parameter '${param.name}' of operation '${path}' is not ` +
                 `supported`
             )
         }
       } else {
-        httpLog(
+        loggers.httpLog(
           `Warning: The parameter '${param.name}' of operation '${path}' ` +
             `could not be found`
         )
@@ -790,7 +788,7 @@ export function getResponseStatusCode(
           `The response object with the HTTP code ` +
           `${successCodes[0]} will be selected`,
         data,
-        log: translationLog
+        log: data.loggers.translationLog
       })
       return successCodes[0]
     }
@@ -854,12 +852,13 @@ export function getEndpointLinks(
 export function getParameters(
   path: string,
   method: string,
-  oas: Oas3
+  oas: Oas3,
+  loggers: Loggers
 ): ParameterObject[] {
   let parameters = []
 
   if (!isOperation(method)) {
-    translationLog(
+    loggers.translationLog(
       `Warning: attempted to get parameters for ${method} ${path}, ` +
         `which is not an operation.`
     )
@@ -1063,7 +1062,8 @@ export function sanitize(
  */
 export function sanitizeAndStore(
   str: string,
-  mapping: { [key: string]: string }
+  mapping: { [key: string]: string },
+  loggers: Loggers
 ): string {
   if (!(typeof mapping === 'object')) {
     throw new Error(`No/invalid mapping passed to sanitizeAndStore`)
@@ -1074,7 +1074,7 @@ export function sanitizeAndStore(
   } else if (clean !== str) {
     if (clean in mapping && str !== mapping[clean]) {
       // TODO: Follow warning model
-      translationLog(
+      loggers.translationLog(
         `Warning: '${str}' and '${mapping[clean]}' both sanitize ` +
           `to '${clean}' - collision possible. Desanitize to '${str}'.`
       )

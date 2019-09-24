@@ -25,10 +25,11 @@ Options:
   -V, --version                  output the version number
   -s, --strict                   throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS
   --save <file path>             save schema to path and do not start server
-
+  --debug <tag>                  allow debugging messages by tag: "preprocessing", "translation", or "http" (full logging by default)
+    
   -p, --port <port>              select the port where the server will start
   -u, --url <url>                select the base url which paths will be built on
-  --cors                         enable Cross-origin resource sharing (CORS)
+  --cors                         enable cross-origin resource sharing (CORS)
 
   -o, --operationIdFieldNames    create field names based on the operationId
   -f, --fillEmptyResponses       create placeholder schemas for operations with no response body rather than ignore them

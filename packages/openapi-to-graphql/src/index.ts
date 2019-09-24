@@ -31,7 +31,7 @@
  */
 
 // Type imports:
-import { Options, InternalOptions, Report } from './types/options'
+import { Options, InternalOptions, Report, Loggers } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
 import { Args, Field, GraphQLType } from './types/graphql'
@@ -47,7 +47,6 @@ import * as GraphQLTools from './graphql_tools'
 import { preprocessOas } from './preprocessor'
 import * as Oas3Tools from './oas_3_tools'
 import { createAndLoadViewer } from './auth_builder'
-import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
 import { sortObject, handleWarning } from './utils'
 
@@ -56,8 +55,6 @@ type Result = {
   report: Report
 }
 
-const translationLog = debug('translation')
-
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
@@ -65,6 +62,14 @@ export async function createGraphQlSchema(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options?: Options
 ): Promise<Result> {
+  const debug = require('debug') // Cannot import globally because it depends on the current state of the DEBUG environment variable
+
+  const loggers: Loggers = {
+    httpLog: debug('http'),
+    preprocessingLog: debug('preprocessing'),
+    translationLog: debug('translation')
+  }
+
   if (typeof options === 'undefined') {
     options = {}
   }
@@ -120,7 +125,7 @@ export async function createGraphQlSchema(
      */
     oass = await Promise.all(
       spec.map(ele => {
-        return Oas3Tools.getValidOAS3(ele)
+        return Oas3Tools.getValidOAS3(ele, loggers)
       })
     )
   } else {
@@ -129,12 +134,13 @@ export async function createGraphQlSchema(
      * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
      * translate the spec into a GraphQL schema
      */
-    oass = [await Oas3Tools.getValidOAS3(spec)]
+    oass = [await Oas3Tools.getValidOAS3(spec, loggers)]
   }
 
   const { schema, report } = await translateOpenApiToGraphQL(
     oass,
-    options as InternalOptions
+    options as InternalOptions,
+    loggers
   )
   return {
     schema,
@@ -172,7 +178,8 @@ async function translateOpenApiToGraphQL(
     // Logging options
     provideErrorExtensions,
     equivalentToMessages
-  }: InternalOptions
+  }: InternalOptions,
+  loggers: Loggers
 ): Promise<{ schema: GraphQLSchema; report: Report }> {
   const options = {
     strict,
@@ -200,13 +207,14 @@ async function translateOpenApiToGraphQL(
     provideErrorExtensions,
     equivalentToMessages
   }
-  translationLog(`Options: ${JSON.stringify(options)}`)
+
+  loggers.translationLog(`Options: ${JSON.stringify(options)}`)
 
   /**
    * Extract information from the OASs and put it inside a data structure that
    * is easier for OpenAPI-to-GraphQL to use
    */
-  const data: PreprocessingData = preprocessOas(oass, options)
+  const data: PreprocessingData = preprocessOas(oass, options, loggers)
 
   preliminaryChecks(options, data)
 
@@ -227,7 +235,7 @@ async function translateOpenApiToGraphQL(
      */
     .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
     .forEach(([operationId, operation]) => {
-      translationLog(`Process operation '${operationId}'...`)
+      data.loggers.translationLog(`Process operation '${operationId}'...`)
 
       let field = getFieldForOperation(
         operation,
@@ -254,7 +262,11 @@ async function translateOpenApiToGraphQL(
                */
               operationIdFieldNames
             ) {
-              fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
+              fieldName = Oas3Tools.sanitizeAndStore(
+                operationId,
+                data.saneMap,
+                data.loggers
+              )
             }
 
             if (fieldName in authQueryFields[securityRequirement]) {
@@ -267,7 +279,7 @@ async function translateOpenApiToGraphQL(
                   `unique so only one can be added to the authentication ` +
                   `viewer. Operation '${operation.operationString}' will be ignored.`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
               })
             } else {
               authQueryFields[securityRequirement][fieldName] = field
@@ -283,7 +295,11 @@ async function translateOpenApiToGraphQL(
              */
             operationIdFieldNames
           ) {
-            fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
+            fieldName = Oas3Tools.sanitizeAndStore(
+              operationId,
+              data.saneMap,
+              data.loggers
+            )
           }
 
           if (fieldName in queryFields) {
@@ -295,7 +311,7 @@ async function translateOpenApiToGraphQL(
                 `unique so only one can be added to the Query object. ` +
                 `Operation '${operation.operationString}' will be ignored.`,
               data,
-              log: translationLog
+              log: data.loggers.translationLog
             })
           } else {
             queryFields[fieldName] = field
@@ -308,7 +324,8 @@ async function translateOpenApiToGraphQL(
          */
         let saneFieldName = Oas3Tools.sanitizeAndStore(
           operationId,
-          data.saneMap
+          data.saneMap,
+          data.loggers
         )
         if (operation.inViewer) {
           for (let securityRequirement of operation.securityRequirements) {
@@ -326,7 +343,7 @@ async function translateOpenApiToGraphQL(
                   `unique so only one can be added to the authentication ` +
                   `viewer. Operation '${operation.operationString}' will be ignored.`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
               })
             } else {
               authMutationFields[securityRequirement][saneFieldName] = field
@@ -342,7 +359,7 @@ async function translateOpenApiToGraphQL(
                 `unique so only one can be added to the Mutation object. ` +
                 `Operation '${operation.operationString}' will be ignored.`,
               data,
-              log: translationLog
+              log: data.loggers.translationLog
             })
           } else {
             mutationFields[saneFieldName] = field
@@ -547,7 +564,7 @@ function preliminaryChecks(
       typeKey: 'MULTIPLE_OAS_SAME_TITLE',
       message: `Multiple OAS share the same title '${title}'`,
       data,
-      log: translationLog
+      log: data.loggers.translationLog
     })
   })
 
@@ -568,7 +585,7 @@ function preliminaryChecks(
             `Custom resolvers reference OAS '${title}' but no such ` +
             `OAS was provided`,
           data,
-          log: translationLog
+          log: data.loggers.translationLog
         })
       })
 
@@ -593,7 +610,7 @@ function preliminaryChecks(
                 `path '${path}' and method '${method}' but no such operation ` +
                 `exists in OAS '${title}'`,
               data,
-              log: translationLog
+              log: data.loggers.translationLog
             })
           }
         })

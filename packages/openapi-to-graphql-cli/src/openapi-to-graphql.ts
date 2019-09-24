@@ -27,6 +27,10 @@ program
     'throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS'
   )
   .option('--save <file path>', 'save schema to path and do not start server')
+  .option(
+    '--debug <tag>',
+    'allow debugging messages by tag: "preprocessing", "translation", or "http" (full logging by default)'
+  )
 
   // Resolver options
   .option(
@@ -35,7 +39,7 @@ program
     parseInt
   )
   .option('-u, --url <url>', 'select the base url which paths will be built on')
-  .option('--cors', 'enable Cross-origin resource sharing (CORS)')
+  .option('--cors', 'enable cross-origin resource sharing (CORS)')
 
   // Schema options
   .option(
@@ -79,10 +83,6 @@ program
   .option(
     '--no-equivalentToMessages',
     'do not append information about the underlying REST operations to the description of fields'
-  )
-  .option(
-    '--debug <tag>',
-    'Allow debugging messages by debug tag (full logging enabled by default)'
   )
   .parse(process.argv)
 

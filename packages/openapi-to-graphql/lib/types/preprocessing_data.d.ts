@@ -2,7 +2,7 @@
  * Type definitions for the data created during preprocessing.
  */
 import { Operation, DataDefinition } from './operation';
-import { InternalOptions } from './options';
+import { InternalOptions, Loggers } from './options';
 import { SecuritySchemeObject, SchemaObject, Oas3 } from './oas3';
 export declare type ProcessedSecurityScheme = {
     rawName: string;
@@ -62,4 +62,12 @@ export declare type PreprocessingData = {
      * All of the provided OASs
      */
     oass: Oas3[];
+    /**
+     * Debug loggers
+     *
+     * From the debug module
+     *
+     * Loggers for preprocessing, translation, and http
+     */
+    loggers: Loggers;
 };

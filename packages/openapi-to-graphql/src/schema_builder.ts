@@ -39,7 +39,6 @@ import * as GraphQLJSON from 'graphql-type-json'
 import * as Oas3Tools from './oas_3_tools'
 import { getResolver } from './resolver_builder'
 import { createDataDef } from './preprocessor'
-import debug from 'debug'
 import { handleWarning, sortObject } from './utils'
 
 // Type definitions & exports:
@@ -99,8 +98,6 @@ type LinkOpRefToOpIdParams = {
   operation: Operation
   data: PreprocessingData
 }
-
-const translationLog = debug('translation')
 
 /**
  * Creates and returns a GraphQL (Input) Type for the given JSON schema.
@@ -184,7 +181,7 @@ function createOrReuseOt({
   // CASE: query - reuse object type
   if (!isInputObjectType) {
     if (def.ot && typeof def.ot !== 'undefined') {
-      translationLog(
+      data.loggers.translationLog(
         `Reuse object type '${def.otName}'` +
         (typeof operation === 'object'
           ? ` (for operation '${operation.operationId}')`
@@ -199,7 +196,7 @@ function createOrReuseOt({
     // CASE: mutation - reuse input object type
   } else {
     if (def.iot && typeof def.iot !== 'undefined') {
-      translationLog(
+      data.loggers.translationLog(
         `Reuse input object type '${def.iotName}'` +
         (typeof operation === 'object'
           ? ` (for operation '${operation.operationId}')`
@@ -236,14 +233,14 @@ function createOrReuseOt({
         `GraphQL objects must have well-defined properties so a one to ` +
         `one conversion cannot be achieved.`,
       data,
-      log: translationLog
+      log: data.loggers.translationLog
     })
     return GraphQLJSON
   }
 
   // CASE: query - create object type
   if (!isInputObjectType) {
-    translationLog(
+    data.loggers.translationLog(
       `Create object type '${def.otName}'` +
       (typeof operation === 'object'
         ? ` (for operation '${operation.operationId}')`
@@ -269,7 +266,7 @@ function createOrReuseOt({
 
     // CASE: mutation - create input object type
   } else {
-    translationLog(
+    data.loggers.translationLog(
       `Create input object type '${def.iotName}'` +
       (typeof operation === 'object'
         ? ` (for operation '${operation.operationId}')`
@@ -313,15 +310,15 @@ function createOrReuseList({
 
   // Try to reuse existing Object Type
   if (!isInputObjectType && def.ot && typeof def.ot !== 'undefined') {
-    translationLog(`Reuse GraphQLList '${def.otName}'`)
+    data.loggers.translationLog(`Reuse GraphQLList '${def.otName}'`)
     return def.ot as GraphQLList<any>
   } else if (isInputObjectType && def.iot && typeof def.iot !== 'undefined') {
-    translationLog(`Reuse GraphQLList '${def.iotName}'`)
+    data.loggers.translationLog(`Reuse GraphQLList '${def.iotName}'`)
     return def.iot as GraphQLList<any>
   }
 
   // Create new List Object Type
-  translationLog(`Create GraphQLList '${def.otName}'`)
+  data.loggers.translationLog(`Create GraphQLList '${def.otName}'`)
 
   // Get definition of the list item, which should be in the sub definitions
   const itemDef = def.subDefinitions as DataDefinition
@@ -368,10 +365,10 @@ function createOrReuseEnum({
    * Enum types do not have an input variant so only check def.ot
    */
   if (def.ot && typeof def.ot !== 'undefined') {
-    translationLog(`Reuse GraphQLEnumType '${def.otName}'`)
+    data.loggers.translationLog(`Reuse GraphQLEnumType '${def.otName}'`)
     return def.ot as GraphQLEnumType
   } else {
-    translationLog(`Create GraphQLEnumType '${def.otName}'`)
+    data.loggers.translationLog(`Create GraphQLEnumType '${def.otName}'`)
 
     const values = {}
     def.schema.enum.forEach(e => {
@@ -467,7 +464,8 @@ function createFields({
     if (objectType) {
       const sanePropName = Oas3Tools.sanitizeAndStore(
         fieldTypeKey,
-        data.saneMap
+        data.saneMap,
+        data.loggers
       )
       fields[sanePropName] = {
         type: reqMutationProp
@@ -489,7 +487,7 @@ function createFields({
     !isInputObjectType // Only object type (input object types cannot make use of links)
   ) {
     for (let saneLinkKey in links) {
-      translationLog(`Create link '${saneLinkKey}'...`)
+      data.loggers.translationLog(`Create link '${saneLinkKey}'...`)
 
       // Check if key is already in fields
       if (saneLinkKey in fields) {
@@ -499,7 +497,7 @@ function createFields({
             `Cannot create link '${saneLinkKey}' because parent ` +
             `Object Type already contains a field with the same (sanitized) name.`,
           data,
-          log: translationLog
+          log: data.loggers.translationLog
         })
       } else {
         const link = links[saneLinkKey]
@@ -569,7 +567,7 @@ function createFields({
           }
 
           // Finally, add the object type to the fields (using sanitized field name)
-          Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap)
+          Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap, data.loggers)
           // TODO: check if fields already has this field name
           fields[saneLinkKey] = {
             type: resObjectType,
@@ -582,7 +580,7 @@ function createFields({
             typeKey: 'UNRESOLVABLE_LINK',
             message: `Cannot resolve target of link '${saneLinkKey}`,
             data,
-            log: translationLog
+            log: data.loggers.translationLog
           })
         }
       }
@@ -645,7 +643,7 @@ function linkOpRefToOpId({
               `contains an ambiguous operationRef '${operationRef}', ` +
               `meaning it has multiple instances of the string '#/paths/'`,
             data,
-            log: translationLog
+            log: data.loggers.translationLog
           })
 
           return
@@ -663,7 +661,7 @@ function linkOpRefToOpId({
             `does not contain a valid path in operationRef '${operationRef}', ` +
             `meaning it does not contain a string '#/paths/'`,
           data,
-          log: translationLog
+          log: data.loggers.translationLog
         })
 
         return
@@ -708,7 +706,7 @@ function linkOpRefToOpId({
                 `The operationRef '${operationRef}' contains an ` +
                 `invalid HTTP method '${linkMethod}'`,
               data,
-              log: translationLog
+              log: data.loggers.translationLog
             })
 
             return
@@ -721,7 +719,7 @@ function linkOpRefToOpId({
               `The operationRef '${operationRef}' does not contain an` +
               `HTTP method`,
             data,
-            log: translationLog
+            log: data.loggers.translationLog
           })
 
           return
@@ -778,7 +776,7 @@ function linkOpRefToOpId({
                   `Note that the operationId may be autogenerated but ` +
                   `regardless, the link could not be matched to an operation.`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
               })
 
               return
@@ -793,7 +791,7 @@ function linkOpRefToOpId({
                 `'${linkMethod}' respectively, from operationRef ` +
                 `'${operationRef}' in link '${linkKey}'`,
               data,
-              log: translationLog
+              log: data.loggers.translationLog
             })
 
             return
@@ -807,7 +805,7 @@ function linkOpRefToOpId({
               `The link '${link.operationRef}' references an external OAS ` +
               `but it was not provided`,
             data,
-            log: translationLog
+            log: data.loggers.translationLog
           })
 
           return
@@ -821,7 +819,7 @@ function linkOpRefToOpId({
             `Cannot extract path and/or method from operationRef ` +
             `'${operationRef}' in link '${linkKey}'`,
           data,
-          log: translationLog
+          log: data.loggers.translationLog
         })
 
         return
@@ -835,7 +833,7 @@ function linkOpRefToOpId({
           `Cannot extract path and/or method from operationRef ` +
           `'${operationRef}' in link '${linkKey}'`,
         data,
-        log: translationLog
+        log: data.loggers.translationLog
       })
 
       return
@@ -865,7 +863,7 @@ export function getArgs({
           `The operation '${operation.operationString}' contains a ` +
           `parameter '${JSON.stringify(parameter)}' with no 'name' property`,
         data,
-        log: translationLog
+        log: data.loggers.translationLog
       })
       continue
     }
@@ -912,7 +910,7 @@ export function getArgs({
             `property but no schemas in application/json format. The ` +
             `parameter will not be created`,
           data,
-          log: translationLog
+          log: data.loggers.translationLog
         })
         continue
       }
@@ -925,7 +923,7 @@ export function getArgs({
           `parameter '${JSON.stringify(parameter)}' with no 'schema' or ` +
           `'content' property`,
         data,
-        log: translationLog
+        log: data.loggers.translationLog
       })
       continue
     }
@@ -998,7 +996,7 @@ export function getArgs({
           `because of a preexisting argument in ` +
           `operation ${operation.operationString}`,
         data,
-        log: translationLog
+        log: data.loggers.translationLog
       })
     } else {
       args['limit'] = {
@@ -1080,7 +1078,7 @@ function getOasFromLinkLocation(
             `The operationRef '${link.operationRef}' references an ` +
             `OAS '${linkLocation}' but multiple OASs share the same title`,
           data,
-          log: translationLog
+          log: data.loggers.translationLog
         })
       } else {
         // No OAS had the expected title
@@ -1090,7 +1088,7 @@ function getOasFromLinkLocation(
             `The operationRef '${link.operationRef}' references an ` +
             `OAS '${linkLocation}' but no such OAS was provided`,
           data,
-          log: translationLog
+          log: data.loggers.translationLog
         })
       }
       break
@@ -1113,7 +1111,7 @@ function getOasFromLinkLocation(
           `'${link.operationRef}' is currently not supported\n` +
           `Currently only the title of the OAS is supported`,
         data,
-        log: translationLog
+        log: data.loggers.translationLog
       })
   }
 }

@@ -21,14 +21,18 @@ const GraphQLTools = require("./graphql_tools");
 const preprocessor_1 = require("./preprocessor");
 const Oas3Tools = require("./oas_3_tools");
 const auth_builder_1 = require("./auth_builder");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const translationLog = debug_1.default('translation');
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
 function createGraphQlSchema(spec, options) {
     return __awaiter(this, void 0, void 0, function* () {
+        const debug = require('debug'); // Cannot import globally because it depends on the current state of the DEBUG environment variable
+        const loggers = {
+            httpLog: debug('http'),
+            preprocessingLog: debug('preprocessing'),
+            translationLog: debug('translation')
+        };
         if (typeof options === 'undefined') {
             options = {};
         }
@@ -76,7 +80,7 @@ function createGraphQlSchema(spec, options) {
              * Convert all non-OAS 3.0.x into OAS 3.0.x
              */
             oass = yield Promise.all(spec.map(ele => {
-                return Oas3Tools.getValidOAS3(ele);
+                return Oas3Tools.getValidOAS3(ele, loggers);
             }));
         }
         else {
@@ -85,9 +89,9 @@ function createGraphQlSchema(spec, options) {
              * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
              * translate the spec into a GraphQL schema
              */
-            oass = [yield Oas3Tools.getValidOAS3(spec)];
+            oass = [yield Oas3Tools.getValidOAS3(spec, loggers)];
         }
-        const { schema, report } = yield translateOpenApiToGraphQL(oass, options);
+        const { schema, report } = yield translateOpenApiToGraphQL(oass, options, loggers);
         return {
             schema,
             report
@@ -106,7 +110,7 @@ headers, qs, requestOptions, baseUrl, customResolvers,
 // Authentication options
 viewer, tokenJSONpath, sendOAuthTokenInQuery, 
 // Logging options
-provideErrorExtensions, equivalentToMessages }) {
+provideErrorExtensions, equivalentToMessages }, loggers) {
     return __awaiter(this, void 0, void 0, function* () {
         const options = {
             strict,
@@ -130,12 +134,12 @@ provideErrorExtensions, equivalentToMessages }) {
             provideErrorExtensions,
             equivalentToMessages
         };
-        translationLog(`Options: ${JSON.stringify(options)}`);
+        loggers.translationLog(`Options: ${JSON.stringify(options)}`);
         /**
          * Extract information from the OASs and put it inside a data structure that
          * is easier for OpenAPI-to-GraphQL to use
          */
-        const data = preprocessor_1.preprocessOas(oass, options);
+        const data = preprocessor_1.preprocessOas(oass, options, loggers);
         preliminaryChecks(options, data);
         /**
          * Create GraphQL fields for every operation and structure them based on their
@@ -154,7 +158,7 @@ provideErrorExtensions, equivalentToMessages }) {
              */
             .sort(([op1Id, op1], [op2Id, op2]) => sortOperations(op1, op2))
             .forEach(([operationId, operation]) => {
-            translationLog(`Process operation '${operationId}'...`);
+            data.loggers.translationLog(`Process operation '${operationId}'...`);
             let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions);
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
@@ -170,7 +174,7 @@ provideErrorExtensions, equivalentToMessages }) {
                              * forced to be the operationId
                              */
                             operationIdFieldNames) {
-                            fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap);
+                            fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap, data.loggers);
                         }
                         if (fieldName in authQueryFields[securityRequirement]) {
                             utils_1.handleWarning({
@@ -181,7 +185,7 @@ provideErrorExtensions, equivalentToMessages }) {
                                     `unique so only one can be added to the authentication ` +
                                     `viewer. Operation '${operation.operationString}' will be ignored.`,
                                 data,
-                                log: translationLog
+                                log: data.loggers.translationLog
                             });
                         }
                         else {
@@ -197,7 +201,7 @@ provideErrorExtensions, equivalentToMessages }) {
                          * forced to be the operationId
                          */
                         operationIdFieldNames) {
-                        fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap);
+                        fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap, data.loggers);
                     }
                     if (fieldName in queryFields) {
                         utils_1.handleWarning({
@@ -207,7 +211,7 @@ provideErrorExtensions, equivalentToMessages }) {
                                 `unique so only one can be added to the Query object. ` +
                                 `Operation '${operation.operationString}' will be ignored.`,
                             data,
-                            log: translationLog
+                            log: data.loggers.translationLog
                         });
                     }
                     else {
@@ -220,7 +224,7 @@ provideErrorExtensions, equivalentToMessages }) {
                  * Use operationId to avoid problems differentiating operations with the
                  * same path but differnet methods
                  */
-                let saneFieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap);
+                let saneFieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap, data.loggers);
                 if (operation.inViewer) {
                     for (let securityRequirement of operation.securityRequirements) {
                         if (typeof authMutationFields[securityRequirement] !== 'object') {
@@ -235,7 +239,7 @@ provideErrorExtensions, equivalentToMessages }) {
                                     `unique so only one can be added to the authentication ` +
                                     `viewer. Operation '${operation.operationString}' will be ignored.`,
                                 data,
-                                log: translationLog
+                                log: data.loggers.translationLog
                             });
                         }
                         else {
@@ -252,7 +256,7 @@ provideErrorExtensions, equivalentToMessages }) {
                                 `unique so only one can be added to the Mutation object. ` +
                                 `Operation '${operation.operationString}' will be ignored.`,
                             data,
-                            log: translationLog
+                            log: data.loggers.translationLog
                         });
                     }
                     else {
@@ -421,7 +425,7 @@ function preliminaryChecks(options, data) {
             typeKey: 'MULTIPLE_OAS_SAME_TITLE',
             message: `Multiple OAS share the same title '${title}'`,
             data,
-            log: translationLog
+            log: data.loggers.translationLog
         });
     });
     // Check customResolvers
@@ -440,7 +444,7 @@ function preliminaryChecks(options, data) {
                 message: `Custom resolvers reference OAS '${title}' but no such ` +
                     `OAS was provided`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
             });
         });
         // TODO: Only run the following test on OASs that exist. See previous check.
@@ -460,7 +464,7 @@ function preliminaryChecks(options, data) {
                                 `path '${path}' and method '${method}' but no such operation ` +
                                 `exists in OAS '${title}'`,
                             data,
-                            log: translationLog
+                            log: data.loggers.translationLog
                         });
                     }
                 });

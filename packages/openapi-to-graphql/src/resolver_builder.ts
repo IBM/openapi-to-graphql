@@ -18,11 +18,8 @@ import * as NodeRequest from 'request'
 import * as Oas3Tools from './oas_3_tools'
 import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
-import { debug } from 'debug'
 import { GraphQLError } from 'graphql'
-
-const translationLog = debug('translation')
-const httpLog = debug('http')
+import { Loggers } from './types/options'
 
 // Type definitions & exports:
 type AuthReqAndProtcolName = {
@@ -59,7 +56,7 @@ export function getResolver({
 }: GetResolverParams): ResolveFunction {
   // Determine the appropriate URL:
   if (typeof baseUrl === 'undefined') {
-    baseUrl = Oas3Tools.getBaseUrl(operation)
+    baseUrl = Oas3Tools.getBaseUrl(operation, data.loggers)
   }
 
   // Return custom resolver if it is defined
@@ -74,7 +71,9 @@ export function getResolver({
     typeof customResolvers[title][path] === 'object' &&
     typeof customResolvers[title][path][method] === 'function'
   ) {
-    translationLog(`Use custom resolver for ${operation.operationString}`)
+    data.loggers.translationLog(
+      `Use custom resolver for ${operation.operationString}`
+    )
 
     return customResolvers[title][path][method]
   }
@@ -158,7 +157,14 @@ export function getResolver({
        */
       if (value.search(/{|}/) === -1) {
         args[paramNameWithoutLocation] = isRuntimeExpression(value)
-          ? resolveLinkParameter(paramName, value, resolveData, root, args)
+          ? resolveLinkParameter(
+              paramName,
+              value,
+              resolveData,
+              root,
+              args,
+              data.loggers
+            )
           : value
       } else {
         // Replace link parameters with appropriate values
@@ -171,7 +177,8 @@ export function getResolver({
               linkParam.substring(1, linkParam.length - 1),
               resolveData,
               root,
-              args
+              args,
+              data.loggers
             )
           )
         })
@@ -186,7 +193,8 @@ export function getResolver({
     const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(
       operation.path,
       operation.parameters,
-      args
+      args,
+      data.loggers
     )
     const url = baseUrl + path
 
@@ -315,7 +323,7 @@ export function getResolver({
     resolveData.usedStatusCode = operation.statusCode
 
     // Make the call
-    httpLog(
+    data.loggers.httpLog(
       `Call ${options.method.toUpperCase()} ${
         options.url
       }?${querystring.stringify(options.qs)}\n` +
@@ -325,10 +333,12 @@ export function getResolver({
     return new Promise((resolve, reject) => {
       NodeRequest(options, (err, response, body) => {
         if (err) {
-          httpLog(err)
+          data.loggers.httpLog(err)
           reject(err)
         } else if (response.statusCode < 200 || response.statusCode > 299) {
-          httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
+          data.loggers.httpLog(
+            `${response.statusCode} - ${Oas3Tools.trim(body, 100)}`
+          )
 
           const errorString = `Could not invoke operation ${operation.operationString}`
 
@@ -355,7 +365,9 @@ export function getResolver({
 
           // Successful response 200-299
         } else {
-          httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
+          data.loggers.httpLog(
+            `${response.statusCode} - ${Oas3Tools.trim(body, 100)}`
+          )
 
           if (response.headers['content-type']) {
             /**
@@ -382,7 +394,7 @@ export function getResolver({
                 `should have a content-type '${operation.responseContentType}' ` +
                 `but has '${response.headers['content-type']}' instead`
 
-              httpLog(errorString)
+              data.loggers.httpLog(errorString)
               reject(errorString)
             } else {
               /**
@@ -403,7 +415,7 @@ export function getResolver({
                     `operation ${operation.operationString} ` +
                     `even though it has content-type 'application/json'`
 
-                  httpLog(errorString)
+                  data.loggers.httpLog(errorString)
                   reject(errorString)
                 }
 
@@ -529,7 +541,7 @@ export function getResolver({
               const errorString =
                 'Response does not have a Content-Type property'
 
-              httpLog(errorString)
+              data.loggers.httpLog(errorString)
               reject(errorString)
             }
           }
@@ -561,7 +573,7 @@ function extractToken(data: PreprocessingData, ctx: object) {
       access_token: token
     }
   } else {
-    httpLog(
+    data.loggers.httpLog(
       `Warning: could not extract OAuth token from context at '${tokenJSONpath}'`
     )
     return {}
@@ -590,7 +602,7 @@ function createOAuthHeader(
       'User-Agent': 'openapi-to-graphql'
     }
   } else {
-    httpLog(
+    data.loggers.httpLog(
       `Warning: could not extract OAuth token from context at ` +
         `'${tokenJSONpath}'`
     )
@@ -736,7 +748,8 @@ function resolveLinkParameter(
   value: string,
   resolveData: any,
   root: any,
-  args: any
+  args: any, // TODO: This is not being used. Should it be removed?
+  loggers: Loggers
 ): any {
   if (value === '$url') {
     return resolveData.usedRequestOptions.url
@@ -758,7 +771,9 @@ function resolveLinkParameter(
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
-        httpLog(`Warning: could not extract parameter '${paramName}' from link`)
+        loggers.httpLog(
+          `Warning: could not extract parameter '${paramName}' from link`
+        )
       }
 
       // CASE: parameter in previous query parameter
@@ -801,7 +816,9 @@ function resolveLinkParameter(
       if (Array.isArray(tokens) && tokens.length > 0) {
         return tokens[0]
       } else {
-        httpLog(`Warning: could not extract parameter '${paramName}' from link`)
+        loggers.httpLog(
+          `Warning: could not extract parameter '${paramName}' from link`
+        )
       }
 
       // CASE: parameter in query parameter

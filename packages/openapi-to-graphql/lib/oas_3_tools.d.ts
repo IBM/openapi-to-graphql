@@ -5,7 +5,7 @@ import { Oas2 } from './types/oas2';
 import { Operation } from './types/operation';
 import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, RequestBodyObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
-import { InternalOptions } from './types/options';
+import { InternalOptions, Loggers } from './types/options';
 export declare type SchemaNames = {
     fromPath?: string;
     fromSchema?: string;
@@ -34,7 +34,7 @@ export declare const SUCCESS_STATUS_RX: RegExp;
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export declare function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3>;
+export declare function getValidOAS3(spec: Oas2 | Oas3, loggers: Loggers): Promise<Oas3>;
 /**
  * Counts the number of operations in an OAS.
  */
@@ -58,7 +58,7 @@ export declare function resolveRef(ref: string, oas: Oas3): any;
 /**
  * Returns the base URL to use for the given operation.
  */
-export declare function getBaseUrl(operation: Operation): string;
+export declare function getBaseUrl(operation: Operation, loggers: Loggers): string;
 /**
  * Returns object | array where all object keys are sanitized. Keys passed in
  * exceptions are not sanitized.
@@ -73,7 +73,8 @@ export declare function desanitizeObjKeys(obj: object | Array<any>, mapping?: ob
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object): {
+export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object, // NOTE: argument keys are sanitized!
+loggers: Loggers): {
     path: string;
     query: {
         [key: string]: string;
@@ -134,7 +135,7 @@ export declare function getEndpointLinks(path: string, method: string, oas: Oas3
  * Returns the list of parameters for the endpoint at the given method and path.
  * Resolves possible references.
  */
-export declare function getParameters(path: string, method: string, oas: Oas3): ParameterObject[];
+export declare function getParameters(path: string, method: string, oas: Oas3, loggers: Loggers): ParameterObject[];
 /**
  * Returns an array of server objects for the opeartion at the given path and
  * method. Considers in the following order: global server definitions,
@@ -166,7 +167,7 @@ export declare function sanitize(str: string, lowercaseFirstChar?: boolean): str
  */
 export declare function sanitizeAndStore(str: string, mapping: {
     [key: string]: string;
-}): string;
+}, loggers: Loggers): string;
 /**
  * Return an object similar to the input object except the keys are all
  * sanitized

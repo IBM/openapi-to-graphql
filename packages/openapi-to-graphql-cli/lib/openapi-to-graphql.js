@@ -19,10 +19,11 @@ program
     .arguments('<path(s) and/or url(s)>')
     .option('-s, --strict', 'throw an error if OpenAPI-to-GraphQL cannot run without compensating for errors or missing data in the OAS')
     .option('--save <file path>', 'save schema to path and do not start server')
+    .option('--debug <tag>', 'allow debugging messages by tag: "preprocessing", "translation", or "http" (full logging by default)')
     // Resolver options
     .option('-p, --port <port>', 'select the port where the server will start', parseInt)
     .option('-u, --url <url>', 'select the base url which paths will be built on')
-    .option('--cors', 'enable Cross-origin resource sharing (CORS)')
+    .option('--cors', 'enable cross-origin resource sharing (CORS)')
     // Schema options
     .option('-o, --operationIdFieldNames', 'create field names based on the operationId')
     .option('-f, --fillEmptyResponses', 'create placeholder schemas for operations with no response body rather than ignore them')
@@ -35,7 +36,6 @@ program
     // Logging options
     .option('--no-extensions', 'do not add extentions, containing information about failed REST calls, to the GraphQL errors objects')
     .option('--no-equivalentToMessages', 'do not append information about the underlying REST operations to the description of fields')
-    .option('--debug <tag>', 'Allow debugging messages by debug tag (full logging enabled by default)')
     .parse(process.argv);
 // Select the port on which to host the GraphQL server
 const portNumber = program.port ? program.port : 3000;

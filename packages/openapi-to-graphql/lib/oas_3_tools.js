@@ -16,11 +16,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const httpLog = debug_1.default('http');
-const preprocessingLog = debug_1.default('preprocessing');
-const translationLog = debug_1.default('translation');
 // OAS constants
 exports.OAS_OPERATIONS = [
     'get',
@@ -36,24 +32,24 @@ exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-function getValidOAS3(spec) {
+function getValidOAS3(spec, loggers) {
     return __awaiter(this, void 0, void 0, function* () {
         // CASE: translate
         if (typeof spec.swagger === 'string' &&
             spec.swagger === '2.0') {
-            preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`);
+            loggers.preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`);
             const result = yield Swagger2OpenAPI.convertObj(spec, {});
             return result.openapi;
             // CASE: validate
         }
         else if (typeof spec.openapi === 'string' &&
             /^3/.test(spec.openapi)) {
-            preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`);
+            loggers.preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`);
             const valid = OASValidator.validateSync(spec, {});
             if (!valid) {
                 throw new Error(`Validation of OpenAPI Specification failed.`);
             }
-            preprocessingLog(`OpenAPI Specification is validated`);
+            loggers.preprocessingLog(`OpenAPI Specification is validated`);
             return spec;
         }
         else {
@@ -161,7 +157,7 @@ function resolveRefHelper(obj, parts) {
 /**
  * Returns the base URL to use for the given operation.
  */
-function getBaseUrl(operation) {
+function getBaseUrl(operation, loggers) {
     // Check for servers:
     if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
         throw new Error(`No servers defined for operation '${operation.operationId}'`);
@@ -170,7 +166,7 @@ function getBaseUrl(operation) {
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
         const url = buildUrl(operation.servers[0]);
         if (Array.isArray(operation.servers) && operation.servers.length > 1) {
-            httpLog(`Warning: Randomly selected first server '${url}'`);
+            loggers.httpLog(`Warning: Randomly selected first server '${url}'`);
         }
         return url.replace(/\/$/, '');
     }
@@ -178,7 +174,7 @@ function getBaseUrl(operation) {
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
         const url = buildUrl(oas.servers[0]);
         if (Array.isArray(oas.servers) && oas.servers.length > 1) {
-            httpLog(`Warning: Randomly selected first server '${url}'`);
+            loggers.httpLog(`Warning: Randomly selected first server '${url}'`);
         }
         return url.replace(/\/$/, '');
     }
@@ -269,8 +265,8 @@ exports.desanitizeObjKeys = desanitizeObjKeys;
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument keys are sanitized!
-) {
+function instantiatePathAndGetQuery(path, parameters, args, // NOTE: argument keys are sanitized!
+loggers) {
     const query = {};
     const headers = {};
     // Case: nothing to do
@@ -300,13 +296,13 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
                         headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `;
                         break;
                     default:
-                        httpLog(`Warning: The parameter location '${param.in}' in the ` +
+                        loggers.httpLog(`Warning: The parameter location '${param.in}' in the ` +
                             `parameter '${param.name}' of operation '${path}' is not ` +
                             `supported`);
                 }
             }
             else {
-                httpLog(`Warning: The parameter '${param.name}' of operation '${path}' ` +
+                loggers.httpLog(`Warning: The parameter '${param.name}' of operation '${path}' ` +
                     `could not be found`);
             }
         }
@@ -612,7 +608,7 @@ function getResponseStatusCode(path, method, oas, data) {
                 mitigationAddendum: `The response object with the HTTP code ` +
                     `${successCodes[0]} will be selected`,
                 data,
-                log: translationLog
+                log: data.loggers.translationLog
             });
             return successCodes[0];
         }
@@ -662,10 +658,10 @@ exports.getEndpointLinks = getEndpointLinks;
  * Returns the list of parameters for the endpoint at the given method and path.
  * Resolves possible references.
  */
-function getParameters(path, method, oas) {
+function getParameters(path, method, oas, loggers) {
     let parameters = [];
     if (!isOperation(method)) {
-        translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
+        loggers.translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
             `which is not an operation.`);
         return parameters;
     }
@@ -830,7 +826,7 @@ exports.sanitize = sanitize;
  * Sanitizes the given string and stores the sanitized-to-original mapping in
  * the given mapping.
  */
-function sanitizeAndStore(str, mapping) {
+function sanitizeAndStore(str, mapping, loggers) {
     if (!(typeof mapping === 'object')) {
         throw new Error(`No/invalid mapping passed to sanitizeAndStore`);
     }
@@ -841,7 +837,7 @@ function sanitizeAndStore(str, mapping) {
     else if (clean !== str) {
         if (clean in mapping && str !== mapping[clean]) {
             // TODO: Follow warning model
-            translationLog(`Warning: '${str}' and '${mapping[clean]}' both sanitize ` +
+            loggers.translationLog(`Warning: '${str}' and '${mapping[clean]}' both sanitize ` +
                 `to '${clean}' - collision possible. Desanitize to '${str}'.`);
         }
         mapping[clean] = str;

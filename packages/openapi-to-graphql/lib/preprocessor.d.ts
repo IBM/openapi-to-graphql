@@ -1,5 +1,5 @@
 import { Oas3, SchemaObject, LinkObject } from './types/oas3';
-import { InternalOptions } from './types/options';
+import { InternalOptions, Loggers } from './types/options';
 import { DataDefinition } from './types/operation';
 import { PreprocessingData } from './types/preprocessing_data';
 import * as Oas3Tools from './oas_3_tools';
@@ -7,7 +7,7 @@ import * as Oas3Tools from './oas_3_tools';
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OpenAPI-to-GraphQL to use
  */
-export declare function preprocessOas(oass: Oas3[], options: InternalOptions): PreprocessingData;
+export declare function preprocessOas(oass: Oas3[], options: InternalOptions, loggers: Loggers): PreprocessingData;
 /**
  * Method to either create a new or reuse an existing, centrally stored data
  * definition. Data definitions are objects that hold a schema (= JSON schema),
