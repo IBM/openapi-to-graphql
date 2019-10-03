@@ -13,18 +13,18 @@ export declare type SchemaObject = {
     nullable?: boolean;
     description?: string;
     properties?: {
-        [key: string]: SchemaObject;
+        [key: string]: SchemaObject | ReferenceObject;
     };
     required?: string[];
     default?: any;
-    additionalProperties?: SchemaObject;
+    additionalProperties?: SchemaObject | ReferenceObject;
     items?: SchemaObject | ReferenceObject;
     additionalItems?: boolean | string[];
     enum?: string[];
-    allOf?: SchemaObject[];
-    anyOf?: SchemaObject[];
-    oneOf?: SchemaObject[];
-    not?: SchemaObject[];
+    allOf?: (SchemaObject | ReferenceObject)[];
+    anyOf?: (SchemaObject | ReferenceObject)[];
+    oneOf?: (SchemaObject | ReferenceObject)[];
+    not?: (SchemaObject | ReferenceObject)[];
 };
 export declare type ReferenceObject = {
     $ref: string;

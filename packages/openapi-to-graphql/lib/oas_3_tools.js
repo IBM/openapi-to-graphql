@@ -316,26 +316,12 @@ function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument key
 exports.instantiatePathAndGetQuery = instantiatePathAndGetQuery;
 /**
  * Returns the GraphQL type that the provided schema should be made into
+ *
+ * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
 function getSchemaTargetGraphQLType(schema, data) {
-    if (Array.isArray(schema.allOf) || Array.isArray(schema.anyOf)) {
-        return 'combination';
-    }
-    // CASE: union type
-    if (Array.isArray(schema.oneOf)) {
-        return 'union';
-    }
-    /**
-     * CASE: arbitrary type
-     *
-     * not means little to GraphQL.
-     */
-    if (Array.isArray(schema.not)) {
-        return 'json';
-    }
     // CASE: object
-    if (schema.type === 'object' ||
-        typeof schema.properties === 'object') {
+    if (schema.type === 'object' || typeof schema.properties === 'object') {
         // TODO: additionalProperties is more like a flag than a type itself
         // CASE: arbitrary JSON
         if (typeof schema.additionalProperties === 'object') {

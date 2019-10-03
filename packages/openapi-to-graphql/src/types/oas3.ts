@@ -20,18 +20,18 @@ export type SchemaObject = {
   nullable?: boolean
   description?: string
   properties?: {
-    [key: string]: SchemaObject
+    [key: string]: SchemaObject | ReferenceObject
   }
   required?: string[]
   default?: any
-  additionalProperties?: SchemaObject
+  additionalProperties?: SchemaObject | ReferenceObject
   items?: SchemaObject | ReferenceObject // MUST be a single schema object in OAS, see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#properties
   additionalItems?: boolean | string[]
   enum?: string[]
-  allOf?: SchemaObject[]
-  anyOf?: SchemaObject[]
-  oneOf?: SchemaObject[]
-  not?: SchemaObject[]
+  allOf?: (SchemaObject | ReferenceObject)[]
+  anyOf?: (SchemaObject | ReferenceObject)[]
+  oneOf?: (SchemaObject | ReferenceObject)[]
+  not?: (SchemaObject | ReferenceObject)[]
 }
 
 export type ReferenceObject = {

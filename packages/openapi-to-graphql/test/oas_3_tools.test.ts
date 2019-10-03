@@ -185,158 +185,158 @@ test('Properly treat null values during sanitization', () => {
   })
 })
 
-test('Identify allOf as a combination target type', () => {
-  const schema = {
-    allOf: [
-      {
-        $ref: '#/components/schemas/User'
-      }
-    ]
-  }
+// test('Identify allOf as a combination target type', () => {
+//   const schema = {
+//     allOf: [
+//       {
+//         $ref: '#/components/schemas/User'
+//       }
+//     ]
+//   }
 
-  expect(
-    Oas3Tools.getSchemaTargetGraphQLType(schema, {
-      operations: {},
-      usedOTNames: [],
-      defs: [],
-      security: {},
-      saneMap: {},
-      options: {
-        strict: false,
-        report: {
-          warnings: [],
-          numOps: 0,
-          numOpsQuery: 0,
-          numOpsMutation: 0,
-          numQueriesCreated: 0,
-          numMutationsCreated: 0
-        },
-        operationIdFieldNames: false,
-        fillEmptyResponses: false,
-        addLimitArgument: false,
-        viewer: true,
-        sendOAuthTokenInQuery: false,
-        provideErrorExtensions: true,
-        equivalentToMessages: true
-      },
-      oass: []
-    })
-  ).toEqual('combination')
-})
+//   expect(
+//     Oas3Tools.getSchemaTargetGraphQLType(schema, {
+//       operations: {},
+//       usedOTNames: [],
+//       defs: [],
+//       security: {},
+//       saneMap: {},
+//       options: {
+//         strict: false,
+//         report: {
+//           warnings: [],
+//           numOps: 0,
+//           numOpsQuery: 0,
+//           numOpsMutation: 0,
+//           numQueriesCreated: 0,
+//           numMutationsCreated: 0
+//         },
+//         operationIdFieldNames: false,
+//         fillEmptyResponses: false,
+//         addLimitArgument: false,
+//         viewer: true,
+//         sendOAuthTokenInQuery: false,
+//         provideErrorExtensions: true,
+//         equivalentToMessages: true
+//       },
+//       oass: []
+//     })
+//   ).toEqual('combination')
+// })
 
-test('Identify anyOf as a combination target type', () => {
-  const schema = {
-    anyOf: [
-      {
-        $ref: '#/components/schemas/User'
-      }
-    ]
-  }
+// test('Identify anyOf as a combination target type', () => {
+//   const schema = {
+//     anyOf: [
+//       {
+//         $ref: '#/components/schemas/User'
+//       }
+//     ]
+//   }
 
-  expect(
-    Oas3Tools.getSchemaTargetGraphQLType(schema, {
-      operations: {},
-      usedOTNames: [],
-      defs: [],
-      security: {},
-      saneMap: {},
-      options: {
-        strict: false,
-        report: {
-          warnings: [],
-          numOps: 0,
-          numOpsQuery: 0,
-          numOpsMutation: 0,
-          numQueriesCreated: 0,
-          numMutationsCreated: 0
-        },
-        operationIdFieldNames: false,
-        fillEmptyResponses: false,
-        addLimitArgument: false,
-        viewer: true,
-        sendOAuthTokenInQuery: false,
-        provideErrorExtensions: true,
-        equivalentToMessages: true
-      },
-      oass: []
-    })
-  ).toEqual('combination')
-})
+//   expect(
+//     Oas3Tools.getSchemaTargetGraphQLType(schema, {
+//       operations: {},
+//       usedOTNames: [],
+//       defs: [],
+//       security: {},
+//       saneMap: {},
+//       options: {
+//         strict: false,
+//         report: {
+//           warnings: [],
+//           numOps: 0,
+//           numOpsQuery: 0,
+//           numOpsMutation: 0,
+//           numQueriesCreated: 0,
+//           numMutationsCreated: 0
+//         },
+//         operationIdFieldNames: false,
+//         fillEmptyResponses: false,
+//         addLimitArgument: false,
+//         viewer: true,
+//         sendOAuthTokenInQuery: false,
+//         provideErrorExtensions: true,
+//         equivalentToMessages: true
+//       },
+//       oass: []
+//     })
+//   ).toEqual('combination')
+// })
 
-test('Identify oneOf as a union target type', () => {
-  const schema = {
-    oneOf: [
-      {
-        $ref: '#/components/schemas/User'
-      }
-    ]
-  }
+// test('Identify oneOf as a union target type', () => {
+//   const schema = {
+//     oneOf: [
+//       {
+//         $ref: '#/components/schemas/User'
+//       }
+//     ]
+//   }
 
-  expect(
-    Oas3Tools.getSchemaTargetGraphQLType(schema, {
-      operations: {},
-      usedOTNames: [],
-      defs: [],
-      security: {},
-      saneMap: {},
-      options: {
-        strict: false,
-        report: {
-          warnings: [],
-          numOps: 0,
-          numOpsQuery: 0,
-          numOpsMutation: 0,
-          numQueriesCreated: 0,
-          numMutationsCreated: 0
-        },
-        operationIdFieldNames: false,
-        fillEmptyResponses: false,
-        addLimitArgument: false,
-        viewer: true,
-        sendOAuthTokenInQuery: false,
-        provideErrorExtensions: true,
-        equivalentToMessages: true
-      },
-      oass: []
-    })
-  ).toEqual('union')
-})
+//   expect(
+//     Oas3Tools.getSchemaTargetGraphQLType(schema, {
+//       operations: {},
+//       usedOTNames: [],
+//       defs: [],
+//       security: {},
+//       saneMap: {},
+//       options: {
+//         strict: false,
+//         report: {
+//           warnings: [],
+//           numOps: 0,
+//           numOpsQuery: 0,
+//           numOpsMutation: 0,
+//           numQueriesCreated: 0,
+//           numMutationsCreated: 0
+//         },
+//         operationIdFieldNames: false,
+//         fillEmptyResponses: false,
+//         addLimitArgument: false,
+//         viewer: true,
+//         sendOAuthTokenInQuery: false,
+//         provideErrorExtensions: true,
+//         equivalentToMessages: true
+//       },
+//       oass: []
+//     })
+//   ).toEqual('union')
+// })
 
-test('Identify not as a json target type', () => {
-  const schema = {
-    not: [
-      {
-        $ref: '#/components/schemas/User'
-      }
-    ]
-  }
+// test('Identify not as a json target type', () => {
+//   const schema = {
+//     not: [
+//       {
+//         $ref: '#/components/schemas/User'
+//       }
+//     ]
+//   }
 
-  expect(
-    Oas3Tools.getSchemaTargetGraphQLType(schema, {
-      operations: {},
-      usedOTNames: [],
-      defs: [],
-      security: {},
-      saneMap: {},
-      options: {
-        strict: false,
-        report: {
-          warnings: [],
-          numOps: 0,
-          numOpsQuery: 0,
-          numOpsMutation: 0,
-          numQueriesCreated: 0,
-          numMutationsCreated: 0
-        },
-        operationIdFieldNames: false,
-        fillEmptyResponses: false,
-        addLimitArgument: false,
-        viewer: true,
-        sendOAuthTokenInQuery: false,
-        provideErrorExtensions: true,
-        equivalentToMessages: true
-      },
-      oass: []
-    })
-  ).toEqual('json')
-})
+//   expect(
+//     Oas3Tools.getSchemaTargetGraphQLType(schema, {
+//       operations: {},
+//       usedOTNames: [],
+//       defs: [],
+//       security: {},
+//       saneMap: {},
+//       options: {
+//         strict: false,
+//         report: {
+//           warnings: [],
+//           numOps: 0,
+//           numOpsQuery: 0,
+//           numOpsMutation: 0,
+//           numQueriesCreated: 0,
+//           numMutationsCreated: 0
+//         },
+//         operationIdFieldNames: false,
+//         fillEmptyResponses: false,
+//         addLimitArgument: false,
+//         viewer: true,
+//         sendOAuthTokenInQuery: false,
+//         provideErrorExtensions: true,
+//         equivalentToMessages: true
+//       },
+//       oass: []
+//     })
+//   ).toEqual('json')
+// })

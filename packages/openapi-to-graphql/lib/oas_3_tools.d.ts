@@ -84,6 +84,8 @@ export declare function instantiatePathAndGetQuery(path: string, parameters: Par
 };
 /**
  * Returns the GraphQL type that the provided schema should be made into
+ *
+ * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
 export declare function getSchemaTargetGraphQLType(schema: SchemaObject, data: PreprocessingData): string | null;
 /**

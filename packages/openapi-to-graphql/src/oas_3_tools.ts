@@ -410,6 +410,8 @@ export function instantiatePathAndGetQuery(
 
 /**
  * Returns the GraphQL type that the provided schema should be made into
+ *
+ * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
 export function getSchemaTargetGraphQLType(
   schema: SchemaObject,
