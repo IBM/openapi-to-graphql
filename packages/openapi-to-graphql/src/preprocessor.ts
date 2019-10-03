@@ -537,23 +537,32 @@ export function createDataDef(
         if ('allOf' in schema) {
           addAllOfToDataDef(def, schema, isInputObjectType, data, oas)
         } else if ('anyOf' in schema) {
-          throw new Error(
-            `OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(
+          handleWarning({
+            typeKey: 'UNSUPPORTED_JSON_SCHEMA_KEYWORD',
+            message: `OpenAPI-to-GraphQL currently cannot handle 'anyOf' keyword in '${JSON.stringify(
               schema
-            )}'`
-          )
+            )}'`,
+            data,
+            log: preprocessingLog
+          })
         } else if ('oneOf' in schema) {
-          throw new Error(
-            `OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(
+          handleWarning({
+            typeKey: 'UNSUPPORTED_JSON_SCHEMA_KEYWORD',
+            message: `OpenAPI-to-GraphQL currently cannot handle 'oneOf' keyword in '${JSON.stringify(
               schema
-            )}'`
-          )
+            )}'`,
+            data,
+            log: preprocessingLog
+          })
         } else if ('not' in schema) {
-          throw new Error(
-            `OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(
+          handleWarning({
+            typeKey: 'UNSUPPORTED_JSON_SCHEMA_KEYWORD',
+            message: `OpenAPI-to-GraphQL currently cannot handle 'not' keyword in '${JSON.stringify(
               schema
-            )}'`
-          )
+            )}'`,
+            data,
+            log: preprocessingLog
+          })
         }
 
         // Add existing properties (regular object type)
