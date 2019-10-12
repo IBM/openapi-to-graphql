@@ -26,7 +26,7 @@ const oas3 = require('./fixtures/example_oas3.json')
 
 openapiToGraphql
   .createGraphQlSchema(oas, {
-    idFormats: ['specialIdFormat']
+    fillEmptyResponses: true
   })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
@@ -38,8 +38,8 @@ openapiToGraphql
       })
     )
 
-    app.listen(3000, () => {
-      console.log('GraphQL accessible at: http://localhost:3000/graphql')
+    app.listen(3001, () => {
+      console.log('GraphQL accessible at: http://localhost:3001/graphql')
     })
   })
   .catch(err => {

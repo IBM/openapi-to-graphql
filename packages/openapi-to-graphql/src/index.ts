@@ -113,6 +113,7 @@ export async function createGraphQlSchema(
   }
 
   let oass: Oas3[]
+  // let oass: Oas3[] = [spec as Oas3]
 
   if (Array.isArray(spec)) {
     /**
@@ -202,11 +203,15 @@ async function translateOpenApiToGraphQL(
   }
   translationLog(`Options: ${JSON.stringify(options)}`)
 
+  console.log('before preprocessing')
+
   /**
    * Extract information from the OASs and put it inside a data structure that
    * is easier for OpenAPI-to-GraphQL to use
    */
   const data: PreprocessingData = preprocessOas(oass, options)
+
+  console.log('after preprocessing')
 
   preliminaryChecks(options, data)
 

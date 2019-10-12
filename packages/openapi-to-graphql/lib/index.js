@@ -70,23 +70,24 @@ function createGraphQlSchema(spec, options) {
             numQueriesCreated: 0,
             numMutationsCreated: 0
         };
-        let oass;
-        if (Array.isArray(spec)) {
-            /**
-             * Convert all non-OAS 3.0.x into OAS 3.0.x
-             */
-            oass = yield Promise.all(spec.map(ele => {
-                return Oas3Tools.getValidOAS3(ele);
-            }));
-        }
-        else {
-            /**
-             * Check if the spec is a valid OAS 3.0.x
-             * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
-             * translate the spec into a GraphQL schema
-             */
-            oass = [yield Oas3Tools.getValidOAS3(spec)];
-        }
+        let oass = [spec];
+        // if (Array.isArray(spec)) {
+        //   /**
+        //    * Convert all non-OAS 3.0.x into OAS 3.0.x
+        //    */
+        //   oass = await Promise.all(
+        //     spec.map(ele => {
+        //       return Oas3Tools.getValidOAS3(ele)
+        //     })
+        //   )
+        // } else {
+        //   /**
+        //    * Check if the spec is a valid OAS 3.0.x
+        //    * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
+        //    * translate the spec into a GraphQL schema
+        //    */
+        //   oass = [await Oas3Tools.getValidOAS3(spec)]
+        // }
         const { schema, report } = yield translateOpenApiToGraphQL(oass, options);
         return {
             schema,
@@ -131,11 +132,13 @@ provideErrorExtensions, equivalentToMessages }) {
             equivalentToMessages
         };
         translationLog(`Options: ${JSON.stringify(options)}`);
+        console.log('before preprocessing');
         /**
          * Extract information from the OASs and put it inside a data structure that
          * is easier for OpenAPI-to-GraphQL to use
          */
         const data = preprocessor_1.preprocessOas(oass, options);
+        console.log('after preprocessing');
         preliminaryChecks(options, data);
         /**
          * Create GraphQL fields for every operation and structure them based on their

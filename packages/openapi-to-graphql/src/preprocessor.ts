@@ -81,6 +81,8 @@ export function preprocessOas(
             ? Oas3Tools.formatOperationString(method, path)
             : Oas3Tools.formatOperationString(method, path, oas.info.title)
 
+        console.log(operationString)
+
         // Determine description
         let description = endpoint.description
         if (
