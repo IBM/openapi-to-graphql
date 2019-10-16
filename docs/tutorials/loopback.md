@@ -47,24 +47,14 @@ Start the API by running the following:
 npm start
 ```
 
-Next, access the API's OAS at [http://127.0.0.1:3000/openapi.json](http://127.0.0.1:3000/openapi.json) and save it to disk.
-
-Then change the server url to match the following. Otherwise, the GraphQL interface will not be able to make calls to the Example Family Tree API.
-
-```
-"servers": [
-  {
-    "url": "http://localhost:3000"
-  }
-]
-```
+Next, access the API's OAS at [http://localhost:3001/openapi.json](http://localhost:3001/openapi.json) and save it to disk.
 
 ### Install OpenAPI-to-GraphQL
 
 To install OpenAPI-to-GraphQL, clone the repository and link the library (for the CLI commands to work) using the indicated steps.
 
 ```
-npm i -g openapi-to-graphql
+npm i -g openapi-to-graphql-cli
 ```
 
 Please note that OpenAPI-to-GraphQL can be used either as a library, or via its Command Line Interface (CLI). In this case, we will be using the CLI tool, which will start a server in addition to creating the GraphQL interface.
@@ -77,7 +67,7 @@ Start the GraphQL server by running the following command.
 openapi-to-graphql <OAS JSON file path or remote url>
 ```
 
-The created GraphQL server is then accessible at [http://127.0.0.1:3001/graphql](http://127.0.0.1:3001/graphql).
+The created GraphQL server is then accessible at [http://localhost:3000/graphql](http://localhost:3000/graphql).
 
 ### Try simple queries
 
@@ -89,8 +79,8 @@ Try to run a simple query like the following:
 
 GraphQL query
 ```
-query{
-  person(id: 15){
+query {
+  person(id: 15) {
     name
   }
 }
@@ -136,44 +126,17 @@ Here are the **Link objects** we will be adding to the OAS.
 ```
 "links": {
   "mother": {
-    "operationId": "getPerson",
+    "operationId": "PersonController.findById",
     "parameters": {
       "id": "$response.body#/motherId"
     }
   },
   "father": {
-    "operationId": "getPerson",
+    "operationId": "PersonController.findById",
     "parameters": {
       "id": "$response.body#/fatherId"
     }
   }
-}
-```
-
-Open the Family Tree API OAS and add the *links* and the *operationId* "getPerson" to match the following structure.
-
-```
-{
-  "paths": {
-    "/people/{id}": {
-      "get": {
-        "operationId": "getPerson"
-        "responses": {
-          "200": {
-            "links": {
-              ...
-            },
-          ...
-          },
-        ...
-        },
-        ...
-      },
-      ...
-    },
-    ...
-  },
-  ...
 }
 ```
 
@@ -205,19 +168,19 @@ Now we can write much complex queries like the following.
 
 GraphQL query
 ```
-query{
-  person(id: 15){
+query {
+  person(id: 15) {
     name
     generation
-    father{
+    father {
       name
       id
       generation
-      mother{
+      mother {
         name
         id
         generation
-        father{
+        father {
           name
           id
           generation
@@ -260,39 +223,39 @@ Expected output
 GraphQL query
 ```
 query{
-  person(id: 15){
-    mother{
-        mother{
-          mother{
+  person(id: 15) {
+    mother {
+        mother {
+          mother {
             name
           }
-          father{
+          father {
             name
           }
         }
-        father{
-          mother{
+        father {
+          mother {
             name
           }
-          father{
+          father {
             name
           }
         }
       }
-    father{
-      mother{
-        mother{
+    father {
+      mother {
+        mother {
           id
         }
-        father{
+        father {
           id
         }
       }
-      father{
-        mother{
+      father {
+        mother {
           id
         }
-        father{
+        father {
           id
         }
       }
