@@ -10,7 +10,6 @@ Please note that while the CLI tool will satisfy most needs, it does not offer t
 
 [![OpenAPI-to-GraphQL](../conveyor_belt.png)](https://www.youtube.com/watch?v=4TrHUBJElrk "Click here to watch!")
 
-
 ## Do it yourself
 
 ### Make sure you have installed Node.js
@@ -31,7 +30,7 @@ npm i -g openapi-to-graphql-cli
 
 OpenAPI-to-GraphQL relies on the OpenAPI Specification (OAS) of an existing API to create a GraphQL interface around that API. OpenAPI-to-GraphQL can also retrieve a web-hosted OAS.
 
-If you are using LoopBack, you can simply copy the URL location of the web-hosted OAS, which should be located at http://127.0.0.1:3000/openapi.json after starting the API.
+If you are using LoopBack, you can simply copy the URL location of the web-hosted OAS, which should be located at http://localhost:3001/openapi.json after starting the API.
 
 ```sh
 # in the LoopBack project folder:
@@ -44,9 +43,9 @@ If you want to generate a GraphQL interface for another API, make sure that API 
 
 ### Start GraphQL server
 
-Once OpenAPI-to-GraphQL is installed and the OAS is obtained, you can create and start the GraphQL server. The created GraphQL server is then accessible by default at [http://127.0.0.1:3001/graphql](http://127.0.0.1:3001/graphql).
+Once OpenAPI-to-GraphQL is installed and the OAS is obtained, you can create and start the GraphQL server. The created GraphQL server is then accessible by default at [http://localhost:3000/graphql](http://localhost:3000/graphql).
 
-You can specify a local file containing the OAS specification or a remote url such as `http://127.0.0.1:3000/openapi.json`. 
+You can specify a local file containing the OAS specification or a remote url such as `http://localhost:3001/openapi.json`. 
 
 ```sh
 openapi-to-graphql <OAS JSON file path or remote url> 
