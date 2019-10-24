@@ -319,7 +319,9 @@ export function desanitizeObjKeys(
   mapping: object = {}
 ): object | Array<any> {
   const replaceKeys = obj => {
-    if (Array.isArray(obj)) {
+    if (obj === null) {
+      return null
+    } else if (Array.isArray(obj)) {
       return obj.map(replaceKeys)
     } else if (typeof obj === 'object') {
       const res = {}

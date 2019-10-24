@@ -240,7 +240,10 @@ exports.sanitizeObjKeys = sanitizeObjKeys;
  */
 function desanitizeObjKeys(obj, mapping = {}) {
     const replaceKeys = obj => {
-        if (Array.isArray(obj)) {
+        if (obj === null) {
+            return null;
+        }
+        else if (Array.isArray(obj)) {
             return obj.map(replaceKeys);
         }
         else if (typeof obj === 'object') {

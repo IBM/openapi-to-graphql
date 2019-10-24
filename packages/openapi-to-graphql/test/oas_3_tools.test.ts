@@ -142,6 +142,16 @@ test('Desanitize object keys when given an array', () => {
   ])
 })
 
+test('Desanitize object keys with null value', () => {
+  const obj = {
+    productId: null
+  }
+  const raw = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  expect(raw).toEqual({
+    'product-id': null
+  })
+})
+
 test('Properly treat null values during sanitization', () => {
   const schema = new GraphQLSchema({
     query: new GraphQLObjectType({
