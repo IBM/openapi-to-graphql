@@ -3,6 +3,12 @@ import { Operation } from './types/operation';
 import { ResolveFunction, SubscriptionIterator } from './types/graphql';
 import { PreprocessingData } from './types/preprocessing_data';
 import * as NodeRequest from 'request';
+import { RequestHeadersFunction } from './types/options';
+declare type RequestOptions = Omit<NodeRequest.OptionsWithUrl, 'headers'> & {
+    headers: {
+        [key: string]: string;
+    } | RequestHeadersFunction;
+};
 declare type GetResolverParams = {
     operation: Operation;
     argsFromLink?: {
@@ -12,7 +18,7 @@ declare type GetResolverParams = {
     responseName?: string;
     data: PreprocessingData;
     baseUrl?: string;
-    requestOptions?: NodeRequest.OptionsWithUrl;
+    requestOptions?: RequestOptions;
 };
 declare type GetSubscribeParams = {
     operation: Operation;

@@ -304,8 +304,19 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             options = Object.assign({}, requestOptions);
             options['method'] = operation.method;
             options['url'] = url;
-            if (options.headers) {
-                Object.assign(options.headers, headers);
+            if (requestOptions.headers) {
+                if (typeof requestOptions.headers === 'object') {
+                    Object.assign(requestOptions.headers, headers);
+                }
+                else if (typeof requestOptions.headers === 'function') {
+                    const val = requestOptions.headers({
+                        req: ctx.request,
+                        method,
+                        path,
+                        title
+                    });
+                    Object.assign(options.headers, val);
+                }
             }
             else {
                 options['headers'] = headers;

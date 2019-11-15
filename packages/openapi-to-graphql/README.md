@@ -170,7 +170,7 @@ Schema options:
 
 Resolver options:
 
-- `headers` (type: `object`, default: `{}`): OpenAPI-to-GraphQL, by default, will create arguments for header parameters. This option allows users to stop this behavior and manually inject headers into resolver calls. 
+- `headers` (type: `object` | `function`, default: `{}`): Headers to be sent in every request to the API described by the given OAS. Parameters defined in the OpenAPI Specification to set these headers will be ignored by OpenAPI-to-GraphQL. If used as a function, the following parameters will be exposed per-request: `req` (the GraphQL resolver's context.request object), `method`, `path`, and `title`.
 
 - `qs` (type: `object`, default: `{}`): Query parameters to be sent in every request to the API described by the given OAS. Parameters defined in the OpenAPI Specification to set these query parameters will be ignored by OpenAPI-to-GraphQL.
 

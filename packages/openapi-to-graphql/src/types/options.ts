@@ -5,7 +5,7 @@
 
 // Type imports:
 import * as NodeRequest from 'request'
-import { ResolveFunction, ResolveObject, GraphQLOperationType } from './graphql'
+import { GraphQLOperationType } from './graphql'
 
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
@@ -42,6 +42,13 @@ export type OasTitlePathMethodObject<T> = {
 }
 
 export type Options = Partial<InternalOptions>
+
+export type RequestHeadersFunction = (params: {
+  req: any
+  method: string
+  path: string
+  title: string
+}) => object
 
 export type InternalOptions = {
   /**
@@ -152,7 +159,7 @@ export type InternalOptions = {
   /**
    * Custom headers to send with every request made by a resolve function.
    */
-  headers?: { [key: string]: string }
+  headers?: { [key: string]: string } | RequestHeadersFunction
 
   /**
    * Custom query parameters to send with every reqeust by a resolve function.
