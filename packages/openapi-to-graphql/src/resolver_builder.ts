@@ -18,6 +18,7 @@ import {
 } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
+import { RequestHeadersFunction } from './types/options'
 
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
@@ -46,6 +47,10 @@ type AuthOptions = {
   authCookie: NodeRequest.Cookie
 }
 
+type RequestOptions = Omit<NodeRequest.OptionsWithUrl, 'headers'> & {
+  headers: { [key: string]: string } | RequestHeadersFunction
+}
+
 type GetResolverParams = {
   operation: Operation
   argsFromLink?: { [key: string]: string }
@@ -53,7 +58,7 @@ type GetResolverParams = {
   responseName?: string
   data: PreprocessingData
   baseUrl?: string
-  requestOptions?: NodeRequest.OptionsWithUrl
+  requestOptions?: RequestOptions
 }
 
 type GetSubscribeParams = {
@@ -458,8 +463,18 @@ export function getResolver({
       options = { ...requestOptions }
       options['method'] = operation.method
       options['url'] = url
-      if (options.headers) {
-        Object.assign(options.headers, headers)
+      if (requestOptions.headers) {
+        if (typeof requestOptions.headers === 'object') {
+          Object.assign(requestOptions.headers, headers)
+        } else if (typeof requestOptions.headers === 'function') {
+          const val = requestOptions.headers({
+            req: (ctx as any).request,
+            method,
+            path,
+            title
+          })
+          Object.assign(options.headers, val)
+        }
       } else {
         options['headers'] = headers
       }
