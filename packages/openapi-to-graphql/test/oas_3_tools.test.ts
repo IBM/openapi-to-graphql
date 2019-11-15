@@ -224,6 +224,7 @@ test('Identify allOf as an object', () => {
         operationIdFieldNames: false,
         fillEmptyResponses: false,
         addLimitArgument: false,
+        genericPayloadArgName: false,
         viewer: true,
         sendOAuthTokenInQuery: false,
         provideErrorExtensions: true,

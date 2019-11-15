@@ -52,7 +52,7 @@ type GetGraphQLTypeParams = {
 }
 
 type GetArgsParams = {
-  def?: DataDefinition
+  requestPayloadDef?: DataDefinition
   parameters: ParameterObject[]
   operation?: Operation
   data: PreprocessingData
@@ -192,10 +192,9 @@ function createOrReuseOt({
             ? ` (for operation '${operation.operationId}')`
             : '')
       )
-      return def.graphQLType as (
-        | GraphQLObjectType
+      return def.graphQLType as GraphQLObjectType
         | GraphQLInputObjectType
-        | GraphQLScalarType)
+        | GraphQLScalarType
     }
 
     // CASE: mutation - reuse input object type
@@ -863,11 +862,10 @@ function linkOpRefToOpId({
 }
 
 /**
- * Creates an object with the arguments for resolving a GraphQL (Input) Object
- * Type
+ * Creates the arguments for resolving a field
  */
 export function getArgs({
-  def,
+  requestPayloadDef,
   parameters,
   operation,
   data
@@ -1061,23 +1059,25 @@ export function getArgs({
     }
   }
 
-  // Handle request schema (if present):
-  if (typeof def === 'object') {
+  // Handle request payload (if present):
+  if (typeof requestPayloadDef === 'object') {
     const reqObjectType = getGraphQLType({
-      def,
+      def: requestPayloadDef,
       data,
       operation,
-      isInputObjectType: true
+      isInputObjectType: true // Request payloads will always be an input object type
     })
 
     // Sanitize the argument name
-    const saneName = Oas3Tools.sanitize(
-      def.graphQLInputObjectTypeName,
-      Oas3Tools.CaseStyle.camelCase
-    )
+    const saneName = data.options.genericPayloadArgName
+      ? 'requestBody'
+      : Oas3Tools.sanitize(
+        requestPayloadDef.graphQLInputObjectTypeName,
+        Oas3Tools.CaseStyle.camelCase
+      )
+    
     let reqRequired = false
     if (
-      operation &&
       typeof operation === 'object' &&
       typeof operation.payloadRequired === 'boolean'
     ) {
@@ -1085,7 +1085,8 @@ export function getArgs({
     }
     args[saneName] = {
       type: reqRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
-      description: def.schema.description
+      // TODO: addendum to the description explaining this is the request body
+      description: requestPayloadDef.schema.description
     }
   }
 

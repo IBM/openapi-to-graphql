@@ -165,7 +165,10 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          */
         resolveData.usedPayload = undefined;
         if (payloadName && typeof payloadName === 'string') {
-            const sanePayloadName = Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
+            // The option genericPayloadArgName will change the payload name to "requestBody"
+            const sanePayloadName = data.options.genericPayloadArgName
+                ? 'requestBody'
+                : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
             if (sanePayloadName in args) {
                 if (typeof args[sanePayloadName] === 'object') {
                     // We need to desanitize the payload so the API understands it:

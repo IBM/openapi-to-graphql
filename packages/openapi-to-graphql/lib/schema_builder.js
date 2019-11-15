@@ -626,10 +626,9 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
     }
 }
 /**
- * Creates an object with the arguments for resolving a GraphQL (Input) Object
- * Type
+ * Creates the arguments for resolving a field
  */
-function getArgs({ def, parameters, operation, data }) {
+function getArgs({ requestPayloadDef, parameters, operation, data }) {
     let args = {};
     // Handle params:
     for (let parameter of parameters) {
@@ -782,25 +781,27 @@ function getArgs({ def, parameters, operation, data }) {
             };
         }
     }
-    // Handle request schema (if present):
-    if (typeof def === 'object') {
+    // Handle request payload (if present):
+    if (typeof requestPayloadDef === 'object') {
         const reqObjectType = getGraphQLType({
-            def,
+            def: requestPayloadDef,
             data,
             operation,
-            isInputObjectType: true
+            isInputObjectType: true // Request payloads will always be an input object type
         });
         // Sanitize the argument name
-        const saneName = Oas3Tools.sanitize(def.graphQLInputObjectTypeName, Oas3Tools.CaseStyle.camelCase);
+        const saneName = data.options.genericPayloadArgName
+            ? 'requestBody'
+            : Oas3Tools.sanitize(requestPayloadDef.graphQLInputObjectTypeName, Oas3Tools.CaseStyle.camelCase);
         let reqRequired = false;
-        if (operation &&
-            typeof operation === 'object' &&
+        if (typeof operation === 'object' &&
             typeof operation.payloadRequired === 'boolean') {
             reqRequired = operation.payloadRequired;
         }
         args[saneName] = {
             type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : reqObjectType,
-            description: def.schema.description
+            // TODO: addendum to the description explaining this is the request body
+            description: requestPayloadDef.schema.description
         };
     }
     args = utils_1.sortObject(args);

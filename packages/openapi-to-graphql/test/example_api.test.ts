@@ -2020,3 +2020,63 @@ test('Query string arguments are not created when they are provided through requ
       })
     })
 })
+
+test('Option genericPayloadArgName', () => {
+  const query = `{
+    __schema {
+      mutationType {
+        fields {
+          name
+          args {
+            name
+          }
+        }
+      }
+    }
+  }`
+
+  // The postUser field should have a userInput argument
+  const promise = graphql(createdSchema, query).then(result => {
+    expect(
+      result.data['__schema'].mutationType.fields.find(field => {
+        return field.name === 'postUser'
+      })
+    ).toEqual({
+      name: 'postUser',
+      args: [
+        {
+          name: 'userInput'
+        }
+      ]
+    })
+  })
+
+  const options: Options = {
+    genericPayloadArgName: true
+  }
+
+  // The postUser field should now have a requestPody argument
+  const promise2 = openAPIToGraphQL
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      const ast = parse(query)
+      const errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(
+          result.data['__schema'].mutationType.fields.find(field => {
+            return field.name === 'postUser'
+          })
+        ).toEqual({
+          name: 'postUser',
+          args: [
+            {
+              name: 'requestBody'
+            }
+          ]
+        })
+      })
+    })
+
+  return Promise.all([promise, promise2])
+})

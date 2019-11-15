@@ -50,6 +50,10 @@ program
     '-a, --addLimitArgument',
     'add a limit argument on fields returning lists of objects/lists to control the data size'
   )
+  .option(
+    '-g, --genericPayloadArgName',
+    'Sets argument name for the payload of a mutation to \'requestBody\''
+  )
 
   // Resolver options
   .option(
@@ -102,6 +106,7 @@ const options: Options = {
   operationIdFieldNames: program.operationIdFieldNames,
   fillEmptyResponses: program.fillEmptyResponses,
   addLimitArgument: program.addLimitArgument,
+  genericPayloadArgName: program.genericPayloadArgName,
 
   // Resolver options
   headers,

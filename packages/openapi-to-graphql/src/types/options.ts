@@ -86,6 +86,11 @@ export type Options = {
    */
   selectQueryOrMutationField?: selectQueryOrMutationFieldType
 
+  /**
+   * Sets argument name for the payload of a mutation to 'requestBody'
+   */
+  genericPayloadArgName?: boolean
+
   // Resolver options
 
   /**
@@ -239,6 +244,11 @@ export type InternalOptions = {
    * operation, and lastly the method of the operation.
    */
   selectQueryOrMutationField?: selectQueryOrMutationFieldType
+
+  /**
+   * Sets argument name for the payload of a mutation to 'requestBody'
+   */
+  genericPayloadArgName: boolean
 
   // Resolver options
 

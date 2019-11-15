@@ -70,6 +70,10 @@ export declare type Options = {
      */
     selectQueryOrMutationField?: selectQueryOrMutationFieldType;
     /**
+     * Sets argument name for the payload of a mutation to 'requestBody'
+     */
+    genericPayloadArgName?: boolean;
+    /**
      * Custom headers to send with every request made by a resolve function.
      */
     headers?: {
@@ -206,6 +210,10 @@ export declare type InternalOptions = {
      * operation, and lastly the method of the operation.
      */
     selectQueryOrMutationField?: selectQueryOrMutationFieldType;
+    /**
+     * Sets argument name for the payload of a mutation to 'requestBody'
+     */
+    genericPayloadArgName: boolean;
     /**
      * Custom headers to send with every request made by a resolve function.
      */
