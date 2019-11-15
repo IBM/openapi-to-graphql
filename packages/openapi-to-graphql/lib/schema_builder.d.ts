@@ -13,7 +13,7 @@ declare type GetGraphQLTypeParams = {
     isInputObjectType?: boolean;
 };
 declare type GetArgsParams = {
-    def?: DataDefinition;
+    requestPayloadDef?: DataDefinition;
     parameters: ParameterObject[];
     operation?: Operation;
     data: PreprocessingData;
@@ -23,8 +23,7 @@ declare type GetArgsParams = {
  */
 export declare function getGraphQLType({ def, operation, data, iteration, isInputObjectType }: GetGraphQLTypeParams): GraphQLType;
 /**
- * Creates an object with the arguments for resolving a GraphQL (Input) Object
- * Type
+ * Creates the arguments for resolving a field
  */
-export declare function getArgs({ def, parameters, operation, data }: GetArgsParams): Args;
+export declare function getArgs({ requestPayloadDef, parameters, operation, data }: GetArgsParams): Args;
 export {};

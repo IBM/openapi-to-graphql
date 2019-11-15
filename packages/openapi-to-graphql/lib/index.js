@@ -47,6 +47,10 @@ function createGraphQlSchema(spec, options) {
             typeof options.addLimitArgument === 'boolean'
                 ? options.addLimitArgument
                 : false;
+        options.genericPayloadArgName =
+            typeof options.genericPayloadArgName === 'boolean'
+                ? options.genericPayloadArgName
+                : false;
         // Authentication options
         options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true;
         options.sendOAuthTokenInQuery =
@@ -100,7 +104,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
  */
 function translateOpenAPIToGraphQL(oass, { strict, report, 
 // Schema options
-operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, 
+operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, 
 // Resolver options
 headers, qs, requestOptions, baseUrl, customResolvers, 
 // Authentication options
@@ -116,6 +120,7 @@ provideErrorExtensions, equivalentToMessages }) {
             fillEmptyResponses,
             addLimitArgument,
             idFormats,
+            genericPayloadArgName,
             // Resolver options
             headers,
             qs,
@@ -360,7 +365,7 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions) {
          * create arguments for links. The operation argument is really used to pass
          * data to other functions.
          */
-        def: operation.payloadDefinition,
+        requestPayloadDef: operation.payloadDefinition,
         parameters: operation.parameters,
         operation,
         data

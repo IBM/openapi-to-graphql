@@ -85,6 +85,10 @@ export async function createGraphQlSchema(
     typeof options.addLimitArgument === 'boolean'
       ? options.addLimitArgument
       : false
+  options.genericPayloadArgName =
+    typeof options.genericPayloadArgName === 'boolean'
+      ? options.genericPayloadArgName
+      : false
 
   // Authentication options
   options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
@@ -157,6 +161,7 @@ async function translateOpenAPIToGraphQL(
     addLimitArgument,
     idFormats,
     selectQueryOrMutationField,
+    genericPayloadArgName,
 
     // Resolver options
     headers,
@@ -184,6 +189,7 @@ async function translateOpenAPIToGraphQL(
     fillEmptyResponses,
     addLimitArgument,
     idFormats,
+    genericPayloadArgName,
 
     // Resolver options
     headers,
@@ -491,7 +497,7 @@ function getFieldForOperation(
      * create arguments for links. The operation argument is really used to pass
      * data to other functions.
      */
-    def: operation.payloadDefinition,
+    requestPayloadDef: operation.payloadDefinition,
     parameters: operation.parameters,
 
     operation,
