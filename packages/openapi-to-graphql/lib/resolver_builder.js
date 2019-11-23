@@ -228,7 +228,8 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         resolveData.usedStatusCode = operation.statusCode;
         // Make the call
         httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}\n` +
-            `headers:${JSON.stringify(options.headers)}`);
+            `headers: ${JSON.stringify(options.headers)}\n` +
+            `request body: ${options.body}`);
         return new Promise((resolve, reject) => {
             NodeRequest(options, (err, response, body) => {
                 if (err) {

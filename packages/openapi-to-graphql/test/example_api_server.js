@@ -377,7 +377,7 @@ function startServer(PORT) {
       res.send(Users[req.params.username])
     } else {
       res.status(404).send({
-        message: 'Wrong username.'
+        message: 'Wrong username'
       })
     }
   })
@@ -388,7 +388,7 @@ function startServer(PORT) {
       res.send(Cars[req.params.username])
     } else {
       res.status(404).send({
-        message: 'Wrong username.'
+        message: 'Wrong username'
       })
     }
   })
@@ -406,7 +406,7 @@ function startServer(PORT) {
       res.send(friends)
     } else {
       res.status(404).send({
-        message: 'Wrong username.'
+        message: 'Wrong username'
       })
     }
   })
@@ -421,7 +421,7 @@ function startServer(PORT) {
       !('hobbies' in user)
     ) {
       res.status(400).send({
-        message: 'wrong data'
+        message: 'Wrong data'
       })
     } else {
       Users[user.name] = user
@@ -527,7 +527,7 @@ function startServer(PORT) {
       req.query['product-tag'] === 'undefined'
     ) {
       res.status(400).send({
-        message: 'wrong data'
+        message: 'Wrong data'
       })
     } else {
       res
@@ -551,7 +551,7 @@ function startServer(PORT) {
     if (!contentType.includes('text/plain')) {
       res.status(400).send({
         message:
-          "wrong content-type, expected 'text/plain' but received " +
+          "Wrong content-type, expected 'text/plain' but received " +
           contentType
       })
     } else {
@@ -592,7 +592,7 @@ function startServer(PORT) {
     let project = req.body
     if (!('project-id' in project) || !('lead-id' in project)) {
       res.status(400).send({
-        message: 'wrong data'
+        message: 'Wrong data'
       })
     } else {
       res.status(201).send(project)
@@ -608,7 +608,7 @@ function startServer(PORT) {
       !('product-tag' in product)
     ) {
       res.status(400).send({
-        message: 'wrong data'
+        message: 'Wrong data'
       })
     } else {
       res.status(201).send(product)
@@ -646,7 +646,7 @@ function startServer(PORT) {
       typeof req.get('exampleHeader') === 'undefined'
     ) {
       res.status(400).send({
-        message: 'wrong request'
+        message: 'Wrong request'
       })
     } else {
       res
@@ -662,7 +662,7 @@ function startServer(PORT) {
       res.status(201).send('success')
     } else {
       res.status(400).send({
-        message: "wrong data, try 'hello': 'world'"
+        message: "Wrong data, try 'hello': 'world'"
       })
     }
   })
@@ -671,7 +671,7 @@ function startServer(PORT) {
     console.log(req.method, req.path, req.query, req.headers)
     if (req.get('authorization') !== 'Bearer abcdef') {
       res.status(401).send({
-        message: 'missing authorization header'
+        message: 'Missing authorization header'
       })
     } else {
       res.set('Content-Type', 'text/plain').send('A secure message.')
@@ -689,7 +689,7 @@ function startServer(PORT) {
       res.send(TrashCans[req.params.username])
     } else {
       res.status(404).send({
-        message: 'Wrong username.'
+        message: 'Wrong username'
       })
     }
   })
@@ -704,7 +704,7 @@ function startServer(PORT) {
       res.send(TrashCans[req.params.username])
     } else {
       res.status(404).send({
-        message: 'Wrong username.'
+        message: 'Wrong username'
       })
     }
   })
