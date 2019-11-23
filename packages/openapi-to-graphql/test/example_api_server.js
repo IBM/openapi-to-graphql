@@ -98,7 +98,10 @@ function startServer(PORT) {
       model: 'Retro Rides',
       color: 'yellow',
       kind: 'SEDAN',
-      rating: 100
+      rating: 100,
+      features: {
+        color: 'banana yellow to be specific'
+      }
     },
     will: {
       model: 'Speedzone Speedster',

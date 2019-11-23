@@ -186,9 +186,9 @@ function createOrReuseOt({
     if (def.ot && typeof def.ot !== 'undefined') {
       translationLog(
         `Reuse object type '${def.otName}'` +
-        (typeof operation === 'object'
-          ? ` (for operation '${operation.operationId}')`
-          : '')
+          (typeof operation === 'object'
+            ? ` (for operation '${operation.operationId}')`
+            : '')
       )
       return def.ot as (
         | GraphQLObjectType
@@ -201,9 +201,9 @@ function createOrReuseOt({
     if (def.iot && typeof def.iot !== 'undefined') {
       translationLog(
         `Reuse input object type '${def.iotName}'` +
-        (typeof operation === 'object'
-          ? ` (for operation '${operation.operationId}')`
-          : '')
+          (typeof operation === 'object'
+            ? ` (for operation '${operation.operationId}')`
+            : '')
       )
       return def.iot as GraphQLInputObjectType
     }
@@ -223,7 +223,8 @@ function createOrReuseOt({
    * Instead, store response in an arbitray JSON type.
    */
   if (
-    typeof def.schema.properties === 'undefined' &&
+    (typeof def.schema.properties === 'undefined' ||
+      Object.keys(def.schema.properties).length === 0) && // Empty object
     typeof def.schema.allOf === 'undefined' // allOf can provide all the properties
     // TODO: Add oneOf and anyOf
   ) {
@@ -232,7 +233,7 @@ function createOrReuseOt({
       message:
         `The operation ` +
         `'${operation.operationString}' contains ` +
-        `a object schema ${JSON.stringify(def)} with no properties. ` +
+        `an object schema ${JSON.stringify(schema)} with no properties. ` +
         `GraphQL objects must have well-defined properties so a one to ` +
         `one conversion cannot be achieved.`,
       data,
@@ -245,9 +246,9 @@ function createOrReuseOt({
   if (!isInputObjectType) {
     translationLog(
       `Create object type '${def.otName}'` +
-      (typeof operation === 'object'
-        ? ` (for operation '${operation.operationId}')`
-        : '')
+        (typeof operation === 'object'
+          ? ` (for operation '${operation.operationId}')`
+          : '')
     )
 
     def.ot = new GraphQLObjectType({
@@ -271,9 +272,9 @@ function createOrReuseOt({
   } else {
     translationLog(
       `Create input object type '${def.iotName}'` +
-      (typeof operation === 'object'
-        ? ` (for operation '${operation.operationId}')`
-        : '')
+        (typeof operation === 'object'
+          ? ` (for operation '${operation.operationId}')`
+          : '')
     )
 
     def.iot = new GraphQLInputObjectType({
@@ -475,7 +476,6 @@ function createFields({
           : (objectType as GraphQLOutputType),
 
         description: schema.description
-        
       }
     }
   }
@@ -563,7 +563,7 @@ function createFields({
           const resObjectType = linkedOp.responseDefinition.ot
 
           let description = link.description
- 
+
           if (data.options.equivalentToMessages && description) {
             description += `\n\nEquivalent to ${linkedOp.operationString}`
           }
