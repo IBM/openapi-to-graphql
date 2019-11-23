@@ -1134,6 +1134,9 @@
             "type": "string",
             "description": "The color of the car."
           },
+          "features": {
+            "properties": {}
+          },
           "tags": {
             "$ref": "#/components/schemas/tags"
           },

@@ -65,6 +65,9 @@ test('Get descriptions', () => {
               description: null
             },
             {
+              description: null
+            },
+            {
               description: 'The model of the car.'
             },
             {
@@ -806,14 +809,22 @@ test('Request data is correctly de-sanitized to be sent', () => {
   })
 })
 
-// Testing additionalProperties field in schemas
 test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
+  // Testing additionalProperties field in schemas
   const query = `{
     cars {
       tags
     }
   }`
-  return graphql(createdSchema, query, null, {}).then(result => {
+
+  // Testing empty properties field
+  const query2 = `{
+    cars {
+      features
+    }
+  }`
+
+  const promise = graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
         cars: [
@@ -840,6 +851,31 @@ test('Fields with arbitrary JSON (e.g., maps) can be returned', () => {
       }
     })
   })
+
+  const promise2 = graphql(createdSchema, query2, null, {}).then(result => {
+    expect(result).toEqual({
+      data: {
+        cars: [
+          {
+            features: {
+              color: 'banana yellow to be specific'
+            }
+          },
+          {
+            features: null
+          },
+          {
+            features: null
+          },
+          {
+            features: null
+          }
+        ]
+      }
+    })
+  })
+
+  return Promise.all([promise, promise2])
 })
 
 test('Capitalized enum values can be returned', () => {

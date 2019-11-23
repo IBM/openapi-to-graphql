@@ -106,7 +106,8 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
      *
      * Instead, store response in an arbitray JSON type.
      */
-    if (typeof def.schema.properties === 'undefined' &&
+    if ((typeof def.schema.properties === 'undefined' ||
+        Object.keys(def.schema.properties).length === 0) && // Empty object
         typeof def.schema.allOf === 'undefined' // allOf can provide all the properties
     // TODO: Add oneOf and anyOf
     ) {
@@ -114,7 +115,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
             typeKey: 'OBJECT_MISSING_PROPERTIES',
             message: `The operation ` +
                 `'${operation.operationString}' contains ` +
-                `a object schema ${JSON.stringify(def)} with no properties. ` +
+                `an object schema ${JSON.stringify(schema)} with no properties. ` +
                 `GraphQL objects must have well-defined properties so a one to ` +
                 `one conversion cannot be achieved.`,
             data,
