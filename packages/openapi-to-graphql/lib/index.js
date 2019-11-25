@@ -306,7 +306,7 @@ provideErrorExtensions, equivalentToMessages }) {
                     description: 'The start of any query',
                     fields: queryFields
                 })
-                : GraphQLTools.getEmptyObjectType('query'),
+                : GraphQLTools.getEmptyObjectType('Query'),
             mutation: Object.keys(mutationFields).length > 0
                 ? new graphql_1.GraphQLObjectType({
                     name: 'Mutation',

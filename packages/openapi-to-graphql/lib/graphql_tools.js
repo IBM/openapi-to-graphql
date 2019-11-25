@@ -14,32 +14,17 @@ const graphql_1 = require("graphql");
 function getEmptyObjectType(name) {
     return new graphql_1.GraphQLObjectType({
         name: name + 'Placeholder',
+        description: 'Placeholder object',
         fields: {
             message: {
                 type: graphql_1.GraphQLString,
+                description: 'Placeholder field',
                 resolve: () => {
-                    return 'This interface offers no query.';
+                    return 'This is a placeholder field.';
                 }
             }
         }
     });
 }
 exports.getEmptyObjectType = getEmptyObjectType;
-/**
- * Returns empty GraphQLInputObjectType.
- */
-function getEmptyInputObjectType() {
-    return new graphql_1.GraphQLInputObjectType({
-        name: 'placeholder',
-        fields: {
-            message: {
-                type: graphql_1.GraphQLString,
-                resolve: () => {
-                    return 'This interface offers no mutation.';
-                }
-            }
-        }
-    });
-}
-exports.getEmptyInputObjectType = getEmptyInputObjectType;
 //# sourceMappingURL=graphql_tools.js.map
