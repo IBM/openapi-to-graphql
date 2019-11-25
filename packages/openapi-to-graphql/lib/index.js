@@ -472,6 +472,7 @@ function preliminaryChecks(options, data) {
 }
 var oas_3_tools_1 = require("./oas_3_tools");
 exports.sanitize = oas_3_tools_1.sanitize;
+exports.CaseStyle = oas_3_tools_1.CaseStyle;
 var graphql_2 = require("./types/graphql");
 exports.GraphQLOperationType = graphql_2.GraphQLOperationType;
 //# sourceMappingURL=index.js.map

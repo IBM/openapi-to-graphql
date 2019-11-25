@@ -216,7 +216,7 @@ function getProcessedSecuritySchemes(oas, data) {
                     description += ` in ${oas.info.title}`;
                 }
                 parameters = {
-                    apiKey: Oas3Tools.sanitize(`${key}_apiKey`)
+                    apiKey: Oas3Tools.sanitize(`${key}_apiKey`, Oas3Tools.CaseStyle.camelCase)
                 };
                 schema = {
                     type: 'object',
@@ -238,8 +238,8 @@ function getProcessedSecuritySchemes(oas, data) {
                     case 'basic':
                         description = `Basic auth credentials for security protocol '${key}'`;
                         parameters = {
-                            username: Oas3Tools.sanitize(`${key}_username`),
-                            password: Oas3Tools.sanitize(`${key}_password`)
+                            username: Oas3Tools.sanitize(`${key}_username`, Oas3Tools.CaseStyle.camelCase),
+                            password: Oas3Tools.sanitize(`${key}_password`, Oas3Tools.CaseStyle.camelCase)
                         };
                         schema = {
                             type: 'object',
@@ -328,7 +328,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     const saneLinks = {};
     if (typeof links === 'object') {
         Object.keys(links).forEach(linkKey => {
-            saneLinks[Oas3Tools.sanitize(linkKey)] = links[linkKey];
+            saneLinks[Oas3Tools.sanitize(linkKey, Oas3Tools.CaseStyle.camelCase)] =
+                links[linkKey];
         });
     }
     // Determine the index of possible existing data definition
@@ -373,7 +374,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     }
     else {
         // Else, define a new name, store the def, and return it
-        const name = getSchemaName(data.usedOTNames, names);
+        const name = getSchemaName(names, data.usedOTNames);
         // Store and sanitize the name
         const saneName = Oas3Tools.capitalize(Oas3Tools.sanitizeAndStore(name, data.saneMap));
         const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
@@ -509,62 +510,59 @@ function getPreferredName(names) {
     else {
         schemaName = 'PlaceholderName';
     }
-    return Oas3Tools.sanitize(schemaName);
+    return Oas3Tools.sanitize(schemaName, Oas3Tools.CaseStyle.camelCase);
 }
 /**
  * Determines name to use for schema from previously determined schemaNames and
  * considering not reusing existing names.
  */
-function getSchemaName(usedNames, names) {
-    if (!names || typeof names === 'undefined') {
-        throw new Error(`Cannot create data definition without name(s).`);
-        // Cannot create a schema name from only preferred name
-    }
-    else if (Object.keys(names).length === 1 &&
-        typeof names.preferred === 'string') {
+function getSchemaName(names, usedNames) {
+    if (Object.keys(names).length === 1 && typeof names.preferred === 'string') {
         throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`);
     }
     let schemaName;
     // CASE: name from reference
     if (typeof names.fromRef === 'string') {
-        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.fromRef));
+        const saneName = Oas3Tools.sanitize(names.fromRef, Oas3Tools.CaseStyle.PascalCase);
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromRef;
         }
     }
     // CASE: name from schema (i.e., "title" property in schema)
     if (!schemaName && typeof names.fromSchema === 'string') {
-        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.fromSchema));
+        const saneName = Oas3Tools.sanitize(names.fromSchema, Oas3Tools.CaseStyle.PascalCase);
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromSchema;
         }
     }
     // CASE: name from path
     if (!schemaName && typeof names.fromPath === 'string') {
-        const saneName = Oas3Tools.capitalize(Oas3Tools.sanitize(names.fromPath));
+        const saneName = Oas3Tools.sanitize(names.fromPath, Oas3Tools.CaseStyle.PascalCase);
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromPath;
         }
     }
     // CASE: all names are already used - create approximate name
     if (!schemaName) {
-        const tempName = Oas3Tools.capitalize(Oas3Tools.sanitize(typeof names.fromRef === 'string'
+        schemaName = Oas3Tools.sanitize(typeof names.fromRef === 'string'
             ? names.fromRef
             : typeof names.fromSchema === 'string'
                 ? names.fromSchema
                 : typeof names.fromPath === 'string'
                     ? names.fromPath
-                    : 'PlaceholderName'));
+                    : 'PlaceholderName', Oas3Tools.CaseStyle.PascalCase);
+    }
+    if (usedNames.includes(schemaName)) {
         let appendix = 2;
         /**
          * GraphQL Objects cannot share the name so if the name already exists in
          * the master list append an incremental number until the name does not
          * exist anymore.
          */
-        while (usedNames.includes(`${tempName}${appendix}`)) {
+        while (usedNames.includes(`${schemaName}${appendix}`)) {
             appendix++;
         }
-        schemaName = `${tempName}${appendix}`;
+        schemaName = `${schemaName}${appendix}`;
     }
     return schemaName;
 }

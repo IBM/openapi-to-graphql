@@ -17,8 +17,8 @@ import * as Oas3Tools from '../lib/oas_3_tools'
 
 test('Applying sanitize multiple times does not change outcome', () => {
   const str = 'this Super*annoying-string()'
-  const once = Oas3Tools.sanitize(str)
-  const twice = Oas3Tools.sanitize(once)
+  const once = Oas3Tools.sanitize(str, Oas3Tools.CaseStyle.PascalCase)
+  const twice = Oas3Tools.sanitize(once, Oas3Tools.CaseStyle.PascalCase)
   expect(twice).toEqual(once)
 })
 

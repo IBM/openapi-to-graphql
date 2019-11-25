@@ -156,10 +156,15 @@ export declare function getSecuritySchemes(oas: Oas3): {
 export declare function getSecurityRequirements(path: string, method: string, securitySchemes: {
     [key: string]: ProcessedSecurityScheme;
 }, oas: Oas3): string[];
+export declare enum CaseStyle {
+    PascalCase = 0,
+    camelCase = 1,
+    ALL_CAPS = 2
+}
 /**
  * First sanitizes given string and then also camel-cases it.
  */
-export declare function sanitize(str: string, lowercaseFirstChar?: boolean): string;
+export declare function sanitize(str: string, caseStyle: CaseStyle): string;
 /**
  * Sanitizes the given string and stores the sanitized-to-original mapping in
  * the given mapping.

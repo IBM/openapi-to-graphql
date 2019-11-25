@@ -234,8 +234,8 @@ function createOrReuseEnum({ def, data }) {
         translationLog(`Create GraphQLEnumType '${def.otName}'`);
         const values = {};
         def.schema.enum.forEach(e => {
-            // Force enum values to string
-            values[Oas3Tools.sanitize(e.toString(), false)] = {
+            // Force enum values to string and value should be in ALL_CAPS
+            values[Oas3Tools.sanitize(e.toString(), Oas3Tools.CaseStyle.ALL_CAPS)] = {
                 value: e
             };
         });
@@ -726,7 +726,7 @@ function getArgs({ def, parameters, operation, data }) {
          * NOTE: when matching these parameters back to requests, we need to again
          * use the real parameter name
          */
-        const saneName = Oas3Tools.sanitize(parameter.name);
+        const saneName = Oas3Tools.sanitize(parameter.name, Oas3Tools.CaseStyle.camelCase);
         // Parameters are not required when a default exists:
         let hasDefault = false;
         if (typeof parameter.schema === 'object') {
@@ -782,7 +782,7 @@ function getArgs({ def, parameters, operation, data }) {
             isInputObjectType: true
         });
         // Sanitize the argument name
-        const saneName = Oas3Tools.sanitize(def.iotName);
+        const saneName = Oas3Tools.sanitize(def.iotName, Oas3Tools.CaseStyle.camelCase);
         let reqRequired = false;
         if (operation &&
             typeof operation === 'object' &&
