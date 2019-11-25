@@ -21,28 +21,13 @@ import {
 export function getEmptyObjectType(name: string): GQObjectType {
   return new GraphQLObjectType({
     name: name + 'Placeholder',
+    description: 'Placeholder object',
     fields: {
       message: {
         type: GraphQLString,
+        description: 'Placeholder field',
         resolve: () => {
-          return 'This interface offers no query.'
-        }
-      }
-    }
-  })
-}
-
-/**
- * Returns empty GraphQLInputObjectType.
- */
-export function getEmptyInputObjectType(): GQInputObjectType {
-  return new GraphQLInputObjectType({
-    name: 'placeholder',
-    fields: {
-      message: {
-        type: GraphQLString,
-        resolve: () => {
-          return 'This interface offers no mutation.'
+          return 'This is a placeholder field.'
         }
       }
     }
