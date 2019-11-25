@@ -66,7 +66,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          * the user.
          */
         operation.parameters.forEach(param => {
-            const paramName = Oas3Tools.sanitize(param.name);
+            const paramName = Oas3Tools.sanitize(param.name, Oas3Tools.CaseStyle.camelCase);
             if (typeof args[paramName] === 'undefined' &&
                 param.schema &&
                 typeof param.schema === 'object') {
@@ -165,7 +165,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          */
         resolveData.usedPayload = undefined;
         if (payloadName && typeof payloadName === 'string') {
-            const sanePayloadName = Oas3Tools.sanitize(payloadName);
+            const sanePayloadName = Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
             if (sanePayloadName in args) {
                 if (typeof args[sanePayloadName] === 'object') {
                     // We need to desanitize the payload so the API understands it:
@@ -522,7 +522,7 @@ function getAuthReqAndProtcolName(operation, _openAPIToGraphQL) {
         operation.securityRequirements.length > 0) {
         authRequired = true;
         for (let securityRequirement of operation.securityRequirements) {
-            const sanitizedSecurityRequirement = Oas3Tools.sanitize(securityRequirement);
+            const sanitizedSecurityRequirement = Oas3Tools.sanitize(securityRequirement, Oas3Tools.CaseStyle.camelCase);
             if (typeof _openAPIToGraphQL.security[sanitizedSecurityRequirement] ===
                 'object') {
                 return {
@@ -572,11 +572,11 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
             // CASE: parameter in previous query parameter
         }
         else if (value.startsWith('$request.query')) {
-            return resolveData.usedParams[Oas3Tools.sanitize(value.split('query.')[1])];
+            return resolveData.usedParams[Oas3Tools.sanitize(value.split('query.')[1], Oas3Tools.CaseStyle.camelCase)];
             // CASE: parameter in previous path parameter
         }
         else if (value.startsWith('$request.path')) {
-            return resolveData.usedParams[Oas3Tools.sanitize(value.split('path.')[1])];
+            return resolveData.usedParams[Oas3Tools.sanitize(value.split('path.')[1], Oas3Tools.CaseStyle.camelCase)];
             // CASE: parameter in previous header parameter
         }
         else if (value.startsWith('$request.header')) {
@@ -616,12 +616,12 @@ function resolveLinkParameter(paramName, value, resolveData, root, args) {
         }
         else if (value.startsWith('$response.query')) {
             // NOTE: handled the same way $request.query is handled
-            return resolveData.usedParams[Oas3Tools.sanitize(value.split('query.')[1])];
+            return resolveData.usedParams[Oas3Tools.sanitize(value.split('query.')[1], Oas3Tools.CaseStyle.camelCase)];
             // CASE: parameter in path parameter
         }
         else if (value.startsWith('$response.path')) {
             // NOTE: handled the same way $request.path is handled
-            return resolveData.usedParams[Oas3Tools.sanitize(value.split('path.')[1])];
+            return resolveData.usedParams[Oas3Tools.sanitize(value.split('path.')[1], Oas3Tools.CaseStyle.camelCase)];
             // CASE: parameter in header parameter
         }
         else if (value.startsWith('$response.header')) {

@@ -109,8 +109,14 @@ export function createAndLoadViewer(
 
     // Create name for the viewer
     let viewerName = !isMutation
-      ? Oas3Tools.sanitize(`viewer ${viewerType}`)
-      : Oas3Tools.sanitize(`mutation viewer ${viewerType}`)
+      ? Oas3Tools.sanitize(
+          `viewer ${viewerType}`,
+          Oas3Tools.CaseStyle.camelCase
+        )
+      : Oas3Tools.sanitize(
+          `mutation viewer ${viewerType}`,
+          Oas3Tools.CaseStyle.camelCase
+        )
 
     // Ensure unique viewer name
     // If name already exists, append a number at the end of the name

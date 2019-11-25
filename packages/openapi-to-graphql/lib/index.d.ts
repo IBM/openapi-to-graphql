@@ -36,5 +36,5 @@ declare type Result = {
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
 export declare function createGraphQlSchema(spec: Oas3 | Oas2 | (Oas3 | Oas2)[], options?: Options): Promise<Result>;
-export { sanitize } from './oas_3_tools';
+export { sanitize, CaseStyle } from './oas_3_tools';
 export { GraphQLOperationType } from './types/graphql';

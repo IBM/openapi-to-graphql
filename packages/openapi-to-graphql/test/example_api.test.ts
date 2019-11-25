@@ -93,7 +93,7 @@ test('Get resource (incl. enum)', () => {
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
-      data: { user: { name: 'Arlene L McMahon', status: 'staff' } }
+      data: { user: { name: 'Arlene L McMahon', status: 'STAFF' } }
     })
   })
 })
@@ -539,7 +539,7 @@ test('Get response without providing parameter with default value', () => {
 
 test('Get response with header parameters', () => {
   const query = `{
-    snack(snackType: chips, snackSize: small)
+    snack(snackType: CHIPS, snackSize: SMALL)
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
@@ -573,7 +573,7 @@ test('Get JSON response even with non-JSON accept header', () => {
 
 test('Get response with cookies', () => {
   const query = `{
-    cookie (cookieType:chocolateChip, cookieSize:megaSized)
+    cookie (cookieType: CHOCOLATE_CHIP, cookieSize: MEGA_SIZED)
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
