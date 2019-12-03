@@ -854,25 +854,16 @@ exports.sanitize = sanitize;
  * Sanitizes the given string and stores the sanitized-to-original mapping in
  * the given mapping.
  */
-function sanitizeAndStore(str, mapping) {
-    if (!(typeof mapping === 'object')) {
-        throw new Error(`No/invalid mapping passed to sanitizeAndStore`);
+function storeSaneName(saneStr, str, mapping) {
+    if (saneStr in mapping && str !== mapping[saneStr]) {
+        // TODO: Follow warning model
+        translationLog(`Warning: '${str}' and '${mapping[saneStr]}' both sanitize ` +
+            `to '${saneStr}' - collision possible. Desanitize to '${str}'.`);
     }
-    const clean = sanitize(str, CaseStyle.camelCase);
-    if (!clean) {
-        throw new Error(`Cannot sanitize and store '${str}'`);
-    }
-    else if (clean !== str) {
-        if (clean in mapping && str !== mapping[clean]) {
-            // TODO: Follow warning model
-            translationLog(`Warning: '${str}' and '${mapping[clean]}' both sanitize ` +
-                `to '${clean}' - collision possible. Desanitize to '${str}'.`);
-        }
-        mapping[clean] = str;
-    }
-    return clean;
+    mapping[saneStr] = str;
+    return saneStr;
 }
-exports.sanitizeAndStore = sanitizeAndStore;
+exports.storeSaneName = storeSaneName;
 /**
  * Return an object similar to the input object except the keys are all
  * sanitized

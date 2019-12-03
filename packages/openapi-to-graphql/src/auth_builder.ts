@@ -166,7 +166,13 @@ const getViewerOT = (
   // Resolve function:
   const resolve = (root, args, ctx) => {
     const security = {}
-    security[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = args
+    const saneProtocolName = Oas3Tools.sanitize(
+      protocolName,
+      Oas3Tools.CaseStyle.camelCase
+    )
+    security[
+      Oas3Tools.storeSaneName(saneProtocolName, protocolName, data.saneMap)
+    ] = args
 
     /**
      * Viewers are always root, so we can instantiate _openAPIToGraphQL here without
@@ -245,7 +251,13 @@ const getViewerAnyAuthOT = (
       isInputObjectType: true
     })
 
-    args[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = { type }
+    const saneProtocolName = Oas3Tools.sanitize(
+      protocolName,
+      Oas3Tools.CaseStyle.camelCase
+    )
+    args[
+      Oas3Tools.storeSaneName(saneProtocolName, protocolName, data.saneMap)
+    ] = { type }
   }
   args = sortObject(args)
 

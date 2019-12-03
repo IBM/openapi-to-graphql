@@ -1083,29 +1083,21 @@ export function sanitize(str: string, caseStyle: CaseStyle): string {
  * Sanitizes the given string and stores the sanitized-to-original mapping in
  * the given mapping.
  */
-export function sanitizeAndStore(
+export function storeSaneName(
+  saneStr: string,
   str: string,
   mapping: { [key: string]: string }
 ): string {
-  if (!(typeof mapping === 'object')) {
-    throw new Error(`No/invalid mapping passed to sanitizeAndStore`)
+  if (saneStr in mapping && str !== mapping[saneStr]) {
+    // TODO: Follow warning model
+    translationLog(
+      `Warning: '${str}' and '${mapping[saneStr]}' both sanitize ` +
+        `to '${saneStr}' - collision possible. Desanitize to '${str}'.`
+    )
   }
+  mapping[saneStr] = str
 
-  const clean = sanitize(str, CaseStyle.camelCase)
-
-  if (!clean) {
-    throw new Error(`Cannot sanitize and store '${str}'`)
-  } else if (clean !== str) {
-    if (clean in mapping && str !== mapping[clean]) {
-      // TODO: Follow warning model
-      translationLog(
-        `Warning: '${str}' and '${mapping[clean]}' both sanitize ` +
-          `to '${clean}' - collision possible. Desanitize to '${str}'.`
-      )
-    }
-    mapping[clean] = str
-  }
-  return clean
+  return saneStr
 }
 
 /**
