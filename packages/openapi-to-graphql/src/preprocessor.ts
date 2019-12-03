@@ -545,8 +545,8 @@ export function createDataDef(
       type,
       subDefinitions: undefined,
       links: saneLinks,
-      otName,
-      iotName
+      graphQLTypeName: otName,
+      graphQLInputObjectTypeName: iotName
     }
 
     if (type) {

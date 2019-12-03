@@ -112,7 +112,9 @@ export function getGraphQLType({
   iteration = 0,
   isInputObjectType = false
 }: GetGraphQLTypeParams): GraphQLType {
-  const name = isInputObjectType ? def.iotName : def.otName
+  const name = isInputObjectType
+    ? def.graphQLInputObjectTypeName
+    : def.graphQLTypeName
 
   // Avoid excessive iterations
   if (iteration === 50) {
@@ -183,14 +185,14 @@ function createOrReuseOt({
 
   // CASE: query - reuse object type
   if (!isInputObjectType) {
-    if (def.ot && typeof def.ot !== 'undefined') {
+    if (def.graphQLType && typeof def.graphQLType !== 'undefined') {
       translationLog(
-        `Reuse object type '${def.otName}'` +
+        `Reuse object type '${def.graphQLTypeName}'` +
           (typeof operation === 'object'
             ? ` (for operation '${operation.operationId}')`
             : '')
       )
-      return def.ot as (
+      return def.graphQLType as (
         | GraphQLObjectType
         | GraphQLInputObjectType
         | GraphQLScalarType)
@@ -198,14 +200,17 @@ function createOrReuseOt({
 
     // CASE: mutation - reuse input object type
   } else {
-    if (def.iot && typeof def.iot !== 'undefined') {
+    if (
+      def.graphQLInputObjectType &&
+      typeof def.graphQLInputObjectType !== 'undefined'
+    ) {
       translationLog(
-        `Reuse input object type '${def.iotName}'` +
+        `Reuse input object type '${def.graphQLInputObjectTypeName}'` +
           (typeof operation === 'object'
             ? ` (for operation '${operation.operationId}')`
             : '')
       )
-      return def.iot as GraphQLInputObjectType
+      return def.graphQLInputObjectType as GraphQLInputObjectType
     }
   }
 
@@ -245,14 +250,14 @@ function createOrReuseOt({
   // CASE: query - create object type
   if (!isInputObjectType) {
     translationLog(
-      `Create object type '${def.otName}'` +
+      `Create object type '${def.graphQLTypeName}'` +
         (typeof operation === 'object'
           ? ` (for operation '${operation.operationId}')`
           : '')
     )
 
-    def.ot = new GraphQLObjectType({
-      name: def.otName,
+    def.graphQLType = new GraphQLObjectType({
+      name: def.graphQLTypeName,
       description,
       fields: () => {
         return createFields({
@@ -266,19 +271,19 @@ function createOrReuseOt({
       }
     })
 
-    return def.ot
+    return def.graphQLType
 
     // CASE: mutation - create input object type
   } else {
     translationLog(
-      `Create input object type '${def.iotName}'` +
+      `Create input object type '${def.graphQLInputObjectTypeName}'` +
         (typeof operation === 'object'
           ? ` (for operation '${operation.operationId}')`
           : '')
     )
 
-    def.iot = new GraphQLInputObjectType({
-      name: def.iotName,
+    def.graphQLInputObjectType = new GraphQLInputObjectType({
+      name: def.graphQLInputObjectTypeName,
       description,
       /**
        * There
@@ -296,7 +301,7 @@ function createOrReuseOt({
       }
     })
 
-    return def.iot
+    return def.graphQLInputObjectType
   }
 }
 
@@ -310,19 +315,29 @@ function createOrReuseList({
   isInputObjectType,
   data
 }: CreateOrReuseListParams): GraphQLList<any> {
-  const name = isInputObjectType ? def.iotName : def.otName
+  const name = isInputObjectType
+    ? def.graphQLInputObjectTypeName
+    : def.graphQLTypeName
 
   // Try to reuse existing Object Type
-  if (!isInputObjectType && def.ot && typeof def.ot !== 'undefined') {
-    translationLog(`Reuse GraphQLList '${def.otName}'`)
-    return def.ot as GraphQLList<any>
-  } else if (isInputObjectType && def.iot && typeof def.iot !== 'undefined') {
-    translationLog(`Reuse GraphQLList '${def.iotName}'`)
-    return def.iot as GraphQLList<any>
+  if (
+    !isInputObjectType &&
+    def.graphQLType &&
+    typeof def.graphQLType !== 'undefined'
+  ) {
+    translationLog(`Reuse GraphQLList '${def.graphQLTypeName}'`)
+    return def.graphQLType as GraphQLList<any>
+  } else if (
+    isInputObjectType &&
+    def.graphQLInputObjectType &&
+    typeof def.graphQLInputObjectType !== 'undefined'
+  ) {
+    translationLog(`Reuse GraphQLList '${def.graphQLInputObjectTypeName}'`)
+    return def.graphQLInputObjectType as GraphQLList<any>
   }
 
   // Create new List Object Type
-  translationLog(`Create GraphQLList '${def.otName}'`)
+  translationLog(`Create GraphQLList '${def.graphQLTypeName}'`)
 
   // Get definition of the list item, which should be in the sub definitions
   const itemDef = def.subDefinitions as DataDefinition
@@ -330,7 +345,7 @@ function createOrReuseList({
   // Equivalent to schema.items
   const itemsSchema = itemDef.schema
   // Equivalent to `{name}ListItem`
-  const itemsName = itemDef.otName
+  const itemsName = itemDef.graphQLTypeName
 
   const itemsType = getGraphQLType({
     def: itemDef,
@@ -345,9 +360,9 @@ function createOrReuseList({
 
     // Store newly created List Object Type
     if (!isInputObjectType) {
-      def.ot = listObjectType
+      def.graphQLType = listObjectType
     } else {
-      def.iot = listObjectType
+      def.graphQLInputObjectType = listObjectType
     }
     return listObjectType
   } else {
@@ -368,11 +383,11 @@ function createOrReuseEnum({
    *
    * Enum types do not have an input variant so only check def.ot
    */
-  if (def.ot && typeof def.ot !== 'undefined') {
-    translationLog(`Reuse GraphQLEnumType '${def.otName}'`)
-    return def.ot as GraphQLEnumType
+  if (def.graphQLType && typeof def.graphQLType !== 'undefined') {
+    translationLog(`Reuse GraphQLEnumType '${def.graphQLTypeName}'`)
+    return def.graphQLType as GraphQLEnumType
   } else {
-    translationLog(`Create GraphQLEnumType '${def.otName}'`)
+    translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`)
 
     const values = {}
     def.schema.enum.forEach(e => {
@@ -383,12 +398,12 @@ function createOrReuseEnum({
     })
 
     // Store newly created Enum Object Type
-    def.ot = new GraphQLEnumType({
-      name: def.otName,
+    def.graphQLType = new GraphQLEnumType({
+      name: def.graphQLTypeName,
       values
     })
 
-    return def.ot
+    return def.graphQLType
   }
 }
 
@@ -403,28 +418,28 @@ function getScalarType({
 
   switch (type) {
     case 'id':
-      def.ot = GraphQLID
+      def.graphQLType = GraphQLID
       break
     case 'string':
-      def.ot = GraphQLString
+      def.graphQLType = GraphQLString
       break
     case 'integer':
-      def.ot = GraphQLInt
+      def.graphQLType = GraphQLInt
       break
     case 'number':
-      def.ot = GraphQLFloat
+      def.graphQLType = GraphQLFloat
       break
     case 'boolean':
-      def.ot = GraphQLBoolean
+      def.graphQLType = GraphQLBoolean
       break
     case 'json':
-      def.ot = GraphQLJSON
+      def.graphQLType = GraphQLJSON
       break
     default:
       throw new Error(`Cannot process schema type '${def.type}'.`)
   }
 
-  return def.ot as GraphQLScalarType
+  return def.graphQLType as GraphQLScalarType
 }
 
 /**
@@ -565,7 +580,7 @@ function createFields({
            * Use the reference here
            * OT will be built up some other time
            */
-          const resObjectType = linkedOp.responseDefinition.ot
+          const resObjectType = linkedOp.responseDefinition.graphQLType
 
           let description = link.description
 
@@ -1057,7 +1072,7 @@ export function getArgs({
 
     // Sanitize the argument name
     const saneName = Oas3Tools.sanitize(
-      def.iotName,
+      def.graphQLInputObjectTypeName,
       Oas3Tools.CaseStyle.camelCase
     )
     let reqRequired = false

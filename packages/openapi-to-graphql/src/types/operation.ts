@@ -25,10 +25,19 @@ import {
 } from 'graphql'
 
 export type DataDefinition = {
+  // OAS-related:
+
+  // Ideal name for the GraphQL type and is used with the schema to identify a specific GraphQL type
   preferredName: string
+
+  // The schema of the data type, why may have gone through some resolution, and is used with preferredName to identify a specific GraphQL type
   schema: SchemaObject
 
+  // Type of the schema
   type: string
+
+  // Collapsed link objects from all operations returning the same response data
+  links: { [key: string]: LinkObject }
 
   /**
    * Data definitions of subschemas in the schema
@@ -41,16 +50,23 @@ export type DataDefinition = {
    */
   subDefinitions: DataDefinition | { [fieldName: string]: DataDefinition }
 
-  links: { [key: string]: LinkObject }
+  // GraphQL-related:
 
-  otName: string
-  iotName: string
-  ot?:
+  // The potential name of the GraphQL type if it is created
+  graphQLTypeName: string
+
+  // The potential name of the GraphQL input object type if it is created
+  graphQLInputObjectTypeName: string
+
+  // The GraphQL type if it is created
+  graphQLType?:
     | GraphQLObjectType
     | GraphQLScalarType
     | GraphQLList<any>
     | GraphQLEnumType
-  iot?: GraphQLInputObjectType | GraphQLList<any>
+
+  // The GraphQL input object type if it is created
+  graphQLInputObjectType?: GraphQLInputObjectType | GraphQLList<any>
 }
 
 export type Operation = {

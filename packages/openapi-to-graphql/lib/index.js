@@ -160,7 +160,7 @@ provideErrorExtensions, equivalentToMessages }) {
             const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
             // Check if the operation should be added as a Query or Mutation field
             if (!operation.isMutation) {
-                let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
+                let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName);
                 if (operation.inViewer) {
                     for (let securityRequirement of operation.securityRequirements) {
                         if (typeof authQueryFields[securityRequirement] !== 'object') {
@@ -323,8 +323,8 @@ provideErrorExtensions, equivalentToMessages }) {
          * if a field references an undefined Object Types, GraphQL will throw.
          */
         Object.entries(data.operations).forEach(([opId, operation]) => {
-            if (typeof operation.responseDefinition.ot === 'undefined') {
-                operation.responseDefinition.ot = GraphQLTools.getEmptyObjectType(operation.responseDefinition.otName);
+            if (typeof operation.responseDefinition.graphQLType === 'undefined') {
+                operation.responseDefinition.graphQLType = GraphQLTools.getEmptyObjectType(operation.responseDefinition.graphQLTypeName);
             }
         });
         const schema = new graphql_1.GraphQLSchema(schemaConfig);
@@ -343,7 +343,7 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions) {
     });
     // Create resolve function:
     const payloadSchemaName = operation.payloadDefinition
-        ? operation.payloadDefinition.iotName
+        ? operation.payloadDefinition.graphQLInputObjectTypeName
         : null;
     const resolve = resolver_builder_1.getResolver({
         operation,

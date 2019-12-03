@@ -407,8 +407,8 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
             type,
             subDefinitions: undefined,
             links: saneLinks,
-            otName,
-            iotName
+            graphQLTypeName: otName,
+            graphQLInputObjectTypeName: iotName
         };
         if (type) {
             // Add the def to the master list
