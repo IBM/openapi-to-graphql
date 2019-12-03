@@ -17,7 +17,7 @@ const preprocessingLog = debug_1.default('preprocessing');
  */
 function preprocessOas(oass, options) {
     const data = {
-        usedOTNames: [
+        usedTypeNames: [
             'Query',
             'Mutation' // Used by OpenAPI-to-GraphQL for root-level element
         ],
@@ -374,7 +374,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
     }
     else {
         // Else, define a new name, store the def, and return it
-        const name = getSchemaName(names, data.usedOTNames);
+        const name = getSchemaName(names, data.usedTypeNames);
         /**
          * Store and sanitize the name
          *
@@ -384,11 +384,15 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         const saneName = Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.camelCase);
         const otName = Oas3Tools.capitalize(Oas3Tools.storeSaneName(saneName, name, data.saneMap));
         const iotName = otName + 'Input';
-        // Add the names to the master list
-        data.usedOTNames.push(otName);
-        data.usedOTNames.push(iotName);
         // Determine the type of the schema
         const type = Oas3Tools.getSchemaType(schema, data);
+        // Only add type names if a type will be created
+        if (type === 'object' || type === 'array' || type === 'enum') {
+            // Add the names to the master list
+            data.usedTypeNames.push(otName);
+            // TODO: selectively add input object type names if they will be created
+            data.usedTypeNames.push(iotName);
+        }
         const def = {
             preferredName,
             /**

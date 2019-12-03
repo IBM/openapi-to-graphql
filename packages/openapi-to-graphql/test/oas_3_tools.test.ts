@@ -207,7 +207,7 @@ test('Identify allOf as an object', () => {
   expect(
     Oas3Tools.getSchemaType(schema, {
       operations: {},
-      usedOTNames: [],
+      usedTypeNames: [],
       defs: [],
       security: {},
       saneMap: {},

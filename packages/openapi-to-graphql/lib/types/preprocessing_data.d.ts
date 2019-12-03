@@ -34,7 +34,7 @@ export declare type PreprocessingData = {
     /**
      * List of all the used object names to avoid collision
      */
-    usedOTNames: string[];
+    usedTypeNames: string[];
     /**
      * List of data definitions for JSON schemas already used.
      */
