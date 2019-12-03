@@ -169,7 +169,7 @@ export declare function sanitize(str: string, caseStyle: CaseStyle): string;
  * Sanitizes the given string and stores the sanitized-to-original mapping in
  * the given mapping.
  */
-export declare function sanitizeAndStore(str: string, mapping: {
+export declare function storeSaneName(saneStr: string, str: string, mapping: {
     [key: string]: string;
 }): string;
 /**

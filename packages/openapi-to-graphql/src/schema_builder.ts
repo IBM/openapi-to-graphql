@@ -466,7 +466,12 @@ function createFields({
 
     // Finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
-      const sanePropName = Oas3Tools.sanitizeAndStore(
+      const saneFieldTypeKey = Oas3Tools.sanitize(
+        fieldTypeKey,
+        Oas3Tools.CaseStyle.camelCase
+      )
+      const sanePropName = Oas3Tools.storeSaneName(
+        saneFieldTypeKey,
         fieldTypeKey,
         data.saneMap
       )
@@ -569,7 +574,6 @@ function createFields({
           }
 
           // Finally, add the object type to the fields (using sanitized field name)
-          Oas3Tools.sanitizeAndStore(saneLinkKey, data.saneMap)
           // TODO: check if fields already has this field name
           fields[saneLinkKey] = {
             type: resObjectType,

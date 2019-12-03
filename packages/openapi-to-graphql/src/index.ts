@@ -238,6 +238,11 @@ async function translateOpenAPIToGraphQL(
         requestOptions
       )
 
+      const saneOperationId = Oas3Tools.sanitize(
+        operationId,
+        Oas3Tools.CaseStyle.camelCase
+      )
+
       // Check if the operation should be added as a Query or Mutation field
       if (!operation.isMutation) {
         let fieldName = Oas3Tools.uncapitalize(
@@ -257,7 +262,11 @@ async function translateOpenAPIToGraphQL(
                */
               operationIdFieldNames
             ) {
-              fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
+              fieldName = Oas3Tools.storeSaneName(
+                saneOperationId,
+                operationId,
+                data.saneMap
+              )
             }
 
             if (fieldName in authQueryFields[securityRequirement]) {
@@ -286,7 +295,11 @@ async function translateOpenAPIToGraphQL(
              */
             operationIdFieldNames
           ) {
-            fieldName = Oas3Tools.sanitizeAndStore(operationId, data.saneMap)
+            fieldName = Oas3Tools.storeSaneName(
+              saneOperationId,
+              operationId,
+              data.saneMap
+            )
           }
 
           if (fieldName in queryFields) {
@@ -309,7 +322,9 @@ async function translateOpenAPIToGraphQL(
          * Use operationId to avoid problems differentiating operations with the
          * same path but differnet methods
          */
-        let saneFieldName = Oas3Tools.sanitizeAndStore(
+
+        let saneFieldName = Oas3Tools.storeSaneName(
+          saneOperationId,
           operationId,
           data.saneMap
         )

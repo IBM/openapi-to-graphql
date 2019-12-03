@@ -505,39 +505,45 @@ export function createDataDef(
     // Else, define a new name, store the def, and return it
     const name = getSchemaName(names, data.usedOTNames)
 
-    // Store and sanitize the name
-    const saneName = Oas3Tools.capitalize(
-      Oas3Tools.sanitizeAndStore(name, data.saneMap)
+    /**
+     * Store and sanitize the name
+     *
+     * TODO: Fix saneName store to avoid using camelCase and capitalizing it
+     * Can just use PascalCase from the beginning
+     */
+    const saneName = Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.camelCase)
+    const otName = Oas3Tools.capitalize(
+      Oas3Tools.storeSaneName(saneName, name, data.saneMap)
     )
-    const saneInputName = Oas3Tools.capitalize(saneName + 'Input')
+    const iotName = otName + 'Input'
+    // Add the names to the master list
+    data.usedOTNames.push(otName)
+    data.usedOTNames.push(iotName)
 
     // Determine the type of the schema
     const type = Oas3Tools.getSchemaType(schema as SchemaObject, data)
+
+    const def: DataDefinition = {
+      preferredName,
+
+      /**
+       * Note that schema may contain $ref or schema composition (e.g. allOf)
+       *
+       * TODO: the schema is used in getSchemaIndex, which allows us to check
+       * whether a dataDef has already been created for that particular
+       * schema and name pair. The look up should resolve references but
+       * currently, it does not.
+       */
+      schema,
+
+      type,
+      subDefinitions: undefined,
+      links: saneLinks,
+      otName,
+      iotName
+    }
+
     if (type) {
-      // Add the names to the master list
-      data.usedOTNames.push(saneName)
-      data.usedOTNames.push(saneInputName)
-
-      const def: DataDefinition = {
-        preferredName,
-
-        /**
-         * Note that schema may contain $ref or schema composition (e.g. allOf)
-         *
-         * TODO: the schema is used in getSchemaIndex, which allows us to check
-         * whether a dataDef has already been created for that particular
-         * schema and name pair. The look up should resolve references but
-         * currently, it does not.
-         */
-        schema,
-
-        type,
-        subDefinitions: undefined,
-        links: saneLinks,
-        otName: saneName,
-        iotName: saneInputName
-      }
-
       // Add the def to the master list
       data.defs.push(def)
 
