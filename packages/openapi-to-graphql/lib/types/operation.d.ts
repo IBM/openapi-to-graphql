@@ -8,6 +8,9 @@ export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
     type: string;
+    links: {
+        [key: string]: LinkObject;
+    };
     /**
      * Data definitions of subschemas in the schema
      *
@@ -20,13 +23,10 @@ export declare type DataDefinition = {
     subDefinitions: DataDefinition | {
         [fieldName: string]: DataDefinition;
     };
-    links: {
-        [key: string]: LinkObject;
-    };
-    otName: string;
-    iotName: string;
-    ot?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType;
-    iot?: GraphQLInputObjectType | GraphQLList<any>;
+    graphQLTypeName: string;
+    graphQLInputObjectTypeName: string;
+    graphQLType?: GraphQLObjectType | GraphQLScalarType | GraphQLList<any> | GraphQLEnumType;
+    graphQLInputObjectType?: GraphQLInputObjectType | GraphQLList<any>;
 };
 export declare type Operation = {
     /**

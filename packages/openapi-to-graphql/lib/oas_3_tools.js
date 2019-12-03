@@ -836,10 +836,6 @@ function sanitize(str, caseStyle) {
             sanitized = uncapitalize(sanitized);
             break;
         case CaseStyle.ALL_CAPS:
-            // Delete first underscore
-            if (sanitized.charAt(0) === '_') {
-                sanitized = sanitized.substr(0);
-            }
             sanitized = sanitized.toUpperCase();
             break;
     }
