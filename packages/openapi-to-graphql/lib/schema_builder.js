@@ -635,6 +635,9 @@ function getArgs({ def, parameters, operation, data }) {
             });
             continue;
         }
+        if (parameter.in === 'header') {
+            continue;
+        }
         // TODO: update with requestOptions
         // If this parameter is provided via options, ignore
         if (typeof data.options === 'object') {
