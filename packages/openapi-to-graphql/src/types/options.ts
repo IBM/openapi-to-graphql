@@ -5,7 +5,7 @@
 
 // Type imports:
 import * as NodeRequest from 'request'
-import { ResolveFunction } from './graphql'
+import { ResolveFunction, GraphQLOperationType } from './graphql'
 
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
@@ -24,6 +24,10 @@ export type Report = {
   numOpsMutation: number
   numQueriesCreated: number
   numMutationsCreated: number
+}
+
+export interface selectQueryOrMutationFieldType {
+  [title: string]: { [path: string]: { [type: string]: GraphQLOperationType } }
 }
 
 export type Options = {
@@ -117,6 +121,17 @@ export type Options = {
   customResolvers?: {
     [title: string]: { [path: string]: { [method: string]: ResolveFunction } }
   }
+
+  /**
+   * Allows to define the root operation type of any OAS operation explicitly.
+   * This will froce OtG to handle the given operation as Mutation or Query,
+   * instead of determining its type automatically.
+   *
+   * The field is identifed first by the title of the OAS, then the path of the
+   * operation.
+   *
+   */
+  selectQueryOrMutationField?: selectQueryOrMutationFieldType
 
   // Authentication options
 
@@ -259,6 +274,17 @@ export type InternalOptions = {
   customResolvers?: {
     [title: string]: { [path: string]: { [method: string]: ResolveFunction } }
   }
+
+  /**
+   * Allows to define the root operation type of any OAS operation explicitly.
+   * This will froce OtG to handle the given operation as Mutation or Query,
+   * instead of determining its type automatically.
+   *
+   * The field is identifed first by the title of the OAS, then the path of the
+   * operation.
+   *
+   */
+  selectQueryOrMutationField?: selectQueryOrMutationFieldType
 
   // Authentication options
 
