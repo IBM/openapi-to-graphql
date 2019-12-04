@@ -1,5 +1,5 @@
 import * as NodeRequest from 'request';
-import { ResolveFunction } from './graphql';
+import { ResolveFunction, GraphQLOperationType } from './graphql';
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
  */
@@ -17,6 +17,13 @@ export declare type Report = {
     numQueriesCreated: number;
     numMutationsCreated: number;
 };
+export interface selectQueryOrMutationFieldType {
+    [title: string]: {
+        [path: string]: {
+            [type: string]: GraphQLOperationType;
+        };
+    };
+}
 export declare type Options = {
     /**
      * Adhere to the OAS as closely as possible. If set to true, any deviation
@@ -103,6 +110,16 @@ export declare type Options = {
             };
         };
     };
+    /**
+     * Allows to define the root operation type of any OAS operation explicitly.
+     * This will froce OtG to handle the given operation as Mutation or Query,
+     * instead of determining its type automatically.
+     *
+     * The field is identifed first by the title of the OAS, then the path of the
+     * operation.
+     *
+     */
+    selectQueryOrMutationField?: selectQueryOrMutationFieldType;
     /**
      * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
      * basic auth and API key credentials.
@@ -229,6 +246,16 @@ export declare type InternalOptions = {
             };
         };
     };
+    /**
+     * Allows to define the root operation type of any OAS operation explicitly.
+     * This will froce OtG to handle the given operation as Mutation or Query,
+     * instead of determining its type automatically.
+     *
+     * The field is identifed first by the title of the OAS, then the path of the
+     * operation.
+     *
+     */
+    selectQueryOrMutationField?: selectQueryOrMutationFieldType;
     /**
      * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
      * basic auth and API key credentials.

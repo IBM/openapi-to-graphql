@@ -31,10 +31,15 @@
  */
 
 // Type imports:
-import { Options, InternalOptions, Report } from './types/options'
+import {
+  Options,
+  InternalOptions,
+  Report,
+  selectQueryOrMutationFieldType
+} from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, Field, GraphQLType } from './types/graphql'
+import { Args, Field, GraphQLOperationType } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
 import { GraphQLSchema, GraphQLObjectType } from 'graphql'
@@ -163,6 +168,7 @@ async function translateOpenApiToGraphQL(
     requestOptions,
     baseUrl,
     customResolvers,
+    selectQueryOrMutationField,
 
     // Authentication options
     viewer,
@@ -190,6 +196,7 @@ async function translateOpenApiToGraphQL(
     requestOptions,
     baseUrl,
     customResolvers,
+    selectQueryOrMutationField,
 
     // Authentication options
     viewer,
@@ -235,6 +242,12 @@ async function translateOpenApiToGraphQL(
         data,
         requestOptions
       )
+
+      if (
+        isOperationTypeEnforced(operation, options.selectQueryOrMutationField)
+      ) {
+        operation.isMutation = !operation.isMutation
+      }
 
       if (!operation.isMutation) {
         let fieldName = Oas3Tools.uncapitalize(
@@ -523,6 +536,38 @@ function sortOperations(op1: Operation, op2: Operation): number {
       return 0
     }
   }
+}
+
+/**
+ * Checks whether the type of a given operation should be overridden or not.
+ * If the op is listed in selectQueryOrMutationField, its type (mutation or query) will be
+ * determined using the type definition in selectQueryOrMutationField.
+ *
+ */
+function isOperationTypeEnforced(
+  operation: Operation,
+  selectQueryOrMutationField: selectQueryOrMutationFieldType
+): boolean {
+  const title = operation.oas.info.title
+
+  if (!selectQueryOrMutationField || !selectQueryOrMutationField[title]) {
+    return false
+  }
+
+  const paths = Object.keys(selectQueryOrMutationField[title])
+
+  return (
+    paths.findIndex(path => {
+      const opType = selectQueryOrMutationField[title][path].type
+      return (
+        path === operation.path &&
+        opType ===
+          (operation.isMutation
+            ? GraphQLOperationType.Query
+            : GraphQLOperationType.Mutation)
+      )
+    }) !== -1
+  )
 }
 
 /**
