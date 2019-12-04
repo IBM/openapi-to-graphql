@@ -2,6 +2,10 @@
  * Custom type definitions for GraphQL.
  */
 import { GraphQLObjectType, GraphQLScalarType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType } from 'graphql';
+export declare enum GraphQLOperationType {
+    Query = 0,
+    Mutation = 1
+}
 export declare type GraphQLType = GraphQLScalarType | GraphQLObjectType | GraphQLEnumType | GraphQLInputObjectType | GraphQLList<any>;
 declare type Arg = {
     type: any;

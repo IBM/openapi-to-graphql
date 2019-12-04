@@ -8,7 +8,7 @@
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
 const app = express()
-const openapiToGraphql = require('../lib/index')
+const openAPIToGraphQL = require('../lib/index')
 
 const oas = require('./fixtures/example_oas.json')
 // const oas2 = require('./fixtures/example_oas2.json')
@@ -24,9 +24,15 @@ const oas3 = require('./fixtures/example_oas3.json')
 // // requires Box API from API Guru
 // const oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
-openapiToGraphql
+openAPIToGraphQL
   .createGraphQlSchema(oas, {
-    idFormats: ['specialIdFormat']
+    selectQueryOrMutationField: {
+      'Example API': {
+        '/users/{username}': {
+          get: openAPIToGraphQL.GraphQLOperationType.Mutation
+        }
+      }
+    }
   })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))

@@ -203,7 +203,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         // Get authentication headers and query parameters
         if (root &&
             typeof root === 'object' &&
-            typeof root['_openapiToGraphql'] == 'object') {
+            typeof root['_openapiToGraphql'] === 'object') {
             const { authHeaders, authQs, authCookie } = getAuthOptions(operation, root['_openapiToGraphql'], data);
             // ...and pass them to the options
             Object.assign(options.headers, authHeaders);
@@ -313,7 +313,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                             }
                                             if (root &&
                                                 typeof root === 'object' &&
-                                                typeof root['_openapiToGraphql'] == 'object') {
+                                                typeof root['_openapiToGraphql'] === 'object') {
                                                 Object.assign(element['_openapiToGraphql'], root['_openapiToGraphql']);
                                             }
                                             element['_openapiToGraphql'].data[getIdentifier(info)] = resolveData;
@@ -327,7 +327,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                         }
                                         if (root &&
                                             typeof root === 'object' &&
-                                            typeof root['_openapiToGraphql'] == 'object') {
+                                            typeof root['_openapiToGraphql'] === 'object') {
                                             Object.assign(saneData['_openapiToGraphql'], root['_openapiToGraphql']);
                                         }
                                         saneData['_openapiToGraphql'].data[getIdentifier(info)] = resolveData;

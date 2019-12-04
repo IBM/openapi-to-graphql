@@ -100,7 +100,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
  */
 function translateOpenApiToGraphQL(oass, { strict, report, 
 // Schema options
-operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, 
+operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, 
 // Resolver options
 headers, qs, requestOptions, baseUrl, customResolvers, 
 // Authentication options
@@ -122,6 +122,7 @@ provideErrorExtensions, equivalentToMessages }) {
             requestOptions,
             baseUrl,
             customResolvers,
+            selectQueryOrMutationField,
             // Authentication options
             viewer,
             tokenJSONpath,
@@ -156,6 +157,7 @@ provideErrorExtensions, equivalentToMessages }) {
             .forEach(([operationId, operation]) => {
             translationLog(`Process operation '${operationId}'...`);
             let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions);
+            // Check if the operation should be added as a Query or Mutation field
             if (!operation.isMutation) {
                 let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.otName);
                 if (operation.inViewer) {
@@ -470,4 +472,6 @@ function preliminaryChecks(options, data) {
 }
 var oas_3_tools_1 = require("./oas_3_tools");
 exports.sanitize = oas_3_tools_1.sanitize;
+var graphql_2 = require("./types/graphql");
+exports.GraphQLOperationType = graphql_2.GraphQLOperationType;
 //# sourceMappingURL=index.js.map

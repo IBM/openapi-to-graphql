@@ -34,7 +34,7 @@
 import { Options, InternalOptions, Report } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, Field, GraphQLType } from './types/graphql'
+import { Args, Field, GraphQLOperationType } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
 import { GraphQLSchema, GraphQLObjectType } from 'graphql'
@@ -156,6 +156,7 @@ async function translateOpenApiToGraphQL(
     fillEmptyResponses,
     addLimitArgument,
     idFormats,
+    selectQueryOrMutationField,
 
     // Resolver options
     headers,
@@ -190,6 +191,7 @@ async function translateOpenApiToGraphQL(
     requestOptions,
     baseUrl,
     customResolvers,
+    selectQueryOrMutationField,
 
     // Authentication options
     viewer,
@@ -236,6 +238,7 @@ async function translateOpenApiToGraphQL(
         requestOptions
       )
 
+      // Check if the operation should be added as a Query or Mutation field
       if (!operation.isMutation) {
         let fieldName = Oas3Tools.uncapitalize(
           operation.responseDefinition.otName
@@ -603,3 +606,4 @@ function preliminaryChecks(
 }
 
 export { sanitize } from './oas_3_tools'
+export { GraphQLOperationType } from './types/graphql'

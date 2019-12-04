@@ -12,6 +12,7 @@ import { graphql, parse, validate } from 'graphql'
 import * as openapiToGraphql from '../lib/index'
 import { Options } from '../lib/types/options'
 import { startServer, stopServer } from './example_api_server'
+import { GraphQLOperationType } from '../lib/types/graphql'
 
 const oas = require('./fixtures/example_oas.json')
 const PORT = 3002
@@ -1752,4 +1753,80 @@ test('Required properties for input object types', () => {
   expect(userInputType.toConfig().fields.address2.type.toString()).toEqual(
     'AddressInput'
   )
+})
+
+test('Option selectQueryOrMutationField', () => {
+  const query = `{
+    __schema {
+      queryType {
+        fields {
+          name
+          description
+        }
+      }
+      mutationType {
+        fields {
+          name
+          description
+        }
+      }
+    }
+  }`
+
+  // The users field should exist as a Query field
+  const promise = graphql(createdSchema, query).then(result => {
+    expect(
+      result.data['__schema'].queryType.fields.find(field => {
+        return field.name === 'user'
+      })
+    ).toEqual({
+      name: 'user',
+      description:
+        'Returns a user from the system.\n\nEquivalent to GET /users/{username}'
+    })
+
+    expect(
+      result.data['__schema'].mutationType.fields.find(field => {
+        return field.name === 'user'
+      })
+    ).toEqual(undefined)
+  })
+
+  const options: Options = {
+    selectQueryOrMutationField: {
+      'Example API': {
+        '/users/{username}': {
+          get: GraphQLOperationType.Mutation
+        }
+      }
+    }
+  }
+
+  // The users (now named getUserByUsername) field should exist as a Mutation field
+  const promise2 = openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      const ast = parse(query)
+      const errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(
+          result.data['__schema'].queryType.fields.find(field => {
+            return field.name === 'getUserByUsername'
+          })
+        ).toEqual(undefined)
+
+        expect(
+          result.data['__schema'].mutationType.fields.find(field => {
+            return field.name === 'getUserByUsername'
+          })
+        ).toEqual({
+          name: 'getUserByUsername',
+          description:
+            'Returns a user from the system.\n\nEquivalent to GET /users/{username}'
+        })
+      })
+    })
+
+  return Promise.all([promise, promise2])
 })

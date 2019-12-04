@@ -15,6 +15,12 @@ import {
   GraphQLEnumType
 } from 'graphql'
 
+export enum GraphQLOperationType {
+  Query,
+  Mutation
+  // TODO: Subscription
+}
+
 export type GraphQLType =
   | GraphQLScalarType
   | GraphQLObjectType
