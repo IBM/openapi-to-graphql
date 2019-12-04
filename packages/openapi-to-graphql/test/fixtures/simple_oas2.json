@@ -1,0 +1,70 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Test API"
+  },
+  "host": "localhost:1339",
+  "basePath": "/",
+  "schemes": ["http", "https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "x-servers": [
+    {
+      "url": "http://localhost:{port}",
+      "description": "The location of the local test server.",
+      "variables": {
+        "port": {
+          "default": "3007"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/v1/files": {
+      "post": {
+        "parameters": [
+          {
+            "$ref": "#/parameters/headerparam"
+          }
+        ],
+        "summary": "Create a file",
+        "operationId": "postFile",
+        "description": "Creates a new file",
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "$ref": "#/definitions/File"
+            }
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "headerparam": {
+      "name": "headerparam",
+      "type": "string",
+      "in": "header",
+      "required": true,
+      "pattern": "[a-zA-Z0-9-_]+",
+      "minLength": 1,
+      "maxLength": 128
+    }
+  },
+  "definitions": {
+    "Type": {
+      "enum": ["TEST_ENUM"],
+      "type": "string"
+    },
+    "File": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "$ref": "#/definitions/Type"
+        }
+      }
+    }
+  }
+}
