@@ -9,6 +9,7 @@ const Oas3Tools = require("./oas_3_tools");
 const deepEqual = require("deep-equal");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const graphql_1 = require("./types/graphql");
 const preprocessingLog = debug_1.default('preprocessing');
 /**
  * Extract information from the OAS and put it inside a data structure that
@@ -102,7 +103,22 @@ function preprocessOas(oass, options) {
                 const servers = Oas3Tools.getServers(path, method, oas);
                 // Whether to place this operation into an authentication viewer
                 const inViewer = securityRequirements.length > 0 && data.options.viewer !== false;
-                const isMutation = method.toLowerCase() !== 'get';
+                /**
+                 * Whether the operation should be added as a Query or Mutation field.
+                 * By default, all GET operations are Query fields and all other
+                 * operations are Mutation fields.
+                 */
+                let isMutation = method.toLowerCase() !== 'get';
+                // Option selectQueryOrMutationField can override isMutation
+                if (typeof options.selectQueryOrMutationField === 'object' &&
+                    typeof options.selectQueryOrMutationField[oas.info.title] ===
+                        'object' &&
+                    typeof options.selectQueryOrMutationField[oas.info.title][path] ===
+                        'object' &&
+                    typeof options.selectQueryOrMutationField[oas.info.title][path][method] === 'number' // This is an TS enum, which is translated to have a integer value
+                ) {
+                    isMutation = options.selectQueryOrMutationField[oas.info.title][path][method] === graphql_1.GraphQLOperationType.Mutation;
+                }
                 // Store determined information for operation
                 const operation = {
                     operationId,

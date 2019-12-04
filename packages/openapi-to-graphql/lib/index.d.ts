@@ -37,3 +37,4 @@ declare type Result = {
  */
 export declare function createGraphQlSchema(spec: Oas3 | Oas2 | (Oas3 | Oas2)[], options?: Options): Promise<Result>;
 export { sanitize } from './oas_3_tools';
+export { GraphQLOperationType } from './types/graphql';

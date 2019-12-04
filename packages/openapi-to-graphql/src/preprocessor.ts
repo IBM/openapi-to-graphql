@@ -17,6 +17,7 @@ import * as Oas3Tools from './oas_3_tools'
 import * as deepEqual from 'deep-equal'
 import debug from 'debug'
 import { handleWarning, getCommonPropertyNames } from './utils'
+import { GraphQLOperationType } from './types/graphql'
 
 const preprocessingLog = debug('preprocessing')
 
@@ -174,7 +175,28 @@ export function preprocessOas(
         const inViewer =
           securityRequirements.length > 0 && data.options.viewer !== false
 
-        const isMutation = method.toLowerCase() !== 'get'
+        /**
+         * Whether the operation should be added as a Query or Mutation field.
+         * By default, all GET operations are Query fields and all other
+         * operations are Mutation fields.
+         */
+        let isMutation = method.toLowerCase() !== 'get'
+
+        // Option selectQueryOrMutationField can override isMutation
+        if (
+          typeof options.selectQueryOrMutationField === 'object' &&
+          typeof options.selectQueryOrMutationField[oas.info.title] ===
+            'object' &&
+          typeof options.selectQueryOrMutationField[oas.info.title][path] ===
+            'object' &&
+          typeof options.selectQueryOrMutationField[oas.info.title][path][
+            method
+          ] === 'number' // This is an TS enum, which is translated to have a integer value
+        ) {
+          isMutation =
+            options.selectQueryOrMutationField[oas.info.title][path][method] ===
+            GraphQLOperationType.Mutation
+        }
 
         // Store determined information for operation
         const operation: Operation = {

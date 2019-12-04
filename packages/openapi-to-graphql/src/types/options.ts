@@ -5,7 +5,7 @@
 
 // Type imports:
 import * as NodeRequest from 'request'
-import { ResolveFunction } from './graphql'
+import { ResolveFunction, GraphQLOperationType } from './graphql'
 
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
@@ -73,6 +73,18 @@ export type Options = {
    * users to specify other formats that should be interpreted as ID types.
    */
   idFormats?: string[]
+
+  /**
+   * Allows to define the root operation type (Query or Mutation type) of any
+   * OAS operation explicitly.
+   *
+   * OtG will by default make all GET operations Query fields and all other
+   * operations into Mutation fields.
+   *
+   * The field is identifed first by the title of the OAS, then the path of the
+   * operation, and lastly the method of the operation.
+   */
+  selectQueryOrMutationField?: selectQueryOrMutationFieldType
 
   // Resolver options
 
@@ -216,6 +228,18 @@ export type InternalOptions = {
    */
   idFormats?: string[]
 
+  /**
+   * Allows to define the root operation type (Query or Mutation type) of any
+   * OAS operation explicitly.
+   *
+   * OtG will by default make all GET operations Query fields and all other
+   * operations into Mutation fields.
+   *
+   * The field is identifed first by the title of the OAS, then the path of the
+   * operation, and lastly the method of the operation.
+   */
+  selectQueryOrMutationField?: selectQueryOrMutationFieldType
+
   // Resolver options
 
   /**
@@ -303,4 +327,12 @@ export type InternalOptions = {
    * Will forgo the title is only one OAS is provided
    */
   equivalentToMessages: boolean
+}
+
+export type selectQueryOrMutationFieldType = {
+  [title: string]: {
+    [path: string]: {
+      [method: string]: GraphQLOperationType
+    }
+  }
 }

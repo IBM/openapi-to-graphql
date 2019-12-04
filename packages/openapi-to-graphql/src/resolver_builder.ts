@@ -282,7 +282,7 @@ export function getResolver({
     if (
       root &&
       typeof root === 'object' &&
-      typeof root['_openapiToGraphql'] == 'object'
+      typeof root['_openapiToGraphql'] === 'object'
     ) {
       const { authHeaders, authQs, authCookie } = getAuthOptions(
         operation,
@@ -425,7 +425,7 @@ export function getResolver({
                       if (
                         root &&
                         typeof root === 'object' &&
-                        typeof root['_openapiToGraphql'] == 'object'
+                        typeof root['_openapiToGraphql'] === 'object'
                       ) {
                         Object.assign(
                           element['_openapiToGraphql'],
@@ -447,7 +447,7 @@ export function getResolver({
                     if (
                       root &&
                       typeof root === 'object' &&
-                      typeof root['_openapiToGraphql'] == 'object'
+                      typeof root['_openapiToGraphql'] === 'object'
                     ) {
                       Object.assign(
                         saneData['_openapiToGraphql'],
