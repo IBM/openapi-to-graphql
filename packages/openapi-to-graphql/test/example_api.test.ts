@@ -1830,3 +1830,171 @@ test('Option selectQueryOrMutationField', () => {
 
   return Promise.all([promise, promise2])
 })
+
+test('Header arguments are not created when they are provided through headers option', () => {
+  // The GET snack operation has a snack_type and snack_size header arguments
+  const options: Options = {
+    headers: {
+      snack_type: 'chips',
+      snack_size: 'large'
+    }
+  }
+
+  const query = `{
+    __schema {
+      queryType {
+        fields {
+          name
+          args {
+            name
+          }
+        }
+      }
+    }
+  }`
+
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      const ast = parse(query)
+      const errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(
+          result.data['__schema'].queryType.fields.find(field => {
+            return field.name === 'snack'
+          })
+        ).toEqual({
+          name: 'snack',
+          args: [] // No arguments
+        })
+      })
+    })
+})
+
+test('Header arguments are not created when they are provided through requestOptions option', () => {
+  // The GET snack operation has a snack_type and snack_size header arguments
+  const options: Options = {
+    requestOptions: {
+      headers: {
+        snack_type: 'chips',
+        snack_size: 'large'
+      },
+      url: undefined // Mandatory for requestOptions type
+    }
+  }
+
+  const query = `{
+    __schema {
+      queryType {
+        fields {
+          name
+          args {
+            name
+          }
+        }
+      }
+    }
+  }`
+
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      const ast = parse(query)
+      const errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(
+          result.data['__schema'].queryType.fields.find(field => {
+            return field.name === 'snack'
+          })
+        ).toEqual({
+          name: 'snack',
+          args: [] // No arguments
+        })
+      })
+    })
+})
+
+test('Query string arguments are not created when they are provided through qs option', () => {
+  // The GET status operation has a limit query string parameter
+  const options: Options = {
+    qs: {
+      limit: '10'
+    }
+  }
+
+  const query = `{
+    __schema {
+      queryType {
+        fields {
+          name
+          args {
+            name
+          }
+        }
+      }
+    }
+  }`
+
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      const ast = parse(query)
+      const errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(
+          result.data['__schema'].queryType.fields.find(field => {
+            return field.name === 'users'
+          })
+        ).toEqual({
+          name: 'users',
+          args: [] // No arguments
+        })
+      })
+    })
+})
+
+test('Query string arguments are not created when they are provided through requestOptions option', () => {
+  // The GET status operation has a limit query string parameter
+  const options: Options = {
+    requestOptions: {
+      qs: {
+        limit: '10'
+      },
+      url: undefined // Mandatory for requestOptions type
+    }
+  }
+
+  const query = `{
+    __schema {
+      queryType {
+        fields {
+          name
+          args {
+            name
+          }
+        }
+      }
+    }
+  }`
+
+  return openapiToGraphql
+    .createGraphQlSchema(oas, options)
+    .then(({ schema }) => {
+      const ast = parse(query)
+      const errors = validate(schema, ast)
+      expect(errors).toEqual([])
+      return graphql(schema, query).then(result => {
+        expect(
+          result.data['__schema'].queryType.fields.find(field => {
+            return field.name === 'users'
+          })
+        ).toEqual({
+          name: 'users',
+          args: [] // No arguments
+        })
+      })
+    })
+})
