@@ -12,7 +12,7 @@ const openAPIToGraphQL = require('../lib/index')
 
 const oas = require('./fixtures/example_oas.json')
 // const oas2 = require('./fixtures/example_oas2.json')
-const oas3 = require('./fixtures/example_oas3.json')
+// const oas3 = require('./fixtures/example_oas3.json')
 
 // const oas = require('./fixtures/github_oas.json')
 // const oas = require('./fixtures/instagram.json')
@@ -25,15 +25,7 @@ const oas3 = require('./fixtures/example_oas3.json')
 // const oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
 openAPIToGraphQL
-  .createGraphQlSchema(oas, {
-    selectQueryOrMutationField: {
-      'Example API': {
-        '/users/{username}': {
-          get: openAPIToGraphQL.GraphQLOperationType.Mutation
-        }
-      }
-    }
-  })
+  .createGraphQlSchema(oas)
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
     app.use(

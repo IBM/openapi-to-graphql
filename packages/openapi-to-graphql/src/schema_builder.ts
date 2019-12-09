@@ -870,20 +870,48 @@ export function getArgs({
       continue
     }
 
-    // TODO: update with requestOptions
     // If this parameter is provided via options, ignore
     if (typeof data.options === 'object') {
-      if (
-        typeof data.options.headers === 'object' &&
-        parameter.name in data.options.headers
-      ) {
-        continue
-      }
-      if (
-        typeof data.options.qs === 'object' &&
-        parameter.name in data.options.qs
-      ) {
-        continue
+      switch (parameter.in) {
+        case 'header':
+          // Check header option
+          if (
+            typeof data.options.headers === 'object' &&
+            parameter.name in data.options.headers
+          ) {
+            continue
+          }
+
+          // Check requestOptions option
+          if (
+            typeof data.options.requestOptions === 'object' &&
+            typeof data.options.requestOptions.headers === 'object' &&
+            parameter.name in data.options.requestOptions.headers
+          ) {
+            continue
+          }
+
+          break
+
+        case 'query':
+          // Check header option
+          if (
+            typeof data.options.qs === 'object' &&
+            parameter.name in data.options.qs
+          ) {
+            continue
+          }
+
+          // Check requestOptions option
+          if (
+            typeof data.options.requestOptions === 'object' &&
+            typeof data.options.requestOptions.qs === 'object' &&
+            parameter.name in data.options.requestOptions.qs
+          ) {
+            continue
+          }
+
+          break
       }
     }
 

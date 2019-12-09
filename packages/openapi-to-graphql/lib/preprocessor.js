@@ -117,7 +117,9 @@ function preprocessOas(oass, options) {
                         'object' &&
                     typeof options.selectQueryOrMutationField[oas.info.title][path][method] === 'number' // This is an TS enum, which is translated to have a integer value
                 ) {
-                    isMutation = options.selectQueryOrMutationField[oas.info.title][path][method] === graphql_1.GraphQLOperationType.Mutation;
+                    isMutation =
+                        options.selectQueryOrMutationField[oas.info.title][path][method] ===
+                            graphql_1.GraphQLOperationType.Mutation;
                 }
                 // Store determined information for operation
                 const operation = {
