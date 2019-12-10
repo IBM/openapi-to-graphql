@@ -7,7 +7,7 @@
 
 /* globals beforeAll, test, expect */
 
-import * as openapiToGraphql from '../lib/index'
+import * as openAPIToGraphQL from '../lib/index'
 import { Options } from '../lib/types/options'
 import { graphql, parse, validate } from 'graphql'
 
@@ -29,7 +29,7 @@ let createdSchema
  */
 beforeAll(() => {
   return Promise.all([
-    openapiToGraphql
+    openAPIToGraphQL
       .createGraphQlSchema([oas, oas3], {
         fillEmptyResponses: true
       })
@@ -327,7 +327,7 @@ test('Option customResolver with two APIs', () => {
       name
     }
   }`
-  return openapiToGraphql
+  return openAPIToGraphQL
     .createGraphQlSchema([oas, oas3], options)
     .then(({ schema }) => {
       const ast = parse(query)
@@ -404,7 +404,7 @@ test('Option customResolver with two APIs and interrelated links', () => {
       }
     }
   }`
-  return openapiToGraphql
+  return openAPIToGraphQL
     .createGraphQlSchema([oas, oas3], options)
     .then(({ schema }) => {
       const ast = parse(query)

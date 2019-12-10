@@ -9,7 +9,7 @@
 
 import { graphql } from 'graphql'
 
-import * as openapiToGraphql from '../lib/index'
+import * as openAPIToGraphQL from '../lib/index'
 import { startServer, stopServer } from './example_api_server'
 
 const oas = require('./fixtures/example_oas.json')
@@ -24,7 +24,7 @@ let createdSchema
  */
 beforeAll(() => {
   return Promise.all([
-    openapiToGraphql.createGraphQlSchema(oas).then(({ schema }) => {
+    openAPIToGraphQL.createGraphQlSchema(oas).then(({ schema }) => {
       createdSchema = schema
     }),
     startServer(PORT)
@@ -125,7 +125,7 @@ test('Get project using API key 1', () => {
 })
 
 test('Get project using API key passed as option - viewer is disabled', async () => {
-  const { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
+  const { schema } = await openAPIToGraphQL.createGraphQlSchema(oas, {
     viewer: false,
     headers: {
       access_token: 'abcdef'
@@ -148,7 +148,7 @@ test('Get project using API key passed as option - viewer is disabled', async ()
 })
 
 test('Get project using API key passed in the requestOptions - viewer is disabled', async () => {
-  const { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
+  const { schema } = await openAPIToGraphQL.createGraphQlSchema(oas, {
     viewer: false,
     requestOptions: {
       headers: {
@@ -272,7 +272,7 @@ test('Get project using API key 3', async () => {
 })
 
 test('Get project using API key 3 passed as option - viewer is disabled', async () => {
-  const { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
+  const { schema } = await openAPIToGraphQL.createGraphQlSchema(oas, {
     viewer: false,
     headers: {
       cookie: 'access_token=abcdef'
@@ -295,7 +295,7 @@ test('Get project using API key 3 passed as option - viewer is disabled', async 
 })
 
 test('Get project using API key 3 passed in the requestOptions - viewer is disabled', async () => {
-  const { schema } = await openapiToGraphql.createGraphQlSchema(oas, {
+  const { schema } = await openAPIToGraphQL.createGraphQlSchema(oas, {
     viewer: false,
     requestOptions: {
       headers: {
@@ -457,7 +457,7 @@ test('Extract token from context', () => {
     secure
   }`
 
-  return openapiToGraphql
+  return openAPIToGraphQL
     .createGraphQlSchema(oas, {
       tokenJSONpath: '$.user.token',
       viewer: true

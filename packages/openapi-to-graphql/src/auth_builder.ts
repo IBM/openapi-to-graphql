@@ -163,11 +163,11 @@ const getViewerOT = (
     security[Oas3Tools.sanitizeAndStore(protocolName, data.saneMap)] = args
 
     /**
-     * Viewers are always root, so we can instantiate _openapiToGraphql here without
+     * Viewers are always root, so we can instantiate _openAPIToGraphQL here without
      * previously checking for its existence
      */
     return {
-      _openapiToGraphql: {
+      _openAPIToGraphQL: {
         security
       }
     }
@@ -246,7 +246,7 @@ const getViewerAnyAuthOT = (
   // Pass object containing security information to fields
   const resolve = (root, args, ctx) => {
     return {
-      _openapiToGraphql: {
+      _openAPIToGraphQL: {
         security: args
       }
     }

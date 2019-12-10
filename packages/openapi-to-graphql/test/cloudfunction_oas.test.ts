@@ -7,7 +7,7 @@
 
 /* globals beforeAll, test, expect */
 
-import * as openapiToGraphql from '../lib/index'
+import * as openAPIToGraphQL from '../lib/index'
 const { parse, validate } = require('graphql')
 
 const oas = require('./fixtures/cloudfunction_oas.json')
@@ -15,7 +15,7 @@ const oas = require('./fixtures/cloudfunction_oas.json')
 let createdSchema
 
 beforeAll(async () => {
-  const { schema } = await openapiToGraphql.createGraphQlSchema(oas)
+  const { schema } = await openAPIToGraphQL.createGraphQlSchema(oas)
   createdSchema = schema
 })
 

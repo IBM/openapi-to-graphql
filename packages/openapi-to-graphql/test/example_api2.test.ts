@@ -9,7 +9,7 @@
 
 import { graphql, parse, validate } from 'graphql'
 
-import * as openapiToGraphql from '../lib/index'
+import * as openAPIToGraphQL from '../lib/index'
 import { startServer, stopServer } from './example_api2_server'
 
 const oas = require('./fixtures/example_oas2.json')
@@ -24,7 +24,7 @@ let createdSchema
  */
 beforeAll(() => {
   return Promise.all([
-    openapiToGraphql
+    openAPIToGraphQL
       .createGraphQlSchema(oas, { operationIdFieldNames: true })
       .then(({ schema, report }) => {
         createdSchema = schema

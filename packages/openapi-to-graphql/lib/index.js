@@ -87,7 +87,7 @@ function createGraphQlSchema(spec, options) {
              */
             oass = [yield Oas3Tools.getValidOAS3(spec)];
         }
-        const { schema, report } = yield translateOpenApiToGraphQL(oass, options);
+        const { schema, report } = yield translateOpenAPIToGraphQL(oass, options);
         return {
             schema,
             report
@@ -98,7 +98,7 @@ exports.createGraphQlSchema = createGraphQlSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */
-function translateOpenApiToGraphQL(oass, { strict, report, 
+function translateOpenAPIToGraphQL(oass, { strict, report, 
 // Schema options
 operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, 
 // Resolver options

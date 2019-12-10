@@ -7,7 +7,7 @@
 
 /* globals beforeAll, test, expect */
 
-const openapiToGraphql = require('../lib/index')
+const openAPIToGraphQL = require('../lib/index')
 const Oas3Tools = require('../lib/oas_3_tools')
 const { parse, validate } = require('graphql')
 
@@ -18,7 +18,7 @@ const oas = require('./fixtures/government_social_work_api.json')
 
 let createdSchema
 beforeAll(() => {
-  return openapiToGraphql
+  return openAPIToGraphQL
     .createGraphQlSchema(oas)
     .then(({ schema, report }) => {
       createdSchema = schema
@@ -43,7 +43,8 @@ test('All mutation endpoints present', () => {
       if (Oas3Tools.isOperation(method) && method !== 'get') oasMutCount++
     }
   }
-  const gqlTypes = Object.keys(createdSchema._typeMap.Mutation.getFields()).length
+  const gqlTypes = Object.keys(createdSchema._typeMap.Mutation.getFields())
+    .length
   expect(gqlTypes).toEqual(oasMutCount)
 })
 
