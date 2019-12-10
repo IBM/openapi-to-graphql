@@ -13,7 +13,7 @@
  *   same structure. We thus append 'Input' to every Input Object Type's name
  *   as a convention.
  *
- * - To pass data between resolve functions, OpenAPI-to-GraphQL uses a _openapiToGraphql object
+ * - To pass data between resolve functions, OpenAPI-to-GraphQL uses a _openAPIToGraphQL object
  *   returned by every resolver in addition to its original data (OpenAPI-to-GraphQL does
  *   not use the context to do so, which is an anti-pattern according to
  *   https://github.com/graphql/graphql-js/issues/953).
@@ -21,7 +21,7 @@
  * - OpenAPI-to-GraphQL can handle basic authentication and API key-based authentication
  *   through GraphQL. To do this, OpenAPI-to-GraphQL creates two new intermediate Object
  *   Types called QueryViewer and MutationViewer that take as input security
- *   credentials and pass them on using the _openapiToGraphql object to other resolve
+ *   credentials and pass them on using the _openAPIToGraphQL object to other resolve
  *   functions.
  */
 import { Options, Report } from './types/options';

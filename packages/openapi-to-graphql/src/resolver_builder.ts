@@ -82,30 +82,30 @@ export function getResolver({
   // Return resolve function:
   return (root: any, args, ctx, info = {}) => {
     /**
-     * Retch resolveData from possibly existing _openapiToGraphql
+     * Retch resolveData from possibly existing _openAPIToGraphQL
      *
-     * NOTE: _openapiToGraphql is an object used to pass security info and data
+     * NOTE: _openAPIToGraphQL is an object used to pass security info and data
      * from previous resolvers
      */
     let resolveData: any = {}
     if (
       root &&
       typeof root === 'object' &&
-      typeof root['_openapiToGraphql'] === 'object' &&
-      typeof root['_openapiToGraphql'].data === 'object'
+      typeof root['_openAPIToGraphQL'] === 'object' &&
+      typeof root['_openAPIToGraphQL'].data === 'object'
     ) {
       const parentIdentifier = getParentIdentifier(info)
       if (
         !(parentIdentifier.length === 0) &&
-        parentIdentifier in root['_openapiToGraphql'].data
+        parentIdentifier in root['_openAPIToGraphQL'].data
       ) {
         /**
          * Resolving link params may change the usedParams, but these changes
-         * should not be present in the parent _openapiToGraphql, therefore copy
+         * should not be present in the parent _openAPIToGraphQL, therefore copy
          * the object
          */
         resolveData = JSON.parse(
-          JSON.stringify(root['_openapiToGraphql'].data[parentIdentifier])
+          JSON.stringify(root['_openAPIToGraphQL'].data[parentIdentifier])
         )
       }
     }
@@ -282,11 +282,11 @@ export function getResolver({
     if (
       root &&
       typeof root === 'object' &&
-      typeof root['_openapiToGraphql'] === 'object'
+      typeof root['_openAPIToGraphQL'] === 'object'
     ) {
       const { authHeaders, authQs, authCookie } = getAuthOptions(
         operation,
-        root['_openapiToGraphql'],
+        root['_openAPIToGraphQL'],
         data
       )
 
@@ -412,12 +412,12 @@ export function getResolver({
                 // Deal with the fact that the server might send unsanitized data
                 let saneData = Oas3Tools.sanitizeObjKeys(responseBody)
 
-                // Pass on _openapiToGraphql to subsequent resolvers
+                // Pass on _openAPIToGraphQL to subsequent resolvers
                 if (saneData && typeof saneData === 'object') {
                   if (Array.isArray(saneData)) {
                     saneData.forEach(element => {
-                      if (typeof element['_openapiToGraphql'] === 'undefined') {
-                        element['_openapiToGraphql'] = {
+                      if (typeof element['_openAPIToGraphQL'] === 'undefined') {
+                        element['_openAPIToGraphQL'] = {
                           data: {}
                         }
                       }
@@ -425,21 +425,21 @@ export function getResolver({
                       if (
                         root &&
                         typeof root === 'object' &&
-                        typeof root['_openapiToGraphql'] === 'object'
+                        typeof root['_openAPIToGraphQL'] === 'object'
                       ) {
                         Object.assign(
-                          element['_openapiToGraphql'],
-                          root['_openapiToGraphql']
+                          element['_openAPIToGraphQL'],
+                          root['_openAPIToGraphQL']
                         )
                       }
 
-                      element['_openapiToGraphql'].data[
+                      element['_openAPIToGraphQL'].data[
                         getIdentifier(info)
                       ] = resolveData
                     })
                   } else {
-                    if (typeof saneData['_openapiToGraphql'] === 'undefined') {
-                      saneData['_openapiToGraphql'] = {
+                    if (typeof saneData['_openAPIToGraphQL'] === 'undefined') {
+                      saneData['_openAPIToGraphQL'] = {
                         data: {}
                       }
                     }
@@ -447,15 +447,15 @@ export function getResolver({
                     if (
                       root &&
                       typeof root === 'object' &&
-                      typeof root['_openapiToGraphql'] === 'object'
+                      typeof root['_openAPIToGraphQL'] === 'object'
                     ) {
                       Object.assign(
-                        saneData['_openapiToGraphql'],
-                        root['_openapiToGraphql']
+                        saneData['_openAPIToGraphQL'],
+                        root['_openAPIToGraphQL']
                       )
                     }
 
-                    saneData['_openapiToGraphql'].data[
+                    saneData['_openAPIToGraphQL'].data[
                       getIdentifier(info)
                     ] = resolveData
                   }
@@ -606,7 +606,7 @@ function createOAuthHeader(
  */
 function getAuthOptions(
   operation: Operation,
-  _openapiToGraphql: any,
+  _openAPIToGraphQL: any,
   data: PreprocessingData
 ): AuthOptions {
   const authHeaders = {}
@@ -620,7 +620,7 @@ function getAuthOptions(
   const {
     authRequired,
     sanitizedSecurityRequirement
-  } = getAuthReqAndProtcolName(operation, _openapiToGraphql)
+  } = getAuthReqAndProtcolName(operation, _openAPIToGraphQL)
   const securityRequirement = data.saneMap[sanitizedSecurityRequirement]
 
   // Possibly, we don't need to do anything:
@@ -638,7 +638,7 @@ function getAuthOptions(
     switch (security.def.type) {
       case 'apiKey':
         const apiKey =
-          _openapiToGraphql.security[sanitizedSecurityRequirement].apiKey
+          _openAPIToGraphQL.security[sanitizedSecurityRequirement].apiKey
         if ('in' in security.def) {
           if (typeof security.def.name === 'string') {
             if (security.def.in === 'header') {
@@ -660,9 +660,9 @@ function getAuthOptions(
         switch (security.def.scheme) {
           case 'basic':
             const username =
-              _openapiToGraphql.security[sanitizedSecurityRequirement].username
+              _openAPIToGraphQL.security[sanitizedSecurityRequirement].username
             const password =
-              _openapiToGraphql.security[sanitizedSecurityRequirement].password
+              _openAPIToGraphQL.security[sanitizedSecurityRequirement].password
             const credentials = `${username}:${password}`
             authHeaders['Authorization'] = `Basic ${Buffer.from(
               credentials
@@ -696,7 +696,7 @@ function getAuthOptions(
  */
 function getAuthReqAndProtcolName(
   operation: Operation,
-  _openapiToGraphql
+  _openAPIToGraphQL
 ): AuthReqAndProtcolName {
   let authRequired = false
   if (
@@ -710,7 +710,7 @@ function getAuthReqAndProtcolName(
         securityRequirement
       )
       if (
-        typeof _openapiToGraphql.security[sanitizedSecurityRequirement] ===
+        typeof _openAPIToGraphQL.security[sanitizedSecurityRequirement] ===
         'object'
       ) {
         return {
@@ -786,10 +786,10 @@ function resolveLinkParameter(
     if (value === '$response.body') {
       const result = JSON.parse(JSON.stringify(root))
       /**
-       * _openapiToGraphql contains data used by OpenAPI-to-GraphQL to create the GraphQL interface
+       * _openAPIToGraphQL contains data used by OpenAPI-to-GraphQL to create the GraphQL interface
        * and should not be exposed
        */
-      result._openapiToGraphql = undefined
+      result._openAPIToGraphQL = undefined
       return result
 
       // CASE: parameter in body
@@ -856,7 +856,7 @@ function isRuntimeExpression(str: string): boolean {
  * From the info object provided by the resolver, get a unique identifier, which
  * is the path formed from the nested field names (or aliases if provided)
  *
- * Used to store and retrieve the _openapiToGraphql of parent field
+ * Used to store and retrieve the _openAPIToGraphQL of parent field
  */
 function getIdentifier(info): string {
   return getIdentifierRecursive(info.path)

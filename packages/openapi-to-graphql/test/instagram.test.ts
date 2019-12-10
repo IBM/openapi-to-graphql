@@ -7,7 +7,7 @@
 
 /* globals beforeAll, test, expect */
 
-import * as openapiToGraphql from '../lib/index'
+import * as openAPIToGraphQL from '../lib/index'
 
 /**
  * Set up the schema first
@@ -16,7 +16,7 @@ const oas = require('./fixtures/instagram.json')
 
 let createdSchema
 beforeAll(() => {
-  return openapiToGraphql
+  return openAPIToGraphQL
     .createGraphQlSchema(oas)
     .then(({ schema, report }) => {
       createdSchema = schema
