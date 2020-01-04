@@ -817,7 +817,7 @@ test(
         productTag
       }
     }`
-    
+
     return graphql(createdSchema, query).then(result => {
       expect(result).toEqual({
         data: {
@@ -1088,7 +1088,7 @@ test('Resolve circular allOf', () => {
       }
     }
   }`
-  
+
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(
       result.data['__type']['fields'].find(field => {
@@ -1137,7 +1137,7 @@ test('Resolve oneOf, which becomes a union type', () => {
             },
             {
               name: 'Trashcan',
-              description: 'No description available.'
+              description: null
             },
             {
               name: 'User',
@@ -2184,7 +2184,6 @@ test('Query string arguments are not created when they are provided through requ
       })
     })
 })
-
 
 test('Non-nullable properties for object types', () => {
   const coordinates = createdSchema.getType('Coordinates')

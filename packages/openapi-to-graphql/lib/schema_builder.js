@@ -232,7 +232,7 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
             resolveType: (source, context, info) => {
                 const properties = Object.keys(source);
                 // Remove custom _openapiToGraphql property used to pass data
-                const otgIndex = properties.indexOf('_openapiToGraphql');
+                const otgIndex = properties.indexOf('_openAPIToGraphQL');
                 if (otgIndex !== -1) {
                     properties.splice(otgIndex, 1);
                 }
@@ -515,12 +515,16 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         operation: linkedOp,
                         data
                     });
-                    /**
-                     * Get response object type
-                     * Use the reference here
-                     * OT will be built up some other time
-                     */
-                    const resObjectType = linkedOp.responseDefinition.graphQLType;
+                    // Get response object type
+                    const resObjectType = linkedOp.responseDefinition.graphQLType !== undefined ?
+                        linkedOp.responseDefinition.graphQLType :
+                        getGraphQLType({
+                            def: linkedOp.responseDefinition,
+                            operation,
+                            data,
+                            iteration: iteration + 1,
+                            isInputObjectType: false
+                        });
                     let description = link.description;
                     if (data.options.equivalentToMessages && description) {
                         description += `\n\nEquivalent to ${linkedOp.operationString}`;

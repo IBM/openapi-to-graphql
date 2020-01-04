@@ -13,7 +13,7 @@ const openAPIToGraphQL = require('../lib/index')
 
 const oas = require('./fixtures/example_oas.json')
 // const oas2 = require('./fixtures/example_oas2.json')
-// const oas3 = require('./fixtures/example_oas3.json')
+const oas3 = require('./fixtures/example_oas3.json')
 // const oas4 = require('./fixtures/example_oas4.json')
 
 // const oas = require('./fixtures/github_oas.json')
@@ -28,7 +28,7 @@ const oas = require('./fixtures/example_oas.json')
 // const oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
 openAPIToGraphQL
-  .createGraphQlSchema(oas)
+  .createGraphQlSchema([oas, oas3])
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
 

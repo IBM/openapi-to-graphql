@@ -92,7 +92,10 @@ export function preprocessOas(
           description = endpoint.summary
         }
 
-        if (data.options.equivalentToMessages && typeof description === 'string') {
+        if (
+          data.options.equivalentToMessages &&
+          typeof description === 'string'
+        ) {
           description += `\n\nEquivalent to ${operationString}`
         }
 
@@ -506,16 +509,16 @@ export function createDataDef(
     // Else, define a new name, store the def, and return it
     const name = getSchemaName(names, data.usedTypeNames)
 
-    // Store and sanitize the name
-    const saneName = Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
-    const saneInputName = Oas3Tools.capitalize(saneName + 'Input')
-
-    Oas3Tools.storeSaneName(saneName, name, data.saneMap)
+    const saneName = Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.camelCase)
+    const otName = Oas3Tools.capitalize(
+      Oas3Tools.storeSaneName(saneName, name, data.saneMap)
+    )
+    const iotName = otName + 'Input'
 
     // TODO: selectively add usedTypeName if a type is created
     // Add the names to the master list
-    data.usedTypeNames.push(saneName)
-    data.usedTypeNames.push(saneInputName)
+    data.usedTypeNames.push(otName)
+    data.usedTypeNames.push(iotName)
 
     /**
      * TODO: is there a better way of copying the schema object?
@@ -545,8 +548,8 @@ export function createDataDef(
       targetGraphQLType,
       subDefinitions: undefined,
       links: saneLinks,
-      graphQLTypeName: saneName,
-      graphQLInputObjectTypeName: saneInputName
+      graphQLTypeName: otName,
+      graphQLInputObjectTypeName: iotName
     }
 
     // Add the def to the master list
