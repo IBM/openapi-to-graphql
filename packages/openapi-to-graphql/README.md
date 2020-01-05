@@ -49,7 +49,7 @@ const { createGraphQlSchema } = require('openapi-to-graphql')
 
 async function main(oas) {
   // generate schema:
-  const { schema, report } = await createGraphQLSchema(oas)
+  const { schema, report } = await createGraphQlSchema(oas)
 
   // server schema:
   const app = express()
