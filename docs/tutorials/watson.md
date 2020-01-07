@@ -8,7 +8,7 @@ OpenAPI-to-GraphQL is a library that automatically creates GraphQL wrappers for 
 
 ## Creating a simple wrapper
 
-To create a GraphQL wrapper around the API, we use the Swagger specification of the Language Translator API available [here](https://watson-api-explorer.ng.bluemix.net/listings/language-translator-v2.json). From this specification, OpenAPI-to-GraphQL creates a GraphQL schema, consisting of the API's data types and their relations. OpenAPI-to-GraphQL also creates so-called resolve functions, which interact with the Language Translator API to resolve GraphQL queries. The schema created by OpenAPI-to-GraphQL can be exposed using web application frameworks like [Express.js](https://expressjs.com/) via the [express-graphql](https://github.com/graphql/express-graphql) middleware.
+To create a GraphQL wrapper around the API, we use the Swagger specification of the Language Translator API available [here](https://watson-api-explorer.ng.bluemix.net/language-translator-v2.json). From this specification, OpenAPI-to-GraphQL creates a GraphQL schema, consisting of the API's data types and their relations. OpenAPI-to-GraphQL also creates so-called resolve functions, which interact with the Language Translator API to resolve GraphQL queries. The schema created by OpenAPI-to-GraphQL can be exposed using web application frameworks like [Express.js](https://expressjs.com/) via the [express-graphql](https://github.com/graphql/express-graphql) middleware.
 
 The following code shows all that's needed to create and run a GraphQL wrapper around the Language Translator API:
 
