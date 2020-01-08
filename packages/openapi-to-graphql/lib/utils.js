@@ -25,6 +25,7 @@ exports.mitigations = {
     CANNOT_GET_FIELD_TYPE: `Ignore field and continue.`,
     COMBINE_SCHEMAS: `Ignore combine schema keyword and continue.`,
     UNKNOWN_TARGET_TYPE: `The response will be stored in an arbitrary JSON type.`,
+    MISSING_SCHEMA: `Use arbitrary JSON type.`,
     // Links
     UNRESOLVABLE_LINK: `Ignore link.`,
     AMBIGUOUS_LINK: `Use first occurance of '#/'.`,

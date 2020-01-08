@@ -441,7 +441,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                 type: requiredProperty
                     ? new graphql_1.GraphQLNonNull(objectType)
                     : objectType,
-                description: fieldSchema.description
+                description: typeof fieldSchema === 'object' ? fieldSchema.description : null
             };
         }
         else {

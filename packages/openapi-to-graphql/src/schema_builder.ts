@@ -193,7 +193,8 @@ function createOrReuseOt({
             ? ` (for operation '${operation.operationId}')`
             : '')
       )
-      return def.graphQLType as GraphQLObjectType
+      return def.graphQLType as
+        | GraphQLObjectType
         | GraphQLInputObjectType
         | GraphQLScalarType
     }
@@ -640,7 +641,8 @@ function createFields({
           ? new GraphQLNonNull(objectType)
           : (objectType as GraphQLOutputType),
 
-        description: fieldSchema.description
+        description:
+          typeof fieldSchema === 'object' ? fieldSchema.description : null
       }
     } else {
       handleWarning({
@@ -727,15 +729,15 @@ function createFields({
 
           // Get response object type
           const resObjectType =
-          linkedOp.responseDefinition.graphQLType !== undefined
-            ? linkedOp.responseDefinition.graphQLType
-            : getGraphQLType({
-                def: linkedOp.responseDefinition,
-                operation,
-                data,
-                iteration: iteration + 1,
-                isInputObjectType: false
-              })
+            linkedOp.responseDefinition.graphQLType !== undefined
+              ? linkedOp.responseDefinition.graphQLType
+              : getGraphQLType({
+                  def: linkedOp.responseDefinition,
+                  operation,
+                  data,
+                  iteration: iteration + 1,
+                  isInputObjectType: false
+                })
 
           let description = link.description
 
