@@ -19,6 +19,7 @@ export declare const mitigations: {
     CANNOT_GET_FIELD_TYPE: string;
     COMBINE_SCHEMAS: string;
     UNKNOWN_TARGET_TYPE: string;
+    MISSING_SCHEMA: string;
     UNRESOLVABLE_LINK: string;
     AMBIGUOUS_LINK: string;
     LINK_NAME_COLLISION: string;
