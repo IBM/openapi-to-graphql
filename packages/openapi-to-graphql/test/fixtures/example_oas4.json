@@ -7,8 +7,7 @@
     "termsOfService": "http://example.com/terms/",
     "contact": {
       "name": "Erik Wittern",
-      "url": "http://www.example.com/support",
-      "email": "witternj@us.ibm.com"
+      "url": "http://www.example.com/support"
     },
     "license": {
       "name": "Apache 2.0",
@@ -31,7 +30,7 @@
       "description": "The location of the local test server.",
       "variables": {
         "port": {
-          "default": "3001"
+          "default": "3004"
         },
         "basePath": {
           "default": "api"
@@ -42,10 +41,10 @@
   "paths": {
     "/oneOf": {
       "get": {
-        "description": "It could be anything!",
+        "description": "Basic oneOf test",
         "responses": {
           "200": {
-            "description": "Mystery object",
+            "description": "Mandatory field",
             "content": {
               "application/json": {
                 "schema": {
@@ -66,10 +65,10 @@
     },
     "/anyOf": {
       "get": {
-        "description": "It could be anything!",
+        "description": "Basic anyOf test using the same subschemas",
         "responses": {
           "200": {
-            "description": "Mystery object",
+            "description": "Mandatory field",
             "content": {
               "application/json": {
                 "schema": {
@@ -90,10 +89,10 @@
     },
     "/anyOf2": {
       "get": {
-        "description": "It could be anything!",
+        "description": "Basic anyOf test with different subschemas",
         "responses": {
           "200": {
-            "description": "Mystery object",
+            "description": "Mandatory field",
             "content": {
               "application/json": {
                 "schema": {
@@ -114,10 +113,10 @@
     },
     "/anyOf3": {
       "get": {
-        "description": "It could be anything!",
+        "description": "AnyOf test with the same nested subschemas",
         "responses": {
           "200": {
-            "description": "Mystery object",
+            "description": "Mandatory field",
             "content": {
               "application/json": {
                 "schema": {
@@ -146,10 +145,10 @@
     },
     "/anyOf4": {
       "get": {
-        "description": "It could be anything!",
+        "description": "AnyOf test with different nested subschemas",
         "responses": {
           "200": {
-            "description": "Mystery object",
+            "description": "Mandatory field",
             "content": {
               "application/json": {
                 "schema": {
@@ -178,27 +177,73 @@
     },
     "/anyOf5": {
       "get": {
-        "description": "It could be anything!",
+        "description": "AnyOf test with incompatible subschema types",
         "responses": {
           "200": {
-            "description": "Mystery object",
+            "description": "Mandatory field",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
-                      "properties": {
-                        "commonAttribute": {
-                          "$ref": "#/components/schemas/commonAttributeObject"
-                        }
-                      }
+                      "$ref": "#/components/schemas/commonAttributeObject"
                     },
                     {
-                      "properties": {
-                        "differentAttribute": {
-                          "$ref": "#/components/schemas/differentAttributeObject"
-                        }
-                      }
+                      "type": "string"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf6": {
+      "get": {
+        "description": "AnyOf test with some extraneous subschemas",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "minimum": -90
+                    },
+                    {
+                      "maximum": 90
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf7": {
+      "get": {
+        "description": "AnyOf test with some extraneous subschemas",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "integer"
+                    },
+                    {
+                      "minimum": -90
+                    },
+                    {
+                      "maximum": 90
                     }
                   ]
                 }
