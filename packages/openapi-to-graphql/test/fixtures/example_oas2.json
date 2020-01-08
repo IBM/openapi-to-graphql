@@ -7,8 +7,7 @@
     "termsOfService": "http://example.com/terms/",
     "contact": {
       "name": "Erik Wittern",
-      "url": "http://www.example.com/support",
-      "email": "witternj@us.ibm.com"
+      "url": "http://www.example.com/support"
     },
     "license": {
       "name": "Apache 2.0",
