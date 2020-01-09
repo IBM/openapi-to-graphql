@@ -50,7 +50,7 @@ async function checkOas(OASList) {
     let name = oas.info.title
     console.log(`Process "${name}" (${oas['x-file-path']})...`)
     try {
-      let { report } = await openapiToGraphql.createGraphQlSchema(oas, {
+      let { report } = await openapiToGraphql.createGraphQLSchema(oas, {
         strict: false
       })
       results.successes.push({ name, report })

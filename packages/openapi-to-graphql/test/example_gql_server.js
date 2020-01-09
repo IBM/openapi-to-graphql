@@ -29,7 +29,7 @@ const oas4 = require('./fixtures/example_oas4.json')
 // const oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
 openAPIToGraphQL
-  .createGraphQlSchema(oas4)
+  .createGraphQLSchema(oas4)
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
 

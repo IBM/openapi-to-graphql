@@ -85,7 +85,7 @@ openapi-to-graphql oas.json -H someHeader:someValue -H anotherHeader:anotherValu
 
 To learn more about the other options, please refer [here](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql#options).
 
-Please note that the CLI tool is mainly used for quick testing and does not offer all the features that [`createGraphQlSchema(oas, options)`](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql#usage) does.
+Please note that the CLI tool is mainly used for quick testing and does not offer all the features that [`createGraphQLSchema(oas, options)`](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql#usage) does.
 
 ## License
 

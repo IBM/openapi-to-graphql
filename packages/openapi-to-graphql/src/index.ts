@@ -61,7 +61,7 @@ const translationLog = debug('translation')
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export async function createGraphQlSchema(
+export async function createGraphQLSchema(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options?: Options
 ): Promise<Result> {

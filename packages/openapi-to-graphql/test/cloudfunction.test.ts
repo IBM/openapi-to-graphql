@@ -15,7 +15,7 @@ const oas = require('./fixtures/cloudfunction.json')
 let createdSchema
 
 beforeAll(async () => {
-  const { schema } = await openAPIToGraphQL.createGraphQlSchema(oas)
+  const { schema } = await openAPIToGraphQL.createGraphQLSchema(oas)
   createdSchema = schema
 })
 

@@ -27,7 +27,7 @@ let createdSchema
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
-      .createGraphQlSchema(oas, {
+      .createGraphQLSchema(oas, {
         fillEmptyResponses: true
       })
       .then(({ schema, report }) => {
@@ -976,7 +976,7 @@ test('Define header and query options', () => {
     status2 (globalquery: "test")
   }`
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       // validate that 'limit' parameter is covered by options:
       const ast = parse(query)
@@ -1254,9 +1254,9 @@ test('Option provideErrorExtensions should prevent error extensions from being c
       name
     }
   }`
-  
+
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1303,9 +1303,9 @@ test('Option customResolver', () => {
       name
     }
   }`
-  
+
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1351,9 +1351,9 @@ test('Option customResolver with links', () => {
       }
     }
   }`
-  
+
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1398,9 +1398,9 @@ test('Option customResolver using resolver arguments', () => {
       name
     }
   }`
-  
+
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1438,9 +1438,9 @@ test('Option customResolver using resolver arguments that are sanitized', () => 
       productName
     }
   }`
-  
+
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1478,7 +1478,7 @@ test('Option addLimitArgument', () => {
   }`
 
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1712,7 +1712,7 @@ test('Generate "Equivalent to..." messages', () => {
   }`
 
   const promise = openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1806,7 +1806,7 @@ test('Withhold "Equivalent to..." messages', () => {
   }`
 
   const promise = openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1839,7 +1839,7 @@ test('Withhold "Equivalent to..." messages', () => {
   }`
 
   const promise2 = openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1911,7 +1911,7 @@ test('Option idFormats', () => {
   }`
 
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -1996,7 +1996,7 @@ test('Option selectQueryOrMutationField', () => {
 
   // The users (now named getUserByUsername) field should exist as a Mutation field
   const promise2 = openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -2046,7 +2046,7 @@ test('Header arguments are not created when they are provided through headers op
   }`
 
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -2090,7 +2090,7 @@ test('Header arguments are not created when they are provided through requestOpt
   }`
 
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -2130,7 +2130,7 @@ test('Query string arguments are not created when they are provided through qs o
   }`
 
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -2173,7 +2173,7 @@ test('Query string arguments are not created when they are provided through requ
   }`
 
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -2235,7 +2235,7 @@ test('Option genericPayloadArgName', () => {
 
   // The postUser field should now have a requestPody argument
   const promise2 = openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -2276,7 +2276,7 @@ test('Non-nullable properties from nested allOf', () => {
     }
   }`
 
-  return openAPIToGraphQL.createGraphQlSchema(oas).then(({ schema }) => {
+  return openAPIToGraphQL.createGraphQLSchema(oas).then(({ schema }) => {
     const ast = parse(query)
     const errors = validate(schema, ast)
     expect(errors).toEqual([])

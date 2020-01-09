@@ -21,7 +21,7 @@ const bodyParser = require('body-parser')
 async function startServer () {
   // use OpenAPI-to-GraphQL to create a GraphQL schema:
   const oas = require('path/to/language-translator-v2.json')
-  const {schema} = await OTG.createGraphQlSchema(oas)
+  const {schema} = await OTG.createGraphQLSchema(oas)
 
   // setup Express.js app and serve the schema:
   const app = express()

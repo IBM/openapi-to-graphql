@@ -26,7 +26,7 @@ let createdSchema
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
-      .createGraphQlSchema(oas, {
+      .createGraphQLSchema(oas, {
         fillEmptyResponses: true
       })
       .then(({ schema, report }) => {
