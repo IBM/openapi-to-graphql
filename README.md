@@ -35,11 +35,11 @@ Use OpenAPI-to-GraphQL as a library in your application to generate GraphQL sche
    ```bash
    npm i -s openapi-to-graphql
    ```
-2. Require OpenAPI-to-GraphQL and use the `createGraphQlSchema` function:
+2. Require OpenAPI-to-GraphQL and use the `createGraphQLSchema` function:
    ```javascript
-   const { createGraphQlSchema } = require("openapi-to-graphql");
+   const { createGraphQLSchema } = require("openapi-to-graphql");
    // load or construct OAS (const oas = ...)
-   const { schema, report } = await createGraphQlSchema(oas);
+   const { schema, report } = await createGraphQLSchema(oas);
    ```
 
 For further details, refer to the [`openapi-to-graphql` documentation](./packages/openapi-to-graphql).

@@ -19,7 +19,7 @@ const oas = require('./fixtures/government_social_work.json')
 let createdSchema
 beforeAll(() => {
   return openAPIToGraphQL
-    .createGraphQlSchema(oas)
+    .createGraphQLSchema(oas)
     .then(({ schema, report }) => {
       createdSchema = schema
     })

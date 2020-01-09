@@ -25,7 +25,7 @@ let createdSchema
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
-      .createGraphQlSchema(oas, { operationIdFieldNames: true })
+      .createGraphQLSchema(oas, { operationIdFieldNames: true })
       .then(({ schema, report }) => {
         createdSchema = schema
       }),

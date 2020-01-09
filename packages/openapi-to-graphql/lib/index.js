@@ -27,7 +27,7 @@ const translationLog = debug_1.default('translation');
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-function createGraphQlSchema(spec, options) {
+function createGraphQLSchema(spec, options) {
     return __awaiter(this, void 0, void 0, function* () {
         if (typeof options === 'undefined') {
             options = {};
@@ -98,7 +98,7 @@ function createGraphQlSchema(spec, options) {
         };
     });
 }
-exports.createGraphQlSchema = createGraphQlSchema;
+exports.createGraphQLSchema = createGraphQLSchema;
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
  */

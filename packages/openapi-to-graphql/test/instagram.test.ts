@@ -17,7 +17,7 @@ const oas = require('./fixtures/instagram.json')
 let createdSchema
 beforeAll(() => {
   return openAPIToGraphQL
-    .createGraphQlSchema(oas)
+    .createGraphQLSchema(oas)
     .then(({ schema, report }) => {
       createdSchema = schema
     })

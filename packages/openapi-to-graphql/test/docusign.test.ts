@@ -17,7 +17,7 @@ test('Generate schema without problems', () => {
     strict: false
   }
   return openAPIToGraphQL
-    .createGraphQlSchema(oas, options)
+    .createGraphQLSchema(oas, options)
     .then(({ schema }) => {
       expect(schema).toBeTruthy()
     })

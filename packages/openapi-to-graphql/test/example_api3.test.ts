@@ -30,7 +30,7 @@ let createdSchema
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
-      .createGraphQlSchema([oas, oas3], {
+      .createGraphQLSchema([oas, oas3], {
         fillEmptyResponses: true
       })
       .then(({ schema, report }) => {
@@ -328,7 +328,7 @@ test('Option customResolver with two APIs', () => {
     }
   }`
   return openAPIToGraphQL
-    .createGraphQlSchema([oas, oas3], options)
+    .createGraphQLSchema([oas, oas3], options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
@@ -405,7 +405,7 @@ test('Option customResolver with two APIs and interrelated links', () => {
     }
   }`
   return openAPIToGraphQL
-    .createGraphQlSchema([oas, oas3], options)
+    .createGraphQLSchema([oas, oas3], options)
     .then(({ schema }) => {
       const ast = parse(query)
       const errors = validate(schema, ast)
