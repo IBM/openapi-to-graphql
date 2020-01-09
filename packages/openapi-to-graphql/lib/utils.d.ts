@@ -20,6 +20,7 @@ export declare const mitigations: {
     COMBINE_SCHEMAS: string;
     UNKNOWN_TARGET_TYPE: string;
     MISSING_SCHEMA: string;
+    UNRESOLVABLE_SCHEMA: string;
     UNRESOLVABLE_LINK: string;
     AMBIGUOUS_LINK: string;
     LINK_NAME_COLLISION: string;

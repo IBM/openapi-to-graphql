@@ -11,7 +11,7 @@ export declare type DataDefinition = {
     /**
      * Similar to the required property in object schemas but because of certain
      * keywords to combine schemas, e.g. "allOf", this resolves the required
-     * property in all subschemas
+     * property in all member schemas
      */
     required: string[];
     targetGraphQLType: string;

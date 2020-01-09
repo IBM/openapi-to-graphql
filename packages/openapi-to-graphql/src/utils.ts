@@ -29,6 +29,7 @@ export const mitigations = {
   COMBINE_SCHEMAS: `Ignore combine schema keyword and continue.`,
   UNKNOWN_TARGET_TYPE: `The response will be stored in an arbitrary JSON type.`,
   MISSING_SCHEMA: `Use arbitrary JSON type.`,
+  UNRESOLVABLE_SCHEMA: `Ignore and continue. May lead to unexpected behavior.`,
 
   // Links
   UNRESOLVABLE_LINK: `Ignore link.`,

@@ -63,9 +63,82 @@
         }
       }
     },
+    "/oneOf2": {
+      "get": {
+        "description": "oneOf test with non-object type member schema",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oneOf3": {
+      "get": {
+        "description": "oneOf test with no object type member schemas",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "integer"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oneOf4": {
+      "get": {
+        "description": "oneOf test with extraneous member schemas",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "oneOf": [
+                    {
+                      "minimum": -90
+                    },
+                    {
+                      "maximum": 90
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/anyOf": {
       "get": {
-        "description": "Basic anyOf test using the same subschemas",
+        "description": "Basic anyOf test using the same member schemas",
         "responses": {
           "200": {
             "description": "Mandatory field",
@@ -89,7 +162,7 @@
     },
     "/anyOf2": {
       "get": {
-        "description": "Basic anyOf test with different subschemas",
+        "description": "Basic anyOf test with different member schemas",
         "responses": {
           "200": {
             "description": "Mandatory field",
@@ -113,7 +186,7 @@
     },
     "/anyOf3": {
       "get": {
-        "description": "AnyOf test with the same nested subschemas",
+        "description": "anyOf test with the same nested member schemas",
         "responses": {
           "200": {
             "description": "Mandatory field",
@@ -145,7 +218,7 @@
     },
     "/anyOf4": {
       "get": {
-        "description": "AnyOf test with different nested subschemas",
+        "description": "anyOf test with different nested member schemas",
         "responses": {
           "200": {
             "description": "Mandatory field",
@@ -177,7 +250,39 @@
     },
     "/anyOf5": {
       "get": {
-        "description": "AnyOf test with incompatible subschema types",
+        "description": "anyOf test with different nested member schemas, leading to conflict",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "properties": {
+                        "commonAttribute": {
+                          "$ref": "#/components/schemas/commonAttributeObject"
+                        }
+                      }
+                    },
+                    {
+                      "properties": {
+                        "commonAttribute": {
+                          "$ref": "#/components/schemas/differentAttributeObject"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf6": {
+      "get": {
+        "description": "anyOf test with incompatible member schema types",
         "responses": {
           "200": {
             "description": "Mandatory field",
@@ -199,9 +304,9 @@
         }
       }
     },
-    "/anyOf6": {
+    "/anyOf7": {
       "get": {
-        "description": "AnyOf test with some extraneous subschemas",
+        "description": "anyOf test with some extraneous member schemas",
         "responses": {
           "200": {
             "description": "Mandatory field",
@@ -226,9 +331,9 @@
         }
       }
     },
-    "/anyOf7": {
+    "/anyOf8": {
       "get": {
-        "description": "AnyOf test with some extraneous subschemas",
+        "description": "anyOf test with no object type member schemas",
         "responses": {
           "200": {
             "description": "Mandatory field",
@@ -239,6 +344,31 @@
                     {
                       "type": "integer"
                     },
+                    {
+                      "minimum": -90
+                    },
+                    {
+                      "maximum": 90
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf9": {
+      "get": {
+        "description": "anyOf test with extraneous member schemas with external type",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "anyOf": [
                     {
                       "minimum": -90
                     },
