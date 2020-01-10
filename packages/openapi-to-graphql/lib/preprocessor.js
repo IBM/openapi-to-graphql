@@ -142,7 +142,10 @@ function preprocessOas(oass, options) {
                     statusCode,
                     oas
                 };
-                // Handle operationId property name collision // May occur if multiple OAS are provided
+                /**
+                 * Handle operationId property name collision
+                 * May occur if multiple OAS are provided
+                 */
                 if (operationId in data.operations) {
                     utils_1.handleWarning({
                         typeKey: 'DUPLICATE_OPERATIONID',
@@ -205,7 +208,7 @@ function getProcessedSecuritySchemes(oas, data) {
     // Loop through all the security protocols
     for (let key in security) {
         const protocol = security[key];
-        // Determine the parameters and the schema for the security protocol
+        // Determine the schema and the parameters for the security protocol
         let schema;
         let parameters = {};
         let description;
@@ -265,6 +268,7 @@ function getProcessedSecuritySchemes(oas, data) {
                         });
                 }
                 break;
+            // TODO: Implement
             case 'openIdConnect':
                 utils_1.handleWarning({
                     typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
@@ -273,7 +277,6 @@ function getProcessedSecuritySchemes(oas, data) {
                     data,
                     log: preprocessingLog
                 });
-                // TODO: Implement
                 break;
             case 'oauth2':
                 utils_1.handleWarning({
@@ -697,14 +700,13 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                             addObjectPropertiesToDataDef(def, consolidatedSchema, def.required, isInputObjectType, data, oas);
                         }
                         else {
-                            // handleWarning({
-                            //   typeKey: 'UNKNOWN_TARGET_TYPE',
-                            //   message: `No GraphQL target type could be identified for schema '${JSON.stringify(
-                            //     schema
-                            //   )}'.`,
-                            //   data,
-                            //   log: preprocessingLog
-                            // })
+                            utils_1.handleWarning({
+                                typeKey: 'OBJECT_MISSING_PROPERTIES',
+                                message: `Schema ${JSON.stringify(schema)} does not have ` +
+                                    `any properties`,
+                                data,
+                                log: preprocessingLog
+                            });
                             def.targetGraphQLType = 'json';
                         }
                         break;
@@ -757,23 +759,21 @@ function getSchemaIndex(preferredName, schema, dataDefs) {
  * been taken.
  */
 function getPreferredName(names) {
-    let schemaName; // CASE: preferred name already known
     if (typeof names.preferred === 'string') {
-        schemaName = names.preferred; // CASE: name from reference
+        return Oas3Tools.sanitize(names.preferred, Oas3Tools.CaseStyle.PascalCase); // CASE: preferred name already known
     }
     else if (typeof names.fromRef === 'string') {
-        schemaName = names.fromRef; // CASE: name from schema (i.e., "title" property in schema)
+        return Oas3Tools.sanitize(names.fromRef, Oas3Tools.CaseStyle.PascalCase); // CASE: name from reference
     }
     else if (typeof names.fromSchema === 'string') {
-        schemaName = names.fromSchema; // CASE: name from path
+        return Oas3Tools.sanitize(names.fromSchema, Oas3Tools.CaseStyle.PascalCase); // CASE: name from schema (i.e., "title" property in schema)
     }
     else if (typeof names.fromPath === 'string') {
-        schemaName = names.fromPath; // CASE: placeholder name
+        return Oas3Tools.sanitize(names.fromPath, Oas3Tools.CaseStyle.PascalCase); // CASE: name from path
     }
     else {
-        schemaName = 'PlaceholderName';
+        return 'PlaceholderName'; // CASE: placeholder name
     }
-    return Oas3Tools.sanitize(schemaName, Oas3Tools.CaseStyle.camelCase);
 }
 /**
  * Determines name to use for schema from previously determined schemaNames and

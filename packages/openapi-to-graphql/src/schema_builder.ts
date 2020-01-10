@@ -111,17 +111,6 @@ export function getGraphQLType({
         isInputObjectType
       })
 
-    // CASE: combine schemas
-    case 'combination':
-      // TODO: currently assuming that the combined schema is an object type
-      return createOrReuseOt({
-        def,
-        operation,
-        data,
-        iteration,
-        isInputObjectType
-      })
-
     // CASE: union - create UnionType
     case 'union':
       return createOrReuseUnion({
@@ -219,36 +208,6 @@ function createOrReuseOt({
 
   const schema = def.schema
   const description = schema.description
-
-  /**
-   * If the schema does not contain any properties, then OpenAPI-to-GraphQL
-   * cannot create a GraphQL object type for it because in GraphQL, all object
-   * type properties must be named.
-   *
-   * Instead, store response in an arbitray JSON type.
-   */
-  if (
-    (typeof def.schema.properties === 'undefined' ||
-      Object.keys(def.schema.properties).length === 0) && // Empty object
-    typeof def.schema.allOf === 'undefined' &&
-    typeof def.schema.oneOf === 'undefined' &&
-    typeof def.schema.anyOf === 'undefined'
-  ) {
-    handleWarning({
-      typeKey: 'OBJECT_MISSING_PROPERTIES',
-      message:
-        `The operation ` +
-        `'${operation.operationString}' contains ` +
-        `an object schema ${JSON.stringify(schema)} with no properties. ` +
-        `GraphQL objects must have well-defined properties so a one to ` +
-        `one conversion cannot be achieved.`,
-      data,
-      log: translationLog
-    })
-
-    def.graphQLType = GraphQLJSON
-    return def.graphQLType
-  }
 
   // CASE: query - create object type
   if (!isInputObjectType) {
@@ -1227,13 +1186,13 @@ export function getArgs({
     })
 
     // Sanitize the argument name
-    const saneName = data.options.genericPayloadArgName ?
-      'requestBody' :
-      Oas3Tools.sanitize(
-        requestPayloadDef.graphQLInputObjectTypeName,
-        Oas3Tools.CaseStyle.camelCase
-      )
-    
+    const saneName = data.options.genericPayloadArgName
+      ? 'requestBody'
+      : Oas3Tools.sanitize(
+          requestPayloadDef.graphQLInputObjectTypeName,
+          Oas3Tools.CaseStyle.camelCase
+        )
+
     const reqRequired =
       typeof operation === 'object' &&
       typeof operation.payloadRequired === 'boolean'
