@@ -38,7 +38,6 @@ import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning } from './utils'
-import * as rfdc from 'rfdc'
 
 // Type definitions & exports:
 export type SchemaNames = {
@@ -116,14 +115,7 @@ export async function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
 
     preprocessingLog(`OpenAPI Specification is validated`)
 
-    /**
-     * OtG current changes the OAS as part of the preprocessing step (resolving
-     * JSON schema combining keywords like allOf, oneOf, anyOf, and not)
-     *
-     * To prevent unintended changes to the OAS from passing on to the user,
-     * make a deep copy.
-     */
-    return rfdc()(spec) as Oas3
+    return spec as Oas3
   } else {
     throw new Error(`Invalid specification provided`)
   }
