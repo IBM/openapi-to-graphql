@@ -74,7 +74,7 @@ export function createAndLoadViewer(
      * Check if the name has already been used (i.e. in the list)
      * if so, create a new name and add it to the list
      */
-    let securityType = data.security[protocolName].def.type
+    const securityType = data.security[protocolName].def.type
     let viewerType: string
 
     /**
@@ -136,7 +136,7 @@ export function createAndLoadViewer(
   }
 
   // Create name for the AnyAuth viewer
-  let anyAuthObjectName = !isMutation
+  const anyAuthObjectName = !isMutation
     ? 'viewerAnyAuth'
     : 'mutationViewerAnyAuth'
 
@@ -215,7 +215,7 @@ const getViewerOT = (
 
   return {
     type: new GraphQLObjectType({
-      name: name,
+      name: Oas3Tools.capitalize(name), // Should already be sanitized and in camelCase
       description: typeDescription,
       fields: () => queryFields
     }),
@@ -271,7 +271,7 @@ const getViewerAnyAuthOT = (
 
   return {
     type: new GraphQLObjectType({
-      name: name,
+      name: Oas3Tools.capitalize(name), // Should already be GraphQL safe
       description: 'Warning: Not every request will work with this viewer type',
       fields: () => queryFields
     }),
