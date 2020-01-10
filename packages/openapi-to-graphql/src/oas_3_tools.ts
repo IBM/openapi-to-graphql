@@ -433,7 +433,7 @@ export function getSchemaTargetGraphQLType(
 
   // CASE: array
   if (schema.type === 'array' || 'items' in schema) {
-    return 'array'
+    return 'list'
   }
 
   // CASE: enum

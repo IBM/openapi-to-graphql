@@ -25,7 +25,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
         throw new Error(`GraphQL type ${name} has excessive nesting of other types`);
     }
     switch (def.targetGraphQLType) {
-        // CASE: object - create ObjectType
+        // CASE: object - create object type
         case 'object':
             return createOrReuseOt({
                 def,
@@ -34,7 +34,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 iteration,
                 isInputObjectType
             });
-        // CASE: union - create UnionType
+        // CASE: union - create union type
         case 'union':
             return createOrReuseUnion({
                 def,
@@ -42,8 +42,8 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 data,
                 iteration
             });
-        // CASE: array - create ArrayType
-        case 'array':
+        // CASE: list - create list type
+        case 'list':
             return createOrReuseList({
                 def,
                 operation,
@@ -51,13 +51,13 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 iteration,
                 isInputObjectType
             });
-        // CASE: enum - create EnumType
+        // CASE: enum - create enum type
         case 'enum':
             return createOrReuseEnum({
                 def,
                 data
             });
-        // CASE: scalar - return scalar
+        // CASE: scalar - return scalar type
         default:
             return getScalarType({
                 def,

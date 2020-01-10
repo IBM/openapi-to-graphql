@@ -101,7 +101,7 @@ export function getGraphQLType({
   }
 
   switch (def.targetGraphQLType) {
-    // CASE: object - create ObjectType
+    // CASE: object - create object type
     case 'object':
       return createOrReuseOt({
         def,
@@ -111,7 +111,7 @@ export function getGraphQLType({
         isInputObjectType
       })
 
-    // CASE: union - create UnionType
+    // CASE: union - create union type
     case 'union':
       return createOrReuseUnion({
         def,
@@ -120,8 +120,8 @@ export function getGraphQLType({
         iteration
       })
 
-    // CASE: array - create ArrayType
-    case 'array':
+    // CASE: list - create list type
+    case 'list':
       return createOrReuseList({
         def,
         operation,
@@ -130,14 +130,14 @@ export function getGraphQLType({
         isInputObjectType
       })
 
-    // CASE: enum - create EnumType
+    // CASE: enum - create enum type
     case 'enum':
       return createOrReuseEnum({
         def,
         data
       })
 
-    // CASE: scalar - return scalar
+    // CASE: scalar - return scalar type
     default:
       return getScalarType({
         def,
