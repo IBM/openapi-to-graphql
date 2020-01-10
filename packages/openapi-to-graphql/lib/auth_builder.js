@@ -45,7 +45,7 @@ function createAndLoadViewer(queryFields, data, isMutation = false) {
          * Check if the name has already been used (i.e. in the list)
          * if so, create a new name and add it to the list
          */
-        let securityType = data.security[protocolName].def.type;
+        const securityType = data.security[protocolName].def.type;
         let viewerType;
         /**
          * HTTP is not an authentication protocol
@@ -89,7 +89,7 @@ function createAndLoadViewer(queryFields, data, isMutation = false) {
         results[viewerName] = getViewerOT(viewerName, protocolName, securityType, queryFields[protocolName], data);
     }
     // Create name for the AnyAuth viewer
-    let anyAuthObjectName = !isMutation
+    const anyAuthObjectName = !isMutation
         ? 'viewerAnyAuth'
         : 'mutationViewerAnyAuth';
     // Add the AnyAuth object type to the specified root query object type
@@ -144,7 +144,7 @@ const getViewerOT = (name, protocolName, securityType, queryFields, data) => {
     }
     return {
         type: new graphql_1.GraphQLObjectType({
-            name: name,
+            name: Oas3Tools.capitalize(name),
             description: typeDescription,
             fields: () => queryFields
         }),
@@ -181,7 +181,7 @@ const getViewerAnyAuthOT = (name, queryFields, data) => {
     };
     return {
         type: new graphql_1.GraphQLObjectType({
-            name: name,
+            name: Oas3Tools.capitalize(name),
             description: 'Warning: Not every request will work with this viewer type',
             fields: () => queryFields
         }),

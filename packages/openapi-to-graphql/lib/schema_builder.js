@@ -890,9 +890,9 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             isInputObjectType: true // Request payloads will always be an input object type
         });
         // Sanitize the argument name
-        const saneName = data.options.genericPayloadArgName ?
-            'requestBody' :
-            Oas3Tools.sanitize(requestPayloadDef.graphQLInputObjectTypeName, Oas3Tools.CaseStyle.camelCase);
+        const saneName = data.options.genericPayloadArgName
+            ? 'requestBody'
+            : Oas3Tools.sanitize(requestPayloadDef.graphQLInputObjectTypeName, Oas3Tools.CaseStyle.camelCase);
         const reqRequired = typeof operation === 'object' &&
             typeof operation.payloadRequired === 'boolean'
             ? operation.payloadRequired
