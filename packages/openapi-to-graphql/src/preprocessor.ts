@@ -572,7 +572,7 @@ export function createDataDef(
       // Used type names and defs of union and object types are pushed during creation
       if (
         targetGraphQLType === 'object' ||
-        targetGraphQLType === 'array' ||
+        targetGraphQLType === 'list' ||
         targetGraphQLType === 'enum'
       ) {
         data.usedTypeNames.push(saneName)
@@ -929,7 +929,7 @@ export function createDataDef(
 
       if (targetGraphQLType) {
         switch (targetGraphQLType) {
-          case 'array':
+          case 'list':
             if (typeof consolidatedSchema.items === 'object') {
               // Break schema down into component parts
               // I.e. if it is an list type, create a reference to the list item type
