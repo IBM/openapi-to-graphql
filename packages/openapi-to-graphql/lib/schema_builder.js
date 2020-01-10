@@ -34,16 +34,6 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 iteration,
                 isInputObjectType
             });
-        // CASE: combine schemas
-        case 'combination':
-            // TODO: currently assuming that the combined schema is an object type
-            return createOrReuseOt({
-                def,
-                operation,
-                data,
-                iteration,
-                isInputObjectType
-            });
         // CASE: union - create UnionType
         case 'union':
             return createOrReuseUnion({
@@ -117,31 +107,6 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     // Cannot reuse preexisting (input) object type, therefore create one
     const schema = def.schema;
     const description = schema.description;
-    /**
-     * If the schema does not contain any properties, then OpenAPI-to-GraphQL
-     * cannot create a GraphQL object type for it because in GraphQL, all object
-     * type properties must be named.
-     *
-     * Instead, store response in an arbitray JSON type.
-     */
-    if ((typeof def.schema.properties === 'undefined' ||
-        Object.keys(def.schema.properties).length === 0) && // Empty object
-        typeof def.schema.allOf === 'undefined' &&
-        typeof def.schema.oneOf === 'undefined' &&
-        typeof def.schema.anyOf === 'undefined') {
-        utils_1.handleWarning({
-            typeKey: 'OBJECT_MISSING_PROPERTIES',
-            message: `The operation ` +
-                `'${operation.operationString}' contains ` +
-                `an object schema ${JSON.stringify(schema)} with no properties. ` +
-                `GraphQL objects must have well-defined properties so a one to ` +
-                `one conversion cannot be achieved.`,
-            data,
-            log: translationLog
-        });
-        def.graphQLType = GraphQLJSON;
-        return def.graphQLType;
-    }
     // CASE: query - create object type
     if (!isInputObjectType) {
         translationLog(`Create object type '${def.graphQLTypeName}'` +
