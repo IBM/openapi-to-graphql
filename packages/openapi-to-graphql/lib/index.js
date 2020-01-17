@@ -51,6 +51,8 @@ function createGraphQLSchema(spec, options) {
             typeof options.genericPayloadArgName === 'boolean'
                 ? options.genericPayloadArgName
                 : false;
+        options.simpleNames =
+            typeof options.simpleNames === 'boolean' ? options.simpleNames : false;
         // Authentication options
         options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true;
         options.sendOAuthTokenInQuery =
@@ -104,7 +106,7 @@ exports.createGraphQLSchema = createGraphQLSchema;
  */
 function translateOpenAPIToGraphQL(oass, { strict, report, 
 // Schema options
-operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, 
+operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, simpleNames, 
 // Resolver options
 headers, qs, requestOptions, baseUrl, customResolvers, 
 // Authentication options
@@ -117,6 +119,7 @@ provideErrorExtensions, equivalentToMessages }) {
             report,
             // Schema options
             operationIdFieldNames,
+            simpleNames,
             fillEmptyResponses,
             addLimitArgument,
             idFormats,
@@ -152,7 +155,7 @@ provideErrorExtensions, equivalentToMessages }) {
         let authQueryFields = {};
         let authMutationFields = {};
         Object.entries(data.operations).forEach(([operationId, operation]) => {
-            translationLog(`Process operation '${operationId}'...`);
+            translationLog(`Process operation '${operation.operationString}'...`);
             let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions);
             const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
             // Check if the operation should be added as a Query or Mutation field

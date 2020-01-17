@@ -164,7 +164,7 @@ function resolveRefHelper(obj, parts) {
 function getBaseUrl(operation) {
     // Check for servers:
     if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
-        throw new Error(`No servers defined for operation '${operation.operationId}'`);
+        throw new Error(`No servers defined for operation '${operation.operationString}'`);
     }
     // Check for local servers
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
@@ -201,31 +201,31 @@ function buildUrl(server) {
     return url;
 }
 /**
- * Returns object | array where all object keys are sanitized. Keys passed in
- * exceptions are not sanitized.
+ * Returns object/array/scalar where all object keys (if applicable) are
+ * sanitized.
  */
-function sanitizeObjKeys(obj, exceptions = []) {
+function sanitizeObjectKeys(obj, // obj does not necessarily need to be an object
+caseStyle = CaseStyle.camelCase) {
     const cleanKeys = (obj) => {
+        // Case: no (response) data
         if (obj === null || typeof obj === 'undefined') {
             return null;
+            // Case: array
         }
         else if (Array.isArray(obj)) {
             return obj.map(cleanKeys);
+            // Case: object
         }
         else if (typeof obj === 'object') {
             const res = {};
-            for (let key in obj) {
-                if (!exceptions.includes(key)) {
-                    const saneKey = sanitize(key, CaseStyle.camelCase);
-                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                        res[saneKey] = cleanKeys(obj[key]);
-                    }
-                }
-                else {
-                    res[key] = cleanKeys(obj[key]);
+            for (const key in obj) {
+                const saneKey = sanitize(key, caseStyle);
+                if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                    res[saneKey] = cleanKeys(obj[key]);
                 }
             }
             return res;
+            // Case: scalar
         }
         else {
             return obj;
@@ -233,12 +233,12 @@ function sanitizeObjKeys(obj, exceptions = []) {
     };
     return cleanKeys(obj);
 }
-exports.sanitizeObjKeys = sanitizeObjKeys;
+exports.sanitizeObjectKeys = sanitizeObjectKeys;
 /**
  * Desanitizes keys in given object by replacing them with the keys stored in
  * the given mapping.
  */
-function desanitizeObjKeys(obj, mapping = {}) {
+function desanitizeObjectKeys(obj, mapping = {}) {
     const replaceKeys = obj => {
         if (obj === null) {
             return null;
@@ -267,20 +267,20 @@ function desanitizeObjKeys(obj, mapping = {}) {
     };
     return replaceKeys(obj);
 }
-exports.desanitizeObjKeys = desanitizeObjKeys;
+exports.desanitizeObjectKeys = desanitizeObjectKeys;
 /**
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument keys are sanitized!
-) {
+function instantiatePathAndGetQuery(path, parameters, args, // NOTE: argument keys are sanitized!
+data) {
     const query = {};
     const headers = {};
     // Case: nothing to do
     if (Array.isArray(parameters)) {
         // Iterate parameters:
-        for (let param of parameters) {
-            const sanitizedParamName = sanitize(param.name, CaseStyle.camelCase);
+        for (const param of parameters) {
+            const sanitizedParamName = sanitize(param.name, !data.options.simpleNames ? CaseStyle.camelCase : CaseStyle.simple);
             if (sanitizedParamName && sanitizedParamName in args) {
                 switch (param.in) {
                     // Path parameters
@@ -369,14 +369,15 @@ function getSchemaTargetGraphQLType(schema, data) {
 exports.getSchemaTargetGraphQLType = getSchemaTargetGraphQLType;
 /**
  * Determines an approximate name for the resource at the given path.
+ *
+ * Remove the path parameters from the path.
+ *
+ * For example, turn '/user/{userId}/car' into 'userCar'.
+ *
+ * Note that the returned string is in camelCase.
  */
 function inferResourceNameFromPath(path) {
-    /**
-     * Remove the path parameters from the path
-     *
-     * For example, turn /user/{userId}/car into userCar
-     */
-    let pathNoPathParams = path.split('/').reduce((path, part) => {
+    const pathNoPathParams = path.split('/').reduce((path, part) => {
         if (!/{|}/g.test(part)) {
             return path + capitalize(part);
         }
@@ -804,14 +805,22 @@ function getSecurityRequirements(path, method, securitySchemes, oas) {
 exports.getSecurityRequirements = getSecurityRequirements;
 var CaseStyle;
 (function (CaseStyle) {
-    CaseStyle[CaseStyle["PascalCase"] = 0] = "PascalCase";
-    CaseStyle[CaseStyle["camelCase"] = 1] = "camelCase";
-    CaseStyle[CaseStyle["ALL_CAPS"] = 2] = "ALL_CAPS"; // Used for enum values
+    CaseStyle[CaseStyle["simple"] = 0] = "simple";
+    CaseStyle[CaseStyle["PascalCase"] = 1] = "PascalCase";
+    CaseStyle[CaseStyle["camelCase"] = 2] = "camelCase";
+    CaseStyle[CaseStyle["ALL_CAPS"] = 3] = "ALL_CAPS"; // Used for enum values
 })(CaseStyle = exports.CaseStyle || (exports.CaseStyle = {}));
 /**
  * First sanitizes given string and then also camel-cases it.
  */
 function sanitize(str, caseStyle) {
+    /**
+     * Used in conjunction to simpleNames, which only removes illegal
+     * characters and preserves casing
+     */
+    if (caseStyle === CaseStyle.simple) {
+        return str.replace(/[^a-zA-Z0-9_]/gi, '');
+    }
     /**
      * Remove all GraphQL unsafe characters
      */
@@ -860,22 +869,6 @@ function storeSaneName(saneStr, str, mapping) {
     return saneStr;
 }
 exports.storeSaneName = storeSaneName;
-/**
- * Return an object similar to the input object except the keys are all
- * sanitized
- */
-function sanitizeObjectKeys(obj) {
-    if (typeof obj === 'object') {
-        return Object.keys(obj).reduce((acc, key) => {
-            acc[sanitize(key, CaseStyle.camelCase)] = obj[key];
-            return acc;
-        }, {});
-    }
-    else {
-        return undefined;
-    }
-}
-exports.sanitizeObjectKeys = sanitizeObjectKeys;
 /**
  * Stringifies and possibly trims the given string to the provided length.
  */

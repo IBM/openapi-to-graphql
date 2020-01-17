@@ -15,6 +15,7 @@ const openAPIToGraphQL = require('../lib/index')
 // const oas2 = require('./fixtures/example_oas2.json')
 // const oas3 = require('./fixtures/example_oas3.json')
 // const oas4 = require('./fixtures/example_oas4.json')
+// const oas5 = require('./fixtures/example_oas5.json')
 const oas6 = require('./fixtures/example_oas6.json')
 
 // const oas = require('./fixtures/github.json')

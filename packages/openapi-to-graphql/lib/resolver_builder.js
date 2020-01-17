@@ -66,7 +66,9 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          * the user.
          */
         operation.parameters.forEach(param => {
-            const paramName = Oas3Tools.sanitize(param.name, Oas3Tools.CaseStyle.camelCase);
+            const paramName = Oas3Tools.sanitize(param.name, !data.options.simpleNames
+                ? Oas3Tools.CaseStyle.camelCase
+                : Oas3Tools.CaseStyle.simple);
             if (typeof args[paramName] === 'undefined' &&
                 param.schema &&
                 typeof param.schema === 'object') {
@@ -82,12 +84,11 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             }
         });
         // Handle arguments provided by links
-        for (let paramName in argsFromLink) {
+        for (const paramName in argsFromLink) {
+            const saneParamName = Oas3Tools.sanitize(paramName, !data.options.simpleNames
+                ? Oas3Tools.CaseStyle.camelCase
+                : Oas3Tools.CaseStyle.simple);
             let value = argsFromLink[paramName];
-            let paramNameWithoutLocation = paramName;
-            if (paramName.indexOf('.') !== -1) {
-                paramNameWithoutLocation = paramName.split('.')[1];
-            }
             /**
              * see if the link parameter contains constants that are appended to the link parameter
              *
@@ -98,7 +99,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
              * abc_{$response.body#/employerId}
              */
             if (value.search(/{|}/) === -1) {
-                args[paramNameWithoutLocation] = isRuntimeExpression(value)
+                args[saneParamName] = isRuntimeExpression(value)
                     ? resolveLinkParameter(paramName, value, resolveData, root, args)
                     : value;
             }
@@ -108,13 +109,13 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 linkParams.forEach(linkParam => {
                     value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args));
                 });
-                args[paramNameWithoutLocation] = value;
+                args[saneParamName] = value;
             }
         }
         // Stored used parameters to future requests:
         resolveData.usedParams = Object.assign(resolveData.usedParams, args);
         // Build URL (i.e., fill in path parameters):
-        const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(operation.path, operation.parameters, args);
+        const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(operation.path, operation.parameters, args, data);
         const url = baseUrl + path;
         /**
          * The Content-type and accept property should not be changed because the
@@ -172,7 +173,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             if (sanePayloadName in args) {
                 if (typeof args[sanePayloadName] === 'object') {
                     // We need to desanitize the payload so the API understands it:
-                    const rawPayload = JSON.stringify(Oas3Tools.desanitizeObjKeys(args[sanePayloadName], data.saneMap));
+                    const rawPayload = JSON.stringify(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
                     options.body = rawPayload;
                     resolveData.usedPayload = rawPayload;
                 }
@@ -305,7 +306,9 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                 }
                                 resolveData.responseHeaders = response.headers;
                                 // Deal with the fact that the server might send unsanitized data
-                                let saneData = Oas3Tools.sanitizeObjKeys(responseBody);
+                                let saneData = Oas3Tools.sanitizeObjectKeys(responseBody, !data.options.simpleNames
+                                    ? Oas3Tools.CaseStyle.camelCase
+                                    : Oas3Tools.CaseStyle.simple);
                                 // Pass on _openAPIToGraphQL to subsequent resolvers
                                 if (saneData && typeof saneData === 'object') {
                                     if (Array.isArray(saneData)) {

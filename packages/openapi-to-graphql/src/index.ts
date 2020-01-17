@@ -89,6 +89,8 @@ export async function createGraphQLSchema(
     typeof options.genericPayloadArgName === 'boolean'
       ? options.genericPayloadArgName
       : false
+  options.simpleNames =
+    typeof options.simpleNames === 'boolean' ? options.simpleNames : false
 
   // Authentication options
   options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
@@ -162,6 +164,7 @@ async function translateOpenAPIToGraphQL(
     idFormats,
     selectQueryOrMutationField,
     genericPayloadArgName,
+    simpleNames,
 
     // Resolver options
     headers,
@@ -186,6 +189,7 @@ async function translateOpenAPIToGraphQL(
 
     // Schema options
     operationIdFieldNames,
+    simpleNames,
     fillEmptyResponses,
     addLimitArgument,
     idFormats,
@@ -227,7 +231,7 @@ async function translateOpenAPIToGraphQL(
   let authQueryFields = {}
   let authMutationFields = {}
   Object.entries(data.operations).forEach(([operationId, operation]) => {
-    translationLog(`Process operation '${operationId}'...`)
+    translationLog(`Process operation '${operation.operationString}'...`)
 
     let field = getFieldForOperation(
       operation,

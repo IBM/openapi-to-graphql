@@ -179,9 +179,10 @@ function createOrReuseOt({
       translationLog(
         `Reuse object type '${def.graphQLTypeName}'` +
           (typeof operation === 'object'
-            ? ` (for operation '${operation.operationId}')`
+            ? ` (for operation '${operation.operationString}')`
             : '')
       )
+
       return def.graphQLType as
         | GraphQLObjectType
         | GraphQLInputObjectType
@@ -197,7 +198,7 @@ function createOrReuseOt({
       translationLog(
         `Reuse input object type '${def.graphQLInputObjectTypeName}'` +
           (typeof operation === 'object'
-            ? ` (for operation '${operation.operationId}')`
+            ? ` (for operation '${operation.operationString}')`
             : '')
       )
       return def.graphQLInputObjectType as GraphQLInputObjectType
@@ -214,7 +215,7 @@ function createOrReuseOt({
     translationLog(
       `Create object type '${def.graphQLTypeName}'` +
         (typeof operation === 'object'
-          ? ` (for operation '${operation.operationId}')`
+          ? ` (for operation '${operation.operationString}')`
           : '')
     )
 
@@ -240,7 +241,7 @@ function createOrReuseOt({
     translationLog(
       `Create input object type '${def.graphQLInputObjectTypeName}'` +
         (typeof operation === 'object'
-          ? ` (for operation '${operation.operationId}')`
+          ? ` (for operation '${operation.operationString}')`
           : '')
     )
 
@@ -278,7 +279,7 @@ function createOrReuseUnion({
     translationLog(
       `Reuse union type '${def.graphQLTypeName}'` +
         (typeof operation === 'object'
-          ? ` (for operation '${operation.operationId}')`
+          ? ` (for operation '${operation.operationString}')`
           : '')
     )
     return def.graphQLType as GraphQLUnionType
@@ -286,7 +287,7 @@ function createOrReuseUnion({
     translationLog(
       `Create union type '${def.graphQLTypeName}'` +
         (typeof operation === 'object'
-          ? ` (for operation '${operation.operationId}')`
+          ? ` (for operation '${operation.operationString}')`
           : '')
     )
 
@@ -588,13 +589,17 @@ function createFields({
     if (objectType) {
       const saneFieldTypeKey = Oas3Tools.sanitize(
         fieldTypeKey,
-        Oas3Tools.CaseStyle.camelCase
+        !data.options.simpleNames
+          ? Oas3Tools.CaseStyle.camelCase
+          : Oas3Tools.CaseStyle.simple
       )
+
       const sanePropName = Oas3Tools.storeSaneName(
         saneFieldTypeKey,
         fieldTypeKey,
         data.saneMap
       )
+
       fields[sanePropName] = {
         type: requiredProperty
           ? new GraphQLNonNull(objectType)
@@ -659,28 +664,24 @@ function createFields({
           // Determine parameters provided via link
           let argsFromLink = link.parameters
 
-          // Remove argsFromLinks from operation parameters
+          // Get arguments that are not provided by the linked operation
           let dynamicParams = linkedOp.parameters
           if (typeof argsFromLink === 'object') {
-            dynamicParams = dynamicParams.filter(p => {
-              // Here, we know argsFromLink is present:
-              argsFromLink = argsFromLink as Object
-              return typeof argsFromLink[p.name] === 'undefined'
+            dynamicParams = dynamicParams.filter(param => {
+              return typeof argsFromLink[param.name] === 'undefined'
             })
           }
 
           // Get resolve function for link
           const linkResolver = getResolver({
             operation: linkedOp,
-            argsFromLink: Oas3Tools.sanitizeObjectKeys(argsFromLink) as {
-              [key: string]: string
-            },
+            argsFromLink: argsFromLink as { [key: string]: string },
             data,
             baseUrl: data.options.baseUrl,
             requestOptions: data.options.requestOptions
           })
 
-          // Get args for link
+          // Get arguments for link
           const args = getArgs({
             parameters: dynamicParams,
             operation: linkedOp,
@@ -991,7 +992,7 @@ export function getArgs({
   let args = {}
 
   // Handle params:
-  for (let parameter of parameters) {
+  for (const parameter of parameters) {
     // We need at least a name
     if (typeof parameter.name !== 'string') {
       handleWarning({
@@ -1056,7 +1057,6 @@ export function getArgs({
      * The type of the parameter can either be contained in the "schema" field
      * or the "content" field (but not both)
      */
-    let type: GraphQLType
     let schema: SchemaObject | ReferenceObject
     if (typeof parameter.schema === 'object') {
       schema = parameter.schema
@@ -1093,6 +1093,10 @@ export function getArgs({
       continue
     }
 
+    /**
+     * Resolving the reference is necessary later in the code and by doing it,
+     * we can avoid doing it a second time in resolveRev()
+     */
     if ('$ref' in schema) {
       schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas)
     }
@@ -1106,7 +1110,7 @@ export function getArgs({
     )
 
     // @ts-ignore
-    type = getGraphQLType({
+    const type = getGraphQLType({
       def: paramDef,
       operation,
       data,
@@ -1122,7 +1126,9 @@ export function getArgs({
      */
     const saneName = Oas3Tools.sanitize(
       parameter.name,
-      Oas3Tools.CaseStyle.camelCase
+      !data.options.simpleNames
+        ? Oas3Tools.CaseStyle.camelCase
+        : Oas3Tools.CaseStyle.simple
     )
 
     // Parameters are not required when a default exists:
@@ -1189,10 +1195,7 @@ export function getArgs({
     // Sanitize the argument name
     const saneName = data.options.genericPayloadArgName
       ? 'requestBody'
-      : Oas3Tools.sanitize(
-          requestPayloadDef.graphQLInputObjectTypeName,
-          Oas3Tools.CaseStyle.camelCase
-        )
+      : Oas3Tools.uncapitalize(requestPayloadDef.graphQLInputObjectTypeName) // Already sanitized
 
     const reqRequired =
       typeof operation === 'object' &&

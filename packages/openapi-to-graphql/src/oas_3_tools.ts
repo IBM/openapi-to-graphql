@@ -226,7 +226,7 @@ export function getBaseUrl(operation: Operation): string {
   // Check for servers:
   if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
     throw new Error(
-      `No servers defined for operation '${operation.operationId}'`
+      `No servers defined for operation '${operation.operationString}'`
     )
   }
 
@@ -280,35 +280,42 @@ function buildUrl(server: ServerObject): string {
 }
 
 /**
- * Returns object | array where all object keys are sanitized. Keys passed in
- * exceptions are not sanitized.
+ * Returns object/array/scalar where all object keys (if applicable) are
+ * sanitized.
  */
-export function sanitizeObjKeys(
-  obj: object | Array<any>,
-  exceptions: string[] = []
-): object | Array<any> {
-  const cleanKeys = (obj: object | Array<any>): object | Array<any> => {
+export function sanitizeObjectKeys(
+  obj: any, // obj does not necessarily need to be an object
+  caseStyle: CaseStyle = CaseStyle.camelCase
+): any {
+  const cleanKeys = (obj: any): any => {
+    // Case: no (response) data
     if (obj === null || typeof obj === 'undefined') {
       return null
+
+      // Case: array
     } else if (Array.isArray(obj)) {
       return obj.map(cleanKeys)
+
+      // Case: object
     } else if (typeof obj === 'object') {
       const res: object = {}
-      for (let key in obj) {
-        if (!exceptions.includes(key)) {
-          const saneKey = sanitize(key, CaseStyle.camelCase)
-          if (Object.prototype.hasOwnProperty.call(obj, key)) {
-            res[saneKey] = cleanKeys(obj[key])
-          }
-        } else {
-          res[key] = cleanKeys(obj[key])
+
+      for (const key in obj) {
+        const saneKey = sanitize(key, caseStyle)
+
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          res[saneKey] = cleanKeys(obj[key])
         }
       }
+
       return res
+
+      // Case: scalar
     } else {
       return obj
     }
   }
+
   return cleanKeys(obj)
 }
 
@@ -316,7 +323,7 @@ export function sanitizeObjKeys(
  * Desanitizes keys in given object by replacing them with the keys stored in
  * the given mapping.
  */
-export function desanitizeObjKeys(
+export function desanitizeObjectKeys(
   obj: object | Array<any>,
   mapping: object = {}
 ): object | Array<any> {
@@ -352,7 +359,8 @@ export function desanitizeObjKeys(
 export function instantiatePathAndGetQuery(
   path: string,
   parameters: ParameterObject[],
-  args: object // NOTE: argument keys are sanitized!
+  args: object, // NOTE: argument keys are sanitized!
+  data: PreprocessingData
 ): {
   path: string
   query: { [key: string]: string }
@@ -364,8 +372,12 @@ export function instantiatePathAndGetQuery(
   // Case: nothing to do
   if (Array.isArray(parameters)) {
     // Iterate parameters:
-    for (let param of parameters) {
-      const sanitizedParamName = sanitize(param.name, CaseStyle.camelCase)
+    for (const param of parameters) {
+      const sanitizedParamName = sanitize(
+        param.name,
+        !data.options.simpleNames ? CaseStyle.camelCase : CaseStyle.simple
+      )
+
       if (sanitizedParamName && sanitizedParamName in args) {
         switch (param.in) {
           // Path parameters
@@ -472,14 +484,15 @@ export function getSchemaTargetGraphQLType(
 
 /**
  * Determines an approximate name for the resource at the given path.
+ *
+ * Remove the path parameters from the path.
+ *
+ * For example, turn '/user/{userId}/car' into 'userCar'.
+ *
+ * Note that the returned string is in camelCase.
  */
 export function inferResourceNameFromPath(path: string): string {
-  /**
-   * Remove the path parameters from the path
-   *
-   * For example, turn /user/{userId}/car into userCar
-   */
-  let pathNoPathParams = path.split('/').reduce((path, part) => {
+  const pathNoPathParams = path.split('/').reduce((path, part) => {
     if (!/{|}/g.test(part)) {
       return path + capitalize(part)
     } else {
@@ -1027,6 +1040,7 @@ export function getSecurityRequirements(
 }
 
 export enum CaseStyle {
+  simple, // No case style is applied. Only illegal characters are removed.
   PascalCase, // Used for type names
   camelCase, // Used for (input) object field names
   ALL_CAPS // Used for enum values
@@ -1036,6 +1050,14 @@ export enum CaseStyle {
  * First sanitizes given string and then also camel-cases it.
  */
 export function sanitize(str: string, caseStyle: CaseStyle): string {
+  /**
+   * Used in conjunction to simpleNames, which only removes illegal
+   * characters and preserves casing
+   */
+  if (caseStyle === CaseStyle.simple) {
+    return str.replace(/[^a-zA-Z0-9_]/gi, '')
+  }
+
   /**
    * Remove all GraphQL unsafe characters
    */
@@ -1094,21 +1116,6 @@ export function storeSaneName(
   mapping[saneStr] = str
 
   return saneStr
-}
-
-/**
- * Return an object similar to the input object except the keys are all
- * sanitized
- */
-export function sanitizeObjectKeys(obj: object): object {
-  if (typeof obj === 'object') {
-    return Object.keys(obj).reduce((acc, key) => {
-      acc[sanitize(key, CaseStyle.camelCase)] = obj[key]
-      return acc
-    }, {})
-  } else {
-    return undefined
-  }
 }
 
 /**

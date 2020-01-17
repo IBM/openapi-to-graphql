@@ -74,6 +74,16 @@ export declare type Options = {
      */
     genericPayloadArgName?: boolean;
     /**
+     * By default, field names are sanitized to conform with GraphQL conventions,
+     * i.e. types should be in PascalCase, fields should be in camelCase, and
+     * enum values should be in ALL_CAPS.
+     *
+     * This option will prevent OtG from enforcing camelCase field names and
+     * PascalCase type names, only removing illegal characters and staying as true
+     * to the provided names in the OAS as possible.
+     */
+    simpleNames?: boolean;
+    /**
      * Custom headers to send with every request made by a resolve function.
      */
     headers?: {
@@ -214,6 +224,16 @@ export declare type InternalOptions = {
      * Sets argument name for the payload of a mutation to 'requestBody'
      */
     genericPayloadArgName: boolean;
+    /**
+     * By default, field names are sanitized to conform with GraphQL conventions,
+     * i.e. types should be in PascalCase, fields should be in camelCase, and
+     * enum values should be in ALL_CAPS.
+     *
+     * This option will prevent OtG from enforcing camelCase field names and
+     * PascalCase type names, only removing illegal characters and staying as true
+     * to the provided names in the OAS as possible.
+     */
+    simpleNames: boolean;
     /**
      * Custom headers to send with every request made by a resolve function.
      */

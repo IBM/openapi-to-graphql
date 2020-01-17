@@ -60,20 +60,22 @@ export declare function resolveRef(ref: string, oas: Oas3): any;
  */
 export declare function getBaseUrl(operation: Operation): string;
 /**
- * Returns object | array where all object keys are sanitized. Keys passed in
- * exceptions are not sanitized.
+ * Returns object/array/scalar where all object keys (if applicable) are
+ * sanitized.
  */
-export declare function sanitizeObjKeys(obj: object | Array<any>, exceptions?: string[]): object | Array<any>;
+export declare function sanitizeObjectKeys(obj: any, // obj does not necessarily need to be an object
+caseStyle?: CaseStyle): any;
 /**
  * Desanitizes keys in given object by replacing them with the keys stored in
  * the given mapping.
  */
-export declare function desanitizeObjKeys(obj: object | Array<any>, mapping?: object): object | Array<any>;
+export declare function desanitizeObjectKeys(obj: object | Array<any>, mapping?: object): object | Array<any>;
 /**
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object): {
+export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object, // NOTE: argument keys are sanitized!
+data: PreprocessingData): {
     path: string;
     query: {
         [key: string]: string;
@@ -90,6 +92,12 @@ export declare function instantiatePathAndGetQuery(path: string, parameters: Par
 export declare function getSchemaTargetGraphQLType(schema: SchemaObject, data: PreprocessingData): string | null;
 /**
  * Determines an approximate name for the resource at the given path.
+ *
+ * Remove the path parameters from the path.
+ *
+ * For example, turn '/user/{userId}/car' into 'userCar'.
+ *
+ * Note that the returned string is in camelCase.
  */
 export declare function inferResourceNameFromPath(path: string): string;
 /**
@@ -158,9 +166,10 @@ export declare function getSecurityRequirements(path: string, method: string, se
     [key: string]: ProcessedSecurityScheme;
 }, oas: Oas3): string[];
 export declare enum CaseStyle {
-    PascalCase = 0,
-    camelCase = 1,
-    ALL_CAPS = 2
+    simple = 0,
+    PascalCase = 1,
+    camelCase = 2,
+    ALL_CAPS = 3
 }
 /**
  * First sanitizes given string and then also camel-cases it.
@@ -173,11 +182,6 @@ export declare function sanitize(str: string, caseStyle: CaseStyle): string;
 export declare function storeSaneName(saneStr: string, str: string, mapping: {
     [key: string]: string;
 }): string;
-/**
- * Return an object similar to the input object except the keys are all
- * sanitized
- */
-export declare function sanitizeObjectKeys(obj: object): object;
 /**
  * Stringifies and possibly trims the given string to the provided length.
  */
