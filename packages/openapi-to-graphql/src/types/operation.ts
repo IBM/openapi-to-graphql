@@ -11,6 +11,8 @@
 import {
   Oas3,
   LinkObject,
+  CallbackObject,
+  // CallbacksObject,
   ParameterObject,
   ServerObject,
   SchemaObject
@@ -150,6 +152,12 @@ export type Operation = {
   parameters: ParameterObject[]
 
   /**
+   * List of callbacks of the operation
+   */
+  // callbacks: CallbacksObject
+  callbacks?: { [key: string]: CallbackObject }
+
+  /**
    * List of keys of security schemes required by this operation
    *
    * NOTE: Keys are sanitized
@@ -172,6 +180,11 @@ export type Operation = {
    * Whether this operation is a mutation (or a query).
    */
   isMutation: boolean
+
+  /**
+   * Whether this operation is a subscription.
+   */
+  isSubscription: boolean
 
   /**
    * The success HTTP code, 200-299, destined to become a GraphQL object type

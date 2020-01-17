@@ -1,5 +1,5 @@
 import * as NodeRequest from 'request';
-import { ResolveFunction, GraphQLOperationType } from './graphql';
+import { ResolveFunction, ResolveObject, GraphQLOperationType } from './graphql';
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
  */
@@ -14,8 +14,13 @@ export declare type Report = {
     numOps: number;
     numOpsQuery: number;
     numOpsMutation: number;
+    numOpsSubscription: number;
     numQueriesCreated: number;
     numMutationsCreated: number;
+    numSubscriptionsCreated: number;
+};
+export declare type ConnectOptions = {
+    [key: string]: boolean | number | string;
 };
 export declare type Options = {
     /**
@@ -116,12 +121,18 @@ export declare type Options = {
      */
     requestOptions?: NodeRequest.OptionsWithUrl;
     /**
+     * Allows to override or add options to the PubSub connect object used to make
+     * publish/subscribe to the API backend.
+     * e.g. Setup the web proxy to use.
+     */
+    connectOptions?: ConnectOptions;
+    /**
      * Specifies the URL on which all paths will be based on.
      * Overrides the server object in the OAS.
      */
     baseUrl?: string;
     /**
-     * Allows to define custom resolvers for fields on the query/mutation root
+     * Allows to define custom resolvers for fields on the query/mutation/subscription root
      * operation type.
      *
      * In other words, instead of resolving on an operation (REST call) defined in
@@ -138,10 +149,17 @@ export declare type Options = {
     customResolvers?: {
         [title: string]: {
             [path: string]: {
-                [method: string]: ResolveFunction;
+                [method: string]: ResolveFunction | ResolveObject;
             };
         };
     };
+    /**
+     * Allow to generate subscription fields from callback objects in the OAS.
+     *
+     * The keys (runtime expressions) of the callback object will be interpolated
+     * as the topic of publish/subscription connection.
+     */
+    createSubscriptionsFromCallbacks?: boolean;
     /**
      * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
      * basic auth and API key credentials.
@@ -281,13 +299,19 @@ export declare type InternalOptions = {
      */
     requestOptions?: NodeRequest.OptionsWithUrl;
     /**
+     * Allows to override or add options to the PubSub connect object used to make
+     * publish/subscribe to the API backend.
+     * e.g. Setup the web proxy to use.
+     */
+    connectOptions?: ConnectOptions;
+    /**
      * Specifies the URL on which all paths will be based on.
      * Overrides the server object in the OAS.
      */
     baseUrl?: string;
     /**
-     * Allows to define custom resolvers for fields on the query/mutation root
-     * operation type.
+     * Allows to define custom resolvers for fields on the query/mutation/subscription
+     * root operation type.
      *
      * In other words, instead of resolving on an operation (REST call) defined in
      * the OAS, the field will resolve on the custom resolver. Note that this will
@@ -303,10 +327,17 @@ export declare type InternalOptions = {
     customResolvers?: {
         [title: string]: {
             [path: string]: {
-                [method: string]: ResolveFunction;
+                [method: string]: ResolveFunction | ResolveObject;
             };
         };
     };
+    /**
+     * Allow to generate subscription fields from callback objects in the OAS.
+     *
+     * The keys (runtime expressions) of the callback object will be interpolated
+     * as the topic of publish/subscription connection.
+     */
+    createSubscriptionsFromCallbacks: boolean;
     /**
      * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
      * basic auth and API key credentials.

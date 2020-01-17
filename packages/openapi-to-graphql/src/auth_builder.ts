@@ -48,7 +48,8 @@ const translationLog = debug('translation')
 export function createAndLoadViewer(
   queryFields: object,
   data: PreprocessingData,
-  isMutation: boolean = false
+  isMutation: boolean = false,
+  isSubscription: boolean = false
 ): { [key: string]: Viewer } {
   let results = {}
   /**
@@ -107,7 +108,12 @@ export function createAndLoadViewer(
     }
 
     // Create name for the viewer
-    let viewerName = !isMutation
+    let viewerName = isSubscription
+      ? Oas3Tools.sanitize(
+          `subscription viewer ${viewerType}`,
+          Oas3Tools.CaseStyle.camelCase
+        )
+      : !isMutation
       ? Oas3Tools.sanitize(
           `viewer ${viewerType}`,
           Oas3Tools.CaseStyle.camelCase
@@ -116,6 +122,16 @@ export function createAndLoadViewer(
           `mutation viewer ${viewerType}`,
           Oas3Tools.CaseStyle.camelCase
         )
+
+    // let viewerName = !isMutation
+    //   ? Oas3Tools.sanitize(
+    //       `viewer ${viewerType}`,
+    //       Oas3Tools.CaseStyle.camelCase
+    //     )
+    //   : Oas3Tools.sanitize(
+    //       `mutation viewer ${viewerType}`,
+    //       Oas3Tools.CaseStyle.camelCase
+    //     )
 
     // Ensure unique viewer name
     // If name already exists, append a number at the end of the name
@@ -136,9 +152,15 @@ export function createAndLoadViewer(
   }
 
   // Create name for the AnyAuth viewer
-  const anyAuthObjectName = !isMutation
+  const anyAuthObjectName = isSubscription
+    ? 'subscriptionViewerAnyAuth'
+    : !isMutation
     ? 'viewerAnyAuth'
     : 'mutationViewerAnyAuth'
+
+  // const anyAuthObjectName = !isMutation
+  //   ? 'viewerAnyAuth'
+  //   : 'mutationViewerAnyAuth'
 
   // Add the AnyAuth object type to the specified root query object type
   results[anyAuthObjectName] = getViewerAnyAuthOT(

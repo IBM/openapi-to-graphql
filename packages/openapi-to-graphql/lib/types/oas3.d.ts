@@ -132,7 +132,7 @@ export declare type OperationObject = {
     parameters?: Array<ParameterObject | ReferenceObject>;
     requestBody?: RequestBodyObject | ReferenceObject;
     responses?: ResponsesObject;
-    callbacks?: any;
+    callbacks?: CallbacksObject;
     deprecated?: boolean;
     security?: SecurityRequirementObject[];
     servers?: ServerObject[];
@@ -147,6 +147,12 @@ export declare type PathItemObject = {
 };
 declare type PathsObject = {
     [key: string]: PathItemObject;
+};
+export declare type CallbackObject = {
+    [key: string]: PathItemObject;
+};
+export declare type CallbacksObject = {
+    [key: string]: CallbackObject | ReferenceObject;
 };
 declare type OAuthFlowObject = {
     authorizationUrl?: string;
@@ -195,7 +201,7 @@ declare type ComponentsObject = {
     securitySchemes?: SecuritySchemesObject;
     links?: LinksObject;
     callbacks?: {
-        [key: string]: object | ReferenceObject;
+        [key: string]: CallbackObject | ReferenceObject;
     };
 };
 declare type TagObject = {

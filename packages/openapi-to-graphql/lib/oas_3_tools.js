@@ -72,6 +72,19 @@ function countOperations(oas) {
         for (let method in oas.paths[path]) {
             if (isOperation(method)) {
                 numOps++;
+                if (oas.paths[path][method].callbacks) {
+                    for (let cbName in oas.paths[path][method].callbacks) {
+                        for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
+                            numOps++;
+                            // resolve $ref ??
+                            // for (let cbMethod in oas.paths[path][method].callbacks[cbName][cbPath]) {
+                            //   if (isOperation(cbMethod)) {
+                            //     numOps++
+                            //   }
+                            // }
+                        }
+                    }
+                }
             }
         }
     }
@@ -108,6 +121,33 @@ function countOperationsMutation(oas) {
     return numOps;
 }
 exports.countOperationsMutation = countOperationsMutation;
+/**
+ * Counts the number of operations that translate to subscriptions in an OAS.
+ */
+function countOperationsSubscription(oas) {
+    let numOps = 0;
+    for (let path in oas.paths) {
+        for (let method in oas.paths[path]) {
+            if (isOperation(method) &&
+                method.toLowerCase() !== 'get' &&
+                oas.paths[path][method].callbacks) {
+                for (let cbName in oas.paths[path][method].callbacks) {
+                    for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
+                        numOps++;
+                        // resolve $ref ??
+                        // for (let cbMethod in oas.paths[path][method].callbacks[cbName][cbPath]) {
+                        //   if (isOperation(cbMethod)) {
+                        //     numOps++
+                        //   }
+                        // }
+                    }
+                }
+            }
+        }
+    }
+    return numOps;
+}
+exports.countOperationsSubscription = countOperationsSubscription;
 /**
  * Counts the number of operations with a payload definition in an OAS.
  */
@@ -487,8 +527,11 @@ exports.getRequestBodyObject = getRequestBodyObject;
  * a dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
  */
-function getRequestSchemaAndNames(path, method, oas) {
-    const endpoint = oas.paths[path][method];
+function getRequestSchemaAndNames(path, method, oas, callback) {
+    // const endpoint: OperationObject = oas.paths[path][method]
+    const endpoint = callback
+        ? callback[path][method]
+        : oas.paths[path][method];
     const { payloadContentType, requestBodyObject } = getRequestBodyObject(endpoint, oas);
     if (payloadContentType) {
         let payloadSchema = requestBodyObject.content[payloadContentType].schema;
@@ -589,9 +632,13 @@ exports.getResponseObject = getResponseObject;
  * the given status code, and a dictionary of names from different sources (if
  * available).
  */
-function getResponseSchemaAndNames(path, method, oas, data, options) {
-    const endpoint = oas.paths[path][method];
-    const statusCode = getResponseStatusCode(path, method, oas, data);
+function getResponseSchemaAndNames(path, method, oas, data, options, callback) {
+    // const endpoint: OperationObject = oas.paths[path][method]
+    const endpoint = callback
+        ? callback[path][method]
+        : oas.paths[path][method];
+    // const statusCode = getResponseStatusCode(path, method, oas, data)
+    const statusCode = getResponseStatusCode(path, method, oas, data, callback);
     if (!statusCode) {
         return {};
     }
@@ -658,8 +705,11 @@ exports.getResponseSchemaAndNames = getResponseSchemaAndNames;
  * Returns the success status code for the operation at the given path and
  * method (or null).
  */
-function getResponseStatusCode(path, method, oas, data) {
-    const endpoint = oas.paths[path][method];
+function getResponseStatusCode(path, method, oas, data, callback) {
+    // const endpoint: OperationObject = oas.paths[path][method]
+    const endpoint = callback
+        ? callback[path][method]
+        : oas.paths[path][method];
     if (typeof endpoint.responses === 'object') {
         const codes = Object.keys(endpoint.responses);
         const successCodes = codes.filter(code => {
@@ -727,14 +777,17 @@ exports.getEndpointLinks = getEndpointLinks;
  * Returns the list of parameters for the endpoint at the given method and path.
  * Resolves possible references.
  */
-function getParameters(path, method, oas) {
+function getParameters(path, method, oas, callback) {
     let parameters = [];
     if (!isOperation(method)) {
         translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
             `which is not an operation.`);
         return parameters;
     }
-    const pathItemObject = oas.paths[path];
+    // const pathItemObject: PathItemObject = oas.paths[path]
+    const pathItemObject = callback
+        ? callback[path]
+        : oas.paths[path];
     const pathParams = pathItemObject.parameters;
     // First, consider parameters in Path Item Object:
     if (Array.isArray(pathParams)) {
@@ -751,7 +804,10 @@ function getParameters(path, method, oas) {
         parameters = parameters.concat(pathItemParameters);
     }
     // Second, consider parameters in Operation Object:
-    const opObject = oas.paths[path][method];
+    // const opObject: OperationObject = oas.paths[path][method]
+    const opObject = callback
+        ? callback[path][method]
+        : oas.paths[path][method];
     const opObjectParameters = opObject.parameters;
     if (Array.isArray(opObjectParameters)) {
         const opParameters = opObjectParameters.map(p => {
@@ -770,19 +826,58 @@ function getParameters(path, method, oas) {
 }
 exports.getParameters = getParameters;
 /**
- * Returns an array of server objects for the opeartion at the given path and
+ * Returns an hash containing the callbacks defined in the given endpoint.
+ */
+function getEndpointCallbacks(path, method, oas, data) {
+    const callbacks = {};
+    const endpoint = oas.paths[path][method];
+    if (typeof endpoint.callbacks === 'object') {
+        let callbacksObject = endpoint.callbacks;
+        for (let callbackName in callbacksObject) {
+            if (typeof callbacksObject[callbackName] === 'object') {
+                let callbackObject = callbacksObject[callbackName];
+                // Make sure we have CallbackObject:
+                if (typeof callbackObject.$ref === 'string') {
+                    callbackObject = resolveRef(callbackObject.$ref, oas);
+                }
+                else {
+                    callbackObject = callbackObject;
+                }
+                // console.log("CHECK CALLBACK OBJ", callbackName, callbackObject)
+                // Make sure CallbackObject contains PathItemObject:
+                for (let expression in callbackObject) {
+                    let pathItem = callbackObject[expression];
+                    // console.log("CHECK CALLBACK ITEM", expression, pathItem)
+                    if (typeof pathItem.$ref === 'string') {
+                        pathItem = resolveRef(callbackObject[callbackName]['$ref'], oas);
+                    }
+                    else {
+                        pathItem = pathItem;
+                    }
+                    const callback = { [expression]: pathItem };
+                    callbacks[callbackName] = Object.assign(Object.assign({}, callbacks[callbackName]), callback);
+                }
+            }
+        }
+    }
+    return callbacks;
+}
+exports.getEndpointCallbacks = getEndpointCallbacks;
+/**
+ * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
  * definitions at the path item, definitions at the operation, or the OAS
  * default.
  */
-function getServers(path, method, oas) {
+function getServers(path, method, oas, callback) {
     let servers = [];
     // Global server definitions:
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
         servers = oas.servers;
     }
     // Path item server definitions override global:
-    const pathItem = oas.paths[path];
+    // const pathItem = oas.paths[path]
+    const pathItem = callback ? callback[path] : oas.paths[path];
     if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
         servers = pathItem.servers;
     }
@@ -830,7 +925,7 @@ exports.getSecuritySchemes = getSecuritySchemes;
  * Returns the list of sanitized keys of non-OAuth2 security schemes
  * required by the operation at the given path and method.
  */
-function getSecurityRequirements(path, method, securitySchemes, oas) {
+function getSecurityRequirements(path, method, securitySchemes, oas, callback) {
     const results = [];
     // First, consider global requirements:
     const globalSecurity = oas.security;
@@ -846,7 +941,10 @@ function getSecurityRequirements(path, method, securitySchemes, oas) {
         }
     }
     // Local:
-    const operation = oas.paths[path][method];
+    // const operation: OperationObject = oas.paths[path][method]
+    const operation = callback
+        ? callback[path][method]
+        : oas.paths[path][method];
     const localSecurity = operation.security;
     if (localSecurity && typeof localSecurity !== 'undefined') {
         for (let secReq of localSecurity) {
