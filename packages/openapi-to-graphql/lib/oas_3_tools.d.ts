@@ -3,7 +3,7 @@
  */
 import { Oas2 } from './types/oas2';
 import { Operation } from './types/operation';
-import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, RequestBodyObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
+import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, RequestBodyObject, ReferenceObject, LinkObject, CallbackObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
@@ -47,6 +47,10 @@ export declare function countOperationsQuery(oas: Oas3): number;
  * Counts the number of operations that translate to mutations in an OAS.
  */
 export declare function countOperationsMutation(oas: Oas3): number;
+/**
+ * Counts the number of operations that translate to subscriptions in an OAS.
+ */
+export declare function countOperationsSubscription(oas: Oas3): number;
 /**
  * Counts the number of operations with a payload definition in an OAS.
  */
@@ -109,7 +113,7 @@ export declare function getRequestBodyObject(endpoint: OperationObject, oas: Oas
  * a dictionary of names from different sources (if available), and whether the
  * request schema is required for the endpoint.
  */
-export declare function getRequestSchemaAndNames(path: string, method: string, oas: Oas3): RequestSchemaAndNames;
+export declare function getRequestSchemaAndNames(path: string, method: string, oas: Oas3, callback?: CallbackObject): RequestSchemaAndNames;
 /**
  * Returns JSON-compatible schema produced by the given endpoint - or null if it
  * does not exist.
@@ -123,12 +127,12 @@ export declare function getResponseObject(endpoint: OperationObject, statusCode:
  * the given status code, and a dictionary of names from different sources (if
  * available).
  */
-export declare function getResponseSchemaAndNames(path: string, method: string, oas: Oas3, data: PreprocessingData, options: InternalOptions): ResponseSchemaAndNames;
+export declare function getResponseSchemaAndNames(path: string, method: string, oas: Oas3, data: PreprocessingData, options: InternalOptions, callback?: CallbackObject): ResponseSchemaAndNames;
 /**
  * Returns the success status code for the operation at the given path and
  * method (or null).
  */
-export declare function getResponseStatusCode(path: string, method: string, oas: Oas3, data: PreprocessingData): string | void;
+export declare function getResponseStatusCode(path: string, method: string, oas: Oas3, data: PreprocessingData, callback?: CallbackObject): string | void;
 /**
  * Returns an hash containing the links defined in the given endpoint.
  */
@@ -139,14 +143,20 @@ export declare function getEndpointLinks(path: string, method: string, oas: Oas3
  * Returns the list of parameters for the endpoint at the given method and path.
  * Resolves possible references.
  */
-export declare function getParameters(path: string, method: string, oas: Oas3): ParameterObject[];
+export declare function getParameters(path: string, method: string, oas: Oas3, callback?: CallbackObject): ParameterObject[];
 /**
- * Returns an array of server objects for the opeartion at the given path and
+ * Returns an hash containing the callbacks defined in the given endpoint.
+ */
+export declare function getEndpointCallbacks(path: string, method: string, oas: Oas3, data: PreprocessingData): {
+    [key: string]: CallbackObject;
+};
+/**
+ * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
  * definitions at the path item, definitions at the operation, or the OAS
  * default.
  */
-export declare function getServers(path: string, method: string, oas: Oas3): ServerObject[];
+export declare function getServers(path: string, method: string, oas: Oas3, callback?: CallbackObject): ServerObject[];
 /**
  * Returns a map of Security Scheme definitions, identified by keys. Resolves
  * possible references.
@@ -160,7 +170,7 @@ export declare function getSecuritySchemes(oas: Oas3): {
  */
 export declare function getSecurityRequirements(path: string, method: string, securitySchemes: {
     [key: string]: ProcessedSecurityScheme;
-}, oas: Oas3): string[];
+}, oas: Oas3, callback?: CallbackObject): string[];
 export declare enum CaseStyle {
     simple = 0,
     PascalCase = 1,

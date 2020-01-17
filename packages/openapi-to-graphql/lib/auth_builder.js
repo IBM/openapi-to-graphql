@@ -23,7 +23,7 @@ const translationLog = debug_1.default('translation');
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-function createAndLoadViewer(queryFields, data, isMutation = false) {
+function createAndLoadViewer(queryFields, data, isMutation = false, isSubscription = false) {
     let results = {};
     /**
      * To ensure that viewers have unique names, we add a numerical postfix.
@@ -74,9 +74,20 @@ function createAndLoadViewer(queryFields, data, isMutation = false) {
             viewerType = securityType;
         }
         // Create name for the viewer
-        let viewerName = !isMutation
-            ? Oas3Tools.sanitize(`viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase)
-            : Oas3Tools.sanitize(`mutation viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase);
+        let viewerName = isSubscription
+            ? Oas3Tools.sanitize(`subscription viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase)
+            : !isMutation
+                ? Oas3Tools.sanitize(`viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase)
+                : Oas3Tools.sanitize(`mutation viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase);
+        // let viewerName = !isMutation
+        //   ? Oas3Tools.sanitize(
+        //       `viewer ${viewerType}`,
+        //       Oas3Tools.CaseStyle.camelCase
+        //     )
+        //   : Oas3Tools.sanitize(
+        //       `mutation viewer ${viewerType}`,
+        //       Oas3Tools.CaseStyle.camelCase
+        //     )
         // Ensure unique viewer name
         // If name already exists, append a number at the end of the name
         if (!(viewerType in viewerNamePostfix)) {
@@ -89,9 +100,14 @@ function createAndLoadViewer(queryFields, data, isMutation = false) {
         results[viewerName] = getViewerOT(viewerName, protocolName, securityType, queryFields[protocolName], data);
     }
     // Create name for the AnyAuth viewer
-    const anyAuthObjectName = !isMutation
-        ? 'viewerAnyAuth'
-        : 'mutationViewerAnyAuth';
+    const anyAuthObjectName = isSubscription
+        ? 'subscriptionViewerAnyAuth'
+        : !isMutation
+            ? 'viewerAnyAuth'
+            : 'mutationViewerAnyAuth';
+    // const anyAuthObjectName = !isMutation
+    //   ? 'viewerAnyAuth'
+    //   : 'mutationViewerAnyAuth'
     // Add the AnyAuth object type to the specified root query object type
     results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data);
     return results;

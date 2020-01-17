@@ -11,6 +11,115 @@ const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const graphql_1 = require("./types/graphql");
 const preprocessingLog = debug_1.default('preprocessing');
+function processOperationCallbacks(callbacksObject, oas, data, options) {
+    const operations = [];
+    for (let callbackName in callbacksObject) {
+        const callbackObject = callbacksObject[callbackName];
+        for (let path in callbackObject) {
+            // path may be an expression evaluated at runtime
+            // should callbackName be appended to path or replacing the path ?
+            const pathItem = callbackObject[path];
+            for (let method in pathItem) {
+                if (!Oas3Tools.isOperation(method)) {
+                    continue;
+                }
+                const endpoint = pathItem[method];
+                // Still hesistating ....
+                // const operationString = Oas3Tools.formatOperationString(method, path, callbackName)
+                const operationString = Oas3Tools.formatOperationString(method, callbackName);
+                // Determine description
+                let description = endpoint.description;
+                if ((typeof description !== 'string' || description === '') &&
+                    typeof endpoint.summary === 'string') {
+                    description = endpoint.summary;
+                }
+                if (data.options.equivalentToMessages &&
+                    typeof description === 'string') {
+                    description += `\n\nEquivalent to ${operationString}`;
+                }
+                // Hold on to the operationId
+                // find another way to name callback operationId (path might be an expression) ?
+                const operationId = typeof endpoint.operationId !== 'undefined'
+                    ? endpoint.operationId
+                    : Oas3Tools.generateOperationId(method, path);
+                // Request schema
+                const { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, oas, callbackObject);
+                const payloadDefinition = payloadSchema && typeof payloadSchema !== 'undefined'
+                    ? createDataDef(payloadSchemaNames, payloadSchema, true, data, undefined, oas)
+                    : undefined;
+                // Response schema
+                const { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, oas, data, options, callbackObject);
+                if (!responseSchema || typeof responseSchema !== 'object') {
+                    utils_1.handleWarning({
+                        typeKey: 'MISSING_RESPONSE_SCHEMA',
+                        message: `Operation ${path} has no (valid) response schema. ` +
+                            `You can use the fillEmptyResponses option to create a ` +
+                            `placeholder schema`,
+                        data,
+                        log: preprocessingLog
+                    });
+                    continue;
+                }
+                const responseDefinition = createDataDef(responseSchemaNames, responseSchema, false, data, undefined, oas);
+                // Parameters
+                const parameters = Oas3Tools.getParameters(path, method, oas, callbackObject);
+                // Security protocols
+                const securityRequirements = options.viewer
+                    ? Oas3Tools.getSecurityRequirements(path, method, data.security, oas, callbackObject)
+                    : [];
+                // Servers
+                const servers = Oas3Tools.getServers(path, method, oas, callbackObject);
+                // Whether to place this operation into an authentication viewer
+                const inViewer = securityRequirements.length > 0 && data.options.viewer !== false;
+                /**
+                 * Whether the operation should be added as a Subscription field.
+                 * By default, all operations containing callbacks are Subscription.
+                 */
+                let isSubscription = true;
+                let isMutation = false;
+                const operation = {
+                    operationId,
+                    operationString,
+                    description,
+                    path,
+                    method: method.toLowerCase(),
+                    payloadContentType,
+                    payloadDefinition,
+                    payloadRequired,
+                    responseContentType,
+                    responseDefinition,
+                    parameters,
+                    securityRequirements,
+                    servers,
+                    callbacks: undefined,
+                    inViewer,
+                    isMutation,
+                    isSubscription,
+                    statusCode,
+                    oas
+                };
+                /**
+                 * Handle operationId property name collision
+                 * May occur if multiple OAS are provided
+                 */
+                if (operationId in data.operations) {
+                    utils_1.handleWarning({
+                        typeKey: 'DUPLICATE_OPERATIONID',
+                        message: `Multiple OASs share operations with the same operationId '${operationId}'`,
+                        mitigationAddendum: `The operation from the OAS '${operation.oas.info.title}' will be ignored`,
+                        data,
+                        log: preprocessingLog
+                    });
+                }
+                else {
+                    data.operations[operationId] = operation;
+                }
+                operations.push(operation);
+            }
+        }
+    }
+    return operations;
+}
 /**
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OpenAPI-to-GraphQL to use
@@ -19,7 +128,8 @@ function preprocessOas(oass, options) {
     const data = {
         usedTypeNames: [
             'Query',
-            'Mutation' // Used by OpenAPI-to-GraphQL for root-level element
+            'Mutation',
+            'Subscription' // Used by OpenAPI-to-GraphQL for root-level element
         ],
         defs: [],
         operations: {},
@@ -33,6 +143,7 @@ function preprocessOas(oass, options) {
         data.options.report.numOps += Oas3Tools.countOperations(oas);
         data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas);
         data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas);
+        data.options.report.numOpsSubscription += Oas3Tools.countOperationsSubscription(oas);
         // Get security schemes
         const currentSecurity = getProcessedSecuritySchemes(oas, data);
         const commonSecurityPropertyName = utils_1.getCommonPropertyNames(data.security, currentSecurity);
@@ -96,6 +207,10 @@ function preprocessOas(oass, options) {
                 }
                 // Links
                 const links = Oas3Tools.getEndpointLinks(path, method, oas, data);
+                // Callbacks containing [key: string]:PathItemObject
+                const callbacks = Oas3Tools.getEndpointCallbacks(path, method, oas, data);
+                // should every callback items be registered as operations ?
+                processOperationCallbacks(callbacks, oas, data, options);
                 const responseDefinition = createDataDef(responseSchemaNames, responseSchema, false, data, links, oas);
                 // Parameters
                 const parameters = Oas3Tools.getParameters(path, method, oas);
@@ -107,6 +222,12 @@ function preprocessOas(oass, options) {
                 const servers = Oas3Tools.getServers(path, method, oas);
                 // Whether to place this operation into an authentication viewer
                 const inViewer = securityRequirements.length > 0 && data.options.viewer !== false;
+                /**
+                 * Whether the operation should be added as a Subscription field.
+                 * By default, all operations contained in callbacks should be Subscription ?
+                 * Unless it is more logical to consider the callbacks parent to be the Subscription ?
+                 */
+                let isSubscription = false;
                 /**
                  * Whether the operation should be added as a Query or Mutation field.
                  * By default, all GET operations are Query fields and all other
@@ -140,8 +261,10 @@ function preprocessOas(oass, options) {
                     parameters,
                     securityRequirements,
                     servers,
+                    callbacks,
                     inViewer,
                     isMutation,
+                    isSubscription,
                     statusCode,
                     oas
                 };
@@ -868,11 +991,11 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                 anyOfData.allProperties.forEach(properties => {
                     Object.keys(properties).forEach(propertyName => {
                         if (!incompatibleProperties.has(propertyName) && // Has not been already identified as a problematic property
-                            (typeof allProperties[propertyName] === 'object' &&
-                                allProperties[propertyName].some(property => {
-                                    // Property does not match a recorded one
-                                    return !deepEqual(property, properties[propertyName]);
-                                }))) {
+                            typeof allProperties[propertyName] === 'object' &&
+                            allProperties[propertyName].some(property => {
+                                // Property does not match a recorded one
+                                return !deepEqual(property, properties[propertyName]);
+                            })) {
                             incompatibleProperties.add(propertyName);
                         }
                         // Add property in the store

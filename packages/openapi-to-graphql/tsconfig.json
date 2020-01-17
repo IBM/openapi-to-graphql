@@ -5,7 +5,7 @@
     "outDir": "lib",
     "sourceMap": true,
     "skipLibCheck": true,
-    "lib": ["es2017"],
+    "lib": ["es2017", "esnext.asynciterable"],
     "declaration": true
   },
   "files": ["./node_modules/@types/node/index.d.ts"],
