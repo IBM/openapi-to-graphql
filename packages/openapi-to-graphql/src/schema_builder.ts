@@ -17,7 +17,7 @@ import {
   ReferenceObject,
   LinkObject
 } from './types/oas3'
-import { Args, GraphQLType } from './types/graphql'
+import { Args, GraphQLType, ResolveFunction } from './types/graphql'
 import {
   GraphQLScalarType,
   GraphQLObjectType,
@@ -281,7 +281,7 @@ function createOrReuseUnion({
           ? ` (for operation '${operation.operationId}')`
           : '')
     )
-    return def.graphQLType as (GraphQLUnionType)
+    return def.graphQLType as GraphQLUnionType
   } else {
     translationLog(
       `Create union type '${def.graphQLTypeName}'` +

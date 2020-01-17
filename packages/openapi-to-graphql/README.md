@@ -284,6 +284,7 @@ The following logging levels are supported:
 - `preprocessing`: Logs information about preprocessing the OAS.
 - `translation`: Logs information about translating an OAS to GraphQL.
 - `http`: Logs information about the HTTP requests made to the API.
+- `pubsub`: Logs information about the PubSub subscribptions made to the API.
 
 ## Testing
 

@@ -31,8 +31,13 @@
  */
 
 // Type imports:
-import { Options, InternalOptions, Report } from './types/options'
-import { Oas3 } from './types/oas3'
+import {
+  Options,
+  InternalOptions,
+  Report,
+  ConnectOptions
+} from './types/options'
+import { Oas3, CallbackObject } from './types/oas3'
 import { Oas2 } from './types/oas2'
 import { Args, Field } from './types/graphql'
 import { Operation } from './types/operation'
@@ -42,7 +47,11 @@ import * as NodeRequest from 'request'
 
 // Imports:
 import { getGraphQLType, getArgs } from './schema_builder'
-import { getResolver } from './resolver_builder'
+import {
+  getResolver,
+  getSubscribe,
+  getPublishResolver
+} from './resolver_builder'
 import * as GraphQLTools from './graphql_tools'
 import { preprocessOas } from './preprocessor'
 import * as Oas3Tools from './oas_3_tools'
@@ -112,8 +121,10 @@ export async function createGraphQLSchema(
     numOps: 0,
     numOpsQuery: 0,
     numOpsMutation: 0,
+    numOpsSubscription: 0,
     numQueriesCreated: 0,
-    numMutationsCreated: 0
+    numMutationsCreated: 0,
+    numSubscriptionsCreated: 0
   }
 
   let oass: Oas3[]
@@ -167,6 +178,7 @@ async function translateOpenAPIToGraphQL(
     headers,
     qs,
     requestOptions,
+    connectOptions,
     baseUrl,
     customResolvers,
 
@@ -195,6 +207,7 @@ async function translateOpenAPIToGraphQL(
     headers,
     qs,
     requestOptions,
+    connectOptions,
     baseUrl,
     customResolvers,
     selectQueryOrMutationField,
@@ -218,14 +231,19 @@ async function translateOpenAPIToGraphQL(
 
   preliminaryChecks(options, data)
 
+  // console.log('PREPROCESS OPENAPI', data)
+
   /**
    * Create GraphQL fields for every operation and structure them based on their
    * characteristics (query vs. mutation, auth vs. non-auth).
    */
   let queryFields = {}
   let mutationFields = {}
+  let subscriptionFields = {}
   let authQueryFields = {}
   let authMutationFields = {}
+  let authSubscriptionFields = {}
+
   Object.entries(data.operations).forEach(([operationId, operation]) => {
     translationLog(`Process operation '${operationId}'...`)
 
@@ -233,7 +251,8 @@ async function translateOpenAPIToGraphQL(
       operation,
       options.baseUrl,
       data,
-      requestOptions
+      requestOptions,
+      connectOptions
     )
 
     const saneOperationId = Oas3Tools.sanitize(
@@ -241,8 +260,8 @@ async function translateOpenAPIToGraphQL(
       Oas3Tools.CaseStyle.camelCase
     )
 
-    // Check if the operation should be added as a Query or Mutation field
-    if (!operation.isMutation) {
+    // Check if the operation should be added as a Query | Mutation | Subscription field
+    if (!operation.isMutation && !operation.isSubscription) {
       let fieldName = Oas3Tools.uncapitalize(
         operation.responseDefinition.graphQLTypeName
       )
@@ -315,10 +334,10 @@ async function translateOpenAPIToGraphQL(
           queryFields[fieldName] = field
         }
       }
-    } else {
+    } else if (operation.isMutation && !operation.isSubscription) {
       /**
        * Use operationId to avoid problems differentiating operations with the
-       * same path but differnet methods
+       * same path but different methods
        */
 
       let saneFieldName = Oas3Tools.storeSaneName(
@@ -364,12 +383,70 @@ async function translateOpenAPIToGraphQL(
           mutationFields[saneFieldName] = field
         }
       }
+    } else {
+      // handle subscriptions from operation.callbacks
+      // 1) cbName would be the subscription field name
+      // each paths contained in operation.callbacks[cbName]
+      // would be a channel to subscribe on the resolver
+      // but if callback object contains several operations
+      // how to be sure that the returned Graphql type would be the same ?
+      // By "forcing' a common response schema for every operation within the CB ?
+      // 2) cbName would be a prefix to the subscription field name
+      // each paths contained in operation.callbacks[cbName] would be appended to create a unique subscription
+
+      // console.log('SUB FIELD', field.args, field.subscribe.toString(), field.resolve.toString())
+      // console.log('SUB FIELD', operation)
+
+      let saneFieldName = Oas3Tools.storeSaneName(
+        saneOperationId,
+        operationId,
+        data.saneMap
+      )
+      if (operation.inViewer) {
+        for (let securityRequirement of operation.securityRequirements) {
+          if (typeof authSubscriptionFields[securityRequirement] !== 'object') {
+            authSubscriptionFields[securityRequirement] = {}
+          }
+
+          if (saneFieldName in authSubscriptionFields[securityRequirement]) {
+            handleWarning({
+              typeKey: 'DUPLICATE_FIELD_NAME',
+              message:
+                `Multiple operations have the same name ` +
+                `'${saneFieldName}' and security requirement ` +
+                `'${securityRequirement}'. GraphQL field names must be ` +
+                `unique so only one can be added to the authentication ` +
+                `viewer. Operation '${operation.operationString}' will be ignored.`,
+              data,
+              log: translationLog
+            })
+          } else {
+            authSubscriptionFields[securityRequirement][saneFieldName] = field
+          }
+        }
+      } else {
+        if (saneFieldName in subscriptionFields) {
+          handleWarning({
+            typeKey: 'DUPLICATE_FIELD_NAME',
+            message:
+              `Multiple operations have the same name ` +
+              `'${saneFieldName}'. GraphQL field names must be ` +
+              `unique so only one can be added to the Mutation object. ` +
+              `Operation '${operation.operationString}' will be ignored.`,
+            data,
+            log: translationLog
+          })
+        } else {
+          subscriptionFields[saneFieldName] = field
+        }
+      }
     }
   })
 
   // Sorting fields
   queryFields = sortObject(queryFields)
   mutationFields = sortObject(mutationFields)
+  subscriptionFields = sortObject(subscriptionFields)
   authQueryFields = sortObject(authQueryFields)
   Object.keys(authQueryFields).forEach(key => {
     authQueryFields[key] = sortObject(authQueryFields[key])
@@ -377,6 +454,10 @@ async function translateOpenAPIToGraphQL(
   authMutationFields = sortObject(authMutationFields)
   Object.keys(authMutationFields).forEach(key => {
     authMutationFields[key] = sortObject(authMutationFields[key])
+  })
+  authSubscriptionFields = sortObject(authSubscriptionFields)
+  Object.keys(authSubscriptionFields).forEach(key => {
+    authSubscriptionFields[key] = sortObject(authSubscriptionFields[key])
   })
 
   /**
@@ -394,20 +475,33 @@ async function translateOpenAPIToGraphQL(
       return sum + Object.keys(authMutationFields[key]).length
     }, 0)
 
+  options.report.numSubscriptionsCreated =
+    Object.keys(subscriptionFields).length +
+    Object.keys(authSubscriptionFields).reduce((sum, key) => {
+      return sum + Object.keys(authSubscriptionFields[key]).length
+    }, 0)
+
   /**
-   * Organize created queries / mutations into viewer objects.
+   * Organize created queries / mutations / subscriptions into viewer objects.
    */
   if (Object.keys(authQueryFields).length > 0) {
     Object.assign(
       queryFields,
-      createAndLoadViewer(authQueryFields, data, false)
+      createAndLoadViewer(authQueryFields, data, false, false)
     )
   }
 
   if (Object.keys(authMutationFields).length > 0) {
     Object.assign(
       mutationFields,
-      createAndLoadViewer(authMutationFields, data, true)
+      createAndLoadViewer(authMutationFields, data, true, false)
+    )
+  }
+
+  if (Object.keys(authSubscriptionFields).length > 0) {
+    Object.assign(
+      subscriptionFields,
+      createAndLoadViewer(authSubscriptionFields, data, true, true)
     )
   }
 
@@ -429,6 +523,14 @@ async function translateOpenAPIToGraphQL(
             name: 'Mutation',
             description: 'The start of any mutation',
             fields: mutationFields
+          })
+        : null,
+    subscription:
+      Object.keys(subscriptionFields).length > 0
+        ? new GraphQLObjectType({
+            name: 'Subscription',
+            description: 'The start of any subscription',
+            fields: subscriptionFields
           })
         : null
   }
@@ -459,7 +561,8 @@ function getFieldForOperation(
   operation: Operation,
   baseUrl: string,
   data: PreprocessingData,
-  requestOptions: NodeRequest.OptionsWithUrl
+  requestOptions: NodeRequest.OptionsWithUrl,
+  connectOptions: ConnectOptions
 ): Field {
   // Create GraphQL Type for response:
   const type = getGraphQLType({
@@ -473,14 +576,6 @@ function getFieldForOperation(
     ? operation.payloadDefinition.graphQLInputObjectTypeName
     : null
 
-  const resolve = getResolver({
-    operation,
-    payloadName: payloadSchemaName,
-    data,
-    baseUrl,
-    requestOptions
-  })
-
   // Create args:
   const args: Args = getArgs({
     /**
@@ -491,11 +586,45 @@ function getFieldForOperation(
      */
     requestPayloadDef: operation.payloadDefinition,
     parameters: operation.parameters,
-
     operation,
     data
   })
 
+  if (operation.isSubscription) {
+    const responseSchemaName = operation.responseDefinition
+      ? operation.responseDefinition.graphQLInputObjectTypeName
+      : null
+
+    const resolve = getPublishResolver({
+      operation,
+      responseName: responseSchemaName,
+      data
+    })
+
+    const subscribe = getSubscribe({
+      operation,
+      payloadName: payloadSchemaName,
+      data,
+      baseUrl,
+      connectOptions
+    })
+
+    return {
+      type,
+      resolve,
+      subscribe,
+      args,
+      description: operation.description
+    }
+  }
+
+  const resolve = getResolver({
+    operation,
+    payloadName: payloadSchemaName,
+    data,
+    baseUrl,
+    requestOptions
+  })
   return {
     type,
     resolve,

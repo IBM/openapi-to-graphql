@@ -23,6 +23,8 @@ import {
   ReferenceObject,
   LinksObject,
   LinkObject,
+  CallbacksObject,
+  CallbackObject,
   MediaTypesObject,
   SecuritySchemeObject,
   SecurityRequirementObject
@@ -130,6 +132,19 @@ export function countOperations(oas: Oas3): number {
     for (let method in oas.paths[path]) {
       if (isOperation(method)) {
         numOps++
+        if (oas.paths[path][method].callbacks) {
+          for (let cbName in oas.paths[path][method].callbacks) {
+            for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
+              numOps++
+              // resolve $ref ??
+              // for (let cbMethod in oas.paths[path][method].callbacks[cbName][cbPath]) {
+              //   if (isOperation(cbMethod)) {
+              //     numOps++
+              //   }
+              // }
+            }
+          }
+        }
       }
     }
   }
@@ -160,6 +175,35 @@ export function countOperationsMutation(oas: Oas3): number {
     for (let method in oas.paths[path]) {
       if (isOperation(method) && method.toLowerCase() !== 'get') {
         numOps++
+      }
+    }
+  }
+  return numOps
+}
+
+/**
+ * Counts the number of operations that translate to subscriptions in an OAS.
+ */
+export function countOperationsSubscription(oas: Oas3): number {
+  let numOps = 0
+  for (let path in oas.paths) {
+    for (let method in oas.paths[path]) {
+      if (
+        isOperation(method) &&
+        method.toLowerCase() !== 'get' &&
+        oas.paths[path][method].callbacks
+      ) {
+        for (let cbName in oas.paths[path][method].callbacks) {
+          for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
+            numOps++
+            // resolve $ref ??
+            // for (let cbMethod in oas.paths[path][method].callbacks[cbName][cbPath]) {
+            //   if (isOperation(cbMethod)) {
+            //     numOps++
+            //   }
+            // }
+          }
+        }
       }
     }
   }
@@ -543,9 +587,14 @@ export function getRequestBodyObject(
 export function getRequestSchemaAndNames(
   path: string,
   method: string,
-  oas: Oas3
+  oas: Oas3,
+  callback?: CallbackObject
 ): RequestSchemaAndNames {
-  const endpoint: OperationObject = oas.paths[path][method]
+  // const endpoint: OperationObject = oas.paths[path][method]
+  const endpoint: OperationObject = callback
+    ? callback[path][method]
+    : oas.paths[path][method]
+
   const { payloadContentType, requestBodyObject } = getRequestBodyObject(
     endpoint,
     oas
@@ -678,10 +727,16 @@ export function getResponseSchemaAndNames(
   method: string,
   oas: Oas3,
   data: PreprocessingData,
-  options: InternalOptions
+  options: InternalOptions,
+  callback?: CallbackObject
 ): ResponseSchemaAndNames {
-  const endpoint: OperationObject = oas.paths[path][method]
-  const statusCode = getResponseStatusCode(path, method, oas, data)
+  // const endpoint: OperationObject = oas.paths[path][method]
+  const endpoint: OperationObject = callback
+    ? callback[path][method]
+    : oas.paths[path][method]
+
+  // const statusCode = getResponseStatusCode(path, method, oas, data)
+  const statusCode = getResponseStatusCode(path, method, oas, data, callback)
   if (!statusCode) {
     return {}
   }
@@ -766,9 +821,13 @@ export function getResponseStatusCode(
   path: string,
   method: string,
   oas: Oas3,
-  data: PreprocessingData
+  data: PreprocessingData,
+  callback?: CallbackObject
 ): string | void {
-  const endpoint: OperationObject = oas.paths[path][method]
+  // const endpoint: OperationObject = oas.paths[path][method]
+  const endpoint: OperationObject = callback
+    ? callback[path][method]
+    : oas.paths[path][method]
 
   if (typeof endpoint.responses === 'object') {
     const codes = Object.keys(endpoint.responses)
@@ -856,7 +915,8 @@ export function getEndpointLinks(
 export function getParameters(
   path: string,
   method: string,
-  oas: Oas3
+  oas: Oas3,
+  callback?: CallbackObject
 ): ParameterObject[] {
   let parameters = []
 
@@ -868,7 +928,10 @@ export function getParameters(
     return parameters
   }
 
-  const pathItemObject: PathItemObject = oas.paths[path]
+  // const pathItemObject: PathItemObject = oas.paths[path]
+  const pathItemObject: PathItemObject = callback
+    ? callback[path]
+    : oas.paths[path]
   const pathParams = pathItemObject.parameters
 
   // First, consider parameters in Path Item Object:
@@ -886,7 +949,11 @@ export function getParameters(
   }
 
   // Second, consider parameters in Operation Object:
-  const opObject: OperationObject = oas.paths[path][method]
+  // const opObject: OperationObject = oas.paths[path][method]
+  const opObject: OperationObject = callback
+    ? callback[path][method]
+    : oas.paths[path][method]
+
   const opObjectParameters = opObject.parameters
 
   if (Array.isArray(opObjectParameters)) {
@@ -906,7 +973,56 @@ export function getParameters(
 }
 
 /**
- * Returns an array of server objects for the opeartion at the given path and
+ * Returns an hash containing the callbacks defined in the given endpoint.
+ */
+export function getEndpointCallbacks(
+  path: string,
+  method: string,
+  oas: Oas3,
+  data: PreprocessingData
+): { [key: string]: CallbackObject } {
+  const callbacks = {}
+  const endpoint: OperationObject = oas.paths[path][method]
+
+  if (typeof endpoint.callbacks === 'object') {
+    let callbacksObject: CallbacksObject = endpoint.callbacks
+    for (let callbackName in callbacksObject) {
+      if (typeof callbacksObject[callbackName] === 'object') {
+        let callbackObject: CallbackObject | ReferenceObject =
+          callbacksObject[callbackName]
+        // Make sure we have CallbackObject:
+        if (typeof (callbackObject as ReferenceObject).$ref === 'string') {
+          callbackObject = resolveRef(
+            (callbackObject as ReferenceObject).$ref,
+            oas
+          ) as CallbackObject
+        } else {
+          callbackObject = (callbackObject as any) as CallbackObject
+        }
+        // console.log("CHECK CALLBACK OBJ", callbackName, callbackObject)
+
+        // Make sure CallbackObject contains PathItemObject:
+        for (let expression in callbackObject) {
+          let pathItem: PathItemObject = callbackObject[expression]
+          // console.log("CHECK CALLBACK ITEM", expression, pathItem)
+          if (typeof (pathItem as ReferenceObject).$ref === 'string') {
+            pathItem = resolveRef(callbackObject[callbackName]['$ref'], oas)
+          } else {
+            pathItem = (pathItem as any) as PathItemObject
+          }
+
+          const callback: CallbackObject = { [expression]: pathItem }
+          callbacks[callbackName] = { ...callbacks[callbackName], ...callback }
+        }
+      }
+    }
+  }
+
+  return callbacks
+}
+
+/**
+ * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
  * definitions at the path item, definitions at the operation, or the OAS
  * default.
@@ -914,7 +1030,8 @@ export function getParameters(
 export function getServers(
   path: string,
   method: string,
-  oas: Oas3
+  oas: Oas3,
+  callback?: CallbackObject
 ): ServerObject[] {
   let servers = []
   // Global server definitions:
@@ -923,7 +1040,8 @@ export function getServers(
   }
 
   // Path item server definitions override global:
-  const pathItem = oas.paths[path]
+  // const pathItem = oas.paths[path]
+  const pathItem: PathItemObject = callback ? callback[path] : oas.paths[path]
   if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
     servers = pathItem.servers
   }
@@ -985,7 +1103,8 @@ export function getSecurityRequirements(
   path: string,
   method: string,
   securitySchemes: { [key: string]: ProcessedSecurityScheme },
-  oas: Oas3
+  oas: Oas3,
+  callback?: CallbackObject
 ): string[] {
   const results: string[] = []
 
@@ -1006,7 +1125,11 @@ export function getSecurityRequirements(
   }
 
   // Local:
-  const operation: OperationObject = oas.paths[path][method]
+  // const operation: OperationObject = oas.paths[path][method]
+  const operation: OperationObject = callback
+    ? callback[path][method]
+    : oas.paths[path][method]
+
   const localSecurity: SecurityRequirementObject[] = operation.security
   if (localSecurity && typeof localSecurity !== 'undefined') {
     for (let secReq of localSecurity) {

@@ -14,7 +14,7 @@ import { Options } from '../lib/types/options'
 import { startServer, stopServer } from './example_api_server'
 
 const oas = require('./fixtures/example_oas4.json')
-const PORT = 3004
+const PORT = 3007
 // Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 
@@ -385,6 +385,93 @@ test('anyOf test with extraneous member schemas with external type\n\nEquivalent
 })
 
 /**
+ * anyOf contains two member schemas and allOf contains an additional one
+ *
+ * None of the schemas have conflicts so all three should be utilized
+ */
+test('Basic anyOf test with allOf\n\nEquivalent to GET /anyOf10', () => {
+  return graphql(createdSchema, anyOfQuery).then(result => {
+    expect(
+      result.data['__schema'].queryType.fields.find(field => {
+        return field.name === 'anyOf10'
+      })
+    ).toEqual({
+      name: 'anyOf10',
+      description: 'Basic anyOf test with allOf\n\nEquivalent to GET /anyOf10',
+      type: {
+        name: 'AnyOf10',
+        kind: 'OBJECT',
+        fields: [
+          {
+            name: 'anotherAttribute',
+            type: {
+              name: 'String'
+            }
+          },
+          {
+            name: 'commonAttribute',
+            type: {
+              name: 'String'
+            }
+          },
+          {
+            name: 'differentAttribute',
+            type: {
+              name: 'String'
+            }
+          }
+        ]
+      }
+    })
+  })
+})
+
+/**
+ * anyOf contains two member schemas and allOf contains an additional one that
+ * is nested in another anyOf
+ *
+ * Resolving the allOf should correctly collapse all of the (nested) anyOfs
+ * and allow all three schemas to be utilized
+ */
+test('anyOf test with allOf, requiring anyOf collapse\n\nEquivalent to GET /anyOf11', () => {
+  return graphql(createdSchema, anyOfQuery).then(result => {
+    expect(
+      result.data['__schema'].queryType.fields.find(field => {
+        return field.name === 'anyOf11'
+      })
+    ).toEqual({
+      name: 'anyOf11',
+      description:
+        'anyOf test with allOf, requiring anyOf collapse\n\nEquivalent to GET /anyOf11',
+      type: {
+        name: 'AnyOf11',
+        kind: 'OBJECT',
+        fields: [
+          {
+            name: 'anotherAttribute',
+            type: {
+              name: 'String'
+            }
+          },
+          {
+            name: 'commonAttribute',
+            type: {
+              name: 'String'
+            }
+          },
+          {
+            name: 'differentAttribute',
+            type: {
+              name: 'String'
+            }
+          }
+        ]
+      }
+    })
+  })
+})
+
+/**
  * oneOf contains two member schemas
  *
  * Because the schemas are different object types, the created GraphQL union
@@ -499,6 +586,109 @@ test('oneOf test with extraneous member schemas\n\nEquivalent to GET /oneOf4', (
         name: 'Int',
         kind: 'SCALAR',
         possibleTypes: null
+      }
+    })
+  })
+})
+
+/**
+ * oneOf contains two member schemas and an allOf
+ *
+ * Only schemas within the oneOf should be utilized
+ *
+ * TODO: verify this behavior and also create a test with additional root properties
+ */
+test('Basic oneOf test with allOf\n\nEquivalent to GET /oneOf5', () => {
+  return graphql(createdSchema, oneOfQuery).then(result => {
+    expect(
+      result.data['__schema'].queryType.fields.find(field => {
+        return field.name === 'oneOf5'
+      })
+    ).toEqual({
+      name: 'oneOf5',
+      description: 'Basic oneOf test with allOf\n\nEquivalent to GET /oneOf5',
+      type: {
+        name: 'OneOf5',
+        kind: 'UNION',
+        possibleTypes: [
+          {
+            name: 'CommonAttributeObject',
+            fields: [
+              {
+                type: {
+                  name: 'String'
+                }
+              }
+            ]
+          },
+          {
+            name: 'DifferentAttributeObject',
+            fields: [
+              {
+                type: {
+                  name: 'String'
+                }
+              }
+            ]
+          }
+        ]
+      }
+    })
+  })
+})
+
+/**
+ * oneOf contains two member schemas and allOf contains an additional one that
+ * is nested in another oneOf
+ *
+ * Resolving the allOf should correctly collapse all of the (nested) oneOfs
+ * and allow all three schemas to be utilized
+ */
+test('oneOf test with allOf, requiring oneOf collapse\n\nEquivalent to GET /oneOf6', () => {
+  return graphql(createdSchema, oneOfQuery).then(result => {
+    expect(
+      result.data['__schema'].queryType.fields.find(field => {
+        return field.name === 'oneOf6'
+      })
+    ).toEqual({
+      name: 'oneOf6',
+      description:
+        'oneOf test with allOf, requiring oneOf collapse\n\nEquivalent to GET /oneOf6',
+      type: {
+        name: 'OneOf6',
+        kind: 'UNION',
+        possibleTypes: [
+          {
+            name: 'CommonAttributeObject',
+            fields: [
+              {
+                type: {
+                  name: 'String'
+                }
+              }
+            ]
+          },
+          {
+            name: 'DifferentAttributeObject',
+            fields: [
+              {
+                type: {
+                  name: 'String'
+                }
+              }
+            ]
+          },
+          {
+            name: 'AnotherAttributeObject',
+            fields: [
+              {
+                type: {
+                  name: 'String'
+                }
+              }
+            ]
+          }
+        ]
       }
     })
   })

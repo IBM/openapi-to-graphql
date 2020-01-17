@@ -9,8 +9,13 @@
 
 // Type imports:
 import { Oas3, SchemaObject } from './types/oas3'
+import { ConnectOptions } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
-import { ResolveFunction } from './types/graphql'
+import {
+  ResolveFunction,
+  ResolveObject,
+  SubscriptionIterator
+} from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
 
@@ -20,9 +25,13 @@ import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
 import { debug } from 'debug'
 import { GraphQLError } from 'graphql'
+import { PubSub } from 'graphql-subscriptions'
+
+const pubsub = new PubSub()
 
 const translationLog = debug('translation')
 const httpLog = debug('http')
+const pubsubLog = debug('pubsub')
 
 // Type definitions & exports:
 type AuthReqAndProtcolName = {
@@ -40,13 +49,272 @@ type GetResolverParams = {
   operation: Operation
   argsFromLink?: { [key: string]: string }
   payloadName?: string
+  responseName?: string
   data: PreprocessingData
   baseUrl?: string
   requestOptions?: NodeRequest.OptionsWithUrl
 }
 
+type GetSubscribeParams = {
+  operation: Operation
+  argsFromLink?: { [key: string]: string }
+  payloadName?: string
+  data: PreprocessingData
+  baseUrl?: string
+  connectOptions?: ConnectOptions
+}
+
+/*
+ * If operationType is Subscription, creates and returns a resolver object that contains subscribe to perform subscription
+ * and resolve to execute payload transformation
+ */
+export function getSubscribe({
+  operation,
+  argsFromLink = {},
+  payloadName,
+  data,
+  baseUrl,
+  connectOptions
+}: GetSubscribeParams): SubscriptionIterator {
+  // Determine the appropriate URL:
+  if (typeof baseUrl === 'undefined') {
+    baseUrl = Oas3Tools.getBaseUrl(operation)
+  }
+
+  // Return custom resolver if it is defined
+  const customResolvers = data.options.customResolvers
+  const title = operation.oas.info.title
+  const path = operation.path
+  const method = operation.method
+
+  if (
+    typeof customResolvers === 'object' &&
+    typeof customResolvers[title] === 'object' &&
+    typeof customResolvers[title][path] === 'object' &&
+    typeof customResolvers[title][path][method] === 'object' &&
+    customResolvers[title][path][method].hasOwnProperty('subscribe')
+  ) {
+    translationLog(
+      `Use custom subscribe resolver for ${operation.operationString}`
+    )
+    const customResolver = customResolvers[title][path][method] as ResolveObject
+    if (typeof customResolver.subscribe === 'function') {
+      return customResolver.subscribe
+    }
+  }
+
+  return (root: any, args, ctx, info = {}) => {
+    /**
+     * Determine possible topic(s) by resolving callback path
+     *
+     * GraphQL produces sanitized payload names, so we have to sanitize before
+     * lookup here
+     */
+
+    const paramName = Oas3Tools.sanitize(
+      payloadName,
+      Oas3Tools.CaseStyle.camelCase
+    )
+
+    let resolveData: any = {}
+
+    if (
+      root &&
+      typeof root === 'object' &&
+      typeof root['_openAPIToGraphQL'] === 'object' &&
+      typeof root['_openAPIToGraphQL'].data === 'object'
+    ) {
+      const parentIdentifier = getParentIdentifier(info)
+      if (
+        !(parentIdentifier.length === 0) &&
+        parentIdentifier in root['_openAPIToGraphQL'].data
+      ) {
+        /**
+         * Resolving link params may change the usedParams, but these changes
+         * should not be present in the parent _openAPIToGraphQL, therefore copy
+         * the object
+         */
+        resolveData = JSON.parse(
+          JSON.stringify(root['_openAPIToGraphQL'].data[parentIdentifier])
+        )
+      }
+    }
+
+    if (payloadName && typeof payloadName === 'string') {
+      // The option genericPayloadArgName will change the payload name to "requestBody"
+      const sanePayloadName = data.options.genericPayloadArgName
+        ? 'requestBody'
+        : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase)
+
+      if (sanePayloadName in args) {
+        if (typeof args[sanePayloadName] === 'object') {
+          const rawPayload = Oas3Tools.desanitizeObjKeys(
+            args[sanePayloadName],
+            data.saneMap
+          )
+          resolveData.usedPayload = rawPayload
+        } else {
+          const rawPayload = JSON.parse(args[sanePayloadName])
+          resolveData.usedPayload = rawPayload
+        }
+      }
+    }
+
+    pubsubLog(
+      `Subscription schema : ${JSON.stringify(resolveData.usedPayload)}`
+    )
+
+    if (typeof resolveData.usedParams === 'undefined') {
+      resolveData.usedParams = {}
+    }
+
+    if (connectOptions) {
+      resolveData.usedRequestOptions = connectOptions
+    } else {
+      resolveData.usedRequestOptions = {
+        method: resolveData.usedPayload.method
+          ? resolveData.usedPayload.method
+          : method.toUpperCase()
+      }
+    }
+
+    let value = path
+    let paramNameWithoutLocation = paramName
+    if (paramName.indexOf('.') !== -1) {
+      paramNameWithoutLocation = paramName.split('.')[1]
+    }
+
+    // /**
+    //  * see if the callback path contains constants expression
+    //  *
+    //  */
+    if (value.search(/{|}/) === -1) {
+      args[paramNameWithoutLocation] = isRuntimeExpression(value)
+        ? resolveLinkParameter(paramName, value, resolveData, root, args)
+        : value
+    } else {
+      // Replace callback expression with appropriate values
+      const cbParams = value.match(/{([^}]*)}/g)
+      pubsubLog(`Analyzing subscription path : ${cbParams.toString()}`)
+
+      cbParams.forEach(cbParam => {
+        value = value.replace(
+          cbParam,
+          resolveLinkParameter(
+            paramName,
+            cbParam.substring(1, cbParam.length - 1),
+            resolveData,
+            root,
+            args
+          )
+        )
+      })
+      args[paramNameWithoutLocation] = value
+    }
+    const topic = args[paramNameWithoutLocation] || 'test'
+    pubsubLog(`Subscring to : ${topic}`)
+    return ctx.pubsub
+      ? ctx.pubsub.asyncIterator(topic)
+      : pubsub.asyncIterator(topic)
+  }
+}
+
+/*
+ * If operationType is Subscription, creates and returns a resolver function triggered
+ * after a message has been published to the corresponding subscribe topic(s) to execute payload transformation
+ */
+export function getPublishResolver({
+  operation,
+  argsFromLink = {},
+  responseName,
+  data
+}: GetResolverParams): ResolveFunction {
+  // Return custom resolver if it is defined
+  const customResolvers = data.options.customResolvers
+  const title = operation.oas.info.title
+  const path = operation.path
+  const method = operation.method
+
+  if (
+    typeof customResolvers === 'object' &&
+    typeof customResolvers[title] === 'object' &&
+    typeof customResolvers[title][path] === 'object' &&
+    typeof customResolvers[title][path][method] === 'object' &&
+    customResolvers[title][path][method].hasOwnProperty('resolve')
+  ) {
+    translationLog(
+      `Use custom publish resolver for ${operation.operationString}`
+    )
+    const customResolver = customResolvers[title][path][method] as ResolveObject
+    if (typeof customResolver.resolve === 'function') {
+      return customResolver.resolve
+    }
+  }
+
+  return (payload: any, args, context, info = {}) => {
+    // Validate and format based on operation.responseDefinition  ...
+    const typeOfResponse = operation.responseDefinition.targetGraphQLType
+    pubsubLog(
+      `Message received: ${responseName}, ${typeOfResponse}, ${JSON.stringify(
+        payload
+      )}`
+    )
+
+    let responseBody
+    let saneData
+
+    if (typeof payload === 'object') {
+      if (typeOfResponse === 'object') {
+        if (Buffer.isBuffer(payload)) {
+          try {
+            responseBody = JSON.parse(payload.toString())
+          } catch (e) {
+            const errorString =
+              `Cannot JSON parse payload` +
+              `operation ${operation.operationString} ` +
+              `even though it has content-type 'application/json'`
+
+            pubsubLog(errorString)
+            return null
+          }
+        } else {
+          responseBody = payload
+        }
+        saneData = Oas3Tools.sanitizeObjKeys(payload)
+      } else if (
+        (Buffer.isBuffer(payload) || Array.isArray(payload)) &&
+        typeOfResponse === 'string'
+      ) {
+        saneData = payload.toString()
+      }
+    } else if (typeof payload === 'string') {
+      if (typeOfResponse === 'object') {
+        try {
+          responseBody = JSON.parse(payload)
+          saneData = Oas3Tools.sanitizeObjKeys(responseBody)
+        } catch (e) {
+          const errorString =
+            `Cannot JSON parse payload` +
+            `operation ${operation.operationString} ` +
+            `even though it has content-type 'application/json'`
+
+          pubsubLog(errorString)
+          return null
+        }
+      } else if (typeOfResponse === 'string') {
+        saneData = payload
+      }
+    }
+
+    pubsubLog(
+      `Message forwarded: ${JSON.stringify(saneData ? saneData : payload)}`
+    )
+    return saneData ? saneData : payload
+  }
+}
+
 /**
- * Creates and returns a resolver function that performs API requests for the
+ * if operationType is Query | Mutation, creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
 export function getResolver({
@@ -76,13 +344,13 @@ export function getResolver({
   ) {
     translationLog(`Use custom resolver for ${operation.operationString}`)
 
-    return customResolvers[title][path][method]
+    return customResolvers[title][path][method] as ResolveFunction
   }
 
-  // Return resolve function:
+  // Return resolve function :
   return (root: any, args, ctx, info = {}) => {
     /**
-     * Retch resolveData from possibly existing _openAPIToGraphQL
+     * Fetch resolveData from possibly existing _openAPIToGraphQL
      *
      * NOTE: _openAPIToGraphQL is an object used to pass security info and data
      * from previous resolvers
@@ -241,14 +509,10 @@ export function getResolver({
      */
     resolveData.usedPayload = undefined
     if (payloadName && typeof payloadName === 'string') {
-      
       // The option genericPayloadArgName will change the payload name to "requestBody"
       const sanePayloadName = data.options.genericPayloadArgName
         ? 'requestBody'
-        : Oas3Tools.sanitize(
-          payloadName,
-          Oas3Tools.CaseStyle.camelCase
-        )
+        : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase)
 
       if (sanePayloadName in args) {
         if (typeof args[sanePayloadName] === 'object') {
@@ -516,6 +780,9 @@ export function getResolver({
 
                   saneData = arraySaneData
                 }
+
+                // if (operation.callbacks)
+                // pubsub.publish(``, saneData) ?
 
                 resolve(saneData)
               } else {

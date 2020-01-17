@@ -4,7 +4,13 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import { Oas3, SchemaObject, LinkObject, ReferenceObject } from './types/oas3'
+import {
+  Oas3,
+  SchemaObject,
+  LinkObject,
+  ReferenceObject,
+  CallbackObject
+} from './types/oas3'
 import { InternalOptions } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
 import {
@@ -21,6 +27,196 @@ import { GraphQLOperationType } from './types/graphql'
 
 const preprocessingLog = debug('preprocessing')
 
+function processOperationCallbacks(
+  callbacksObject: { [key: string]: CallbackObject },
+  oas: Oas3,
+  data: PreprocessingData,
+  options: InternalOptions
+): Operation[] {
+  const operations: Operation[] = []
+  for (let callbackName in callbacksObject) {
+    const callbackObject = callbacksObject[callbackName]
+    for (let path in callbackObject) {
+      // path may be an expression evaluated at runtime
+      // should callbackName be appended to path or replacing the path ?
+      const pathItem = callbackObject[path]
+      for (let method in pathItem) {
+        if (!Oas3Tools.isOperation(method)) {
+          continue
+        }
+
+        const endpoint = pathItem[method]
+
+        // Still hesistating ....
+        // const operationString = Oas3Tools.formatOperationString(method, path, callbackName)
+        const operationString = Oas3Tools.formatOperationString(
+          method,
+          callbackName
+        )
+
+        // Determine description
+        let description = endpoint.description
+        if (
+          (typeof description !== 'string' || description === '') &&
+          typeof endpoint.summary === 'string'
+        ) {
+          description = endpoint.summary
+        }
+
+        if (
+          data.options.equivalentToMessages &&
+          typeof description === 'string'
+        ) {
+          description += `\n\nEquivalent to ${operationString}`
+        }
+
+        // Hold on to the operationId
+        // find another way to name callback operationId (path might be an expression) ?
+        const operationId =
+          typeof endpoint.operationId !== 'undefined'
+            ? endpoint.operationId
+            : Oas3Tools.generateOperationId(method, path)
+
+        // Request schema
+        const {
+          payloadContentType,
+          payloadSchema,
+          payloadSchemaNames,
+          payloadRequired
+        } = Oas3Tools.getRequestSchemaAndNames(
+          path,
+          method,
+          oas,
+          callbackObject
+        )
+
+        const payloadDefinition =
+          payloadSchema && typeof payloadSchema !== 'undefined'
+            ? createDataDef(
+                payloadSchemaNames,
+                payloadSchema as SchemaObject,
+                true,
+                data,
+                undefined,
+                oas
+              )
+            : undefined
+
+        // Response schema
+        const {
+          responseContentType,
+          responseSchema,
+          responseSchemaNames,
+          statusCode
+        } = Oas3Tools.getResponseSchemaAndNames(
+          path,
+          method,
+          oas,
+          data,
+          options,
+          callbackObject
+        )
+
+        if (!responseSchema || typeof responseSchema !== 'object') {
+          handleWarning({
+            typeKey: 'MISSING_RESPONSE_SCHEMA',
+            message:
+              `Operation ${path} has no (valid) response schema. ` +
+              `You can use the fillEmptyResponses option to create a ` +
+              `placeholder schema`,
+            data,
+            log: preprocessingLog
+          })
+          continue
+        }
+
+        const responseDefinition = createDataDef(
+          responseSchemaNames,
+          responseSchema as SchemaObject,
+          false,
+          data,
+          undefined,
+          oas
+        )
+
+        // Parameters
+        const parameters = Oas3Tools.getParameters(
+          path,
+          method,
+          oas,
+          callbackObject
+        )
+
+        // Security protocols
+        const securityRequirements = options.viewer
+          ? Oas3Tools.getSecurityRequirements(
+              path,
+              method,
+              data.security,
+              oas,
+              callbackObject
+            )
+          : []
+
+        // Servers
+        const servers = Oas3Tools.getServers(path, method, oas, callbackObject)
+
+        // Whether to place this operation into an authentication viewer
+        const inViewer =
+          securityRequirements.length > 0 && data.options.viewer !== false
+
+        /**
+         * Whether the operation should be added as a Subscription field.
+         * By default, all operations containing callbacks are Subscription.
+         */
+        let isSubscription = true
+        let isMutation = false
+
+        const operation: Operation = {
+          operationId,
+          operationString,
+          description,
+          path,
+          method: method.toLowerCase(),
+          payloadContentType,
+          payloadDefinition,
+          payloadRequired,
+          responseContentType,
+          responseDefinition,
+          parameters,
+          securityRequirements,
+          servers,
+          callbacks: undefined,
+          inViewer,
+          isMutation,
+          isSubscription,
+          statusCode,
+          oas
+        }
+
+        /**
+         * Handle operationId property name collision
+         * May occur if multiple OAS are provided
+         */
+        if (operationId in data.operations) {
+          handleWarning({
+            typeKey: 'DUPLICATE_OPERATIONID',
+            message: `Multiple OASs share operations with the same operationId '${operationId}'`,
+            mitigationAddendum: `The operation from the OAS '${operation.oas.info.title}' will be ignored`,
+            data,
+            log: preprocessingLog
+          })
+        } else {
+          data.operations[operationId] = operation
+        }
+
+        operations.push(operation)
+      }
+    }
+  }
+
+  return operations
+}
 /**
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OpenAPI-to-GraphQL to use
@@ -32,7 +228,8 @@ export function preprocessOas(
   const data: PreprocessingData = {
     usedTypeNames: [
       'Query', // Used by OpenAPI-to-GraphQL for root-level element
-      'Mutation' // Used by OpenAPI-to-GraphQL for root-level element
+      'Mutation', // Used by OpenAPI-to-GraphQL for root-level element
+      'Subscription' // Used by OpenAPI-to-GraphQL for root-level element
     ],
     defs: [],
     operations: {},
@@ -47,6 +244,9 @@ export function preprocessOas(
     data.options.report.numOps += Oas3Tools.countOperations(oas)
     data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas)
     data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas)
+    data.options.report.numOpsSubscription += Oas3Tools.countOperationsSubscription(
+      oas
+    )
 
     // Get security schemes
     const currentSecurity = getProcessedSecuritySchemes(oas, data)
@@ -155,6 +355,17 @@ export function preprocessOas(
         // Links
         const links = Oas3Tools.getEndpointLinks(path, method, oas, data)
 
+        // Callbacks containing [key: string]:PathItemObject
+        const callbacks = Oas3Tools.getEndpointCallbacks(
+          path,
+          method,
+          oas,
+          data
+        )
+
+        // should every callback items be registered as operations ?
+        processOperationCallbacks(callbacks, oas, data, options)
+
         const responseDefinition = createDataDef(
           responseSchemaNames,
           responseSchema as SchemaObject,
@@ -178,6 +389,13 @@ export function preprocessOas(
         // Whether to place this operation into an authentication viewer
         const inViewer =
           securityRequirements.length > 0 && data.options.viewer !== false
+
+        /**
+         * Whether the operation should be added as a Subscription field.
+         * By default, all operations contained in callbacks should be Subscription ?
+         * Unless it is more logical to consider the callbacks parent to be the Subscription ?
+         */
+        let isSubscription = false
 
         /**
          * Whether the operation should be added as a Query or Mutation field.
@@ -217,8 +435,10 @@ export function preprocessOas(
           parameters,
           securityRequirements,
           servers,
+          callbacks,
           inViewer,
           isMutation,
+          isSubscription,
           statusCode,
           oas
         }
@@ -991,6 +1211,28 @@ function resolveAllOf(
         )
       }
 
+      // Collapse oneOf if applicable
+      if ('oneOf' in resolvedSchema) {
+        if (!('oneOf' in collapsedSchema)) {
+          collapsedSchema.oneOf = []
+        }
+
+        resolvedSchema.oneOf.forEach(oneOfProperty => {
+          collapsedSchema.oneOf.push(oneOfProperty)
+        })
+      }
+
+      // Collapse anyOf if applicable
+      if ('anyOf' in resolvedSchema) {
+        if (!('anyOf' in collapsedSchema)) {
+          collapsedSchema.anyOf = []
+        }
+
+        resolvedSchema.anyOf.forEach(anyOfProperty => {
+          collapsedSchema.anyOf.push(anyOfProperty)
+        })
+      }
+
       // Collapse required if applicable
       if ('required' in resolvedSchema) {
         if (!('required' in collapsedSchema)) {
@@ -1011,7 +1253,7 @@ function resolveAllOf(
 
 type MemberSchemaData = {
   allTargetGraphQLTypes: string[]
-  allProperties: ({ [key: string]: SchemaObject | ReferenceObject })[]
+  allProperties: { [key: string]: SchemaObject | ReferenceObject }[]
   allRequired: string[]
 }
 
@@ -1059,6 +1301,11 @@ function getMemberSchemaData(
   return result
 }
 
+/**
+ * Check to see if there are cases of nested oneOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
 function hasNestedOneOfUsage(
   collapsedSchema: SchemaObject,
   oas: Oas3
@@ -1082,6 +1329,11 @@ function hasNestedOneOfUsage(
   )
 }
 
+/**
+ * Check to see if there are cases of nested anyOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
 function hasNestedAnyOfUsage(
   collapsedSchema: SchemaObject,
   oas: Oas3
@@ -1105,6 +1357,12 @@ function hasNestedAnyOfUsage(
   )
 }
 
+/**
+ * Create a data definition for anyOf is applicable
+ *
+ * anyOf should resolve into an object that contains the superset of all
+ * properties from the member schemas
+ */
 function createDataDefFromAnyOf(
   saneName: string,
   saneInputName: string,
@@ -1138,6 +1396,12 @@ function createDataDefFromAnyOf(
         } = {}
         const incompatibleProperties = new Set<string>()
 
+        /**
+         * TODO: Check for consistent properties across all member schemas and
+         * make them into non-nullable properties by manipulating the
+         * required field
+         */
+
         if (typeof collapsedSchema.properties === 'object') {
           Object.keys(collapsedSchema.properties).forEach(propertyName => {
             allProperties[propertyName] = [
@@ -1151,11 +1415,11 @@ function createDataDefFromAnyOf(
           Object.keys(properties).forEach(propertyName => {
             if (
               !incompatibleProperties.has(propertyName) && // Has not been already identified as a problematic property
-              (typeof allProperties[propertyName] === 'object' &&
-                allProperties[propertyName].some(property => {
-                  // Property does not match a recorded one
-                  return !deepEqual(property, properties[propertyName])
-                }))
+              typeof allProperties[propertyName] === 'object' &&
+              allProperties[propertyName].some(property => {
+                // Property does not match a recorded one
+                return !deepEqual(property, properties[propertyName])
+              })
             ) {
               incompatibleProperties.add(propertyName)
             }
@@ -1211,9 +1475,9 @@ function createDataDefFromAnyOf(
           })
         })
 
-        //  Add in incompatible properties
+        // Add in incompatible properties
         incompatibleProperties.forEach(propertyName => {
-          //  TODO: add description
+          // TODO: add description
           def.subDefinitions[propertyName] = {
             targetGraphQLType: 'json'
           }

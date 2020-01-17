@@ -18,8 +18,8 @@ import {
 
 export enum GraphQLOperationType {
   Query,
-  Mutation
-  // TODO: Subscription
+  Mutation,
+  Subscription
 }
 
 export type GraphQLType =
@@ -46,9 +46,27 @@ export type ResolveFunction = (
   info: object
 ) => Promise<any> | any
 
+type SubscriptionContext = {
+  pubsub: any
+  [key: string]: any
+}
+
+export type SubscriptionIterator = (
+  root: object,
+  args: object,
+  ctx: SubscriptionContext,
+  info?: object
+) => AsyncIterable<string | string[]>
+
+export type ResolveObject = {
+  subscribe: SubscriptionIterator
+  resolve?: ResolveFunction
+}
+
 export type Field = {
   type: GraphQLType
   resolve?: ResolveFunction
+  subscribe?: SubscriptionIterator
   args?: Args
   description: string
 }

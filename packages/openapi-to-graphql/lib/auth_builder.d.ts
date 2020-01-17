@@ -17,7 +17,7 @@ declare type Viewer = {
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-export declare function createAndLoadViewer(queryFields: object, data: PreprocessingData, isMutation?: boolean): {
+export declare function createAndLoadViewer(queryFields: object, data: PreprocessingData, isMutation?: boolean, isSubscription?: boolean): {
     [key: string]: Viewer;
 };
 export {};

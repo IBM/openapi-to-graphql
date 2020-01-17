@@ -5,7 +5,7 @@
 
 // Type imports:
 import * as NodeRequest from 'request'
-import { ResolveFunction, GraphQLOperationType } from './graphql'
+import { ResolveFunction, ResolveObject, GraphQLOperationType } from './graphql'
 
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
@@ -22,8 +22,14 @@ export type Report = {
   numOps: number
   numOpsQuery: number
   numOpsMutation: number
+  numOpsSubscription: number
   numQueriesCreated: number
   numMutationsCreated: number
+  numSubscriptionsCreated: number
+}
+
+export type ConnectOptions = {
+  [key: string]: boolean | number | string
 }
 
 export type Options = {
@@ -111,13 +117,20 @@ export type Options = {
   requestOptions?: NodeRequest.OptionsWithUrl
 
   /**
+   * Allows to override or add options to the PubSub connect object used to make
+   * publish/subscribe to the API backend.
+   * e.g. Setup the web proxy to use.
+   */
+  connectOptions?: ConnectOptions
+
+  /**
    * Specifies the URL on which all paths will be based on.
    * Overrides the server object in the OAS.
    */
   baseUrl?: string
 
   /**
-   * Allows to define custom resolvers for fields on the query/mutation root
+   * Allows to define custom resolvers for fields on the query/mutation/subscription root
    * operation type.
    *
    * In other words, instead of resolving on an operation (REST call) defined in
@@ -132,7 +145,9 @@ export type Options = {
    * non-standard authentication requirements.
    */
   customResolvers?: {
-    [title: string]: { [path: string]: { [method: string]: ResolveFunction } }
+    [title: string]: {
+      [path: string]: { [method: string]: ResolveFunction | ResolveObject }
+    }
   }
 
   // Authentication options
@@ -270,14 +285,21 @@ export type InternalOptions = {
   requestOptions?: NodeRequest.OptionsWithUrl
 
   /**
+   * Allows to override or add options to the PubSub connect object used to make
+   * publish/subscribe to the API backend.
+   * e.g. Setup the web proxy to use.
+   */
+  connectOptions?: ConnectOptions
+
+  /**
    * Specifies the URL on which all paths will be based on.
    * Overrides the server object in the OAS.
    */
   baseUrl?: string
 
   /**
-   * Allows to define custom resolvers for fields on the query/mutation root
-   * operation type.
+   * Allows to define custom resolvers for fields on the query/mutation/subscription
+   * root operation type.
    *
    * In other words, instead of resolving on an operation (REST call) defined in
    * the OAS, the field will resolve on the custom resolver. Note that this will
@@ -291,7 +313,9 @@ export type InternalOptions = {
    * non-standard authentication requirements.
    */
   customResolvers?: {
-    [title: string]: { [path: string]: { [method: string]: ResolveFunction } }
+    [title: string]: {
+      [path: string]: { [method: string]: ResolveFunction | ResolveObject }
+    }
   }
 
   // Authentication options

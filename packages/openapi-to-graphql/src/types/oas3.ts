@@ -154,7 +154,8 @@ export type OperationObject = {
   parameters?: Array<ParameterObject | ReferenceObject>
   requestBody?: RequestBodyObject | ReferenceObject
   responses?: ResponsesObject
-  callbacks?: any // TODO: extend?
+  // callbacks?: any // TODO: extend?
+  callbacks?: CallbacksObject
   deprecated?: boolean
   security?: SecurityRequirementObject[]
   servers?: ServerObject[]
@@ -171,6 +172,14 @@ export type PathItemObject = {
 
 type PathsObject = {
   [key: string]: PathItemObject
+}
+
+export type CallbackObject = {
+  [key: string]: PathItemObject
+}
+
+export type CallbacksObject = {
+  [key: string]: CallbackObject | ReferenceObject
 }
 
 type OAuthFlowObject = {
@@ -225,8 +234,9 @@ type ComponentsObject = {
   securitySchemes?: SecuritySchemesObject
   links?: LinksObject
   callbacks?: {
-    [key: string]: object | ReferenceObject
+    [key: string]: CallbackObject | ReferenceObject
   }
+  // callbacks?: CallbacksObject
 }
 
 type TagObject = {
