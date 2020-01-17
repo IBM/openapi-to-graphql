@@ -727,6 +727,24 @@ function resolveAllOf(schema, references, data, oas) {
                     }
                 });
             }
+            // Collapse oneOf if applicable
+            if ('oneOf' in resolvedSchema) {
+                if (!('oneOf' in collapsedSchema)) {
+                    collapsedSchema.oneOf = [];
+                }
+                resolvedSchema.oneOf.forEach(oneOfProperty => {
+                    collapsedSchema.oneOf.push(oneOfProperty);
+                });
+            }
+            // Collapse anyOf if applicable
+            if ('anyOf' in resolvedSchema) {
+                if (!('anyOf' in collapsedSchema)) {
+                    collapsedSchema.anyOf = [];
+                }
+                resolvedSchema.anyOf.forEach(anyOfProperty => {
+                    collapsedSchema.anyOf.push(anyOfProperty);
+                });
+            }
             // Collapse required if applicable
             if ('required' in resolvedSchema) {
                 if (!('required' in collapsedSchema)) {
@@ -773,6 +791,11 @@ function getMemberSchemaData(schemas, data, oas) {
     });
     return result;
 }
+/**
+ * Check to see if there are cases of nested oneOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
 function hasNestedOneOfUsage(collapsedSchema, oas) {
     // TODO: Should also consider if the member schema contains type data
     return (Array.isArray(collapsedSchema.oneOf) &&
@@ -785,6 +808,11 @@ function hasNestedOneOfUsage(collapsedSchema, oas) {
             );
         }));
 }
+/**
+ * Check to see if there are cases of nested anyOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
 function hasNestedAnyOfUsage(collapsedSchema, oas) {
     // TODO: Should also consider if the member schema contains type data
     return (Array.isArray(collapsedSchema.anyOf) &&
@@ -796,6 +824,12 @@ function hasNestedAnyOfUsage(collapsedSchema, oas) {
             return (Array.isArray(memberSchema.anyOf) || Array.isArray(memberSchema.oneOf));
         }));
 }
+/**
+ * Create a data definition for anyOf is applicable
+ *
+ * anyOf should resolve into an object that contains the superset of all
+ * properties from the member schemas
+ */
 function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInputObjectType, def, data, oas) {
     const anyOfData = getMemberSchemaData(collapsedSchema.anyOf, data, oas);
     if (anyOfData.allTargetGraphQLTypes.some(memberTargetGraphQLType => {
@@ -812,6 +846,11 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                 def.targetGraphQLType === 'object') {
                 const allProperties = {};
                 const incompatibleProperties = new Set();
+                /**
+                 * TODO: Check for consistent properties across all member schemas and
+                 * make them into non-nullable properties by manipulating the
+                 * required field
+                 */
                 if (typeof collapsedSchema.properties === 'object') {
                     Object.keys(collapsedSchema.properties).forEach(propertyName => {
                         allProperties[propertyName] = [
@@ -859,9 +898,9 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                         }
                     });
                 });
-                //  Add in incompatible properties
+                // Add in incompatible properties
                 incompatibleProperties.forEach(propertyName => {
-                    //  TODO: add description
+                    // TODO: add description
                     def.subDefinitions[propertyName] = {
                         targetGraphQLType: 'json'
                     };

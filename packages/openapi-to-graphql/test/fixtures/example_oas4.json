@@ -136,6 +136,68 @@
         }
       }
     },
+    "/oneOf5": {
+      "get": {
+        "description": "Basic oneOf test with allOf",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/differentAttributeObject"
+                    }
+                  ],
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/anotherAttributeObject"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oneOf6": {
+      "get": {
+        "description": "oneOf test with allOf, requiring oneOf collapse",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/differentAttributeObject"
+                    }
+                  ],
+                  "allOf": [
+                    {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/anotherAttributeObject"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/anyOf": {
       "get": {
         "description": "Basic anyOf test using the same member schemas",
@@ -382,6 +444,68 @@
           }
         }
       }
+    },
+    "/anyOf10": {
+      "get": {
+        "description": "Basic anyOf test with allOf",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/differentAttributeObject"
+                    }
+                  ],
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/anotherAttributeObject"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/anyOf11": {
+      "get": {
+        "description": "anyOf test with allOf, requiring anyOf collapse",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/commonAttributeObject"
+                    },
+                    {
+                      "$ref": "#/components/schemas/differentAttributeObject"
+                    }
+                  ],
+                  "allOf": [
+                    {
+                      "anyOf": [
+                        {
+                          "$ref": "#/components/schemas/anotherAttributeObject"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -398,6 +522,14 @@
         "type": "object",
         "properties": {
           "differentAttribute": {
+            "type": "string"
+          }
+        }
+      },
+      "anotherAttributeObject": {
+        "type": "object",
+        "properties": {
+          "anotherAttribute": {
             "type": "string"
           }
         }
