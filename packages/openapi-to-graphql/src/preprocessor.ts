@@ -991,6 +991,28 @@ function resolveAllOf(
         )
       }
 
+      // Collapse oneOf if applicable
+      if ('oneOf' in resolvedSchema) {
+        if (!('oneOf' in collapsedSchema)) {
+          collapsedSchema.oneOf = []
+        }
+
+        resolvedSchema.oneOf.forEach(oneOfProperty => {
+          collapsedSchema.oneOf.push(oneOfProperty)
+        })
+      }
+
+      // Collapse anyOf if applicable
+      if ('anyOf' in resolvedSchema) {
+        if (!('anyOf' in collapsedSchema)) {
+          collapsedSchema.anyOf = []
+        }
+
+        resolvedSchema.anyOf.forEach(anyOfProperty => {
+          collapsedSchema.anyOf.push(anyOfProperty)
+        })
+      }
+
       // Collapse required if applicable
       if ('required' in resolvedSchema) {
         if (!('required' in collapsedSchema)) {
@@ -1059,6 +1081,11 @@ function getMemberSchemaData(
   return result
 }
 
+/**
+ * Check to see if there are cases of nested oneOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
 function hasNestedOneOfUsage(
   collapsedSchema: SchemaObject,
   oas: Oas3
@@ -1082,6 +1109,11 @@ function hasNestedOneOfUsage(
   )
 }
 
+/**
+ * Check to see if there are cases of nested anyOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
 function hasNestedAnyOfUsage(
   collapsedSchema: SchemaObject,
   oas: Oas3
@@ -1105,6 +1137,12 @@ function hasNestedAnyOfUsage(
   )
 }
 
+/**
+ * Create a data definition for anyOf is applicable
+ *
+ * anyOf should resolve into an object that contains the superset of all
+ * properties from the member schemas
+ */
 function createDataDefFromAnyOf(
   saneName: string,
   saneInputName: string,
@@ -1137,6 +1175,12 @@ function createDataDefFromAnyOf(
           [propertyName: string]: (SchemaObject | ReferenceObject)[]
         } = {}
         const incompatibleProperties = new Set<string>()
+
+        /**
+         * TODO: Check for consistent properties across all member schemas and
+         * make them into non-nullable properties by manipulating the
+         * required field
+         */
 
         if (typeof collapsedSchema.properties === 'object') {
           Object.keys(collapsedSchema.properties).forEach(propertyName => {
@@ -1211,9 +1255,9 @@ function createDataDefFromAnyOf(
           })
         })
 
-        //  Add in incompatible properties
+        // Add in incompatible properties
         incompatibleProperties.forEach(propertyName => {
-          //  TODO: add description
+          // TODO: add description
           def.subDefinitions[propertyName] = {
             targetGraphQLType: 'json'
           }
