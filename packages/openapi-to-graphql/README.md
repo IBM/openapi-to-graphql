@@ -160,6 +160,8 @@ Schema options:
 
 - `genericPayloadArgName` (type: `boolean`, default: `false`): Set the default argument name for the payload of a mutation to `requestBody`. Otherwise, the name will default to the camelCased pathname.
 
+- `simpleNames` (type: `boolean`, default: `false`): By default, field names are sanitized to conform with GraphQL conventions, i.e. types should be in PascalCase, fields should be in camelCase, and enum values should be in ALL_CAPS. This option will prevent OTG from enforcing camelCase field names and PascalCase type names, only removing illegal characters and staying as true to the provided names in the OAS as possible. 
+
 ***
 
 Resolver options:

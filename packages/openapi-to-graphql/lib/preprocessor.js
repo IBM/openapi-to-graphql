@@ -348,8 +348,9 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
         const saneLinks = {};
         if (typeof links === 'object') {
             Object.keys(links).forEach(linkKey => {
-                saneLinks[Oas3Tools.sanitize(linkKey, Oas3Tools.CaseStyle.camelCase)] =
-                    links[linkKey];
+                saneLinks[Oas3Tools.sanitize(linkKey, !data.options.simpleNames
+                    ? Oas3Tools.CaseStyle.camelCase
+                    : Oas3Tools.CaseStyle.simple)] = links[linkKey];
             });
         }
         // Determine the index of possible existing data definition
@@ -396,7 +397,9 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
             // Else, define a new name, store the def, and return it
             const name = getSchemaName(names, data.usedTypeNames);
             // Store and sanitize the name
-            const saneName = Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase);
+            const saneName = !data.options.simpleNames
+                ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
+                : Oas3Tools.capitalize(Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple));
             const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
             Oas3Tools.storeSaneName(saneName, name, data.saneMap);
             /**

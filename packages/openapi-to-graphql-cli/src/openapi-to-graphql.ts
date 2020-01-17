@@ -52,7 +52,11 @@ program
   )
   .option(
     '-g, --genericPayloadArgName',
-    'Sets argument name for the payload of a mutation to \'requestBody\''
+    "Sets argument name for the payload of a mutation to 'requestBody'"
+  )
+  .option(
+    '-N, --simpleNames',
+    'Only remove illegal characters from names in the OAS and ignore casing and formatting'
   )
 
   // Resolver options
@@ -107,6 +111,7 @@ const options: Options = {
   fillEmptyResponses: program.fillEmptyResponses,
   addLimitArgument: program.addLimitArgument,
   genericPayloadArgName: program.genericPayloadArgName,
+  simpleNames: program.simpleNames,
 
   // Resolver options
   headers,

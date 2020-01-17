@@ -28,7 +28,7 @@ test('Sanitize object keys', () => {
       'b&**key': 'test !!'
     }
   }
-  const clean = Oas3Tools.sanitizeObjKeys(obj)
+  const clean = Oas3Tools.sanitizeObjectKeys(obj)
   expect(clean).toEqual({
     aKey: {
       bKey: 'test !!'
@@ -43,7 +43,7 @@ test('Sanitize object keys including array', () => {
       'asf blah': [{ 'a)(a': 'test2' }]
     }
   }
-  const clean = Oas3Tools.sanitizeObjKeys(obj)
+  const clean = Oas3Tools.sanitizeObjectKeys(obj)
   expect(clean).toEqual({
     aKey: {
       bKey: 'test !!',
@@ -64,7 +64,7 @@ test('Sanitize object keys when given an array', () => {
       }
     }
   ]
-  const clean = Oas3Tools.sanitizeObjKeys(obj)
+  const clean = Oas3Tools.sanitizeObjectKeys(obj)
   expect(clean).toEqual([
     {
       aA: {
@@ -72,20 +72,6 @@ test('Sanitize object keys when given an array', () => {
       }
     }
   ])
-})
-
-test('Sanitize object keys, but not $ref', () => {
-  const obj = {
-    $ref: {
-      'a-b': 'test'
-    }
-  }
-  const clean = Oas3Tools.sanitizeObjKeys(obj, ['$ref'])
-  expect(clean).toEqual({
-    $ref: {
-      aB: 'test'
-    }
-  })
 })
 
 const mapping = {
@@ -101,7 +87,7 @@ test('Desanitize object keys', () => {
       productName: 'Soccer'
     }
   }
-  const raw = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  const raw = Oas3Tools.desanitizeObjectKeys(obj, mapping)
   expect(raw).toEqual({
     'product-id': '123',
     info: {
@@ -116,7 +102,7 @@ test('Desanitize object keys including array', () => {
       info: [{ productName: 'test1' }, { productTag: 'test2' }]
     }
   }
-  const clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  const clean = Oas3Tools.desanitizeObjectKeys(obj, mapping)
   expect(clean).toEqual({
     'product-id': {
       info: [{ 'product-name': 'test1' }, { 'product-tag': 'test2' }]
@@ -132,7 +118,7 @@ test('Desanitize object keys when given an array', () => {
       }
     }
   ]
-  const clean = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  const clean = Oas3Tools.desanitizeObjectKeys(obj, mapping)
   expect(clean).toEqual([
     {
       'product-name': {
@@ -146,7 +132,7 @@ test('Desanitize object keys with null value', () => {
   const obj = {
     productId: null
   }
-  const raw = Oas3Tools.desanitizeObjKeys(obj, mapping)
+  const raw = Oas3Tools.desanitizeObjectKeys(obj, mapping)
   expect(raw).toEqual({
     'product-id': null
   })
@@ -171,7 +157,7 @@ test('Properly treat null values during sanitization', () => {
             const data = {
               name: null
             }
-            return Oas3Tools.sanitizeObjKeys(data)
+            return Oas3Tools.sanitizeObjectKeys(data)
           }
         }
       }
