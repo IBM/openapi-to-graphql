@@ -18,9 +18,14 @@ const oas = require('./fixtures/example_oas.json')
 const oas3 = require('./fixtures/example_oas3.json')
 const PORT = 3005
 const PORT2 = 3006
-// update PORT for this test case:
+// Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 oas3.servers[0].variables.port.default = String(PORT2)
+
+/**
+ * This test suite is used to verify the behavior of interOAS links, i.e.
+ * links across different OASs
+ */
 
 let createdSchema
 
@@ -30,9 +35,7 @@ let createdSchema
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
-      .createGraphQLSchema([oas, oas3], {
-        fillEmptyResponses: true
-      })
+      .createGraphQLSchema([oas, oas3])
       .then(({ schema, report }) => {
         createdSchema = schema
       }),

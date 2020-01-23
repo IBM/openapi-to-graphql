@@ -472,7 +472,8 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         operation: linkedOp,
                         argsFromLink: Oas3Tools.sanitizeObjectKeys(argsFromLink),
                         data,
-                        baseUrl: data.options.baseUrl
+                        baseUrl: data.options.baseUrl,
+                        requestOptions: data.options.requestOptions
                     });
                     // Get args for link
                     const args = getArgs({

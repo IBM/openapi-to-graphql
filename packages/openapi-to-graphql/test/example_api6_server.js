@@ -1,0 +1,68 @@
+// Copyright IBM Corp. 2017,2018. All Rights Reserved.
+// Node module: openapi-to-graphql
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+'use strict'
+
+let server // holds server object for shutdown
+
+/**
+ * Starts the server at the given port
+ */
+function startServer(PORT) {
+  const express = require('express')
+  const app = express()
+
+  const bodyParser = require('body-parser')
+  app.use(bodyParser.json())
+
+  app.get('/api/object', (req, res) => {
+    console.log(req.method, req.path)
+    res.send({
+      data: 'object'
+    })
+  })
+
+  app.get('/api/object2', (req, res) => {
+    console.log(req.method, req.path)
+    if (typeof req.headers.specialheader === 'string') {
+      res.send({
+        data: `object2 with special header: '${req.headers.specialheader}'`
+      })
+    } else {
+      res.send({
+        data: 'object2'
+      })
+    }
+  })
+
+  return new Promise(resolve => {
+    server = app.listen(PORT, () => {
+      console.log(`Example API accessible on port ${PORT}`)
+      resolve()
+    })
+  })
+}
+
+/**
+ * Stops server.
+ */
+function stopServer() {
+  return new Promise(resolve => {
+    server.close(() => {
+      console.log(`Stopped API server`)
+      resolve()
+    })
+  })
+}
+
+// if run from command line, start server:
+if (require.main === module) {
+  startServer(3006)
+}
+
+module.exports = {
+  startServer,
+  stopServer
+}

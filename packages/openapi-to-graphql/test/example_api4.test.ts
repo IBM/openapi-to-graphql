@@ -8,39 +8,23 @@
 /* globals beforeAll, test, expect */
 
 import { graphql } from 'graphql'
-
 import * as openAPIToGraphQL from '../lib/index'
-import { Options } from '../lib/types/options'
-import { startServer, stopServer } from './example_api_server'
 
 const oas = require('./fixtures/example_oas4.json')
-const PORT = 3007
-// Update PORT for this test case:
-oas.servers[0].variables.port.default = String(PORT)
+
+// This test suite is used to verify the behavior of anyOf and oneOf handling
 
 let createdSchema
 
 /**
- * Set up the schema first and run example API server
+ * Set up the schema
  */
 beforeAll(() => {
-  return Promise.all([
-    openAPIToGraphQL
-      .createGraphQLSchema(oas, {
-        fillEmptyResponses: true
-      })
-      .then(({ schema, report }) => {
-        createdSchema = schema
-      }),
-    startServer(PORT)
-  ])
-})
-
-/**
- * Shut down API server
- */
-afterAll(() => {
-  return stopServer()
+  return openAPIToGraphQL
+    .createGraphQLSchema(oas)
+    .then(({ schema, report }) => {
+      createdSchema = schema
+    })
 })
 
 const anyOfQuery = `{
