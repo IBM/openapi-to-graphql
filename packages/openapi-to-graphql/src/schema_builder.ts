@@ -281,7 +281,7 @@ function createOrReuseUnion({
           ? ` (for operation '${operation.operationId}')`
           : '')
     )
-    return def.graphQLType as (GraphQLUnionType)
+    return def.graphQLType as GraphQLUnionType
   } else {
     translationLog(
       `Create union type '${def.graphQLTypeName}'` +
@@ -676,7 +676,8 @@ function createFields({
               [key: string]: string
             },
             data,
-            baseUrl: data.options.baseUrl
+            baseUrl: data.options.baseUrl,
+            requestOptions: data.options.requestOptions
           })
 
           // Get args for link
