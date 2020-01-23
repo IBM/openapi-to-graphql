@@ -1101,10 +1101,14 @@ export function storeSaneName(
  * sanitized
  */
 export function sanitizeObjectKeys(obj: object): object {
-  return Object.keys(obj).reduce((acc, key) => {
-    acc[sanitize(key, CaseStyle.camelCase)] = obj[key]
-    return acc
-  }, {})
+  if (typeof obj === 'object') {
+    return Object.keys(obj).reduce((acc, key) => {
+      acc[sanitize(key, CaseStyle.camelCase)] = obj[key]
+      return acc
+    }, {})
+  } else {
+    return undefined
+  }
 }
 
 /**

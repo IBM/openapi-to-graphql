@@ -865,10 +865,15 @@ exports.storeSaneName = storeSaneName;
  * sanitized
  */
 function sanitizeObjectKeys(obj) {
-    return Object.keys(obj).reduce((acc, key) => {
-        acc[sanitize(key, CaseStyle.camelCase)] = obj[key];
-        return acc;
-    }, {});
+    if (typeof obj === 'object') {
+        return Object.keys(obj).reduce((acc, key) => {
+            acc[sanitize(key, CaseStyle.camelCase)] = obj[key];
+            return acc;
+        }, {});
+    }
+    else {
+        return undefined;
+    }
 }
 exports.sanitizeObjectKeys = sanitizeObjectKeys;
 /**

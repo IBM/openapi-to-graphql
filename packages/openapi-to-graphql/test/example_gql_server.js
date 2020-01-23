@@ -14,7 +14,8 @@ const openAPIToGraphQL = require('../lib/index')
 // const oas = require('./fixtures/example_oas.json')
 // const oas2 = require('./fixtures/example_oas2.json')
 // const oas3 = require('./fixtures/example_oas3.json')
-const oas4 = require('./fixtures/example_oas4.json')
+// const oas4 = require('./fixtures/example_oas4.json')
+const oas6 = require('./fixtures/example_oas6.json')
 
 // const oas = require('./fixtures/github.json')
 // const oas = require('./fixtures/instagram.json')
@@ -29,7 +30,14 @@ const oas4 = require('./fixtures/example_oas4.json')
 // const oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
 openAPIToGraphQL
-  .createGraphQLSchema(oas4)
+  .createGraphQLSchema(oas6, {
+    requestOptions: {
+      url: undefined,
+      headers: {
+        specialheader: 'requestOptions' // Option requestOptions
+      }
+    }
+  })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
 

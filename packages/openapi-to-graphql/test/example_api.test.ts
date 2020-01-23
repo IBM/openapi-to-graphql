@@ -16,7 +16,7 @@ import { GraphQLOperationType } from '../lib/types/graphql'
 
 const oas = require('./fixtures/example_oas.json')
 const PORT = 3002
-// update PORT for this test case:
+// Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 
 let createdSchema
