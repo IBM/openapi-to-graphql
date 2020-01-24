@@ -67,6 +67,7 @@
     "@types/request": "^2.48.1",
     "debug": "^4.1.0",
     "deep-equal": "^1.0.1",
+    "form-urlencoded": "^4.1.1",
     "graphql-type-json": "^0.2.1",
     "jsonpath-plus": "^0.18.0",
     "oas-validator": "^3.1.0",

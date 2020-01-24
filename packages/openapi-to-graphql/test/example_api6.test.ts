@@ -14,7 +14,7 @@ import { Options } from '../lib/types/options'
 import { startServer, stopServer } from './example_api6_server'
 
 const oas = require('./fixtures/example_oas6.json')
-const PORT = 3009
+const PORT = 3008
 // Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 
@@ -102,4 +102,112 @@ test('Option requestOptions should work with links', () => {
     })
 
   return Promise.all([promise, promise2])
+})
+
+// Simple scalar fields on the request body
+test('Simple request body using application/x-www-form-urlencoded', () => {
+  const query = `mutation {
+    postFormUrlEncoded (petInput: {
+      name: "Mittens",
+      status: "healthy",
+      weight: 6
+    }) {
+      name
+      status
+      weight
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      postFormUrlEncoded: {
+        name: 'Mittens',
+        status: 'healthy',
+        weight: 6
+      }
+    })
+  })
+})
+
+/**
+ * The field 'previousOwner' should be desanitized to 'previous_owner'
+ *
+ * Status is a required field so it is also included
+ */
+test('Request body using application/x-www-form-urlencoded and desanitization of field name', () => {
+  const query = `mutation {
+    postFormUrlEncoded (petInput: {
+      previousOwner: "Martin",
+      status: "healthy"
+    }) {
+      previousOwner
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      postFormUrlEncoded: {
+        previousOwner: 'Martin'
+      }
+    })
+  })
+})
+
+/**
+ * The field 'history' is an object
+ *
+ * Status is a required field so it is also included
+ */
+test('Request body using application/x-www-form-urlencoded containing object', () => {
+  const query = `mutation {
+    postFormUrlEncoded (petInput: {
+      history: {
+        data: "Friendly"
+      }
+      status: "healthy"
+    }) {
+      history {
+        data
+      }
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      postFormUrlEncoded: {
+        history: {
+          data: 'Friendly'
+        }
+      }
+    })
+  })
+})
+
+/**
+ * The field 'history' is an object but no information about its properties is
+ * provided in the OAS, therefore it defaults to the arbitrary JSON type
+ *
+ * Status is a required field so it is also included
+ */
+test('Request body using application/x-www-form-urlencoded containing object with no properties', () => {
+  const query = `mutation {
+    postFormUrlEncoded (petInput: {
+      history2: {
+        data: "Friendly"
+      }
+      status: "healthy"
+    }) {
+      history2
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      postFormUrlEncoded: {
+        history2: {
+          data: 'Friendly'
+        }
+      }
+    })
+  })
 })

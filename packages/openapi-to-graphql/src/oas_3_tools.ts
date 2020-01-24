@@ -522,7 +522,7 @@ export function getRequestBodyObject(
         oas
       ) as RequestBodyObject
     } else {
-      requestBodyObject = (requestBodyObject as any) as RequestBodyObject
+      requestBodyObject = requestBodyObject as RequestBodyObject
     }
 
     if (typeof requestBodyObject.content === 'object') {
@@ -532,6 +532,13 @@ export function getRequestBodyObject(
       if (Object.keys(content).includes('application/json')) {
         return {
           payloadContentType: 'application/json',
+          requestBodyObject
+        }
+      } else if (
+        Object.keys(content).includes('application/x-www-form-urlencoded')
+      ) {
+        return {
+          payloadContentType: 'application/x-www-form-urlencoded',
           requestBodyObject
         }
       } else {
@@ -587,11 +594,16 @@ export function getRequestSchemaAndNames(
         : false
 
     /**
-     * Edge case: if request body content-type is not application/json, do not
-     * parse. Instead, treat the request body as a black box (allowing it to be
-     * defined as a string) and sending it with the appropriate content-type
+     * Edge case: if request body content-type is not application/json or
+     * application/x-www-form-urlencoded, do not parse it.
+     *
+     * Instead, treat the request body as a black box and send it as a string
+     * with the proper content-type header
      */
-    if (payloadContentType !== 'application/json') {
+    if (
+      payloadContentType !== 'application/json' &&
+      payloadContentType !== 'application/x-www-form-urlencoded'
+    ) {
       const saneContentTypeName = uncapitalize(
         payloadContentType.split('/').reduce((name, term) => {
           return name + capitalize(term)
@@ -602,7 +614,7 @@ export function getRequestSchemaAndNames(
         fromPath: saneContentTypeName
       }
 
-      let description = payloadContentType + ' request placeholder object'
+      let description = `String represents payload of content type '${payloadContentType}'`
 
       if (
         'description' in payloadSchema &&
@@ -651,7 +663,7 @@ export function getResponseObject(
           oas
         ) as ResponseObject
       } else {
-        responseObject = (responseObject as any) as ResponseObject
+        responseObject = responseObject as ResponseObject
       }
 
       if (
@@ -719,13 +731,12 @@ export function getResponseSchemaAndNames(
     }
 
     /**
-     * Edge case: if request body content-type is not application/json, do not
-     * parse. Instead, treat the request body as a black box (allowing it to be
-     * defined as a string) and sending it with the appropriate content-type
+     * Edge case: if response body content-type is not application/json, do not
+     * parse.
      */
     if (responseContentType !== 'application/json') {
       let description =
-        'Placeholder object to access non-application/json ' + 'response bodies'
+        'Placeholder to access non-application/json response bodies'
 
       if (
         'description' in responseSchema &&
@@ -748,10 +759,11 @@ export function getResponseSchemaAndNames(
     }
   } else {
     /**
-     * GraphQL requires that objects must have some properties. To allow some
-     * operations (such as those with a 204 HTTP code) to be included in the
-     * GraphQL interface, we added the fillEmptyResponses option, which will
-     * simply create a placeholder object with a placeholder property.
+     * GraphQL requires that objects must have some properties.
+     *
+     * To allow some operations (such as those with a 204 HTTP code) to be
+     * included in the GraphQL interface, we added the fillEmptyResponses
+     * option, which will simply create a placeholder to allow access.
      */
     if (options.fillEmptyResponses) {
       return {
@@ -761,7 +773,7 @@ export function getResponseSchemaAndNames(
         responseContentType: 'application/json',
         responseSchema: {
           description:
-            'Placeholder object to support operations with no response schema',
+            'Placeholder to support operations with no response schema',
           type: 'string'
         }
       }
@@ -841,7 +853,7 @@ export function getEndpointLinks(
       }
 
       // Here, we can be certain we have a ResponseObject:
-      response = (response as any) as ResponseObject
+      response = response as ResponseObject
 
       if (typeof response.links === 'object') {
         const epLinks: LinksObject = response.links
@@ -852,7 +864,7 @@ export function getEndpointLinks(
           if (typeof (link as ReferenceObject).$ref === 'string') {
             link = resolveRef(link['$ref'], oas)
           } else {
-            link = (link as any) as LinkObject
+            link = link as LinkObject
           }
           links[linkKey] = link
         }
@@ -892,7 +904,7 @@ export function getParameters(
         return resolveRef(p['$ref'], oas) as ParameterObject
       } else {
         // Here we know we have a parameter object:
-        return (p as any) as ParameterObject
+        return p as ParameterObject
       }
     })
     parameters = parameters.concat(pathItemParameters)
@@ -909,7 +921,7 @@ export function getParameters(
         return resolveRef(p['$ref'], oas) as ParameterObject
       } else {
         // Here we know we have a parameter object:
-        return (p as any) as ParameterObject
+        return p as ParameterObject
       }
     })
     parameters = parameters.concat(opParameters)
@@ -983,7 +995,7 @@ export function getSecuritySchemes(
         ) as SecuritySchemeObject
       } else {
         // We already have a SecuritySchemeObject:
-        securitySchemes[schemeKey] = (obj as any) as SecuritySchemeObject
+        securitySchemes[schemeKey] = obj as SecuritySchemeObject
       }
     }
   }

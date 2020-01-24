@@ -8,8 +8,8 @@
  */
 
 // Type imports:
-import { Oas3, SchemaObject } from './types/oas3'
-import { Operation, DataDefinition } from './types/operation'
+import { SchemaObject } from './types/oas3'
+import { Operation } from './types/operation'
 import { ResolveFunction } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
@@ -20,6 +20,7 @@ import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
 import { debug } from 'debug'
 import { GraphQLError } from 'graphql'
+import formurlencoded from 'form-urlencoded'
 
 const translationLog = debug('translation')
 const httpLog = debug('http')
@@ -247,29 +248,29 @@ export function getResolver({
      * lookup here
      */
     resolveData.usedPayload = undefined
-    if (payloadName && typeof payloadName === 'string') {
+    if (typeof payloadName === 'string') {
       // The option genericPayloadArgName will change the payload name to "requestBody"
       const sanePayloadName = data.options.genericPayloadArgName
         ? 'requestBody'
         : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase)
 
-      if (sanePayloadName in args) {
-        if (typeof args[sanePayloadName] === 'object') {
-          // We need to desanitize the payload so the API understands it:
-          const rawPayload = JSON.stringify(
-            Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
-          )
-
-          options.body = rawPayload
-          resolveData.usedPayload = rawPayload
-        } else {
-          // Payload is not an object (stored as an application/json)
-          const rawPayload = args[sanePayloadName]
-
-          options.body = rawPayload
-          resolveData.usedPayload = rawPayload
-        }
+      let rawPayload
+      if (operation.payloadContentType === 'application/json') {
+        rawPayload = JSON.stringify(
+          Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
+        )
+      } else if (
+        operation.payloadContentType === 'application/x-www-form-urlencoded'
+      ) {
+        rawPayload = formurlencoded(
+          Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
+        )
+      } else {
+        // Payload is not an object
+        rawPayload = args[sanePayloadName]
       }
+      options.body = rawPayload
+      resolveData.usedPayload = rawPayload
     }
 
     /**
