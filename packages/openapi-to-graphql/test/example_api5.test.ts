@@ -13,7 +13,7 @@ import * as openAPIToGraphQL from '../lib/index'
 import { startServer, stopServer } from './example_api5_server'
 
 const oas = require('./fixtures/example_oas5.json')
-const PORT = 3005
+const PORT = 3007
 // Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 

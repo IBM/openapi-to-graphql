@@ -11,6 +11,7 @@ const querystring = require("querystring");
 const JSONPath = require("jsonpath-plus");
 const debug_1 = require("debug");
 const graphql_1 = require("graphql");
+const form_urlencoded_1 = require("form-urlencoded");
 const translationLog = debug_1.debug('translation');
 const httpLog = debug_1.debug('http');
 /**
@@ -165,25 +166,24 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          * lookup here
          */
         resolveData.usedPayload = undefined;
-        if (payloadName && typeof payloadName === 'string') {
+        if (typeof payloadName === 'string') {
             // The option genericPayloadArgName will change the payload name to "requestBody"
             const sanePayloadName = data.options.genericPayloadArgName
                 ? 'requestBody'
                 : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
-            if (sanePayloadName in args) {
-                if (typeof args[sanePayloadName] === 'object') {
-                    // We need to desanitize the payload so the API understands it:
-                    const rawPayload = JSON.stringify(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
-                    options.body = rawPayload;
-                    resolveData.usedPayload = rawPayload;
-                }
-                else {
-                    // Payload is not an object (stored as an application/json)
-                    const rawPayload = args[sanePayloadName];
-                    options.body = rawPayload;
-                    resolveData.usedPayload = rawPayload;
-                }
+            let rawPayload;
+            if (operation.payloadContentType === 'application/json') {
+                rawPayload = JSON.stringify(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
             }
+            else if (operation.payloadContentType === 'application/x-www-form-urlencoded') {
+                rawPayload = form_urlencoded_1.default(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
+            }
+            else {
+                // Payload is not an object
+                rawPayload = args[sanePayloadName];
+            }
+            options.body = rawPayload;
+            resolveData.usedPayload = rawPayload;
         }
         /**
          * Pass on OpenAPI-to-GraphQL options

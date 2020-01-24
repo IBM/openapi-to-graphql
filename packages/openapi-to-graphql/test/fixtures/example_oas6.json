@@ -99,6 +99,71 @@
           }
         }
       }
+    },
+    "/formUrlEncoded": {
+      "post": {
+        "description": "Basic application/x-www-form-urlencoded test",
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/pet"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "A pet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/pet"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "pet": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "description": "Name of the pet",
+            "type": "string"
+          },
+          "status": {
+            "description": "Status of the pet",
+            "type": "string"
+          },
+          "weight": {
+            "description": "Weight of the pet",
+            "type": "number"
+          },
+          "previous_owner": {
+            "description": "Previouw owner of the pet",
+            "type": "string"
+          },
+          "history": {
+            "description": "History of the pet",
+            "type": "object",
+            "properties": {
+              "data": {
+                "type": "string"
+              }
+            }
+          },
+          "history2": {
+            "description": "History of the pet",
+            "type": "object"
+          }
+        },
+        "required": ["status"]
+      }
     }
   }
 }

@@ -411,6 +411,12 @@ function getRequestBodyObject(endpoint, oas) {
                     requestBodyObject
                 };
             }
+            else if (Object.keys(content).includes('application/x-www-form-urlencoded')) {
+                return {
+                    payloadContentType: 'application/x-www-form-urlencoded',
+                    requestBodyObject
+                };
+            }
             else {
                 // Pick first (random) content type
                 const randomContentType = Object.keys(content)[0];
@@ -450,18 +456,21 @@ function getRequestSchemaAndNames(path, method, oas) {
             ? requestBodyObject.required
             : false;
         /**
-         * Edge case: if request body content-type is not application/json, do not
-         * parse. Instead, treat the request body as a black box (allowing it to be
-         * defined as a string) and sending it with the appropriate content-type
+         * Edge case: if request body content-type is not application/json or
+         * application/x-www-form-urlencoded, do not parse it.
+         *
+         * Instead, treat the request body as a black box and send it as a string
+         * with the proper content-type header
          */
-        if (payloadContentType !== 'application/json') {
+        if (payloadContentType !== 'application/json' &&
+            payloadContentType !== 'application/x-www-form-urlencoded') {
             const saneContentTypeName = uncapitalize(payloadContentType.split('/').reduce((name, term) => {
                 return name + capitalize(term);
             }));
             payloadSchemaNames = {
                 fromPath: saneContentTypeName
             };
-            let description = payloadContentType + ' request placeholder object';
+            let description = `String represents payload of content type '${payloadContentType}'`;
             if ('description' in payloadSchema &&
                 typeof payloadSchema['description'] === 'string') {
                 description += `\n\nOriginal top level description: '${payloadSchema['description']}'`;
@@ -548,12 +557,11 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
             fromPath: inferResourceNameFromPath(path)
         };
         /**
-         * Edge case: if request body content-type is not application/json, do not
-         * parse. Instead, treat the request body as a black box (allowing it to be
-         * defined as a string) and sending it with the appropriate content-type
+         * Edge case: if response body content-type is not application/json, do not
+         * parse.
          */
         if (responseContentType !== 'application/json') {
-            let description = 'Placeholder object to access non-application/json ' + 'response bodies';
+            let description = 'Placeholder to access non-application/json response bodies';
             if ('description' in responseSchema &&
                 typeof responseSchema['description'] === 'string') {
                 description += `\n\nOriginal top level description: '${responseSchema['description']}'`;
@@ -572,10 +580,11 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
     }
     else {
         /**
-         * GraphQL requires that objects must have some properties. To allow some
-         * operations (such as those with a 204 HTTP code) to be included in the
-         * GraphQL interface, we added the fillEmptyResponses option, which will
-         * simply create a placeholder object with a placeholder property.
+         * GraphQL requires that objects must have some properties.
+         *
+         * To allow some operations (such as those with a 204 HTTP code) to be
+         * included in the GraphQL interface, we added the fillEmptyResponses
+         * option, which will simply create a placeholder to allow access.
          */
         if (options.fillEmptyResponses) {
             return {
@@ -584,7 +593,7 @@ function getResponseSchemaAndNames(path, method, oas, data, options) {
                 },
                 responseContentType: 'application/json',
                 responseSchema: {
-                    description: 'Placeholder object to support operations with no response schema',
+                    description: 'Placeholder to support operations with no response schema',
                     type: 'string'
                 }
             };

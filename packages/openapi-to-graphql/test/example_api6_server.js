@@ -16,6 +16,7 @@ function startServer(PORT) {
 
   const bodyParser = require('body-parser')
   app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
 
   app.get('/api/object', (req, res) => {
     console.log(req.method, req.path)
@@ -35,6 +36,11 @@ function startServer(PORT) {
         data: 'object2'
       })
     }
+  })
+
+  app.post('/api/formUrlEncoded', (req, res) => {
+    console.log(req.method, req.path)
+    res.send(req.body)
   })
 
   return new Promise(resolve => {
