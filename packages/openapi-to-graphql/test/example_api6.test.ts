@@ -225,18 +225,18 @@ test('inferResourceNameFromPath() field with simple plural form', () => {
 
 //
 /**
- * '/octopi/{octopusId}' should create an 'octopus' field
+ * '/cacti/{cactusId}' should create an 'cactus' field
  *
  * Also the path parameter is the combination of the singular form and 'id'
  */
 test('inferResourceNameFromPath() field with irregular plural form', () => {
   const query = `{
-    octopus (octopusId: "colossal")
+    cactus (cactusId: "Spikey")
   }`
 
   return graphql(createdSchema, query).then(result => {
     expect(result.data).toEqual({
-      octopus: 'Octopus ID: colossal'
+      cactus: 'Cactus ID: Spikey'
     })
   })
 })
