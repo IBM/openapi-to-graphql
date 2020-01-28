@@ -48,9 +48,9 @@ function startServer(PORT) {
     res.send(`Car ID: ${req.params.id}`)
   })
 
-  app.get('/api/octopi/:octopusId', (req, res) => {
+  app.get('/api/cacti/:cactusId', (req, res) => {
     console.log(req.method, req.path)
-    res.send(`Octopus ID: ${req.params.octopusId}`)
+    res.send(`Cactus ID: ${req.params.cactusId}`)
   })
 
   app.get(

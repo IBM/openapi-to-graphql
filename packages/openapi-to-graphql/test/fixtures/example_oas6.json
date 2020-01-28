@@ -153,12 +153,12 @@
         }
       }
     },
-    "/octopi/{octopusId}": {
+    "/cacti/{cactusId}": {
       "get": {
-        "description": "A particular octopus",
+        "description": "A particular cactus",
         "parameters": [
           {
-            "name": "octopusId",
+            "name": "cactusId",
             "in": "path",
             "required": true,
             "schema": {

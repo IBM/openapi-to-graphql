@@ -91,8 +91,8 @@ export declare type Options = {
      * For example, given the operation 'GET /users/{userId}/car', OtG will
      * create a Query field 'userCar'. Note that because 'users' is followed by
      * the parameter 'userId', it insinuates that this operation will get the car
-     * that belongs to a singular user. Hence, the pluralizing 's' in 'users' is
-     * dropped.
+     * that belongs to a singular user. Hence, the name 'userCar' is more fitting
+     * than 'usersCar' so the pluralizing 's' is dropped.
      *
      * This option will also consider irregular plural forms.
      */
@@ -256,8 +256,8 @@ export declare type InternalOptions = {
      * For example, given the operation 'GET /users/{userId}/car', OtG will
      * create a Query field 'userCar'. Note that because 'users' is followed by
      * the parameter 'userId', it insinuates that this operation will get the car
-     * that belongs to a singular user. Hence, the pluralizing 's' in 'users' is
-     * dropped.
+     * that belongs to a singular user. Hence, the name 'userCar' is more fitting
+     * than 'usersCar' so the pluralizing 's' is dropped.
      *
      * This option will also consider irregular plural forms.
      */
