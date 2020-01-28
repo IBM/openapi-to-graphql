@@ -92,10 +92,12 @@ export function preprocessOas(
           description = endpoint.summary
         }
 
-        if (
-          data.options.equivalentToMessages &&
-          typeof description === 'string'
-        ) {
+        if (data.options.equivalentToMessages) {
+          // Description may not exist
+          if (typeof description !== 'string') {
+            description = ''
+          }
+
           description += `\n\nEquivalent to ${operationString}`
         }
 

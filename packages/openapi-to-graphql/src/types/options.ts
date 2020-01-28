@@ -102,6 +102,21 @@ export type Options = {
    */
   simpleNames?: boolean
 
+  /**
+   * Experimental feature that will try to create more meaningful names from
+   * the operation path than the response object by leveraging common
+   * conventions.
+   *
+   * For example, given the operation 'GET /users/{userId}/car', OtG will
+   * create a Query field 'userCar'. Note that because 'users' is followed by
+   * the parameter 'userId', it insinuates that this operation will get the car
+   * that belongs to a singular user. Hence, the name 'userCar' is more fitting
+   * than 'usersCar' so the pluralizing 's' is dropped.
+   *
+   * This option will also consider irregular plural forms.
+   */
+  singularNames?: boolean
+
   // Resolver options
 
   /**
@@ -271,6 +286,21 @@ export type InternalOptions = {
    * to the provided names in the OAS as possible.
    */
   simpleNames: boolean
+
+  /**
+   * Experimental feature that will try to create more meaningful names from
+   * the operation path than the response object by leveraging common
+   * conventions.
+   *
+   * For example, given the operation 'GET /users/{userId}/car', OtG will
+   * create a Query field 'userCar'. Note that because 'users' is followed by
+   * the parameter 'userId', it insinuates that this operation will get the car
+   * that belongs to a singular user. Hence, the name 'userCar' is more fitting
+   * than 'usersCar' so the pluralizing 's' is dropped.
+   *
+   * This option will also consider irregular plural forms.
+   */
+  singularNames: boolean
 
   // Resolver options
 

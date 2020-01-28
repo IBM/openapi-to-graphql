@@ -546,7 +546,7 @@ test('Link parameters as constants and variables with request payload', () => {
 
 test('Get response without providing parameter with default value', () => {
   const query = `{
-    productsReviews (id: "100") {
+    productReviews (id: "100") {
       text
     }
   }`
@@ -554,7 +554,7 @@ test('Get response without providing parameter with default value', () => {
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        productsReviews: [{ text: 'Great product' }, { text: 'I love it' }]
+        productReviews: [{ text: 'Great product' }, { text: 'I love it' }]
       }
     })
   })
@@ -639,7 +639,7 @@ test('Ensure good naming for operations with duplicated schemas', () => {
  */
 test('Get response containing 64-bit integer (using GraphQLFloat)', () => {
   const query = `{
-    productsReviews (id: "100") {
+    productReviews (id: "100") {
       timestamp
     }
   }`
@@ -647,7 +647,7 @@ test('Get response containing 64-bit integer (using GraphQLFloat)', () => {
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        productsReviews: [
+        productReviews: [
           { timestamp: 1502787600000000 },
           { timestamp: 1502787400000000 }
         ]
@@ -1105,7 +1105,7 @@ test('Resolve circular allOf', () => {
 
 test('Resolve oneOf, which becomes a union type', () => {
   const query = `{
-    __type(name: "AssetsListItem") {
+    __type(name: "AssetListItem") {
       kind
       possibleTypes {
         name
@@ -1152,7 +1152,7 @@ test('Resolve oneOf, which becomes a union type', () => {
 
 test('Union type', () => {
   const query = `{
-    assets(companyId: "binsol") {
+    asset(companyId: "binsol") {
       ... on User {
         name
         address {
@@ -1168,7 +1168,7 @@ test('Union type', () => {
   return graphql(createdSchema, query, null, {}).then(result => {
     expect(result).toEqual({
       data: {
-        assets: [
+        asset: [
           {
             name: 'Arlene L McMahon',
             address: {
@@ -1647,7 +1647,7 @@ test('Handle objects without defined properties with arbitrary GraphQL JSON type
 
 test('Handle input objects without defined properties with arbitrary GraphQL JSON type', () => {
   const query = `mutation {
-    postOfficeTrashCan(trashcans2Input: {
+    postOfficeTrashCan(trashcan2Input: {
       type: "sandwich",
       message: "moldy",
       tasteRating: 0

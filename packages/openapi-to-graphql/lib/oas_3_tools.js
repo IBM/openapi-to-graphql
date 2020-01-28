@@ -18,6 +18,7 @@ const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const pluralize = require("pluralize");
 const httpLog = debug_1.default('http');
 const preprocessingLog = debug_1.default('preprocessing');
 const translationLog = debug_1.default('translation');
@@ -368,23 +369,74 @@ function getSchemaTargetGraphQLType(schema, data) {
 }
 exports.getSchemaTargetGraphQLType = getSchemaTargetGraphQLType;
 /**
- * Determines an approximate name for the resource at the given path.
+ * Identifies common path components in the given list of paths. Returns these
+ * components as well as an updated list of paths where the common prefix was
+ * removed.
+ */
+function extractBasePath(paths) {
+    if (paths.length <= 1) {
+        return {
+            basePath: '/',
+            updatedPaths: paths
+        };
+    }
+    let basePathComponents = paths[0].split('/');
+    for (let path of paths) {
+        if (basePathComponents.length === 0) {
+            break;
+        }
+        const pathComponents = path.split('/');
+        for (let i = 0; i < pathComponents.length; i++) {
+            if (i < basePathComponents.length) {
+                if (pathComponents[i] !== basePathComponents[i]) {
+                    basePathComponents = basePathComponents.slice(0, i);
+                }
+            }
+            else {
+                break;
+            }
+        }
+    }
+    const updatedPaths = paths.map(path => path
+        .split('/')
+        .slice(basePathComponents.length)
+        .join('/'));
+    let basePath = basePathComponents.length === 0 ||
+        (basePathComponents.length === 1 && basePathComponents[0] === '')
+        ? '/'
+        : basePathComponents.join('/');
+    return {
+        basePath,
+        updatedPaths
+    };
+}
+function isIdParam(part) {
+    return /^{.*(id|name|key).*}$/gi.test(part);
+}
+function isSingularParam(part, nextPart) {
+    return `\{${pluralize.singular(part)}\}` === nextPart;
+}
+/**
+ * Infers a resource name from the given URL path.
  *
- * Remove the path parameters from the path.
- *
- * For example, turn '/user/{userId}/car' into 'userCar'.
- *
- * Note that the returned string is in camelCase.
+ * For example, turns "/users/{userId}/car" into "userCar".
  */
 function inferResourceNameFromPath(path) {
-    const pathNoPathParams = path.split('/').reduce((path, part) => {
-        if (!/{|}/g.test(part)) {
-            return path + capitalize(part);
+    const parts = path.split('/');
+    let pathNoPathParams = parts.reduce((path, part, i) => {
+        if (!/{/g.test(part)) {
+            if (parts[i + 1] &&
+                (isIdParam(parts[i + 1]) || isSingularParam(part, parts[i + 1]))) {
+                return path + capitalize(pluralize.singular(part));
+            }
+            else {
+                return path + capitalize(part);
+            }
         }
         else {
             return path;
         }
-    });
+    }, '');
     return pathNoPathParams;
 }
 exports.inferResourceNameFromPath = inferResourceNameFromPath;
@@ -932,7 +984,7 @@ exports.uncapitalize = uncapitalize;
  * For operations that do not have an operationId, generate one
  */
 function generateOperationId(method, path) {
-    return sanitize(`${method}:${path}`, CaseStyle.camelCase);
+    return sanitize(`${method} ${path}`, CaseStyle.camelCase);
 }
 exports.generateOperationId = generateOperationId;
 //# sourceMappingURL=oas_3_tools.js.map

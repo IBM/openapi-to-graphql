@@ -91,13 +91,9 @@ data: PreprocessingData): {
  */
 export declare function getSchemaTargetGraphQLType(schema: SchemaObject, data: PreprocessingData): string | null;
 /**
- * Determines an approximate name for the resource at the given path.
+ * Infers a resource name from the given URL path.
  *
- * Remove the path parameters from the path.
- *
- * For example, turn '/user/{userId}/car' into 'userCar'.
- *
- * Note that the returned string is in camelCase.
+ * For example, turns "/users/{userId}/car" into "userCar".
  */
 export declare function inferResourceNameFromPath(path: string): string;
 /**

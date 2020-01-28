@@ -91,6 +91,8 @@ export async function createGraphQLSchema(
       : false
   options.simpleNames =
     typeof options.simpleNames === 'boolean' ? options.simpleNames : false
+  options.singularNames =
+    typeof options.singularNames === 'boolean' ? options.singularNames : false
 
   // Authentication options
   options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
@@ -165,6 +167,7 @@ async function translateOpenAPIToGraphQL(
     selectQueryOrMutationField,
     genericPayloadArgName,
     simpleNames,
+    singularNames,
 
     // Resolver options
     headers,
@@ -189,11 +192,13 @@ async function translateOpenAPIToGraphQL(
 
     // Schema options
     operationIdFieldNames,
-    simpleNames,
     fillEmptyResponses,
     addLimitArgument,
     idFormats,
+    selectQueryOrMutationField,
     genericPayloadArgName,
+    simpleNames,
+    singularNames,
 
     // Resolver options
     headers,
@@ -201,7 +206,6 @@ async function translateOpenAPIToGraphQL(
     requestOptions,
     baseUrl,
     customResolvers,
-    selectQueryOrMutationField,
 
     // Authentication options
     viewer,
@@ -247,9 +251,13 @@ async function translateOpenAPIToGraphQL(
 
     // Check if the operation should be added as a Query or Mutation field
     if (!operation.isMutation) {
-      let fieldName = Oas3Tools.uncapitalize(
-        operation.responseDefinition.graphQLTypeName
-      )
+      let fieldName = !singularNames
+        ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+        : Oas3Tools.sanitize(
+            Oas3Tools.inferResourceNameFromPath(operation.path),
+            Oas3Tools.CaseStyle.camelCase
+          )
+
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {
           if (typeof authQueryFields[securityRequirement] !== 'object') {
@@ -320,16 +328,31 @@ async function translateOpenAPIToGraphQL(
         }
       }
     } else {
-      /**
-       * Use operationId to avoid problems differentiating operations with the
-       * same path but differnet methods
-       */
+      let saneFieldName
 
-      let saneFieldName = Oas3Tools.storeSaneName(
-        saneOperationId,
-        operationId,
-        data.saneMap
-      )
+      if (!singularNames) {
+        /**
+         * Use operationId to avoid problems differentiating operations with the
+         * same path but differnet methods
+         */
+
+        saneFieldName = Oas3Tools.storeSaneName(
+          saneOperationId,
+          operationId,
+          data.saneMap
+        )
+      } else {
+        const fieldName = `${
+          operation.method
+        }${Oas3Tools.inferResourceNameFromPath(operation.path)}`
+
+        saneFieldName = Oas3Tools.storeSaneName(
+          Oas3Tools.sanitize(fieldName, Oas3Tools.CaseStyle.camelCase),
+          fieldName,
+          data.saneMap
+        )
+      }
+
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {
           if (typeof authMutationFields[securityRequirement] !== 'object') {

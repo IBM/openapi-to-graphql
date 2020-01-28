@@ -38,6 +38,7 @@ import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning } from './utils'
+import * as pluralize from 'pluralize'
 
 // Type definitions & exports:
 export type SchemaNames = {
@@ -483,22 +484,89 @@ export function getSchemaTargetGraphQLType(
 }
 
 /**
- * Determines an approximate name for the resource at the given path.
+ * Identifies common path components in the given list of paths. Returns these
+ * components as well as an updated list of paths where the common prefix was
+ * removed.
+ */
+function extractBasePath(
+  paths: string[]
+): {
+  basePath: string
+  updatedPaths: string[]
+} {
+  if (paths.length <= 1) {
+    return {
+      basePath: '/',
+      updatedPaths: paths
+    }
+  }
+
+  let basePathComponents: string[] = paths[0].split('/')
+
+  for (let path of paths) {
+    if (basePathComponents.length === 0) {
+      break
+    }
+    const pathComponents = path.split('/')
+    for (let i = 0; i < pathComponents.length; i++) {
+      if (i < basePathComponents.length) {
+        if (pathComponents[i] !== basePathComponents[i]) {
+          basePathComponents = basePathComponents.slice(0, i)
+        }
+      } else {
+        break
+      }
+    }
+  }
+
+  const updatedPaths = paths.map(path =>
+    path
+      .split('/')
+      .slice(basePathComponents.length)
+      .join('/')
+  )
+
+  let basePath =
+    basePathComponents.length === 0 ||
+    (basePathComponents.length === 1 && basePathComponents[0] === '')
+      ? '/'
+      : basePathComponents.join('/')
+
+  return {
+    basePath,
+    updatedPaths
+  }
+}
+
+function isIdParam(part) {
+  return /^{.*(id|name|key).*}$/gi.test(part)
+}
+
+function isSingularParam(part, nextPart) {
+  return `\{${pluralize.singular(part)}\}` === nextPart
+}
+
+/**
+ * Infers a resource name from the given URL path.
  *
- * Remove the path parameters from the path.
- *
- * For example, turn '/user/{userId}/car' into 'userCar'.
- *
- * Note that the returned string is in camelCase.
+ * For example, turns "/users/{userId}/car" into "userCar".
  */
 export function inferResourceNameFromPath(path: string): string {
-  const pathNoPathParams = path.split('/').reduce((path, part) => {
-    if (!/{|}/g.test(part)) {
-      return path + capitalize(part)
+  const parts = path.split('/')
+  let pathNoPathParams = parts.reduce((path, part, i) => {
+    if (!/{/g.test(part)) {
+      if (
+        parts[i + 1] &&
+        (isIdParam(parts[i + 1]) || isSingularParam(part, parts[i + 1]))
+      ) {
+        return path + capitalize(pluralize.singular(part))
+      } else {
+        return path + capitalize(part)
+      }
     } else {
       return path
     }
-  })
+  }, '')
 
   return pathNoPathParams
 }
@@ -1189,5 +1257,5 @@ export function uncapitalize(str: string): string {
  * For operations that do not have an operationId, generate one
  */
 export function generateOperationId(method: string, path: string): string {
-  return sanitize(`${method}:${path}`, CaseStyle.camelCase)
+  return sanitize(`${method} ${path}`, CaseStyle.camelCase)
 }
