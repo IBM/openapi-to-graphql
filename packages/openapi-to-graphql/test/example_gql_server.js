@@ -31,14 +31,7 @@ const oas6 = require('./fixtures/example_oas6.json')
 // const oas = yamljs.parse(fs.readFileSync('../tmp/APIs/box.com/content/2.0/swagger.yaml', 'utf8'))
 
 openAPIToGraphQL
-  .createGraphQLSchema(oas6, {
-    requestOptions: {
-      url: undefined,
-      headers: {
-        specialheader: 'requestOptions' // Option requestOptions
-      }
-    }
-  })
+  .createGraphQLSchema(oas6)
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
 

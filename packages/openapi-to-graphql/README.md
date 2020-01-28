@@ -162,6 +162,8 @@ Schema options:
 
 - `simpleNames` (type: `boolean`, default: `false`): By default, field names are sanitized to conform with GraphQL conventions, i.e. types should be in PascalCase, fields should be in camelCase, and enum values should be in ALL_CAPS. This option will prevent OTG from enforcing camelCase field names and PascalCase type names, only removing illegal characters and staying as true to the provided names in the OAS as possible. 
 
+- `singularNames` (type: `boolean`, default: `false`): Experimental feature that will try to create more meaningful names from the operation path than the response object by leveraging common conventions. For example, given the operation `GET /users/{userId}/car`, OtG will create a `Query` field `userCar`. Note that because `users` is followed by the parameter `userId`, it insinuates that this operation will get the car that belongs to a singular user. Hence, the name `userCar` is more fitting than `usersCar` so the pluralizing 's' is dropped. This option will also consider irregular plural forms.
+
 ***
 
 Resolver options:
@@ -257,9 +259,9 @@ OpenAPI-to-GraphQL further provides `anyAuth` viewers (for queries and mutations
       password: "secret"
     }
   ) {
-    patentWithId (patentId: "test") {  // requires "exampleApiKeyProtocol"
+    patent (patentId: "test") {  // requires "exampleApiKeyProtocol"
       patentId
-      inventor {                       // requires "exampleBasicProtocol"
+      inventor {                 // requires "exampleBasicProtocol"
         name
       }
     }

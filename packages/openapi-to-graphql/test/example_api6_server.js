@@ -43,6 +43,26 @@ function startServer(PORT) {
     res.send(req.body)
   })
 
+  app.get('/api/cars/:id', (req, res) => {
+    console.log(req.method, req.path)
+    res.send(`Car ID: ${req.params.id}`)
+  })
+
+  app.get('/api/octopi/:octopusId', (req, res) => {
+    console.log(req.method, req.path)
+    res.send(`Octopus ID: ${req.params.octopusId}`)
+  })
+
+  app.get(
+    '/api/eateries/:eatery/breads/:breadName/dishes/:dishKey',
+    (req, res) => {
+      console.log(req.method, req.path)
+      res.send(
+        `Parameters combined: ${req.params.eatery} ${req.params.breadName} ${req.params.dishKey}`
+      )
+    }
+  )
+
   return new Promise(resolve => {
     server = app.listen(PORT, () => {
       console.log(`Example API accessible on port ${PORT}`)

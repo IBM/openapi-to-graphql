@@ -65,8 +65,11 @@ function preprocessOas(oass, options) {
                     typeof endpoint.summary === 'string') {
                     description = endpoint.summary;
                 }
-                if (data.options.equivalentToMessages &&
-                    typeof description === 'string') {
+                if (data.options.equivalentToMessages) {
+                    // Description may not exist
+                    if (typeof description !== 'string') {
+                        description = '';
+                    }
                     description += `\n\nEquivalent to ${operationString}`;
                 }
                 // Hold on to the operationId

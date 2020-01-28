@@ -53,6 +53,8 @@ function createGraphQLSchema(spec, options) {
                 : false;
         options.simpleNames =
             typeof options.simpleNames === 'boolean' ? options.simpleNames : false;
+        options.singularNames =
+            typeof options.singularNames === 'boolean' ? options.singularNames : false;
         // Authentication options
         options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true;
         options.sendOAuthTokenInQuery =
@@ -106,7 +108,7 @@ exports.createGraphQLSchema = createGraphQLSchema;
  */
 function translateOpenAPIToGraphQL(oass, { strict, report, 
 // Schema options
-operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, simpleNames, 
+operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, simpleNames, singularNames, 
 // Resolver options
 headers, qs, requestOptions, baseUrl, customResolvers, 
 // Authentication options
@@ -119,18 +121,19 @@ provideErrorExtensions, equivalentToMessages }) {
             report,
             // Schema options
             operationIdFieldNames,
-            simpleNames,
             fillEmptyResponses,
             addLimitArgument,
             idFormats,
+            selectQueryOrMutationField,
             genericPayloadArgName,
+            simpleNames,
+            singularNames,
             // Resolver options
             headers,
             qs,
             requestOptions,
             baseUrl,
             customResolvers,
-            selectQueryOrMutationField,
             // Authentication options
             viewer,
             tokenJSONpath,
@@ -160,7 +163,9 @@ provideErrorExtensions, equivalentToMessages }) {
             const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
             // Check if the operation should be added as a Query or Mutation field
             if (!operation.isMutation) {
-                let fieldName = Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName);
+                let fieldName = !singularNames
+                    ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+                    : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase);
                 if (operation.inViewer) {
                     for (let securityRequirement of operation.securityRequirements) {
                         if (typeof authQueryFields[securityRequirement] !== 'object') {
@@ -219,11 +224,18 @@ provideErrorExtensions, equivalentToMessages }) {
                 }
             }
             else {
-                /**
-                 * Use operationId to avoid problems differentiating operations with the
-                 * same path but differnet methods
-                 */
-                let saneFieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
+                let saneFieldName;
+                if (!singularNames) {
+                    /**
+                     * Use operationId to avoid problems differentiating operations with the
+                     * same path but differnet methods
+                     */
+                    saneFieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
+                }
+                else {
+                    const fieldName = `${operation.method}${Oas3Tools.inferResourceNameFromPath(operation.path)}`;
+                    saneFieldName = Oas3Tools.storeSaneName(Oas3Tools.sanitize(fieldName, Oas3Tools.CaseStyle.camelCase), fieldName, data.saneMap);
+                }
                 if (operation.inViewer) {
                     for (let securityRequirement of operation.securityRequirements) {
                         if (typeof authMutationFields[securityRequirement] !== 'object') {

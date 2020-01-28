@@ -64,13 +64,13 @@
     "testRegex": "/test/.*\\.test\\.(ts|tsx|js)$"
   },
   "dependencies": {
-    "@types/request": "^2.48.1",
     "debug": "^4.1.0",
     "deep-equal": "^1.0.1",
     "form-urlencoded": "^4.1.1",
     "graphql-type-json": "^0.2.1",
     "jsonpath-plus": "^0.18.0",
     "oas-validator": "^3.1.0",
+    "pluralize": "^8.0.0",
     "request": "^2.88.0",
     "swagger2openapi": "^5.1.0"
   },
@@ -81,6 +81,7 @@
     "@types/graphql": "^14.0.3",
     "@types/jest": "^24.0.18",
     "@types/node": "^11.9.4",
+    "@types/request": "^2.48.1",
     "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "express-graphql": "^0.7.1",

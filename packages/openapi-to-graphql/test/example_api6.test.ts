@@ -183,12 +183,6 @@ test('Request body using application/x-www-form-urlencoded containing object', (
   })
 })
 
-/**
- * The field 'history' is an object but no information about its properties is
- * provided in the OAS, therefore it defaults to the arbitrary JSON type
- *
- * Status is a required field so it is also included
- */
 test('Request body using application/x-www-form-urlencoded containing object with no properties', () => {
   const query = `mutation {
     postFormUrlEncoded (petInput: {
@@ -208,6 +202,60 @@ test('Request body using application/x-www-form-urlencoded containing object wit
           data: 'Friendly'
         }
       }
+    })
+  })
+})
+
+/**
+ * '/cars/{id}' should create a 'car' field
+ *
+ * Also the path parameter just contains the term 'id'
+ */
+test('inferResourceNameFromPath() field with simple plural form', () => {
+  const query = `{
+    car (id: "Super Speed")
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      car: 'Car ID: Super Speed'
+    })
+  })
+})
+
+//
+/**
+ * '/octopi/{octopusId}' should create an 'octopus' field
+ *
+ * Also the path parameter is the combination of the singular form and 'id'
+ */
+test('inferResourceNameFromPath() field with irregular plural form', () => {
+  const query = `{
+    octopus (octopusId: "colossal")
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      octopus: 'Octopus ID: colossal'
+    })
+  })
+})
+
+/**
+ * '/eateries/{eatery}/breads/{breadName}/dishes/{dishKey}/ should create an
+ * 'eateryBreadDish' field
+ *
+ * The path parameters are the singular form, some combination with the term
+ * 'name', and some combination with the term 'key'
+ */
+test('inferResourceNameFromPath() field with long path', () => {
+  const query = `{
+  eateryBreadDish(eatery: "Mike's", breadName:"challah", dishKey: "bread pudding")
+ }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      eateryBreadDish: "Parameters combined: Mike's challah bread pudding"
     })
   })
 })

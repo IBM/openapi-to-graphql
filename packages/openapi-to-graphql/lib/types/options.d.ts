@@ -84,6 +84,20 @@ export declare type Options = {
      */
     simpleNames?: boolean;
     /**
+     * Experimental feature that will try to create more meaningful names from
+     * the operation path than the response object by leveraging common
+     * conventions.
+     *
+     * For example, given the operation 'GET /users/{userId}/car', OtG will
+     * create a Query field 'userCar'. Note that because 'users' is followed by
+     * the parameter 'userId', it insinuates that this operation will get the car
+     * that belongs to a singular user. Hence, the pluralizing 's' in 'users' is
+     * dropped.
+     *
+     * This option will also consider irregular plural forms.
+     */
+    singularNames?: boolean;
+    /**
      * Custom headers to send with every request made by a resolve function.
      */
     headers?: {
@@ -234,6 +248,20 @@ export declare type InternalOptions = {
      * to the provided names in the OAS as possible.
      */
     simpleNames: boolean;
+    /**
+     * Experimental feature that will try to create more meaningful names from
+     * the operation path than the response object by leveraging common
+     * conventions.
+     *
+     * For example, given the operation 'GET /users/{userId}/car', OtG will
+     * create a Query field 'userCar'. Note that because 'users' is followed by
+     * the parameter 'userId', it insinuates that this operation will get the car
+     * that belongs to a singular user. Hence, the pluralizing 's' in 'users' is
+     * dropped.
+     *
+     * This option will also consider irregular plural forms.
+     */
+    singularNames: boolean;
     /**
      * Custom headers to send with every request made by a resolve function.
      */

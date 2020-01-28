@@ -32,9 +32,10 @@ Options:
 
   -o, --operationIdFieldNames    create field names based on the operationId
   -f, --fillEmptyResponses       create placeholder schemas for operations with no response body rather than ignore them
-  -a, --addLimitArgument         add a limit argument on fields returning lists of objects/lists to control the data size
-  -g, --genericPayloadArgName    Sets argument name for the payload of a mutation to 'requestBody'
-  -N, --simpleNames             Only remove illegal characters from names in the OAS and ignore casing and formatting
+  --addLimitArgument             add a limit argument on fields returning lists of objects/lists to control the data size
+  --genericPayloadArgName        Sets argument name for the payload of a mutation to 'requestBody'
+  --simpleNames                  Only remove illegal characters from names in the OAS and ignore casing and formatting
+  --singularNames                Experimental feature that will create more meaningful names from the operation path
 
   -H, --header <key:value>       add headers to every request; repeatable flag; set using key:value notation (default: [])
   -Q, --queryString <key:value>  add query parameters to every request; repeatable flag; set using key:value notation (default: [])
