@@ -27,14 +27,16 @@
 import { Options, Report } from './types/options';
 import { Oas3 } from './types/oas3';
 import { Oas2 } from './types/oas2';
+import { PreprocessingData } from './types/preprocessing_data';
 import { GraphQLSchema } from 'graphql';
-declare type Result = {
+declare type Result<TSource, TContext, TArgs> = {
     schema: GraphQLSchema;
     report: Report;
+    data: PreprocessingData<TSource, TContext, TArgs>;
 };
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export declare function createGraphQLSchema<TSource, TContext, TArgs>(spec: Oas3 | Oas2 | (Oas3 | Oas2)[], options?: Options<TSource, TContext, TArgs>): Promise<Result>;
+export declare function createGraphQLSchema<TSource, TContext, TArgs>(spec: Oas3 | Oas2 | (Oas3 | Oas2)[], options?: Options<TSource, TContext, TArgs>): Promise<Result<TSource, TContext, TArgs>>;
 export { sanitize, CaseStyle } from './oas_3_tools';
 export { GraphQLOperationType } from './types/graphql';

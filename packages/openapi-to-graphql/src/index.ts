@@ -69,9 +69,10 @@ import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
 import { sortObject, handleWarning, MitigationTypes } from './utils'
 
-type Result = {
+type Result<TSource, TContext, TArgs> = {
   schema: GraphQLSchema
   report: Report
+  data: PreprocessingData<TSource, TContext, TArgs>
 }
 
 const translationLog = debug('translation')
@@ -82,7 +83,7 @@ const translationLog = debug('translation')
 export function createGraphQLSchema<TSource, TContext, TArgs>(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options?: Options<TSource, TContext, TArgs>
-): Promise<Result> {
+): Promise<Result<TSource, TContext, TArgs>> {
   return new Promise((resolve, reject) => {
     if (typeof options === 'undefined') {
       options = {}
@@ -224,7 +225,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     provideErrorExtensions,
     equivalentToMessages
   }: InternalOptions<TSource, TContext, TArgs>
-): { schema: GraphQLSchema; report: Report } {
+): Result<TSource, TContext, TArgs> {
   const options = {
     strict,
     report,
@@ -630,7 +631,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
   const schema = new GraphQLSchema(schemaConfig)
 
-  return { schema, report: options.report }
+  return { schema, report: options.report, data }
 }
 
 /**
