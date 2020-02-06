@@ -41,6 +41,8 @@ function processOperation(path, method, operationString, operationType, operatio
         }
         description += `\n\nEquivalent to ${operationString}`;
     }
+    // Determine tags
+    const tags = operation.tags || [];
     // Hold on to the operationId
     const operationId = typeof operation.operationId !== 'undefined'
         ? operation.operationId
@@ -77,10 +79,12 @@ function processOperation(path, method, operationString, operationType, operatio
     // Whether to place this operation into an authentication viewer
     const inViewer = securityRequirements.length > 0 && data.options.viewer !== false;
     return {
+        operation,
         operationId,
         operationString,
         operationType,
         description,
+        tags,
         path,
         method,
         payloadContentType,

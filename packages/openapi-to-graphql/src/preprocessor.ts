@@ -73,6 +73,9 @@ function processOperation<TSource, TContext, TArgs>(
     description += `\n\nEquivalent to ${operationString}`
   }
 
+  // Determine tags
+  const tags = operation.tags || []
+
   // Hold on to the operationId
   const operationId =
     typeof operation.operationId !== 'undefined'
@@ -161,10 +164,12 @@ function processOperation<TSource, TContext, TArgs>(
     securityRequirements.length > 0 && data.options.viewer !== false
 
   return {
+    operation,
     operationId,
     operationString,
     operationType,
     description,
+    tags,
     path,
     method,
     payloadContentType,

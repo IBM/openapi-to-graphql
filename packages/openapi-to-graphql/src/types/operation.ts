@@ -11,6 +11,7 @@
 import {
   Oas3,
   LinkObject,
+  OperationObject,
   ParameterObject,
   ServerObject,
   SchemaObject
@@ -90,6 +91,11 @@ export type DataDefinition = {
 
 export type Operation = {
   /**
+   * The raw operation object from the OAS
+   */
+  operation: OperationObject
+
+  /**
    * Identifier of the operation - may be created by concatenating method & path
    */
   operationId: string
@@ -109,6 +115,11 @@ export type Operation = {
    * Human-readable description of the operation
    */
   description: string
+
+  /**
+   * Tags of this operation
+   */
+  tags: string[]
 
   /**
    * URL path of this operation

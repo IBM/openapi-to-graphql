@@ -2,7 +2,7 @@
  * Type definitions for the objects created during preprocessing for every
  * operation in the OAS.
  */
-import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
+import { Oas3, LinkObject, OperationObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
 import { GraphQLOperationType } from './graphql';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
 import { HTTP_METHODS } from '../oas_3_tools';
@@ -41,6 +41,10 @@ export declare type DataDefinition = {
 };
 export declare type Operation = {
     /**
+     * The raw operation object from the OAS
+     */
+    operation: OperationObject;
+    /**
      * Identifier of the operation - may be created by concatenating method & path
      */
     operationId: string;
@@ -58,6 +62,10 @@ export declare type Operation = {
      * Human-readable description of the operation
      */
     description: string;
+    /**
+     * Tags of this operation
+     */
+    tags: string[];
     /**
      * URL path of this operation
      */
