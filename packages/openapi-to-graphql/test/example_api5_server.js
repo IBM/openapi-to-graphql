@@ -27,12 +27,8 @@ function startServers(HTTP_PORT, MQTT_PORT) {
   const app = express()
 
   const aedes = require('aedes')
-  const mqemitter = require('mqemitter')
-  const persistence = require('aedes-persistence')
 
   mqttBroker = aedes({
-    mq: mqemitter(),
-    persistence: persistence(),
     published: (packet, client, cb) => {
       if (packet.topic.startsWith('$SYS')) {
         return cb()
@@ -121,25 +117,25 @@ function startServers(HTTP_PORT, MQTT_PORT) {
     }
   })
 
-  mqttBroker.on('client', client => {
-    console.log(`MQTT client connected`, client ? client.id : client)
-  })
+  // mqttBroker.on('client', client => {
+  //   console.log(`MQTT client connected`, client ? client.id : client)
+  // })
 
-  mqttBroker.on('subscribe', (subscriptions, client) => {
-    console.log(
-      `MQTT client ${
-        client ? client.id : client
-      } subscribed to topic(s) ${subscriptions.map(s => s.topic).join('\n')}`
-    )
-  })
+  // mqttBroker.on('subscribe', (subscriptions, client) => {
+  //   console.log(
+  //     `MQTT client ${
+  //       client ? client.id : client
+  //     } subscribed to topic(s) ${subscriptions.map(s => s.topic).join('\n')}`
+  //   )
+  // })
 
-  mqttBroker.on('unsubscribe', (subscriptions, client) => {
-    console.log(
-      `MQTT client ${
-        client ? client.id : client
-      } unsubscribed from topic(s) ${subscriptions.join('\n')}`
-    )
-  })
+  // mqttBroker.on('unsubscribe', (subscriptions, client) => {
+  //   console.log(
+  //     `MQTT client ${
+  //       client ? client.id : client
+  //     } unsubscribed from topic(s) ${subscriptions.join('\n')}`
+  //   )
+  // })
 
   return Promise.all([
     (httpServer = app.listen(HTTP_PORT)),
@@ -162,7 +158,7 @@ function stopServers() {
 
 // if run from command line, start server:
 if (require.main === module) {
-  startServers(3005, 1885)
+  startServers(3008, 1885)
 }
 
 module.exports = {

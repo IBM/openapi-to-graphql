@@ -26,7 +26,7 @@
       "description": "The location of the local test server.",
       "variables": {
         "port": {
-          "default": "3005"
+          "default": "3008"
         },
         "basePath": {
           "default": "api"
@@ -279,22 +279,6 @@
           "post": {
             "operationId": "devicesEventListener",
             "description": "Listen all devices events owned by userName",
-            "requestBody": {
-              "$ref": "#/components/requestBodies/EventsBody"
-            },
-            "responses": {
-              "200": {
-                "$ref": "#/components/responses/DeviceInstance"
-              }
-            }
-          }
-        }
-      },
-      "DeviceEvent": {
-        "/api/{$request.body#/userName}/devices/{$request.body#/method}/{$request.body#/deviceName}": {
-          "post": {
-            "operationId": "deviceEventListener",
-            "description": "Listen specific device events owned by userName",
             "requestBody": {
               "$ref": "#/components/requestBodies/EventsBody"
             },

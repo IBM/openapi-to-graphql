@@ -12,14 +12,12 @@ import { MQTTPubSub } from 'graphql-mqtt-subscriptions'
 import { connect } from 'mqtt'
 
 import * as openAPIToGraphQL from '../lib/index'
-import { Options } from '../lib/types/options'
 import { startServers, stopServers } from './example_api5_server'
-import { GraphQLOperationType } from '../lib/types/graphql'
 
 const oas = require('./fixtures/example_oas5.json')
 
 const TEST_PORT = 3000
-const HTTP_PORT = 3005
+const HTTP_PORT = 3008
 const MQTT_PORT = 1885
 
 oas.servers[0].variables.port.default = String(HTTP_PORT)
@@ -35,9 +33,10 @@ beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
       .createGraphQLSchema(oas, {
-        fillEmptyResponses: true
+        fillEmptyResponses: true,
+        createSubscriptionsFromCallbacks: true
       })
-      .then(({ schema, report }) => {
+      .then(({ schema }) => {
         createdSchema = schema
 
         mqttClient = connect(`mqtt://localhost:${MQTT_PORT}`, {
