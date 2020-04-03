@@ -98,6 +98,7 @@ function processOperationCallbacks(callbacksObject, oas, data, options) {
                     statusCode,
                     oas
                 };
+                // todo register in data.callbacks instead ?
                 /**
                  * Handle operationId property name collision
                  * May occur if multiple OAS are provided
@@ -143,7 +144,12 @@ function preprocessOas(oass, options) {
         data.options.report.numOps += Oas3Tools.countOperations(oas);
         data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas);
         data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas);
-        data.options.report.numOpsSubscription += Oas3Tools.countOperationsSubscription(oas);
+        if (data.options.createSubscriptionsFromCallbacks) {
+            data.options.report.numOpsSubscription += Oas3Tools.countOperationsSubscription(oas);
+        }
+        else {
+            data.options.report.numOpsSubscription = 0;
+        }
         // Get security schemes
         const currentSecurity = getProcessedSecuritySchemes(oas, data);
         const commonSecurityPropertyName = utils_1.getCommonPropertyNames(data.security, currentSecurity);
@@ -207,10 +213,13 @@ function preprocessOas(oass, options) {
                 }
                 // Links
                 const links = Oas3Tools.getEndpointLinks(path, method, oas, data);
-                // Callbacks containing [key: string]:PathItemObject
-                const callbacks = Oas3Tools.getEndpointCallbacks(path, method, oas, data);
-                // should every callback items be registered as operations ?
-                processOperationCallbacks(callbacks, oas, data, options);
+                let callbacks = {};
+                if (options.createSubscriptionsFromCallbacks) {
+                    // Callbacks containing [key: string]:PathItemObject
+                    callbacks = Oas3Tools.getEndpointCallbacks(path, method, oas, data);
+                    // should every callback items be registered as operations ?
+                    processOperationCallbacks(callbacks, oas, data, options);
+                }
                 const responseDefinition = createDataDef(responseSchemaNames, responseSchema, false, data, links, oas);
                 // Parameters
                 const parameters = Oas3Tools.getParameters(path, method, oas);

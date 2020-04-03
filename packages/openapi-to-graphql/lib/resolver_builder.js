@@ -51,21 +51,6 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
          */
         const paramName = Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
         let resolveData = {};
-        if (root &&
-            typeof root === 'object' &&
-            typeof root['_openAPIToGraphQL'] === 'object' &&
-            typeof root['_openAPIToGraphQL'].data === 'object') {
-            const parentIdentifier = getParentIdentifier(info);
-            if (!(parentIdentifier.length === 0) &&
-                parentIdentifier in root['_openAPIToGraphQL'].data) {
-                /**
-                 * Resolving link params may change the usedParams, but these changes
-                 * should not be present in the parent _openAPIToGraphQL, therefore copy
-                 * the object
-                 */
-                resolveData = JSON.parse(JSON.stringify(root['_openAPIToGraphQL'].data[parentIdentifier]));
-            }
-        }
         if (payloadName && typeof payloadName === 'string') {
             // The option genericPayloadArgName will change the payload name to "requestBody"
             const sanePayloadName = data.options.genericPayloadArgName
@@ -107,7 +92,7 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
         //  */
         if (value.search(/{|}/) === -1) {
             args[paramNameWithoutLocation] = isRuntimeExpression(value)
-                ? resolveLinkParameter(paramName, value, resolveData, root, args)
+                ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
                 : value;
         }
         else {
@@ -115,12 +100,12 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
             const cbParams = value.match(/{([^}]*)}/g);
             pubsubLog(`Analyzing subscription path : ${cbParams.toString()}`);
             cbParams.forEach(cbParam => {
-                value = value.replace(cbParam, resolveLinkParameter(paramName, cbParam.substring(1, cbParam.length - 1), resolveData, root, args));
+                value = value.replace(cbParam, resolveRuntimeExpression(paramName, cbParam.substring(1, cbParam.length - 1), resolveData, root, args));
             });
             args[paramNameWithoutLocation] = value;
         }
         const topic = args[paramNameWithoutLocation] || 'test';
-        pubsubLog(`Subscring to : ${topic}`);
+        pubsubLog(`Subscribing to : ${topic}`);
         return ctx.pubsub
             ? ctx.pubsub.asyncIterator(topic)
             : pubsub.asyncIterator(topic);
@@ -288,14 +273,14 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
              */
             if (value.search(/{|}/) === -1) {
                 args[saneParamName] = isRuntimeExpression(value)
-                    ? resolveLinkParameter(paramName, value, resolveData, root, args)
+                    ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
                     : value;
             }
             else {
                 // Replace link parameters with appropriate values
                 const linkParams = value.match(/{([^}]*)}/g);
                 linkParams.forEach(linkParam => {
-                    value = value.replace(linkParam, resolveLinkParameter(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args));
+                    value = value.replace(linkParam, resolveRuntimeExpression(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args));
                 });
                 args[saneParamName] = value;
             }
@@ -733,12 +718,12 @@ function getAuthReqAndProtcolName(operation, _openAPIToGraphQL) {
     };
 }
 /**
- * Given a link parameter, determine the value
+ * Given a link parameter | callback path, determine the value
  *
- * The link parameter is a reference to data contained in the
+ * The link parameter | callback path is a reference to data contained in the
  * url/method/statuscode or response/request body/query/path/header
  */
-function resolveLinkParameter(paramName, value, resolveData, root, args) {
+function resolveRuntimeExpression(paramName, value, resolveData, root, args) {
     if (value === '$url') {
         return resolveData.usedRequestOptions.url;
     }
