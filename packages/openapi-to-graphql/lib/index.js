@@ -59,6 +59,10 @@ function createGraphQLSchema(spec, options) {
             typeof options.createSubscriptionsFromCallbacks === 'boolean'
                 ? options.createSubscriptionsFromCallbacks
                 : false;
+        options.createSubscriptionsFromCallbacks =
+            typeof options.createSubscriptionsFromCallbacks === 'boolean'
+                ? options.createSubscriptionsFromCallbacks
+                : false;
         // Authentication options
         options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true;
         options.sendOAuthTokenInQuery =
@@ -157,7 +161,6 @@ provideErrorExtensions, equivalentToMessages }) {
          */
         const data = preprocessor_1.preprocessOas(oass, options);
         preliminaryChecks(options, data);
-        // console.log('PREPROCESS OPENAPI', data)
         /**
          * Create GraphQL fields for every operation and structure them based on their
          * characteristics (query vs. mutation, auth vs. non-auth).
@@ -168,6 +171,7 @@ provideErrorExtensions, equivalentToMessages }) {
         let authQueryFields = {};
         let authMutationFields = {};
         let authSubscriptionFields = {};
+        // todo parse data.callbacks to recompose subscription ?
         Object.entries(data.operations).forEach(([operationId, operation]) => {
             translationLog(`Process operation '${operation.operationString}'...`);
             let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
@@ -286,7 +290,7 @@ provideErrorExtensions, equivalentToMessages }) {
                     }
                 }
             }
-            else {
+            else if (operation.isSubscription) {
                 // handle subscriptions from operation.callbacks
                 // 1) cbName would be the subscription field name
                 // each paths contained in operation.callbacks[cbName]
@@ -455,7 +459,7 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions, connectO
     });
     if (operation.isSubscription) {
         const responseSchemaName = operation.responseDefinition
-            ? operation.responseDefinition.graphQLInputObjectTypeName
+            ? operation.responseDefinition.graphQLTypeName
             : null;
         const resolve = resolver_builder_1.getPublishResolver({
             operation,

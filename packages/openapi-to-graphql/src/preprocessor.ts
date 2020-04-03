@@ -194,6 +194,8 @@ function processOperationCallbacks(
           oas
         }
 
+        // todo register in data.callbacks instead ?
+
         /**
          * Handle operationId property name collision
          * May occur if multiple OAS are provided
@@ -244,9 +246,13 @@ export function preprocessOas(
     data.options.report.numOps += Oas3Tools.countOperations(oas)
     data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas)
     data.options.report.numOpsQuery += Oas3Tools.countOperationsQuery(oas)
-    data.options.report.numOpsSubscription += Oas3Tools.countOperationsSubscription(
-      oas
-    )
+    if (data.options.createSubscriptionsFromCallbacks) {
+      data.options.report.numOpsSubscription += Oas3Tools.countOperationsSubscription(
+        oas
+      )
+    } else {
+      data.options.report.numOpsSubscription = 0
+    }
 
     // Get security schemes
     const currentSecurity = getProcessedSecuritySchemes(oas, data)
@@ -357,16 +363,15 @@ export function preprocessOas(
         // Links
         const links = Oas3Tools.getEndpointLinks(path, method, oas, data)
 
-        // Callbacks containing [key: string]:PathItemObject
-        const callbacks = Oas3Tools.getEndpointCallbacks(
-          path,
-          method,
-          oas,
-          data
-        )
+        let callbacks = {}
 
-        // should every callback items be registered as operations ?
-        processOperationCallbacks(callbacks, oas, data, options)
+        if (options.createSubscriptionsFromCallbacks) {
+          // Callbacks containing [key: string]:PathItemObject
+          callbacks = Oas3Tools.getEndpointCallbacks(path, method, oas, data)
+
+          // should every callback items be registered as operations ?
+          processOperationCallbacks(callbacks, oas, data, options)
+        }
 
         const responseDefinition = createDataDef(
           responseSchemaNames,
