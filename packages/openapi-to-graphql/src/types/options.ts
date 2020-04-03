@@ -150,6 +150,14 @@ export type Options = {
     }
   }
 
+  /**
+   * Allow to generate subscription fields from CallbackObjects in OpenAPI schema.
+   *
+   * Path ( runtime expression ) of the CallbackObject will be interpolated,
+   * as topic of publish / subscription to use with a pubsub instance.
+   */
+  createSubscriptionsFromCallbacks?: boolean
+
   // Authentication options
 
   /**
@@ -317,6 +325,14 @@ export type InternalOptions = {
       [path: string]: { [method: string]: ResolveFunction | ResolveObject }
     }
   }
+
+  /**
+   * Allow to generate subscription fields from CallbackObjects in OpenAPI schema.
+   *
+   * Path ( runtime expression ) of the CallbackObject will be interpolated,
+   * as topic of publish / subscription to use with a pubsub instance.
+   */
+  createSubscriptionsFromCallbacks?: boolean
 
   // Authentication options
 

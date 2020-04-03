@@ -99,6 +99,11 @@ export async function createGraphQLSchema(
       ? options.genericPayloadArgName
       : false
 
+  options.createSubscriptionsFromCallbacks =
+    typeof options.createSubscriptionsFromCallbacks === 'boolean'
+      ? options.createSubscriptionsFromCallbacks
+      : false
+
   // Authentication options
   options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
   options.sendOAuthTokenInQuery =
@@ -181,6 +186,7 @@ async function translateOpenAPIToGraphQL(
     connectOptions,
     baseUrl,
     customResolvers,
+    createSubscriptionsFromCallbacks,
 
     // Authentication options
     viewer,
@@ -211,6 +217,7 @@ async function translateOpenAPIToGraphQL(
     baseUrl,
     customResolvers,
     selectQueryOrMutationField,
+    createSubscriptionsFromCallbacks,
 
     // Authentication options
     viewer,
@@ -231,8 +238,6 @@ async function translateOpenAPIToGraphQL(
 
   preliminaryChecks(options, data)
 
-  // console.log('PREPROCESS OPENAPI', data)
-
   /**
    * Create GraphQL fields for every operation and structure them based on their
    * characteristics (query vs. mutation, auth vs. non-auth).
@@ -243,6 +248,8 @@ async function translateOpenAPIToGraphQL(
   let authQueryFields = {}
   let authMutationFields = {}
   let authSubscriptionFields = {}
+
+  // todo parse data.callbacks to recompose subscription ?
 
   Object.entries(data.operations).forEach(([operationId, operation]) => {
     translationLog(`Process operation '${operationId}'...`)
@@ -383,7 +390,7 @@ async function translateOpenAPIToGraphQL(
           mutationFields[saneFieldName] = field
         }
       }
-    } else {
+    } else if (operation.isSubscription) {
       // handle subscriptions from operation.callbacks
       // 1) cbName would be the subscription field name
       // each paths contained in operation.callbacks[cbName]
@@ -592,7 +599,7 @@ function getFieldForOperation(
 
   if (operation.isSubscription) {
     const responseSchemaName = operation.responseDefinition
-      ? operation.responseDefinition.graphQLInputObjectTypeName
+      ? operation.responseDefinition.graphQLTypeName
       : null
 
     const resolve = getPublishResolver({

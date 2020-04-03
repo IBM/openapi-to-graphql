@@ -8,9 +8,9 @@
  */
 
 // Type imports:
-import { Oas3, SchemaObject } from './types/oas3'
+import { SchemaObject } from './types/oas3'
 import { ConnectOptions } from './types/options'
-import { Operation, DataDefinition } from './types/operation'
+import { Operation } from './types/operation'
 import {
   ResolveFunction,
   ResolveObject,
@@ -118,28 +118,6 @@ export function getSubscribe({
 
     let resolveData: any = {}
 
-    if (
-      root &&
-      typeof root === 'object' &&
-      typeof root['_openAPIToGraphQL'] === 'object' &&
-      typeof root['_openAPIToGraphQL'].data === 'object'
-    ) {
-      const parentIdentifier = getParentIdentifier(info)
-      if (
-        !(parentIdentifier.length === 0) &&
-        parentIdentifier in root['_openAPIToGraphQL'].data
-      ) {
-        /**
-         * Resolving link params may change the usedParams, but these changes
-         * should not be present in the parent _openAPIToGraphQL, therefore copy
-         * the object
-         */
-        resolveData = JSON.parse(
-          JSON.stringify(root['_openAPIToGraphQL'].data[parentIdentifier])
-        )
-      }
-    }
-
     if (payloadName && typeof payloadName === 'string') {
       // The option genericPayloadArgName will change the payload name to "requestBody"
       const sanePayloadName = data.options.genericPayloadArgName
@@ -190,7 +168,7 @@ export function getSubscribe({
     //  */
     if (value.search(/{|}/) === -1) {
       args[paramNameWithoutLocation] = isRuntimeExpression(value)
-        ? resolveLinkParameter(paramName, value, resolveData, root, args)
+        ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
         : value
     } else {
       // Replace callback expression with appropriate values
@@ -200,7 +178,7 @@ export function getSubscribe({
       cbParams.forEach(cbParam => {
         value = value.replace(
           cbParam,
-          resolveLinkParameter(
+          resolveRuntimeExpression(
             paramName,
             cbParam.substring(1, cbParam.length - 1),
             resolveData,
@@ -212,7 +190,7 @@ export function getSubscribe({
       args[paramNameWithoutLocation] = value
     }
     const topic = args[paramNameWithoutLocation] || 'test'
-    pubsubLog(`Subscring to : ${topic}`)
+    pubsubLog(`Subscribing to : ${topic}`)
     return ctx.pubsub
       ? ctx.pubsub.asyncIterator(topic)
       : pubsub.asyncIterator(topic)
@@ -429,7 +407,7 @@ export function getResolver({
        */
       if (value.search(/{|}/) === -1) {
         args[paramNameWithoutLocation] = isRuntimeExpression(value)
-          ? resolveLinkParameter(paramName, value, resolveData, root, args)
+          ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
           : value
       } else {
         // Replace link parameters with appropriate values
@@ -437,7 +415,7 @@ export function getResolver({
         linkParams.forEach(linkParam => {
           value = value.replace(
             linkParam,
-            resolveLinkParameter(
+            resolveRuntimeExpression(
               paramName,
               linkParam.substring(1, linkParam.length - 1),
               resolveData,
@@ -1006,12 +984,12 @@ function getAuthReqAndProtcolName(
 }
 
 /**
- * Given a link parameter, determine the value
+ * Given a link parameter | callback path, determine the value
  *
- * The link parameter is a reference to data contained in the
+ * The link parameter | callback path is a reference to data contained in the
  * url/method/statuscode or response/request body/query/path/header
  */
-function resolveLinkParameter(
+function resolveRuntimeExpression(
   paramName: string,
   value: string,
   resolveData: any,

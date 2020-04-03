@@ -982,10 +982,10 @@ export function getEndpointCallbacks(
   data: PreprocessingData
 ): { [key: string]: CallbackObject } {
   const callbacks = {}
-  const endpoint: OperationObject = oas.paths[path][method]
+  const operation: OperationObject = oas.paths[path][method]
 
-  if (typeof endpoint.callbacks === 'object') {
-    let callbacksObject: CallbacksObject = endpoint.callbacks
+  if (typeof operation.callbacks === 'object') {
+    let callbacksObject: CallbacksObject = operation.callbacks
     for (let callbackName in callbacksObject) {
       if (typeof callbacksObject[callbackName] === 'object') {
         let callbackObject: CallbackObject | ReferenceObject =
@@ -999,12 +999,9 @@ export function getEndpointCallbacks(
         } else {
           callbackObject = (callbackObject as any) as CallbackObject
         }
-        // console.log("CHECK CALLBACK OBJ", callbackName, callbackObject)
-
         // Make sure CallbackObject contains PathItemObject:
         for (let expression in callbackObject) {
           let pathItem: PathItemObject = callbackObject[expression]
-          // console.log("CHECK CALLBACK ITEM", expression, pathItem)
           if (typeof (pathItem as ReferenceObject).$ref === 'string') {
             pathItem = resolveRef(callbackObject[callbackName]['$ref'], oas)
           } else {

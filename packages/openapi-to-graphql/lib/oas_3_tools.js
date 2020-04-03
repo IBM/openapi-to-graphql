@@ -768,9 +768,9 @@ exports.getParameters = getParameters;
  */
 function getEndpointCallbacks(path, method, oas, data) {
     const callbacks = {};
-    const endpoint = oas.paths[path][method];
-    if (typeof endpoint.callbacks === 'object') {
-        let callbacksObject = endpoint.callbacks;
+    const operation = oas.paths[path][method];
+    if (typeof operation.callbacks === 'object') {
+        let callbacksObject = operation.callbacks;
         for (let callbackName in callbacksObject) {
             if (typeof callbacksObject[callbackName] === 'object') {
                 let callbackObject = callbacksObject[callbackName];
@@ -781,11 +781,9 @@ function getEndpointCallbacks(path, method, oas, data) {
                 else {
                     callbackObject = callbackObject;
                 }
-                // console.log("CHECK CALLBACK OBJ", callbackName, callbackObject)
                 // Make sure CallbackObject contains PathItemObject:
                 for (let expression in callbackObject) {
                     let pathItem = callbackObject[expression];
-                    // console.log("CHECK CALLBACK ITEM", expression, pathItem)
                     if (typeof pathItem.$ref === 'string') {
                         pathItem = resolveRef(callbackObject[callbackName]['$ref'], oas);
                     }
