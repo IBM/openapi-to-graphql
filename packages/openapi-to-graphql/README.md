@@ -174,6 +174,8 @@ Resolver options:
 
 - `customResolvers` (type: `object`, default: `{}`): OpenAPI-to-GraphQL, by default, creates resolver functions that make REST calls to resolve fields in the generated GraphQL interface. This option allows users to provide custom resolver functions to be used in place of said ones created by OpenAPI-to-GraphQL. The field that the custom resolver will affect is identifed first by the [title](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#infoObject) of the OAS, then the [path](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#paths-object) of the operation, and lastly the [method](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#path-item-object) of the operation. The `customResolvers` object is thus a triply nested object where the outer key is the title, followed by the path, and finally the method, which points to the [resolver function](https://graphql.org/learn/execution/#root-fields-resolvers) itself. The resolver function can use the parameters `obj`, `args`, `context`, and `info` in order to produce the proper data, as do standard [resolver functions](https://graphql.org/learn/execution/#root-fields-resolvers) in GraphQL. Use cases include the resolution of complex relationships between types, implementing performance improvements like caching, or dealing with non-standard authentication requirements. _Note: Because the arguments are provided by the GraphQL interface, they may look different from the [parameters](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject) defined by the OAS. For example, they will have [sanitized](https://github.com/Alan-Cha/openapi-to-graphql#characteristics) names. The [request body](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#requestBodyObject) will also be contained in the arguments as an [input object type](https://graphql.org/graphql-js/mutations-and-input-types/)._
 
+- `createSubscriptionsFromCallbacks` (type: `boolean`, default: `false`): Allow to generate subscription fields from CallbackObjects in OpenAPI schema. Path ( runtime expression ) of the [CallbackObject](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject) will be interpolated as topic of publish / subscription to use with a [pubsub](https://github.com/apollographql/graphql-subscriptions) instance.
+Read the [doc](./docs/SUBSCRIPTIONS.md) for explanations and examples regarding its usage.
 ***
 
 Authentication options:
@@ -222,9 +224,6 @@ OpenAPI-to-GraphQL.createGraphQLSchema(oas, {
   }
 })
 ```
-
-- `createSubscriptionsFromCallbacks` (type: `boolean`, default: `false`): Allow to generate subscription fields from CallbackObjects in OpenAPI schema. Path ( runtime expression ) of the [CallbackObject](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject) will be interpolated as topic of publish / subscription to use with a [pubsub](https://github.com/apollographql/graphql-subscriptions) instance.
-Read the [doc](./docs/SUBSCRIPTIONS.md) for explanations and examples regarding its usage.
 
 ## Authentication
 
