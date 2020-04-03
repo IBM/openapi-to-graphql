@@ -40,10 +40,10 @@
   "types": "lib/index.d.ts",
   "scripts": {
     "api": "nodemon test/example_api_server.js",
-    "api-5": "nodemon test/example_api5_server.js",
+    "api_sub": "nodemon test/example_api5_server.js",
     "dev": "tsc -w",
     "start_dev": "DEBUG=preprocessing,translation,http nodemon test/example_gql_server.js",
-    "start_dev_2": "DEBUG=preprocessing,translation,http,pubsub nodemon test/example_gql_server2.js",
+    "start_dev_sub": "DEBUG=preprocessing,translation,http,pubsub nodemon test/example_gql_server_ws.js",
     "build": "tsc",
     "guru-load": "node test/evaluation/load_apis_guru.js",
     "guru-test": "DEBUG=preprocessing,translation node test/evaluation/eval_apis_guru.js",
