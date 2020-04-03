@@ -10,12 +10,12 @@ const openAPIToGraphQL = require('../lib/index')
 const oas5 = require('./fixtures/example_oas5.json')
 
 const HTTP_PORT = 3000
-const WS_PORT = 4000
 const app = express()
 
 openAPIToGraphQL
   .createGraphQLSchema(oas5, {
-    fillEmptyResponses: true
+    fillEmptyResponses: true,
+    createSubscriptionsFromCallbacks: true
     // operationIdFieldNames: true
   })
   .then(({ schema, report }) => {
