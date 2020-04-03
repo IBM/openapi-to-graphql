@@ -206,21 +206,25 @@ OpenAPI-to-GraphQL.createGraphQLSchema(oas, {
     proxy: "http://my-proxy:3128"
   },
   customResolvers: {
-  'I <3 Books API': {
-    '/favoriteBooks/{name}': {
-      'get': (obj, args, context, info) => {
-        return {
-          books: [
-            'A Guide to OpenAPI-to-GraphQL',
-            'Why OpenAPI-to-GraphQL is Amazing',
-            'Long Live OpenAPI-to-GraphQL!'
-          ]
+    'I <3 Books API': {
+      '/favoriteBooks/{name}': {
+        'get': (obj, args, context, info) => {
+          return {
+            books: [
+              'A Guide to OpenAPI-to-GraphQL',
+              'Why OpenAPI-to-GraphQL is Amazing',
+              'Long Live OpenAPI-to-GraphQL!'
+            ]
+          }
         }
       }
     }
   }
 })
 ```
+
+- `createSubscriptionsFromCallbacks` (type: `boolean`, default: `false`): Allow to generate subscription fields from CallbackObjects in OpenAPI schema. Path ( runtime expression ) of the [CallbackObject](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject) will be interpolated as topic of publish / subscription to use with a [pubsub](https://github.com/apollographql/graphql-subscriptions) instance.
+Read the [doc](./docs/SUBSCRIPTIONS.md) for explanations and examples regarding its usage.
 
 ## Authentication
 
@@ -284,7 +288,7 @@ The following logging levels are supported:
 - `preprocessing`: Logs information about preprocessing the OAS.
 - `translation`: Logs information about translating an OAS to GraphQL.
 - `http`: Logs information about the HTTP requests made to the API.
-- `pubsub`: Logs information about the PubSub subscribptions made to the API.
+- `pubsub`: Logs information about the PubSub subscriptions made to the API.
 
 ## Testing
 
