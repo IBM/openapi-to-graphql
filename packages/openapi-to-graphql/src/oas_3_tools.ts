@@ -240,7 +240,9 @@ export function resolveRef(ref: string, oas: Oas3): any {
   if (resolvedObject !== null) {
     return resolvedObject
   } else {
-    throw new Error(`Could not resolve reference '${ref}'`)
+    throw new Error(
+      `Could not resolve reference '${ref}' in OAS '${oas.info.title}'`
+    )
   }
 }
 
@@ -616,16 +618,15 @@ export function inferResourceNameFromPath(path: string): string {
 }
 
 /**
- * Returns JSON-compatible schema required by the given endpoint - or null if it
- * does not exist.
+ * Returns JSON-compatible schema required by the given operation
  */
 export function getRequestBodyObject(
-  endpoint: OperationObject,
+  operation: OperationObject,
   oas: Oas3
 ): { payloadContentType: string; requestBodyObject: RequestBodyObject } | null {
-  if (typeof endpoint.requestBody === 'object') {
+  if (typeof operation.requestBody === 'object') {
     let requestBodyObject: RequestBodyObject | ReferenceObject =
-      endpoint.requestBody
+      operation.requestBody
 
     // Make sure we have a RequestBodyObject:
     if (typeof (requestBodyObject as ReferenceObject).$ref === 'string') {
@@ -668,23 +669,18 @@ export function getRequestBodyObject(
 }
 
 /**
- * Returns the request schema (if any) for an endpoint at given path and method,
+ * Returns the request schema (if any) for the given operation,
  * a dictionary of names from different sources (if available), and whether the
- * request schema is required for the endpoint.
+ * request schema is required for the operation.
  */
 export function getRequestSchemaAndNames(
   path: string,
   method: string,
-  oas: Oas3,
-  callback?: CallbackObject
+  operation: OperationObject,
+  oas: Oas3
 ): RequestSchemaAndNames {
-  // const endpoint: OperationObject = oas.paths[path][method]
-  const endpoint: OperationObject = callback
-    ? callback[path][method]
-    : oas.paths[path][method]
-
   const { payloadContentType, requestBodyObject } = getRequestBodyObject(
-    endpoint,
+    operation,
     oas
   )
 
@@ -759,16 +755,15 @@ export function getRequestSchemaAndNames(
 }
 
 /**
- * Returns JSON-compatible schema produced by the given endpoint - or null if it
- * does not exist.
+ * Returns JSON-compatible schema produced by the given operation
  */
 export function getResponseObject(
-  endpoint: OperationObject,
+  operation: OperationObject,
   statusCode: string,
   oas: Oas3
 ): { responseContentType: string; responseObject: ResponseObject } | null {
-  if (typeof endpoint.responses === 'object') {
-    const responses: ResponsesObject = endpoint.responses
+  if (typeof operation.responses === 'object') {
+    const responses: ResponsesObject = operation.responses
     if (typeof responses[statusCode] === 'object') {
       let responseObject: ResponseObject | ReferenceObject =
         responses[statusCode]
@@ -811,30 +806,24 @@ export function getResponseObject(
 }
 
 /**
- * Returns the response schema for endpoint at given path and method and with
- * the given status code, and a dictionary of names from different sources (if
- * available).
+ * Returns the response schema for the given operation,
+ * a successful  status code, and a dictionary of names from different sources
+ * (if available).
  */
 export function getResponseSchemaAndNames(
   path: string,
   method: string,
+  operation: OperationObject,
   oas: Oas3,
   data: PreprocessingData,
-  options: InternalOptions,
-  callback?: CallbackObject
+  options: InternalOptions
 ): ResponseSchemaAndNames {
-  // const endpoint: OperationObject = oas.paths[path][method]
-  const endpoint: OperationObject = callback
-    ? callback[path][method]
-    : oas.paths[path][method]
-
-  // const statusCode = getResponseStatusCode(path, method, oas, data)
-  const statusCode = getResponseStatusCode(path, method, oas, data, callback)
+  const statusCode = getResponseStatusCode(path, method, operation, oas, data)
   if (!statusCode) {
     return {}
   }
   let { responseContentType, responseObject } = getResponseObject(
-    endpoint,
+    operation,
     statusCode,
     oas
   )
@@ -907,23 +896,17 @@ export function getResponseSchemaAndNames(
 }
 
 /**
- * Returns the success status code for the operation at the given path and
- * method (or null).
+ * Returns a success status code for the given operation
  */
 export function getResponseStatusCode(
   path: string,
   method: string,
+  operation: OperationObject,
   oas: Oas3,
-  data: PreprocessingData,
-  callback?: CallbackObject
+  data: PreprocessingData
 ): string | void {
-  // const endpoint: OperationObject = oas.paths[path][method]
-  const endpoint: OperationObject = callback
-    ? callback[path][method]
-    : oas.paths[path][method]
-
-  if (typeof endpoint.responses === 'object') {
-    const codes = Object.keys(endpoint.responses)
+  if (typeof operation.responses === 'object') {
+    const codes = Object.keys(operation.responses)
     const successCodes = codes.filter(code => {
       return SUCCESS_STATUS_RX.test(code)
     })
@@ -953,22 +936,22 @@ export function getResponseStatusCode(
 }
 
 /**
- * Returns an hash containing the links defined in the given endpoint.
+ * Returns a hash containing the links in the given operation.
  */
-export function getEndpointLinks(
+export function getLinks(
   path: string,
   method: string,
+  operation: OperationObject,
   oas: Oas3,
   data: PreprocessingData
 ): { [key: string]: LinkObject } {
   const links = {}
-  const endpoint: OperationObject = oas.paths[path][method]
-  const statusCode = getResponseStatusCode(path, method, oas, data)
+  const statusCode = getResponseStatusCode(path, method, operation, oas, data)
   if (!statusCode) {
     return links
   }
-  if (typeof endpoint.responses === 'object') {
-    const responses: ResponsesObject = endpoint.responses
+  if (typeof operation.responses === 'object') {
+    const responses: ResponsesObject = operation.responses
     if (typeof responses[statusCode] === 'object') {
       let response: ResponseObject | ReferenceObject = responses[statusCode]
 
@@ -1002,14 +985,14 @@ export function getEndpointLinks(
 }
 
 /**
- * Returns the list of parameters for the endpoint at the given method and path.
- * Resolves possible references.
+ * Returns the list of parameters in the given operation.
  */
 export function getParameters(
   path: string,
   method: string,
-  oas: Oas3,
-  callback?: CallbackObject
+  operation: OperationObject,
+  pathItem: PathItemObject,
+  oas: Oas3
 ): ParameterObject[] {
   let parameters = []
 
@@ -1021,13 +1004,8 @@ export function getParameters(
     return parameters
   }
 
-  // const pathItemObject: PathItemObject = oas.paths[path]
-  const pathItemObject: PathItemObject = callback
-    ? callback[path]
-    : oas.paths[path]
-  const pathParams = pathItemObject.parameters
-
   // First, consider parameters in Path Item Object:
+  const pathParams = pathItem.parameters
   if (Array.isArray(pathParams)) {
     const pathItemParameters: ParameterObject[] = pathParams.map(p => {
       if (typeof (p as ReferenceObject).$ref === 'string') {
@@ -1042,15 +1020,9 @@ export function getParameters(
   }
 
   // Second, consider parameters in Operation Object:
-  // const opObject: OperationObject = oas.paths[path][method]
-  const opObject: OperationObject = callback
-    ? callback[path][method]
-    : oas.paths[path][method]
-
-  const opObjectParameters = opObject.parameters
-
+  const opObjectParameters = operation.parameters
   if (Array.isArray(opObjectParameters)) {
-    const opParameters: ParameterObject[] = opObjectParameters.map(p => {
+    const operationParameters: ParameterObject[] = opObjectParameters.map(p => {
       if (typeof (p as ReferenceObject).$ref === 'string') {
         // Here we know we have a parameter object:
         return resolveRef(p['$ref'], oas) as ParameterObject
@@ -1059,24 +1031,20 @@ export function getParameters(
         return p as ParameterObject
       }
     })
-    parameters = parameters.concat(opParameters)
+    parameters = parameters.concat(operationParameters)
   }
 
   return parameters
 }
 
 /**
- * Returns an hash containing the callbacks defined in the given endpoint.
+ * Returns a hash containing the callbacks in the given operation.
  */
-export function getEndpointCallbacks(
-  path: string,
-  method: string,
-  oas: Oas3,
-  data: PreprocessingData
+export function getCallbacks(
+  operation: OperationObject,
+  oas: Oas3
 ): { [key: string]: CallbackObject } {
   const callbacks = {}
-  const operation: OperationObject = oas.paths[path][method]
-
   if (typeof operation.callbacks === 'object') {
     let callbacksObject: CallbacksObject = operation.callbacks
     for (let callbackName in callbacksObject) {
@@ -1118,10 +1086,9 @@ export function getEndpointCallbacks(
  * default.
  */
 export function getServers(
-  path: string,
-  method: string,
-  oas: Oas3,
-  callback?: CallbackObject
+  operation: OperationObject,
+  pathItem: PathItemObject,
+  oas: Oas3
 ): ServerObject[] {
   let servers = []
   // Global server definitions:
@@ -1129,17 +1096,14 @@ export function getServers(
     servers = oas.servers
   }
 
-  // Path item server definitions override global:
-  // const pathItem = oas.paths[path]
-  const pathItem: PathItemObject = callback ? callback[path] : oas.paths[path]
+  // First, consider servers defined on the path
   if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
     servers = pathItem.servers
   }
 
-  // Operation server definitions override path item:
-  const operationObj = pathItem[method]
-  if (Array.isArray(operationObj.servers) && operationObj.servers.length > 0) {
-    servers = operationObj.servers
+  // Second, consider servers defined on the operation
+  if (Array.isArray(operation.servers) && operation.servers.length > 0) {
+    servers = operation.servers
   }
 
   // Default, in case there is no server:
@@ -1190,15 +1154,13 @@ export function getSecuritySchemes(
  * required by the operation at the given path and method.
  */
 export function getSecurityRequirements(
-  path: string,
-  method: string,
+  operation: OperationObject,
   securitySchemes: { [key: string]: ProcessedSecurityScheme },
-  oas: Oas3,
-  callback?: CallbackObject
+  oas: Oas3
 ): string[] {
   const results: string[] = []
 
-  // First, consider global requirements:
+  // First, consider global requirements
   const globalSecurity: SecurityRequirementObject[] = oas.security
   if (globalSecurity && typeof globalSecurity !== 'undefined') {
     for (let secReq of globalSecurity) {
@@ -1214,12 +1176,7 @@ export function getSecurityRequirements(
     }
   }
 
-  // Local:
-  // const operation: OperationObject = oas.paths[path][method]
-  const operation: OperationObject = callback
-    ? callback[path][method]
-    : oas.paths[path][method]
-
+  // Second, consider operation requirements
   const localSecurity: SecurityRequirementObject[] = operation.security
   if (localSecurity && typeof localSecurity !== 'undefined') {
     for (let secReq of localSecurity) {

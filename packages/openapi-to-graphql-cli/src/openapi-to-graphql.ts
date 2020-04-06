@@ -285,7 +285,7 @@ function startGraphQLServer(
       }
     })
     .catch(err => {
-      console.log('OpenAPI-to-GraphQL creation event error: ', err.message)
+      console.log('OpenAPI-to-GraphQL creation event error:', err.message)
     })
 }
 

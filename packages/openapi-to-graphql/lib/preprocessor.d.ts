@@ -1,4 +1,4 @@
-import { Oas3, SchemaObject, LinkObject } from './types/oas3';
+import { Oas3, LinkObject, SchemaObject } from './types/oas3';
 import { InternalOptions } from './types/options';
 import { DataDefinition } from './types/operation';
 import { PreprocessingData } from './types/preprocessing_data';

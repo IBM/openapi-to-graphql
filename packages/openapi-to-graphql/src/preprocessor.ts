@@ -6,10 +6,12 @@
 // Type imports:
 import {
   Oas3,
-  SchemaObject,
+  CallbackObject,
   LinkObject,
+  OperationObject,
   ReferenceObject,
-  CallbackObject
+  SchemaObject,
+  PathItemObject
 } from './types/oas3'
 import { InternalOptions } from './types/options'
 import { Operation, DataDefinition } from './types/operation'
@@ -27,198 +29,148 @@ import { GraphQLOperationType } from './types/graphql'
 
 const preprocessingLog = debug('preprocessing')
 
-function processOperationCallbacks(
-  callbacksObject: { [key: string]: CallbackObject },
+function processOperation(
+  path: string,
+  method: string,
+  operationString: string,
+  operationType: GraphQLOperationType,
+  operation: OperationObject,
+  pathItem: PathItemObject,
   oas: Oas3,
   data: PreprocessingData,
   options: InternalOptions
-): Operation[] {
-  const operations: Operation[] = []
-  for (let callbackName in callbacksObject) {
-    const callbackObject = callbacksObject[callbackName]
-    for (let path in callbackObject) {
-      // path may be an expression evaluated at runtime
-      // should callbackName be appended to path or replacing the path ?
-      const pathItem = callbackObject[path]
-      for (let method in pathItem) {
-        if (!Oas3Tools.isOperation(method)) {
-          continue
-        }
+): Operation {
+  // Determine description
+  let description = operation.description
+  if (
+    (typeof description !== 'string' || description === '') &&
+    typeof operation.summary === 'string'
+  ) {
+    description = operation.summary
+  }
 
-        const endpoint = pathItem[method]
+  if (data.options.equivalentToMessages) {
+    // Description may not exist
+    if (typeof description !== 'string') {
+      description = ''
+    }
 
-        // Still hesistating ....
-        // const operationString = Oas3Tools.formatOperationString(method, path, callbackName)
-        const operationString = Oas3Tools.formatOperationString(
-          method,
-          callbackName
-        )
+    description += `\n\nEquivalent to ${operationString}`
+  }
 
-        // Determine description
-        let description = endpoint.description
-        if (
-          (typeof description !== 'string' || description === '') &&
-          typeof endpoint.summary === 'string'
-        ) {
-          description = endpoint.summary
-        }
+  // Hold on to the operationId
+  const operationId =
+    typeof operation.operationId !== 'undefined'
+      ? operation.operationId
+      : Oas3Tools.generateOperationId(method, path)
 
-        if (
-          data.options.equivalentToMessages &&
-          typeof description === 'string'
-        ) {
-          description += `\n\nEquivalent to ${operationString}`
-        }
+  // Request schema
+  const {
+    payloadContentType,
+    payloadSchema,
+    payloadSchemaNames,
+    payloadRequired
+  } = Oas3Tools.getRequestSchemaAndNames(path, method, operation, oas)
 
-        // Hold on to the operationId
-        // find another way to name callback operationId (path might be an expression) ?
-        const operationId =
-          typeof endpoint.operationId !== 'undefined'
-            ? endpoint.operationId
-            : Oas3Tools.generateOperationId(method, path)
-
-        // Request schema
-        const {
-          payloadContentType,
-          payloadSchema,
+  const payloadDefinition =
+    payloadSchema && typeof payloadSchema !== 'undefined'
+      ? createDataDef(
           payloadSchemaNames,
-          payloadRequired
-        } = Oas3Tools.getRequestSchemaAndNames(
-          path,
-          method,
-          oas,
-          callbackObject
-        )
-
-        const payloadDefinition =
-          payloadSchema && typeof payloadSchema !== 'undefined'
-            ? createDataDef(
-                payloadSchemaNames,
-                payloadSchema as SchemaObject,
-                true,
-                data,
-                undefined,
-                oas
-              )
-            : undefined
-
-        // Response schema
-        const {
-          responseContentType,
-          responseSchema,
-          responseSchemaNames,
-          statusCode
-        } = Oas3Tools.getResponseSchemaAndNames(
-          path,
-          method,
-          oas,
-          data,
-          options,
-          callbackObject
-        )
-
-        if (!responseSchema || typeof responseSchema !== 'object') {
-          handleWarning({
-            typeKey: 'MISSING_RESPONSE_SCHEMA',
-            message:
-              `Operation ${path} has no (valid) response schema. ` +
-              `You can use the fillEmptyResponses option to create a ` +
-              `placeholder schema`,
-            data,
-            log: preprocessingLog
-          })
-          continue
-        }
-
-        const responseDefinition = createDataDef(
-          responseSchemaNames,
-          responseSchema as SchemaObject,
-          false,
+          payloadSchema as SchemaObject,
+          true,
           data,
           undefined,
           oas
         )
+      : undefined
 
-        // Parameters
-        const parameters = Oas3Tools.getParameters(
-          path,
-          method,
-          oas,
-          callbackObject
-        )
+  // Response schema
+  const {
+    responseContentType,
+    responseSchema,
+    responseSchemaNames,
+    statusCode
+  } = Oas3Tools.getResponseSchemaAndNames(
+    path,
+    method,
+    operation,
+    oas,
+    data,
+    options
+  )
 
-        // Security protocols
-        const securityRequirements = options.viewer
-          ? Oas3Tools.getSecurityRequirements(
-              path,
-              method,
-              data.security,
-              oas,
-              callbackObject
-            )
-          : []
+  if (!responseSchema || typeof responseSchema !== 'object') {
+    handleWarning({
+      typeKey: 'MISSING_RESPONSE_SCHEMA',
+      message:
+        `Operation ${operationString} has no (valid) response schema. ` +
+        `You can use the fillEmptyResponses option to create a ` +
+        `placeholder schema`,
+      data,
+      log: preprocessingLog
+    })
 
-        // Servers
-        const servers = Oas3Tools.getServers(path, method, oas, callbackObject)
-
-        // Whether to place this operation into an authentication viewer
-        const inViewer =
-          securityRequirements.length > 0 && data.options.viewer !== false
-
-        /**
-         * Whether the operation should be added as a Subscription field.
-         * By default, all operations containing callbacks are Subscription.
-         */
-        let isSubscription = true
-        let isMutation = false
-
-        const operation: Operation = {
-          operationId,
-          operationString,
-          description,
-          path,
-          method: method.toLowerCase(),
-          payloadContentType,
-          payloadDefinition,
-          payloadRequired,
-          responseContentType,
-          responseDefinition,
-          parameters,
-          securityRequirements,
-          servers,
-          callbacks: undefined,
-          inViewer,
-          isMutation,
-          isSubscription,
-          statusCode,
-          oas
-        }
-
-        // todo register in data.callbacks instead ?
-
-        /**
-         * Handle operationId property name collision
-         * May occur if multiple OAS are provided
-         */
-        if (operationId in data.operations) {
-          handleWarning({
-            typeKey: 'DUPLICATE_OPERATIONID',
-            message: `Multiple OASs share operations with the same operationId '${operationId}'`,
-            mitigationAddendum: `The operation from the OAS '${operation.oas.info.title}' will be ignored`,
-            data,
-            log: preprocessingLog
-          })
-        } else {
-          data.operations[operationId] = operation
-        }
-
-        operations.push(operation)
-      }
-    }
+    return undefined
   }
 
-  return operations
+  // Links
+  const links = Oas3Tools.getLinks(path, method, operation, oas, data)
+
+  // Callbacks
+  const callbacks = Oas3Tools.getCallbacks(operation, oas)
+
+  const responseDefinition = createDataDef(
+    responseSchemaNames,
+    responseSchema as SchemaObject,
+    false,
+    data,
+    links,
+    oas
+  )
+
+  // Parameters
+  const parameters = Oas3Tools.getParameters(
+    path,
+    method,
+    operation,
+    pathItem,
+    oas
+  )
+
+  // Security protocols
+  const securityRequirements = options.viewer
+    ? Oas3Tools.getSecurityRequirements(operation, data.security, oas)
+    : []
+
+  // Servers
+  const servers = Oas3Tools.getServers(operation, pathItem, oas)
+
+  // Whether to place this operation into an authentication viewer
+  const inViewer =
+    securityRequirements.length > 0 && data.options.viewer !== false
+
+  return {
+    operationId,
+    operationString,
+    operationType,
+    description,
+    path,
+    method: method.toLowerCase(),
+    payloadContentType,
+    payloadDefinition,
+    payloadRequired,
+    responseContentType,
+    responseDefinition,
+    parameters,
+    securityRequirements,
+    servers,
+    callbacks,
+    inViewer,
+    statusCode,
+    oas
+  }
 }
+
 /**
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OpenAPI-to-GraphQL to use
@@ -228,15 +180,16 @@ export function preprocessOas(
   options: InternalOptions
 ): PreprocessingData {
   const data: PreprocessingData = {
+    operations: {},
+    callbackOperations: {},
     usedTypeNames: [
       'Query', // Used by OpenAPI-to-GraphQL for root-level element
       'Mutation', // Used by OpenAPI-to-GraphQL for root-level element
       'Subscription' // Used by OpenAPI-to-GraphQL for root-level element
     ],
     defs: [],
-    operations: {},
-    saneMap: {},
     security: {},
+    saneMap: {},
     options,
     oass
   }
@@ -277,195 +230,162 @@ export function preprocessOas(
 
     // Process all operations
     for (let path in oas.paths) {
-      for (let method in oas.paths[path]) {
-        // Only consider Operation Objects
-        if (!Oas3Tools.isOperation(method)) {
-          continue
-        }
+      const pathItem = !('$ref' in oas.paths[path])
+        ? oas.paths[path]
+        : (Oas3Tools.resolveRef(oas.paths[path]['$ref'], oas) as PathItemObject)
 
-        const endpoint = oas.paths[path][method]
-        const operationString =
-          oass.length === 1
-            ? Oas3Tools.formatOperationString(method, path)
-            : Oas3Tools.formatOperationString(method, path, oas.info.title)
+      Object.keys(pathItem)
+        .filter(objectKey => {
+          /**
+           * Get only fields that contain operation objects
+           *
+           * Can also contain other fields such as summary or description
+           */
+          return Oas3Tools.isOperation(objectKey)
+        })
+        .forEach(method => {
+          const operation = pathItem[method] as OperationObject
 
-        // Determine description
-        let description = endpoint.description
-        if (
-          (typeof description !== 'string' || description === '') &&
-          typeof endpoint.summary === 'string'
-        ) {
-          description = endpoint.summary
-        }
+          const operationString =
+            oass.length === 1
+              ? Oas3Tools.formatOperationString(method, path)
+              : Oas3Tools.formatOperationString(method, path, oas.info.title)
 
-        if (data.options.equivalentToMessages) {
-          // Description may not exist
-          if (typeof description !== 'string') {
-            description = ''
+          let operationType =
+            method.toLowerCase() === 'get'
+              ? GraphQLOperationType.Query
+              : GraphQLOperationType.Mutation
+
+          // Option selectQueryOrMutationField can override operation type
+          if (
+            typeof options.selectQueryOrMutationField === 'object' &&
+            typeof options.selectQueryOrMutationField[oas.info.title] ===
+              'object' &&
+            typeof options.selectQueryOrMutationField[oas.info.title][path] ===
+              'object' &&
+            typeof options.selectQueryOrMutationField[oas.info.title][path][
+              method
+            ] === 'number' // This is an TS enum, which is translated to have a integer value
+          ) {
+            operationType =
+              options.selectQueryOrMutationField[oas.info.title][path][
+                method
+              ] === GraphQLOperationType.Mutation
+                ? GraphQLOperationType.Mutation
+                : GraphQLOperationType.Query
           }
 
-          description += `\n\nEquivalent to ${operationString}`
-        }
+          const operationData = processOperation(
+            path,
+            method,
+            operationString,
+            operationType,
+            operation,
+            pathItem,
+            oas,
+            data,
+            options
+          )
 
-        // Hold on to the operationId
-        const operationId =
-          typeof endpoint.operationId !== 'undefined'
-            ? endpoint.operationId
-            : Oas3Tools.generateOperationId(method, path)
-
-        // Request schema
-        const {
-          payloadContentType,
-          payloadSchema,
-          payloadSchemaNames,
-          payloadRequired
-        } = Oas3Tools.getRequestSchemaAndNames(path, method, oas)
-
-        const payloadDefinition =
-          payloadSchema && typeof payloadSchema !== 'undefined'
-            ? createDataDef(
-                payloadSchemaNames,
-                payloadSchema as SchemaObject,
-                true,
+          if (operationData) {
+            /**
+             * Handle operationId property name collision
+             * May occur if multiple OAS are provided
+             */
+            if (
+              operationData &&
+              !(operationData.operationId in data.operations)
+            ) {
+              data.operations[operationData.operationId] = operationData
+            } else {
+              handleWarning({
+                typeKey: 'DUPLICATE_OPERATIONID',
+                message: `Multiple OASs share operations with the same operationId '${operationData.operationId}'`,
+                mitigationAddendum: `The operation from the OAS '${operationData.oas.info.title}' will be ignored`,
                 data,
-                undefined,
-                oas
-              )
-            : undefined
+                log: preprocessingLog
+              })
+            }
+          }
 
-        // Response schema
-        const {
-          responseContentType,
-          responseSchema,
-          responseSchemaNames,
-          statusCode
-        } = Oas3Tools.getResponseSchemaAndNames(
-          path,
-          method,
-          oas,
-          data,
-          options
-        )
+          // Process all callbacks
+          if (operation.callbacks) {
+            Object.entries(operation.callbacks).forEach(
+              ([callbackName, callback]) => {
+                const resolvedCallback = !('$ref' in callback)
+                  ? callback
+                  : (Oas3Tools.resolveRef(
+                      (callback as ReferenceObject)['$ref'],
+                      oas
+                    ) as CallbackObject)
 
-        if (!responseSchema || typeof responseSchema !== 'object') {
-          handleWarning({
-            typeKey: 'MISSING_RESPONSE_SCHEMA',
-            message:
-              `Operation ${operationString} has no (valid) response schema. ` +
-              `You can use the fillEmptyResponses option to create a ` +
-              `placeholder schema`,
-            data,
-            log: preprocessingLog
-          })
-          continue
-        }
+                Object.entries(resolvedCallback).forEach(
+                  ([callbackExpression, callbackPathItem]) => {
+                    const resolvedCallbackPathItem = !(
+                      '$ref' in callbackPathItem
+                    )
+                      ? callbackPathItem
+                      : Oas3Tools.resolveRef(callbackPathItem['$ref'], oas)
 
-        // Links
-        const links = Oas3Tools.getEndpointLinks(path, method, oas, data)
+                    Object.keys(resolvedCallbackPathItem)
+                      .filter(objectKey => {
+                        /**
+                         * Get only fields that contain operation objects
+                         *
+                         * Can also contain other fields such as summary or description
+                         */
+                        return Oas3Tools.isOperation(objectKey)
+                      })
+                      .forEach(callbackMethod => {
+                        const callbackOperationString = Oas3Tools.formatOperationString(
+                          method,
+                          callbackName
+                        )
 
-        let callbacks = {}
+                        const callbackOperation = processOperation(
+                          callbackExpression,
+                          callbackMethod,
+                          callbackOperationString,
+                          GraphQLOperationType.Subscription,
+                          resolvedCallbackPathItem[callbackMethod],
+                          callbackPathItem,
+                          oas,
+                          data,
+                          options
+                        )
 
-        if (options.createSubscriptionsFromCallbacks) {
-          // Callbacks containing [key: string]:PathItemObject
-          callbacks = Oas3Tools.getEndpointCallbacks(path, method, oas, data)
-
-          // should every callback items be registered as operations ?
-          processOperationCallbacks(callbacks, oas, data, options)
-        }
-
-        const responseDefinition = createDataDef(
-          responseSchemaNames,
-          responseSchema as SchemaObject,
-          false,
-          data,
-          links,
-          oas
-        )
-
-        // Parameters
-        const parameters = Oas3Tools.getParameters(path, method, oas)
-
-        // Security protocols
-        const securityRequirements = options.viewer
-          ? Oas3Tools.getSecurityRequirements(path, method, data.security, oas)
-          : []
-
-        // Servers
-        const servers = Oas3Tools.getServers(path, method, oas)
-
-        // Whether to place this operation into an authentication viewer
-        const inViewer =
-          securityRequirements.length > 0 && data.options.viewer !== false
-
-        /**
-         * Whether the operation should be added as a Subscription field.
-         * By default, all operations contained in callbacks should be Subscription ?
-         * Unless it is more logical to consider the callbacks parent to be the Subscription ?
-         */
-        let isSubscription = false
-
-        /**
-         * Whether the operation should be added as a Query or Mutation field.
-         * By default, all GET operations are Query fields and all other
-         * operations are Mutation fields.
-         */
-        let isMutation = method.toLowerCase() !== 'get'
-
-        // Option selectQueryOrMutationField can override isMutation
-        if (
-          typeof options.selectQueryOrMutationField === 'object' &&
-          typeof options.selectQueryOrMutationField[oas.info.title] ===
-            'object' &&
-          typeof options.selectQueryOrMutationField[oas.info.title][path] ===
-            'object' &&
-          typeof options.selectQueryOrMutationField[oas.info.title][path][
-            method
-          ] === 'number' // This is an TS enum, which is translated to have a integer value
-        ) {
-          isMutation =
-            options.selectQueryOrMutationField[oas.info.title][path][method] ===
-            GraphQLOperationType.Mutation
-        }
-
-        // Store determined information for operation
-        const operation: Operation = {
-          operationId,
-          operationString,
-          description,
-          path,
-          method: method.toLowerCase(),
-          payloadContentType,
-          payloadDefinition,
-          payloadRequired,
-          responseContentType,
-          responseDefinition,
-          parameters,
-          securityRequirements,
-          servers,
-          callbacks,
-          inViewer,
-          isMutation,
-          isSubscription,
-          statusCode,
-          oas
-        }
-
-        /**
-         * Handle operationId property name collision
-         * May occur if multiple OAS are provided
-         */
-        if (operationId in data.operations) {
-          handleWarning({
-            typeKey: 'DUPLICATE_OPERATIONID',
-            message: `Multiple OASs share operations with the same operationId '${operationId}'`,
-            mitigationAddendum: `The operation from the OAS '${operation.oas.info.title}' will be ignored`,
-            data,
-            log: preprocessingLog
-          })
-        } else {
-          data.operations[operationId] = operation
-        }
-      }
+                        if (callbackOperation) {
+                          /**
+                           * Handle operationId property name collision
+                           * May occur if multiple OAS are provided
+                           */
+                          if (
+                            callbackOperation &&
+                            !(
+                              callbackOperation.operationId in
+                              data.callbackOperations
+                            )
+                          ) {
+                            data.callbackOperations[
+                              callbackOperation.operationId
+                            ] = callbackOperation
+                          } else {
+                            handleWarning({
+                              typeKey: 'DUPLICATE_OPERATIONID',
+                              message: `Multiple OASs share callback operations with the same operationId '${callbackOperation.operationId}'`,
+                              mitigationAddendum: `The callback operation from the OAS '${operationData.oas.info.title}' will be ignored`,
+                              data,
+                              log: preprocessingLog
+                            })
+                          }
+                        }
+                      })
+                  }
+                )
+              }
+            )
+          }
+        })
     }
   })
 

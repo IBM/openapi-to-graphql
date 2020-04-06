@@ -10,6 +10,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
  */
 // Type imports:
 const graphql_1 = require("graphql");
+const graphql_2 = require("./types/graphql");
 // Imports:
 const schema_builder_1 = require("./schema_builder");
 const Oas3Tools = require("./oas_3_tools");
@@ -23,7 +24,7 @@ const translationLog = debug_1.default('translation');
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-function createAndLoadViewer(queryFields, data, isMutation = false, isSubscription = false) {
+function createAndLoadViewer(queryFields, operationType, data) {
     let results = {};
     /**
      * To ensure that viewers have unique names, we add a numerical postfix.
@@ -74,20 +75,11 @@ function createAndLoadViewer(queryFields, data, isMutation = false, isSubscripti
             viewerType = securityType;
         }
         // Create name for the viewer
-        let viewerName = isSubscription
-            ? Oas3Tools.sanitize(`subscription viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase)
-            : !isMutation
-                ? Oas3Tools.sanitize(`viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase)
-                : Oas3Tools.sanitize(`mutation viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase);
-        // let viewerName = !isMutation
-        //   ? Oas3Tools.sanitize(
-        //       `viewer ${viewerType}`,
-        //       Oas3Tools.CaseStyle.camelCase
-        //     )
-        //   : Oas3Tools.sanitize(
-        //       `mutation viewer ${viewerType}`,
-        //       Oas3Tools.CaseStyle.camelCase
-        //     )
+        let viewerName = operationType === graphql_2.GraphQLOperationType.Query
+            ? Oas3Tools.sanitize(`viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase)
+            : operationType === graphql_2.GraphQLOperationType.Mutation
+                ? Oas3Tools.sanitize(`mutation viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase)
+                : Oas3Tools.sanitize(`subscription viewer ${viewerType}`, Oas3Tools.CaseStyle.camelCase);
         // Ensure unique viewer name
         // If name already exists, append a number at the end of the name
         if (!(viewerType in viewerNamePostfix)) {
@@ -100,14 +92,11 @@ function createAndLoadViewer(queryFields, data, isMutation = false, isSubscripti
         results[viewerName] = getViewerOT(viewerName, protocolName, securityType, queryFields[protocolName], data);
     }
     // Create name for the AnyAuth viewer
-    const anyAuthObjectName = isSubscription
-        ? 'subscriptionViewerAnyAuth'
-        : !isMutation
-            ? 'viewerAnyAuth'
-            : 'mutationViewerAnyAuth';
-    // const anyAuthObjectName = !isMutation
-    //   ? 'viewerAnyAuth'
-    //   : 'mutationViewerAnyAuth'
+    const anyAuthObjectName = operationType === graphql_2.GraphQLOperationType.Query
+        ? 'viewerAnyAuth'
+        : operationType === graphql_2.GraphQLOperationType.Mutation
+            ? 'mutationViewerAnyAuth'
+            : 'subscriptionViewerAnyAuth';
     // Add the AnyAuth object type to the specified root query object type
     results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data);
     return results;

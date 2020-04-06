@@ -26,9 +26,15 @@ export declare type ProcessedSecurityScheme = {
 };
 export declare type PreprocessingData = {
     /**
-     * List of Operation objects
+     * List of operation objects
      */
     operations: {
+        [key: string]: Operation;
+    };
+    /**
+     * List of Operation objects
+     */
+    callbackOperations: {
         [key: string]: Operation;
     };
     /**
