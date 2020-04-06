@@ -3,7 +3,7 @@
  */
 import { Oas2 } from './types/oas2';
 import { Operation } from './types/operation';
-import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, PathItemObject, RequestBodyObject, ReferenceObject, LinkObject, CallbackObject, SecuritySchemeObject } from './types/oas3';
+import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, PathItemObject, RequestBodyObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
@@ -140,12 +140,6 @@ export declare function getLinks(path: string, method: string, operation: Operat
  * Returns the list of parameters in the given operation.
  */
 export declare function getParameters(path: string, method: string, operation: OperationObject, pathItem: PathItemObject, oas: Oas3): ParameterObject[];
-/**
- * Returns a hash containing the callbacks in the given operation.
- */
-export declare function getCallbacks(operation: OperationObject, oas: Oas3): {
-    [key: string]: CallbackObject;
-};
 /**
  * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,

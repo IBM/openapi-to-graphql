@@ -106,12 +106,7 @@ export async function createGraphQLSchema(
     typeof options.createSubscriptionsFromCallbacks === 'boolean'
       ? options.createSubscriptionsFromCallbacks
       : false
-
-  options.createSubscriptionsFromCallbacks =
-    typeof options.createSubscriptionsFromCallbacks === 'boolean'
-      ? options.createSubscriptionsFromCallbacks
-      : false
-
+      
   // Authentication options
   options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
   options.sendOAuthTokenInQuery =
@@ -381,7 +376,7 @@ async function translateOpenAPIToGraphQL(
           data.saneMap
         )
       }
-      
+
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {
           if (typeof authMutationFields[securityRequirement] !== 'object') {

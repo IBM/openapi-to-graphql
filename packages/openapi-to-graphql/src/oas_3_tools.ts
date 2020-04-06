@@ -1038,48 +1038,6 @@ export function getParameters(
 }
 
 /**
- * Returns a hash containing the callbacks in the given operation.
- */
-export function getCallbacks(
-  operation: OperationObject,
-  oas: Oas3
-): { [key: string]: CallbackObject } {
-  const callbacks = {}
-  if (typeof operation.callbacks === 'object') {
-    let callbacksObject: CallbacksObject = operation.callbacks
-    for (let callbackName in callbacksObject) {
-      if (typeof callbacksObject[callbackName] === 'object') {
-        let callbackObject: CallbackObject | ReferenceObject =
-          callbacksObject[callbackName]
-        // Make sure we have CallbackObject:
-        if (typeof (callbackObject as ReferenceObject).$ref === 'string') {
-          callbackObject = resolveRef(
-            (callbackObject as ReferenceObject).$ref,
-            oas
-          ) as CallbackObject
-        } else {
-          callbackObject = (callbackObject as any) as CallbackObject
-        }
-        // Make sure CallbackObject contains PathItemObject:
-        for (let expression in callbackObject) {
-          let pathItem: PathItemObject = callbackObject[expression]
-          if (typeof (pathItem as ReferenceObject).$ref === 'string') {
-            pathItem = resolveRef(callbackObject[callbackName]['$ref'], oas)
-          } else {
-            pathItem = (pathItem as any) as PathItemObject
-          }
-
-          const callback: CallbackObject = { [expression]: pathItem }
-          callbacks[callbackName] = { ...callbacks[callbackName], ...callback }
-        }
-      }
-    }
-  }
-
-  return callbacks
-}
-
-/**
  * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
  * definitions at the path item, definitions at the operation, or the OAS
