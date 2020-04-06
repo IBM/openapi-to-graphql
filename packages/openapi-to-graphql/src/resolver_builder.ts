@@ -71,7 +71,6 @@ type GetSubscribeParams = {
  */
 export function getSubscribe({
   operation,
-  argsFromLink = {},
   payloadName,
   data,
   baseUrl,
@@ -111,7 +110,6 @@ export function getSubscribe({
      * GraphQL produces sanitized payload names, so we have to sanitize before
      * lookup here
      */
-
     const paramName = Oas3Tools.sanitize(
       payloadName,
       Oas3Tools.CaseStyle.camelCase
@@ -139,14 +137,6 @@ export function getSubscribe({
       }
     }
 
-    pubsubLog(
-      `Subscription schema : ${JSON.stringify(resolveData.usedPayload)}`
-    )
-
-    if (typeof resolveData.usedParams === 'undefined') {
-      resolveData.usedParams = {}
-    }
-
     if (connectOptions) {
       resolveData.usedRequestOptions = connectOptions
     } else {
@@ -157,16 +147,15 @@ export function getSubscribe({
       }
     }
 
+    pubsubLog(`Subscription schema: ${JSON.stringify(resolveData.usedPayload)}`)
+
     let value = path
     let paramNameWithoutLocation = paramName
     if (paramName.indexOf('.') !== -1) {
       paramNameWithoutLocation = paramName.split('.')[1]
     }
 
-    // /**
-    //  * see if the callback path contains constants expression
-    //  *
-    //  */
+    // See if the callback path contains constants expression
     if (value.search(/{|}/) === -1) {
       args[paramNameWithoutLocation] = isRuntimeExpression(value)
         ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
@@ -174,7 +163,7 @@ export function getSubscribe({
     } else {
       // Replace callback expression with appropriate values
       const cbParams = value.match(/{([^}]*)}/g)
-      pubsubLog(`Analyzing subscription path : ${cbParams.toString()}`)
+      pubsubLog(`Analyzing subscription path: ${cbParams.toString()}`)
 
       cbParams.forEach(cbParam => {
         value = value.replace(
@@ -190,8 +179,11 @@ export function getSubscribe({
       })
       args[paramNameWithoutLocation] = value
     }
+
+    console.log('args', args)
+
     const topic = args[paramNameWithoutLocation] || 'test'
-    pubsubLog(`Subscribing to : ${topic}`)
+    pubsubLog(`Subscribing to: ${topic}`)
     return ctx.pubsub
       ? ctx.pubsub.asyncIterator(topic)
       : pubsub.asyncIterator(topic)

@@ -21,7 +21,7 @@ const pubsubLog = debug_1.debug('pubsub');
  * If operationType is Subscription, creates and returns a resolver object that contains subscribe to perform subscription
  * and resolve to execute payload transformation
  */
-function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl, connectOptions }) {
+function getSubscribe({ operation, payloadName, data, baseUrl, connectOptions }) {
     // Determine the appropriate URL:
     if (typeof baseUrl === 'undefined') {
         baseUrl = Oas3Tools.getBaseUrl(operation);
@@ -67,10 +67,6 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
                 }
             }
         }
-        pubsubLog(`Subscription schema : ${JSON.stringify(resolveData.usedPayload)}`);
-        if (typeof resolveData.usedParams === 'undefined') {
-            resolveData.usedParams = {};
-        }
         if (connectOptions) {
             resolveData.usedRequestOptions = connectOptions;
         }
@@ -81,15 +77,13 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
                     : method.toUpperCase()
             };
         }
+        pubsubLog(`Subscription schema: ${JSON.stringify(resolveData.usedPayload)}`);
         let value = path;
         let paramNameWithoutLocation = paramName;
         if (paramName.indexOf('.') !== -1) {
             paramNameWithoutLocation = paramName.split('.')[1];
         }
-        // /**
-        //  * see if the callback path contains constants expression
-        //  *
-        //  */
+        // See if the callback path contains constants expression
         if (value.search(/{|}/) === -1) {
             args[paramNameWithoutLocation] = isRuntimeExpression(value)
                 ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
@@ -98,14 +92,15 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
         else {
             // Replace callback expression with appropriate values
             const cbParams = value.match(/{([^}]*)}/g);
-            pubsubLog(`Analyzing subscription path : ${cbParams.toString()}`);
+            pubsubLog(`Analyzing subscription path: ${cbParams.toString()}`);
             cbParams.forEach(cbParam => {
                 value = value.replace(cbParam, resolveRuntimeExpression(paramName, cbParam.substring(1, cbParam.length - 1), resolveData, root, args));
             });
             args[paramNameWithoutLocation] = value;
         }
+        console.log('args', args);
         const topic = args[paramNameWithoutLocation] || 'test';
-        pubsubLog(`Subscribing to : ${topic}`);
+        pubsubLog(`Subscribing to: ${topic}`);
         return ctx.pubsub
             ? ctx.pubsub.asyncIterator(topic)
             : pubsub.asyncIterator(topic);

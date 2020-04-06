@@ -3,6 +3,7 @@
  * operation in the OAS.
  */
 import { Oas3, LinkObject, CallbackObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
+import { GraphQLOperationType } from './graphql';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
 import * as GraphQLJSON from 'graphql-type-json';
 export declare type DataDefinition = {
@@ -112,13 +113,9 @@ export declare type Operation = {
      */
     inViewer: boolean;
     /**
-     * Whether this operation is a mutation (or a query).
+     * Type of operation
      */
-    isMutation: boolean;
-    /**
-     * Whether this operation is a subscription.
-     */
-    isSubscription: boolean;
+    operationType: GraphQLOperationType;
     /**
      * The success HTTP code, 200-299, destined to become a GraphQL object type
      */

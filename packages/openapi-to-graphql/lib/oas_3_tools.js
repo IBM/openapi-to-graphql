@@ -175,7 +175,7 @@ function resolveRef(ref, oas) {
         return resolvedObject;
     }
     else {
-        throw new Error(`Could not resolve reference '${ref}'`);
+        throw new Error(`Could not resolve reference '${ref}' in OAS '${oas.info.title}'`);
     }
 }
 exports.resolveRef = resolveRef;
@@ -481,12 +481,11 @@ function inferResourceNameFromPath(path) {
 }
 exports.inferResourceNameFromPath = inferResourceNameFromPath;
 /**
- * Returns JSON-compatible schema required by the given endpoint - or null if it
- * does not exist.
+ * Returns JSON-compatible schema required by the given operation
  */
-function getRequestBodyObject(endpoint, oas) {
-    if (typeof endpoint.requestBody === 'object') {
-        let requestBodyObject = endpoint.requestBody;
+function getRequestBodyObject(operation, oas) {
+    if (typeof operation.requestBody === 'object') {
+        let requestBodyObject = operation.requestBody;
         // Make sure we have a RequestBodyObject:
         if (typeof requestBodyObject.$ref === 'string') {
             requestBodyObject = resolveRef(requestBodyObject.$ref, oas);
@@ -523,16 +522,12 @@ function getRequestBodyObject(endpoint, oas) {
 }
 exports.getRequestBodyObject = getRequestBodyObject;
 /**
- * Returns the request schema (if any) for an endpoint at given path and method,
+ * Returns the request schema (if any) for the given operation,
  * a dictionary of names from different sources (if available), and whether the
- * request schema is required for the endpoint.
+ * request schema is required for the operation.
  */
-function getRequestSchemaAndNames(path, method, oas, callback) {
-    // const endpoint: OperationObject = oas.paths[path][method]
-    const endpoint = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
-    const { payloadContentType, requestBodyObject } = getRequestBodyObject(endpoint, oas);
+function getRequestSchemaAndNames(path, method, operation, oas) {
+    const { payloadContentType, requestBodyObject } = getRequestBodyObject(operation, oas);
     if (payloadContentType) {
         let payloadSchema = requestBodyObject.content[payloadContentType].schema;
         // Get resource name from different sources
@@ -588,12 +583,11 @@ function getRequestSchemaAndNames(path, method, oas, callback) {
 }
 exports.getRequestSchemaAndNames = getRequestSchemaAndNames;
 /**
- * Returns JSON-compatible schema produced by the given endpoint - or null if it
- * does not exist.
+ * Returns JSON-compatible schema produced by the given operation
  */
-function getResponseObject(endpoint, statusCode, oas) {
-    if (typeof endpoint.responses === 'object') {
-        const responses = endpoint.responses;
+function getResponseObject(operation, statusCode, oas) {
+    if (typeof operation.responses === 'object') {
+        const responses = operation.responses;
         if (typeof responses[statusCode] === 'object') {
             let responseObject = responses[statusCode];
             // Make sure we have a ResponseObject:
@@ -628,21 +622,16 @@ function getResponseObject(endpoint, statusCode, oas) {
 }
 exports.getResponseObject = getResponseObject;
 /**
- * Returns the response schema for endpoint at given path and method and with
- * the given status code, and a dictionary of names from different sources (if
- * available).
+ * Returns the response schema for the given operation,
+ * a successful  status code, and a dictionary of names from different sources
+ * (if available).
  */
-function getResponseSchemaAndNames(path, method, oas, data, options, callback) {
-    // const endpoint: OperationObject = oas.paths[path][method]
-    const endpoint = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
-    // const statusCode = getResponseStatusCode(path, method, oas, data)
-    const statusCode = getResponseStatusCode(path, method, oas, data, callback);
+function getResponseSchemaAndNames(path, method, operation, oas, data, options) {
+    const statusCode = getResponseStatusCode(path, method, operation, oas, data);
     if (!statusCode) {
         return {};
     }
-    let { responseContentType, responseObject } = getResponseObject(endpoint, statusCode, oas);
+    let { responseContentType, responseObject } = getResponseObject(operation, statusCode, oas);
     if (responseContentType) {
         let responseSchema = responseObject.content[responseContentType].schema;
         let fromRef;
@@ -702,16 +691,11 @@ function getResponseSchemaAndNames(path, method, oas, data, options, callback) {
 }
 exports.getResponseSchemaAndNames = getResponseSchemaAndNames;
 /**
- * Returns the success status code for the operation at the given path and
- * method (or null).
+ * Returns a success status code for the given operation
  */
-function getResponseStatusCode(path, method, oas, data, callback) {
-    // const endpoint: OperationObject = oas.paths[path][method]
-    const endpoint = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
-    if (typeof endpoint.responses === 'object') {
-        const codes = Object.keys(endpoint.responses);
+function getResponseStatusCode(path, method, operation, oas, data) {
+    if (typeof operation.responses === 'object') {
+        const codes = Object.keys(operation.responses);
         const successCodes = codes.filter(code => {
             return exports.SUCCESS_STATUS_RX.test(code);
         });
@@ -736,17 +720,16 @@ function getResponseStatusCode(path, method, oas, data, callback) {
 }
 exports.getResponseStatusCode = getResponseStatusCode;
 /**
- * Returns an hash containing the links defined in the given endpoint.
+ * Returns a hash containing the links in the given operation.
  */
-function getEndpointLinks(path, method, oas, data) {
+function getLinks(path, method, operation, oas, data) {
     const links = {};
-    const endpoint = oas.paths[path][method];
-    const statusCode = getResponseStatusCode(path, method, oas, data);
+    const statusCode = getResponseStatusCode(path, method, operation, oas, data);
     if (!statusCode) {
         return links;
     }
-    if (typeof endpoint.responses === 'object') {
-        const responses = endpoint.responses;
+    if (typeof operation.responses === 'object') {
+        const responses = operation.responses;
         if (typeof responses[statusCode] === 'object') {
             let response = responses[statusCode];
             if (typeof response.$ref === 'string') {
@@ -772,24 +755,19 @@ function getEndpointLinks(path, method, oas, data) {
     }
     return links;
 }
-exports.getEndpointLinks = getEndpointLinks;
+exports.getLinks = getLinks;
 /**
- * Returns the list of parameters for the endpoint at the given method and path.
- * Resolves possible references.
+ * Returns the list of parameters in the given operation.
  */
-function getParameters(path, method, oas, callback) {
+function getParameters(path, method, operation, pathItem, oas) {
     let parameters = [];
     if (!isOperation(method)) {
         translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
             `which is not an operation.`);
         return parameters;
     }
-    // const pathItemObject: PathItemObject = oas.paths[path]
-    const pathItemObject = callback
-        ? callback[path]
-        : oas.paths[path];
-    const pathParams = pathItemObject.parameters;
     // First, consider parameters in Path Item Object:
+    const pathParams = pathItem.parameters;
     if (Array.isArray(pathParams)) {
         const pathItemParameters = pathParams.map(p => {
             if (typeof p.$ref === 'string') {
@@ -804,13 +782,9 @@ function getParameters(path, method, oas, callback) {
         parameters = parameters.concat(pathItemParameters);
     }
     // Second, consider parameters in Operation Object:
-    // const opObject: OperationObject = oas.paths[path][method]
-    const opObject = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
-    const opObjectParameters = opObject.parameters;
+    const opObjectParameters = operation.parameters;
     if (Array.isArray(opObjectParameters)) {
-        const opParameters = opObjectParameters.map(p => {
+        const operationParameters = opObjectParameters.map(p => {
             if (typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
@@ -820,17 +794,16 @@ function getParameters(path, method, oas, callback) {
                 return p;
             }
         });
-        parameters = parameters.concat(opParameters);
+        parameters = parameters.concat(operationParameters);
     }
     return parameters;
 }
 exports.getParameters = getParameters;
 /**
- * Returns an hash containing the callbacks defined in the given endpoint.
+ * Returns a hash containing the callbacks in the given operation.
  */
-function getEndpointCallbacks(path, method, oas, data) {
+function getCallbacks(operation, oas) {
     const callbacks = {};
-    const operation = oas.paths[path][method];
     if (typeof operation.callbacks === 'object') {
         let callbacksObject = operation.callbacks;
         for (let callbackName in callbacksObject) {
@@ -860,29 +833,26 @@ function getEndpointCallbacks(path, method, oas, data) {
     }
     return callbacks;
 }
-exports.getEndpointCallbacks = getEndpointCallbacks;
+exports.getCallbacks = getCallbacks;
 /**
  * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
  * definitions at the path item, definitions at the operation, or the OAS
  * default.
  */
-function getServers(path, method, oas, callback) {
+function getServers(operation, pathItem, oas) {
     let servers = [];
     // Global server definitions:
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
         servers = oas.servers;
     }
-    // Path item server definitions override global:
-    // const pathItem = oas.paths[path]
-    const pathItem = callback ? callback[path] : oas.paths[path];
+    // First, consider servers defined on the path
     if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
         servers = pathItem.servers;
     }
-    // Operation server definitions override path item:
-    const operationObj = pathItem[method];
-    if (Array.isArray(operationObj.servers) && operationObj.servers.length > 0) {
-        servers = operationObj.servers;
+    // Second, consider servers defined on the operation
+    if (Array.isArray(operation.servers) && operation.servers.length > 0) {
+        servers = operation.servers;
     }
     // Default, in case there is no server:
     if (servers.length === 0) {
@@ -923,9 +893,9 @@ exports.getSecuritySchemes = getSecuritySchemes;
  * Returns the list of sanitized keys of non-OAuth2 security schemes
  * required by the operation at the given path and method.
  */
-function getSecurityRequirements(path, method, securitySchemes, oas, callback) {
+function getSecurityRequirements(operation, securitySchemes, oas) {
     const results = [];
-    // First, consider global requirements:
+    // First, consider global requirements
     const globalSecurity = oas.security;
     if (globalSecurity && typeof globalSecurity !== 'undefined') {
         for (let secReq of globalSecurity) {
@@ -938,11 +908,7 @@ function getSecurityRequirements(path, method, securitySchemes, oas, callback) {
             }
         }
     }
-    // Local:
-    // const operation: OperationObject = oas.paths[path][method]
-    const operation = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
+    // Second, consider operation requirements
     const localSecurity = operation.security;
     if (localSecurity && typeof localSecurity !== 'undefined') {
         for (let secReq of localSecurity) {

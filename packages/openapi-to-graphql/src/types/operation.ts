@@ -18,6 +18,8 @@ import {
   SchemaObject
 } from './oas3'
 
+import { GraphQLOperationType } from './graphql'
+
 import {
   GraphQLScalarType,
   GraphQLObjectType,
@@ -154,7 +156,6 @@ export type Operation = {
   /**
    * List of callbacks of the operation
    */
-  // callbacks: CallbacksObject
   callbacks?: { [key: string]: CallbackObject }
 
   /**
@@ -177,14 +178,9 @@ export type Operation = {
   inViewer: boolean
 
   /**
-   * Whether this operation is a mutation (or a query).
+   * Type of operation
    */
-  isMutation: boolean
-
-  /**
-   * Whether this operation is a subscription.
-   */
-  isSubscription: boolean
+  operationType: GraphQLOperationType
 
   /**
    * The success HTTP code, 200-299, destined to become a GraphQL object type

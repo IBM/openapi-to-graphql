@@ -13,7 +13,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-const graphql_1 = require("graphql");
+const graphql_1 = require("./types/graphql");
+const graphql_2 = require("graphql");
 // Imports:
 const schema_builder_1 = require("./schema_builder");
 const resolver_builder_1 = require("./resolver_builder");
@@ -171,13 +172,13 @@ provideErrorExtensions, equivalentToMessages }) {
         let authQueryFields = {};
         let authMutationFields = {};
         let authSubscriptionFields = {};
-        // todo parse data.callbacks to recompose subscription ?
+        // Add Query and Mutation operations
         Object.entries(data.operations).forEach(([operationId, operation]) => {
             translationLog(`Process operation '${operation.operationString}'...`);
             let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
             const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
-            // Check if the operation should be added as a Query | Mutation | Subscription field
-            if (!operation.isMutation && !operation.isSubscription) {
+            // Check if the operation should be added as a Query or Mutation
+            if (operation.operationType === graphql_1.GraphQLOperationType.Query) {
                 let fieldName = !singularNames
                     ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
                     : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase);
@@ -238,7 +239,7 @@ provideErrorExtensions, equivalentToMessages }) {
                     }
                 }
             }
-            else if (operation.isMutation && !operation.isSubscription) {
+            else {
                 let saneFieldName;
                 if (!singularNames) {
                     /**
@@ -290,56 +291,60 @@ provideErrorExtensions, equivalentToMessages }) {
                     }
                 }
             }
-            else if (operation.isSubscription) {
-                // handle subscriptions from operation.callbacks
-                // 1) cbName would be the subscription field name
-                // each paths contained in operation.callbacks[cbName]
-                // would be a channel to subscribe on the resolver
-                // but if callback object contains several operations
-                // how to be sure that the returned Graphql type would be the same ?
-                // By "forcing' a common response schema for every operation within the CB ?
-                // 2) cbName would be a prefix to the subscription field name
-                // each paths contained in operation.callbacks[cbName] would be appended to create a unique subscription
-                // console.log('SUB FIELD', field.args, field.subscribe.toString(), field.resolve.toString())
-                // console.log('SUB FIELD', operation)
-                let saneFieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
-                if (operation.inViewer) {
-                    for (let securityRequirement of operation.securityRequirements) {
-                        if (typeof authSubscriptionFields[securityRequirement] !== 'object') {
-                            authSubscriptionFields[securityRequirement] = {};
-                        }
-                        if (saneFieldName in authSubscriptionFields[securityRequirement]) {
-                            utils_1.handleWarning({
-                                typeKey: 'DUPLICATE_FIELD_NAME',
-                                message: `Multiple operations have the same name ` +
-                                    `'${saneFieldName}' and security requirement ` +
-                                    `'${securityRequirement}'. GraphQL field names must be ` +
-                                    `unique so only one can be added to the authentication ` +
-                                    `viewer. Operation '${operation.operationString}' will be ignored.`,
-                                data,
-                                log: translationLog
-                            });
-                        }
-                        else {
-                            authSubscriptionFields[securityRequirement][saneFieldName] = field;
-                        }
+        });
+        // Add Subscription operations
+        Object.entries(data.callbackOperations).forEach(([operationId, operation]) => {
+            translationLog(`Process operation '${operationId}'...`);
+            let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
+            const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
+            // handle subscriptions from operation.callbacks
+            // 1) cbName would be the subscription field name
+            // each paths contained in operation.callbacks[cbName]
+            // would be a channel to subscribe on the resolver
+            // but if callback object contains several operations
+            // how to be sure that the returned Graphql type would be the same ?
+            // By "forcing' a common response schema for every operation within the CB ?
+            // 2) cbName would be a prefix to the subscription field name
+            // each paths contained in operation.callbacks[cbName] would be appended to create a unique subscription
+            // console.log('SUB FIELD', field.args, field.subscribe.toString(), field.resolve.toString())
+            // console.log('SUB FIELD', operation)
+            let saneFieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
+            if (operation.inViewer) {
+                for (let securityRequirement of operation.securityRequirements) {
+                    if (typeof authSubscriptionFields[securityRequirement] !== 'object') {
+                        authSubscriptionFields[securityRequirement] = {};
                     }
-                }
-                else {
-                    if (saneFieldName in subscriptionFields) {
+                    if (saneFieldName in authSubscriptionFields[securityRequirement]) {
                         utils_1.handleWarning({
                             typeKey: 'DUPLICATE_FIELD_NAME',
                             message: `Multiple operations have the same name ` +
-                                `'${saneFieldName}'. GraphQL field names must be ` +
-                                `unique so only one can be added to the Mutation object. ` +
-                                `Operation '${operation.operationString}' will be ignored.`,
+                                `'${saneFieldName}' and security requirement ` +
+                                `'${securityRequirement}'. GraphQL field names must be ` +
+                                `unique so only one can be added to the authentication ` +
+                                `viewer. Operation '${operation.operationString}' will be ignored.`,
                             data,
                             log: translationLog
                         });
                     }
                     else {
-                        subscriptionFields[saneFieldName] = field;
+                        authSubscriptionFields[securityRequirement][saneFieldName] = field;
                     }
+                }
+            }
+            else {
+                if (saneFieldName in subscriptionFields) {
+                    utils_1.handleWarning({
+                        typeKey: 'DUPLICATE_FIELD_NAME',
+                        message: `Multiple operations have the same name ` +
+                            `'${saneFieldName}'. GraphQL field names must be ` +
+                            `unique so only one can be added to the Mutation object. ` +
+                            `Operation '${operation.operationString}' will be ignored.`,
+                        data,
+                        log: translationLog
+                    });
+                }
+                else {
+                    subscriptionFields[saneFieldName] = field;
                 }
             }
         });
@@ -381,34 +386,34 @@ provideErrorExtensions, equivalentToMessages }) {
          * Organize created queries / mutations / subscriptions into viewer objects.
          */
         if (Object.keys(authQueryFields).length > 0) {
-            Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, data, false, false));
+            Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, graphql_1.GraphQLOperationType.Query, data));
         }
         if (Object.keys(authMutationFields).length > 0) {
-            Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, data, true, false));
+            Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, graphql_1.GraphQLOperationType.Mutation, data));
         }
         if (Object.keys(authSubscriptionFields).length > 0) {
-            Object.assign(subscriptionFields, auth_builder_1.createAndLoadViewer(authSubscriptionFields, data, true, true));
+            Object.assign(subscriptionFields, auth_builder_1.createAndLoadViewer(authSubscriptionFields, graphql_1.GraphQLOperationType.Subscription, data));
         }
         /**
          * Build up the schema
          */
         const schemaConfig = {
             query: Object.keys(queryFields).length > 0
-                ? new graphql_1.GraphQLObjectType({
+                ? new graphql_2.GraphQLObjectType({
                     name: 'Query',
                     description: 'The start of any query',
                     fields: queryFields
                 })
                 : GraphQLTools.getEmptyObjectType('Query'),
             mutation: Object.keys(mutationFields).length > 0
-                ? new graphql_1.GraphQLObjectType({
+                ? new graphql_2.GraphQLObjectType({
                     name: 'Mutation',
                     description: 'The start of any mutation',
                     fields: mutationFields
                 })
                 : null,
             subscription: Object.keys(subscriptionFields).length > 0
-                ? new graphql_1.GraphQLObjectType({
+                ? new graphql_2.GraphQLObjectType({
                     name: 'Subscription',
                     description: 'The start of any subscription',
                     fields: subscriptionFields
@@ -426,7 +431,7 @@ provideErrorExtensions, equivalentToMessages }) {
                 operation.responseDefinition.graphQLType = GraphQLTools.getEmptyObjectType(operation.responseDefinition.graphQLTypeName);
             }
         });
-        const schema = new graphql_1.GraphQLSchema(schemaConfig);
+        const schema = new graphql_2.GraphQLSchema(schemaConfig);
         return { schema, report: options.report };
     });
 }
@@ -457,7 +462,7 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions, connectO
         operation,
         data
     });
-    if (operation.isSubscription) {
+    if (operation.operationType === graphql_1.GraphQLOperationType.Subscription) {
         const responseSchemaName = operation.responseDefinition
             ? operation.responseDefinition.graphQLTypeName
             : null;
@@ -481,19 +486,21 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions, connectO
             description: operation.description
         };
     }
-    const resolve = resolver_builder_1.getResolver({
-        operation,
-        payloadName: payloadSchemaName,
-        data,
-        baseUrl,
-        requestOptions
-    });
-    return {
-        type,
-        resolve,
-        args,
-        description: operation.description
-    };
+    else {
+        const resolve = resolver_builder_1.getResolver({
+            operation,
+            payloadName: payloadSchemaName,
+            data,
+            baseUrl,
+            requestOptions
+        });
+        return {
+            type,
+            resolve,
+            args,
+            description: operation.description
+        };
+    }
 }
 /**
  * Ensures that the options are valid
@@ -561,6 +568,6 @@ function preliminaryChecks(options, data) {
 var oas_3_tools_1 = require("./oas_3_tools");
 exports.sanitize = oas_3_tools_1.sanitize;
 exports.CaseStyle = oas_3_tools_1.CaseStyle;
-var graphql_2 = require("./types/graphql");
-exports.GraphQLOperationType = graphql_2.GraphQLOperationType;
+var graphql_3 = require("./types/graphql");
+exports.GraphQLOperationType = graphql_3.GraphQLOperationType;
 //# sourceMappingURL=index.js.map
