@@ -800,41 +800,6 @@ function getParameters(path, method, operation, pathItem, oas) {
 }
 exports.getParameters = getParameters;
 /**
- * Returns a hash containing the callbacks in the given operation.
- */
-function getCallbacks(operation, oas) {
-    const callbacks = {};
-    if (typeof operation.callbacks === 'object') {
-        let callbacksObject = operation.callbacks;
-        for (let callbackName in callbacksObject) {
-            if (typeof callbacksObject[callbackName] === 'object') {
-                let callbackObject = callbacksObject[callbackName];
-                // Make sure we have CallbackObject:
-                if (typeof callbackObject.$ref === 'string') {
-                    callbackObject = resolveRef(callbackObject.$ref, oas);
-                }
-                else {
-                    callbackObject = callbackObject;
-                }
-                // Make sure CallbackObject contains PathItemObject:
-                for (let expression in callbackObject) {
-                    let pathItem = callbackObject[expression];
-                    if (typeof pathItem.$ref === 'string') {
-                        pathItem = resolveRef(callbackObject[callbackName]['$ref'], oas);
-                    }
-                    else {
-                        pathItem = pathItem;
-                    }
-                    const callback = { [expression]: pathItem };
-                    callbacks[callbackName] = Object.assign(Object.assign({}, callbacks[callbackName]), callback);
-                }
-            }
-        }
-    }
-    return callbacks;
-}
-exports.getCallbacks = getCallbacks;
-/**
  * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
  * definitions at the path item, definitions at the operation, or the OAS

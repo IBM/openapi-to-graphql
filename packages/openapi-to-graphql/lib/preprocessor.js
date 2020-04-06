@@ -49,8 +49,6 @@ function processOperation(path, method, operationString, operationType, operatio
     }
     // Links
     const links = Oas3Tools.getLinks(path, method, operation, oas, data);
-    // Callbacks
-    const callbacks = Oas3Tools.getCallbacks(operation, oas);
     const responseDefinition = createDataDef(responseSchemaNames, responseSchema, false, data, links, oas);
     // Parameters
     const parameters = Oas3Tools.getParameters(path, method, operation, pathItem, oas);
@@ -77,7 +75,6 @@ function processOperation(path, method, operationString, operationType, operatio
         parameters,
         securityRequirements,
         servers,
-        callbacks,
         inViewer,
         statusCode,
         oas

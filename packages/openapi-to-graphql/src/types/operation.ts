@@ -11,8 +11,6 @@
 import {
   Oas3,
   LinkObject,
-  CallbackObject,
-  // CallbacksObject,
   ParameterObject,
   ServerObject,
   SchemaObject
@@ -154,11 +152,6 @@ export type Operation = {
   parameters: ParameterObject[]
 
   /**
-   * List of callbacks of the operation
-   */
-  callbacks?: { [key: string]: CallbackObject }
-
-  /**
    * List of keys of security schemes required by this operation
    *
    * NOTE: Keys are sanitized
@@ -172,7 +165,7 @@ export type Operation = {
   servers: ServerObject[]
 
   /**
-   * Whether this operation should be placed in an authentication viewer\
+   * Whether this operation should be placed in an authentication viewer
    * (cannot be true if "viewer" option passed to OpenAPI-to-GraphQL is false).
    */
   inViewer: boolean

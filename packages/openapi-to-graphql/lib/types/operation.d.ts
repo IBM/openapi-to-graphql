@@ -2,7 +2,7 @@
  * Type definitions for the objects created during preprocessing for every
  * operation in the OAS.
  */
-import { Oas3, LinkObject, CallbackObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
+import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from './oas3';
 import { GraphQLOperationType } from './graphql';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
 import * as GraphQLJSON from 'graphql-type-json';
@@ -91,12 +91,6 @@ export declare type Operation = {
      */
     parameters: ParameterObject[];
     /**
-     * List of callbacks of the operation
-     */
-    callbacks?: {
-        [key: string]: CallbackObject;
-    };
-    /**
      * List of keys of security schemes required by this operation
      *
      * NOTE: Keys are sanitized
@@ -108,7 +102,7 @@ export declare type Operation = {
      */
     servers: ServerObject[];
     /**
-     * Whether this operation should be placed in an authentication viewer\
+     * Whether this operation should be placed in an authentication viewer
      * (cannot be true if "viewer" option passed to OpenAPI-to-GraphQL is false).
      */
     inViewer: boolean;

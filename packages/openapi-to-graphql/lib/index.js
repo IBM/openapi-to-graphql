@@ -60,10 +60,6 @@ function createGraphQLSchema(spec, options) {
             typeof options.createSubscriptionsFromCallbacks === 'boolean'
                 ? options.createSubscriptionsFromCallbacks
                 : false;
-        options.createSubscriptionsFromCallbacks =
-            typeof options.createSubscriptionsFromCallbacks === 'boolean'
-                ? options.createSubscriptionsFromCallbacks
-                : false;
         // Authentication options
         options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true;
         options.sendOAuthTokenInQuery =
