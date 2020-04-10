@@ -47,7 +47,7 @@
     "build": "tsc",
     "guru-load": "node test/evaluation/load_apis_guru.js",
     "guru-test": "DEBUG=preprocessing,translation node test/evaluation/eval_apis_guru.js",
-    "test": "npm run build && jest"
+    "test": "npm run build && jest --runInBand --detectOpenHandles"
   },
   "husky": {
     "hooks": {
