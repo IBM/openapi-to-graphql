@@ -7,6 +7,7 @@
 
 let httpServer
 let mqttBroker
+let tcpServer
 
 const Devices = {
   'Audio-player': {
@@ -42,7 +43,7 @@ function startServers(HTTP_PORT, MQTT_PORT) {
     }
   })
 
-  const tcpServer = require('net').createServer(mqttBroker.handle)
+  tcpServer = require('net').createServer(mqttBroker.handle)
 
   const bodyParser = require('body-parser')
   app.use(bodyParser.json())
@@ -150,7 +151,11 @@ function startServers(HTTP_PORT, MQTT_PORT) {
  * Stops server.
  */
 function stopServers() {
-  return Promise.all([httpServer.close(), mqttBroker.close()]).then(() => {
+  return Promise.all([
+    httpServer.close(),
+    mqttBroker.close(),
+    tcpServer.close()
+  ]).then(() => {
     console.log(`Stopped HTTP API server`)
     console.log(`Stopped MQTT API server`)
   })
