@@ -16,7 +16,7 @@ import {
   GraphQLNonNull,
   GraphQLFieldConfigMap
 } from 'graphql'
-import { Args, ResolveFunction } from './types/graphql'
+import { Args, ResolveFunction, GraphQLOperationType } from './types/graphql'
 import {
   PreprocessingData,
   ProcessedSecurityScheme
@@ -47,9 +47,8 @@ const translationLog = debug('translation')
  */
 export function createAndLoadViewer(
   queryFields: object,
-  data: PreprocessingData,
-  isMutation: boolean = false,
-  isSubscription: boolean = false
+  operationType: GraphQLOperationType,
+  data: PreprocessingData
 ): { [key: string]: Viewer } {
   let results = {}
   /**
@@ -108,30 +107,21 @@ export function createAndLoadViewer(
     }
 
     // Create name for the viewer
-    let viewerName = isSubscription
-      ? Oas3Tools.sanitize(
-          `subscription viewer ${viewerType}`,
-          Oas3Tools.CaseStyle.camelCase
-        )
-      : !isMutation
-      ? Oas3Tools.sanitize(
-          `viewer ${viewerType}`,
-          Oas3Tools.CaseStyle.camelCase
-        )
-      : Oas3Tools.sanitize(
-          `mutation viewer ${viewerType}`,
-          Oas3Tools.CaseStyle.camelCase
-        )
-
-    // let viewerName = !isMutation
-    //   ? Oas3Tools.sanitize(
-    //       `viewer ${viewerType}`,
-    //       Oas3Tools.CaseStyle.camelCase
-    //     )
-    //   : Oas3Tools.sanitize(
-    //       `mutation viewer ${viewerType}`,
-    //       Oas3Tools.CaseStyle.camelCase
-    //     )
+    let viewerName =
+      operationType === GraphQLOperationType.Query
+        ? Oas3Tools.sanitize(
+            `viewer ${viewerType}`,
+            Oas3Tools.CaseStyle.camelCase
+          )
+        : operationType === GraphQLOperationType.Mutation
+        ? Oas3Tools.sanitize(
+            `mutation viewer ${viewerType}`,
+            Oas3Tools.CaseStyle.camelCase
+          )
+        : Oas3Tools.sanitize(
+            `subscription viewer ${viewerType}`,
+            Oas3Tools.CaseStyle.camelCase
+          )
 
     // Ensure unique viewer name
     // If name already exists, append a number at the end of the name
@@ -152,15 +142,12 @@ export function createAndLoadViewer(
   }
 
   // Create name for the AnyAuth viewer
-  const anyAuthObjectName = isSubscription
-    ? 'subscriptionViewerAnyAuth'
-    : !isMutation
-    ? 'viewerAnyAuth'
-    : 'mutationViewerAnyAuth'
-
-  // const anyAuthObjectName = !isMutation
-  //   ? 'viewerAnyAuth'
-  //   : 'mutationViewerAnyAuth'
+  const anyAuthObjectName =
+    operationType === GraphQLOperationType.Query
+      ? 'viewerAnyAuth'
+      : operationType === GraphQLOperationType.Mutation
+      ? 'mutationViewerAnyAuth'
+      : 'subscriptionViewerAnyAuth'
 
   // Add the AnyAuth object type to the specified root query object type
   results[anyAuthObjectName] = getViewerAnyAuthOT(

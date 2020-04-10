@@ -25,6 +25,7 @@ import * as querystring from 'querystring'
 import * as JSONPath from 'jsonpath-plus'
 import { debug } from 'debug'
 import { GraphQLError } from 'graphql'
+import formurlencoded from 'form-urlencoded'
 import { PubSub } from 'graphql-subscriptions'
 
 const pubsub = new PubSub()
@@ -70,7 +71,6 @@ type GetSubscribeParams = {
  */
 export function getSubscribe({
   operation,
-  argsFromLink = {},
   payloadName,
   data,
   baseUrl,
@@ -110,7 +110,6 @@ export function getSubscribe({
      * GraphQL produces sanitized payload names, so we have to sanitize before
      * lookup here
      */
-
     const paramName = Oas3Tools.sanitize(
       payloadName,
       Oas3Tools.CaseStyle.camelCase
@@ -126,7 +125,7 @@ export function getSubscribe({
 
       if (sanePayloadName in args) {
         if (typeof args[sanePayloadName] === 'object') {
-          const rawPayload = Oas3Tools.desanitizeObjKeys(
+          const rawPayload = Oas3Tools.desanitizeObjectKeys(
             args[sanePayloadName],
             data.saneMap
           )
@@ -136,14 +135,6 @@ export function getSubscribe({
           resolveData.usedPayload = rawPayload
         }
       }
-    }
-
-    pubsubLog(
-      `Subscription schema : ${JSON.stringify(resolveData.usedPayload)}`
-    )
-
-    if (typeof resolveData.usedParams === 'undefined') {
-      resolveData.usedParams = {}
     }
 
     if (connectOptions) {
@@ -156,16 +147,15 @@ export function getSubscribe({
       }
     }
 
+    pubsubLog(`Subscription schema: ${JSON.stringify(resolveData.usedPayload)}`)
+
     let value = path
     let paramNameWithoutLocation = paramName
     if (paramName.indexOf('.') !== -1) {
       paramNameWithoutLocation = paramName.split('.')[1]
     }
 
-    // /**
-    //  * see if the callback path contains constants expression
-    //  *
-    //  */
+    // See if the callback path contains constants expression
     if (value.search(/{|}/) === -1) {
       args[paramNameWithoutLocation] = isRuntimeExpression(value)
         ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
@@ -173,7 +163,7 @@ export function getSubscribe({
     } else {
       // Replace callback expression with appropriate values
       const cbParams = value.match(/{([^}]*)}/g)
-      pubsubLog(`Analyzing subscription path : ${cbParams.toString()}`)
+      pubsubLog(`Analyzing subscription path: ${cbParams.toString()}`)
 
       cbParams.forEach(cbParam => {
         value = value.replace(
@@ -189,8 +179,11 @@ export function getSubscribe({
       })
       args[paramNameWithoutLocation] = value
     }
+
+    console.log('args', args)
+
     const topic = args[paramNameWithoutLocation] || 'test'
-    pubsubLog(`Subscribing to : ${topic}`)
+    pubsubLog(`Subscribing to: ${topic}`)
     return ctx.pubsub
       ? ctx.pubsub.asyncIterator(topic)
       : pubsub.asyncIterator(topic)
@@ -258,7 +251,7 @@ export function getPublishResolver({
         } else {
           responseBody = payload
         }
-        saneData = Oas3Tools.sanitizeObjKeys(payload)
+        saneData = Oas3Tools.sanitizeObjectKeys(payload)
       } else if (
         (Buffer.isBuffer(payload) || Array.isArray(payload)) &&
         typeOfResponse === 'string'
@@ -269,7 +262,7 @@ export function getPublishResolver({
       if (typeOfResponse === 'object') {
         try {
           responseBody = JSON.parse(payload)
-          saneData = Oas3Tools.sanitizeObjKeys(responseBody)
+          saneData = Oas3Tools.sanitizeObjectKeys(responseBody)
         } catch (e) {
           const errorString =
             `Cannot JSON parse payload` +
@@ -367,7 +360,9 @@ export function getResolver({
     operation.parameters.forEach(param => {
       const paramName = Oas3Tools.sanitize(
         param.name,
-        Oas3Tools.CaseStyle.camelCase
+        !data.options.simpleNames
+          ? Oas3Tools.CaseStyle.camelCase
+          : Oas3Tools.CaseStyle.simple
       )
       if (
         typeof args[paramName] === 'undefined' &&
@@ -389,13 +384,16 @@ export function getResolver({
     })
 
     // Handle arguments provided by links
-    for (let paramName in argsFromLink) {
+    for (const paramName in argsFromLink) {
+      const saneParamName = Oas3Tools.sanitize(
+        paramName,
+        !data.options.simpleNames
+          ? Oas3Tools.CaseStyle.camelCase
+          : Oas3Tools.CaseStyle.simple
+      )
+
       let value = argsFromLink[paramName]
 
-      let paramNameWithoutLocation = paramName
-      if (paramName.indexOf('.') !== -1) {
-        paramNameWithoutLocation = paramName.split('.')[1]
-      }
       /**
        * see if the link parameter contains constants that are appended to the link parameter
        *
@@ -406,7 +404,7 @@ export function getResolver({
        * abc_{$response.body#/employerId}
        */
       if (value.search(/{|}/) === -1) {
-        args[paramNameWithoutLocation] = isRuntimeExpression(value)
+        args[saneParamName] = isRuntimeExpression(value)
           ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
           : value
       } else {
@@ -424,7 +422,8 @@ export function getResolver({
             )
           )
         })
-        args[paramNameWithoutLocation] = value
+
+        args[saneParamName] = value
       }
     }
 
@@ -435,7 +434,8 @@ export function getResolver({
     const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(
       operation.path,
       operation.parameters,
-      args
+      args,
+      data
     )
     const url = baseUrl + path
 
@@ -486,29 +486,29 @@ export function getResolver({
      * lookup here
      */
     resolveData.usedPayload = undefined
-    if (payloadName && typeof payloadName === 'string') {
+    if (typeof payloadName === 'string') {
       // The option genericPayloadArgName will change the payload name to "requestBody"
       const sanePayloadName = data.options.genericPayloadArgName
         ? 'requestBody'
         : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase)
 
-      if (sanePayloadName in args) {
-        if (typeof args[sanePayloadName] === 'object') {
-          // We need to desanitize the payload so the API understands it:
-          const rawPayload = JSON.stringify(
-            Oas3Tools.desanitizeObjKeys(args[sanePayloadName], data.saneMap)
-          )
-
-          options.body = rawPayload
-          resolveData.usedPayload = rawPayload
-        } else {
-          // Payload is not an object (stored as an application/json)
-          const rawPayload = args[sanePayloadName]
-
-          options.body = rawPayload
-          resolveData.usedPayload = rawPayload
-        }
+      let rawPayload
+      if (operation.payloadContentType === 'application/json') {
+        rawPayload = JSON.stringify(
+          Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
+        )
+      } else if (
+        operation.payloadContentType === 'application/x-www-form-urlencoded'
+      ) {
+        rawPayload = formurlencoded(
+          Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
+        )
+      } else {
+        // Payload is not an object
+        rawPayload = args[sanePayloadName]
       }
+      options.body = rawPayload
+      resolveData.usedPayload = rawPayload
     }
 
     /**
@@ -664,7 +664,12 @@ export function getResolver({
                 resolveData.responseHeaders = response.headers
 
                 // Deal with the fact that the server might send unsanitized data
-                let saneData = Oas3Tools.sanitizeObjKeys(responseBody)
+                let saneData = Oas3Tools.sanitizeObjectKeys(
+                  responseBody,
+                  !data.options.simpleNames
+                    ? Oas3Tools.CaseStyle.camelCase
+                    : Oas3Tools.CaseStyle.simple
+                )
 
                 // Pass on _openAPIToGraphQL to subsequent resolvers
                 if (saneData && typeof saneData === 'object') {

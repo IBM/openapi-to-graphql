@@ -35,9 +35,14 @@ export type ProcessedSecurityScheme = {
 
 export type PreprocessingData = {
   /**
-   * List of Operation objects
+   * List of operation objects
    */
   operations: { [key: string]: Operation }
+
+  /**
+   * List of Operation objects
+   */
+  callbackOperations: { [key: string]: Operation }
 
   /**
    * List of all the used object names to avoid collision

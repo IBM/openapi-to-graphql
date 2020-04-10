@@ -18,6 +18,7 @@ const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const pluralize = require("pluralize");
 const httpLog = debug_1.default('http');
 const preprocessingLog = debug_1.default('preprocessing');
 const translationLog = debug_1.default('translation');
@@ -174,7 +175,7 @@ function resolveRef(ref, oas) {
         return resolvedObject;
     }
     else {
-        throw new Error(`Could not resolve reference '${ref}'`);
+        throw new Error(`Could not resolve reference '${ref}' in OAS '${oas.info.title}'`);
     }
 }
 exports.resolveRef = resolveRef;
@@ -204,7 +205,7 @@ function resolveRefHelper(obj, parts) {
 function getBaseUrl(operation) {
     // Check for servers:
     if (!Array.isArray(operation.servers) || operation.servers.length === 0) {
-        throw new Error(`No servers defined for operation '${operation.operationId}'`);
+        throw new Error(`No servers defined for operation '${operation.operationString}'`);
     }
     // Check for local servers
     if (Array.isArray(operation.servers) && operation.servers.length > 0) {
@@ -241,31 +242,31 @@ function buildUrl(server) {
     return url;
 }
 /**
- * Returns object | array where all object keys are sanitized. Keys passed in
- * exceptions are not sanitized.
+ * Returns object/array/scalar where all object keys (if applicable) are
+ * sanitized.
  */
-function sanitizeObjKeys(obj, exceptions = []) {
+function sanitizeObjectKeys(obj, // obj does not necessarily need to be an object
+caseStyle = CaseStyle.camelCase) {
     const cleanKeys = (obj) => {
+        // Case: no (response) data
         if (obj === null || typeof obj === 'undefined') {
             return null;
+            // Case: array
         }
         else if (Array.isArray(obj)) {
             return obj.map(cleanKeys);
+            // Case: object
         }
         else if (typeof obj === 'object') {
             const res = {};
-            for (let key in obj) {
-                if (!exceptions.includes(key)) {
-                    const saneKey = sanitize(key, CaseStyle.camelCase);
-                    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                        res[saneKey] = cleanKeys(obj[key]);
-                    }
-                }
-                else {
-                    res[key] = cleanKeys(obj[key]);
+            for (const key in obj) {
+                const saneKey = sanitize(key, caseStyle);
+                if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                    res[saneKey] = cleanKeys(obj[key]);
                 }
             }
             return res;
+            // Case: scalar
         }
         else {
             return obj;
@@ -273,12 +274,12 @@ function sanitizeObjKeys(obj, exceptions = []) {
     };
     return cleanKeys(obj);
 }
-exports.sanitizeObjKeys = sanitizeObjKeys;
+exports.sanitizeObjectKeys = sanitizeObjectKeys;
 /**
  * Desanitizes keys in given object by replacing them with the keys stored in
  * the given mapping.
  */
-function desanitizeObjKeys(obj, mapping = {}) {
+function desanitizeObjectKeys(obj, mapping = {}) {
     const replaceKeys = obj => {
         if (obj === null) {
             return null;
@@ -307,20 +308,20 @@ function desanitizeObjKeys(obj, mapping = {}) {
     };
     return replaceKeys(obj);
 }
-exports.desanitizeObjKeys = desanitizeObjKeys;
+exports.desanitizeObjectKeys = desanitizeObjectKeys;
 /**
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-function instantiatePathAndGetQuery(path, parameters, args // NOTE: argument keys are sanitized!
-) {
+function instantiatePathAndGetQuery(path, parameters, args, // NOTE: argument keys are sanitized!
+data) {
     const query = {};
     const headers = {};
     // Case: nothing to do
     if (Array.isArray(parameters)) {
         // Iterate parameters:
-        for (let param of parameters) {
-            const sanitizedParamName = sanitize(param.name, CaseStyle.camelCase);
+        for (const param of parameters) {
+            const sanitizedParamName = sanitize(param.name, !data.options.simpleNames ? CaseStyle.camelCase : CaseStyle.simple);
             if (sanitizedParamName && sanitizedParamName in args) {
                 switch (param.in) {
                     // Path parameters
@@ -408,32 +409,83 @@ function getSchemaTargetGraphQLType(schema, data) {
 }
 exports.getSchemaTargetGraphQLType = getSchemaTargetGraphQLType;
 /**
- * Determines an approximate name for the resource at the given path.
+ * Identifies common path components in the given list of paths. Returns these
+ * components as well as an updated list of paths where the common prefix was
+ * removed.
+ */
+function extractBasePath(paths) {
+    if (paths.length <= 1) {
+        return {
+            basePath: '/',
+            updatedPaths: paths
+        };
+    }
+    let basePathComponents = paths[0].split('/');
+    for (let path of paths) {
+        if (basePathComponents.length === 0) {
+            break;
+        }
+        const pathComponents = path.split('/');
+        for (let i = 0; i < pathComponents.length; i++) {
+            if (i < basePathComponents.length) {
+                if (pathComponents[i] !== basePathComponents[i]) {
+                    basePathComponents = basePathComponents.slice(0, i);
+                }
+            }
+            else {
+                break;
+            }
+        }
+    }
+    const updatedPaths = paths.map(path => path
+        .split('/')
+        .slice(basePathComponents.length)
+        .join('/'));
+    let basePath = basePathComponents.length === 0 ||
+        (basePathComponents.length === 1 && basePathComponents[0] === '')
+        ? '/'
+        : basePathComponents.join('/');
+    return {
+        basePath,
+        updatedPaths
+    };
+}
+function isIdParam(part) {
+    return /^{.*(id|name|key).*}$/gi.test(part);
+}
+function isSingularParam(part, nextPart) {
+    return `\{${pluralize.singular(part)}\}` === nextPart;
+}
+/**
+ * Infers a resource name from the given URL path.
+ *
+ * For example, turns "/users/{userId}/car" into "userCar".
  */
 function inferResourceNameFromPath(path) {
-    /**
-     * Remove the path parameters from the path
-     *
-     * For example, turn /user/{userId}/car into userCar
-     */
-    let pathNoPathParams = path.split('/').reduce((path, part) => {
-        if (!/{|}/g.test(part)) {
-            return path + capitalize(part);
+    const parts = path.split('/');
+    let pathNoPathParams = parts.reduce((path, part, i) => {
+        if (!/{/g.test(part)) {
+            if (parts[i + 1] &&
+                (isIdParam(parts[i + 1]) || isSingularParam(part, parts[i + 1]))) {
+                return path + capitalize(pluralize.singular(part));
+            }
+            else {
+                return path + capitalize(part);
+            }
         }
         else {
             return path;
         }
-    });
+    }, '');
     return pathNoPathParams;
 }
 exports.inferResourceNameFromPath = inferResourceNameFromPath;
 /**
- * Returns JSON-compatible schema required by the given endpoint - or null if it
- * does not exist.
+ * Returns JSON-compatible schema required by the given operation
  */
-function getRequestBodyObject(endpoint, oas) {
-    if (typeof endpoint.requestBody === 'object') {
-        let requestBodyObject = endpoint.requestBody;
+function getRequestBodyObject(operation, oas) {
+    if (typeof operation.requestBody === 'object') {
+        let requestBodyObject = operation.requestBody;
         // Make sure we have a RequestBodyObject:
         if (typeof requestBodyObject.$ref === 'string') {
             requestBodyObject = resolveRef(requestBodyObject.$ref, oas);
@@ -447,6 +499,12 @@ function getRequestBodyObject(endpoint, oas) {
             if (Object.keys(content).includes('application/json')) {
                 return {
                     payloadContentType: 'application/json',
+                    requestBodyObject
+                };
+            }
+            else if (Object.keys(content).includes('application/x-www-form-urlencoded')) {
+                return {
+                    payloadContentType: 'application/x-www-form-urlencoded',
                     requestBodyObject
                 };
             }
@@ -464,16 +522,12 @@ function getRequestBodyObject(endpoint, oas) {
 }
 exports.getRequestBodyObject = getRequestBodyObject;
 /**
- * Returns the request schema (if any) for an endpoint at given path and method,
+ * Returns the request schema (if any) for the given operation,
  * a dictionary of names from different sources (if available), and whether the
- * request schema is required for the endpoint.
+ * request schema is required for the operation.
  */
-function getRequestSchemaAndNames(path, method, oas, callback) {
-    // const endpoint: OperationObject = oas.paths[path][method]
-    const endpoint = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
-    const { payloadContentType, requestBodyObject } = getRequestBodyObject(endpoint, oas);
+function getRequestSchemaAndNames(path, method, operation, oas) {
+    const { payloadContentType, requestBodyObject } = getRequestBodyObject(operation, oas);
     if (payloadContentType) {
         let payloadSchema = requestBodyObject.content[payloadContentType].schema;
         // Get resource name from different sources
@@ -492,18 +546,21 @@ function getRequestSchemaAndNames(path, method, oas, callback) {
             ? requestBodyObject.required
             : false;
         /**
-         * Edge case: if request body content-type is not application/json, do not
-         * parse. Instead, treat the request body as a black box (allowing it to be
-         * defined as a string) and sending it with the appropriate content-type
+         * Edge case: if request body content-type is not application/json or
+         * application/x-www-form-urlencoded, do not parse it.
+         *
+         * Instead, treat the request body as a black box and send it as a string
+         * with the proper content-type header
          */
-        if (payloadContentType !== 'application/json') {
+        if (payloadContentType !== 'application/json' &&
+            payloadContentType !== 'application/x-www-form-urlencoded') {
             const saneContentTypeName = uncapitalize(payloadContentType.split('/').reduce((name, term) => {
                 return name + capitalize(term);
             }));
             payloadSchemaNames = {
                 fromPath: saneContentTypeName
             };
-            let description = payloadContentType + ' request placeholder object';
+            let description = `String represents payload of content type '${payloadContentType}'`;
             if ('description' in payloadSchema &&
                 typeof payloadSchema['description'] === 'string') {
                 description += `\n\nOriginal top level description: '${payloadSchema['description']}'`;
@@ -526,12 +583,11 @@ function getRequestSchemaAndNames(path, method, oas, callback) {
 }
 exports.getRequestSchemaAndNames = getRequestSchemaAndNames;
 /**
- * Returns JSON-compatible schema produced by the given endpoint - or null if it
- * does not exist.
+ * Returns JSON-compatible schema produced by the given operation
  */
-function getResponseObject(endpoint, statusCode, oas) {
-    if (typeof endpoint.responses === 'object') {
-        const responses = endpoint.responses;
+function getResponseObject(operation, statusCode, oas) {
+    if (typeof operation.responses === 'object') {
+        const responses = operation.responses;
         if (typeof responses[statusCode] === 'object') {
             let responseObject = responses[statusCode];
             // Make sure we have a ResponseObject:
@@ -566,21 +622,16 @@ function getResponseObject(endpoint, statusCode, oas) {
 }
 exports.getResponseObject = getResponseObject;
 /**
- * Returns the response schema for endpoint at given path and method and with
- * the given status code, and a dictionary of names from different sources (if
- * available).
+ * Returns the response schema for the given operation,
+ * a successful  status code, and a dictionary of names from different sources
+ * (if available).
  */
-function getResponseSchemaAndNames(path, method, oas, data, options, callback) {
-    // const endpoint: OperationObject = oas.paths[path][method]
-    const endpoint = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
-    // const statusCode = getResponseStatusCode(path, method, oas, data)
-    const statusCode = getResponseStatusCode(path, method, oas, data, callback);
+function getResponseSchemaAndNames(path, method, operation, oas, data, options) {
+    const statusCode = getResponseStatusCode(path, method, operation, oas, data);
     if (!statusCode) {
         return {};
     }
-    let { responseContentType, responseObject } = getResponseObject(endpoint, statusCode, oas);
+    let { responseContentType, responseObject } = getResponseObject(operation, statusCode, oas);
     if (responseContentType) {
         let responseSchema = responseObject.content[responseContentType].schema;
         let fromRef;
@@ -594,12 +645,11 @@ function getResponseSchemaAndNames(path, method, oas, data, options, callback) {
             fromPath: inferResourceNameFromPath(path)
         };
         /**
-         * Edge case: if request body content-type is not application/json, do not
-         * parse. Instead, treat the request body as a black box (allowing it to be
-         * defined as a string) and sending it with the appropriate content-type
+         * Edge case: if response body content-type is not application/json, do not
+         * parse.
          */
         if (responseContentType !== 'application/json') {
-            let description = 'Placeholder object to access non-application/json ' + 'response bodies';
+            let description = 'Placeholder to access non-application/json response bodies';
             if ('description' in responseSchema &&
                 typeof responseSchema['description'] === 'string') {
                 description += `\n\nOriginal top level description: '${responseSchema['description']}'`;
@@ -618,10 +668,11 @@ function getResponseSchemaAndNames(path, method, oas, data, options, callback) {
     }
     else {
         /**
-         * GraphQL requires that objects must have some properties. To allow some
-         * operations (such as those with a 204 HTTP code) to be included in the
-         * GraphQL interface, we added the fillEmptyResponses option, which will
-         * simply create a placeholder object with a placeholder property.
+         * GraphQL requires that objects must have some properties.
+         *
+         * To allow some operations (such as those with a 204 HTTP code) to be
+         * included in the GraphQL interface, we added the fillEmptyResponses
+         * option, which will simply create a placeholder to allow access.
          */
         if (options.fillEmptyResponses) {
             return {
@@ -630,7 +681,7 @@ function getResponseSchemaAndNames(path, method, oas, data, options, callback) {
                 },
                 responseContentType: 'application/json',
                 responseSchema: {
-                    description: 'Placeholder object to support operations with no response schema',
+                    description: 'Placeholder to support operations with no response schema',
                     type: 'string'
                 }
             };
@@ -640,16 +691,11 @@ function getResponseSchemaAndNames(path, method, oas, data, options, callback) {
 }
 exports.getResponseSchemaAndNames = getResponseSchemaAndNames;
 /**
- * Returns the success status code for the operation at the given path and
- * method (or null).
+ * Returns a success status code for the given operation
  */
-function getResponseStatusCode(path, method, oas, data, callback) {
-    // const endpoint: OperationObject = oas.paths[path][method]
-    const endpoint = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
-    if (typeof endpoint.responses === 'object') {
-        const codes = Object.keys(endpoint.responses);
+function getResponseStatusCode(path, method, operation, oas, data) {
+    if (typeof operation.responses === 'object') {
+        const codes = Object.keys(operation.responses);
         const successCodes = codes.filter(code => {
             return exports.SUCCESS_STATUS_RX.test(code);
         });
@@ -674,17 +720,16 @@ function getResponseStatusCode(path, method, oas, data, callback) {
 }
 exports.getResponseStatusCode = getResponseStatusCode;
 /**
- * Returns an hash containing the links defined in the given endpoint.
+ * Returns a hash containing the links in the given operation.
  */
-function getEndpointLinks(path, method, oas, data) {
+function getLinks(path, method, operation, oas, data) {
     const links = {};
-    const endpoint = oas.paths[path][method];
-    const statusCode = getResponseStatusCode(path, method, oas, data);
+    const statusCode = getResponseStatusCode(path, method, operation, oas, data);
     if (!statusCode) {
         return links;
     }
-    if (typeof endpoint.responses === 'object') {
-        const responses = endpoint.responses;
+    if (typeof operation.responses === 'object') {
+        const responses = operation.responses;
         if (typeof responses[statusCode] === 'object') {
             let response = responses[statusCode];
             if (typeof response.$ref === 'string') {
@@ -710,24 +755,19 @@ function getEndpointLinks(path, method, oas, data) {
     }
     return links;
 }
-exports.getEndpointLinks = getEndpointLinks;
+exports.getLinks = getLinks;
 /**
- * Returns the list of parameters for the endpoint at the given method and path.
- * Resolves possible references.
+ * Returns the list of parameters in the given operation.
  */
-function getParameters(path, method, oas, callback) {
+function getParameters(path, method, operation, pathItem, oas) {
     let parameters = [];
     if (!isOperation(method)) {
         translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
             `which is not an operation.`);
         return parameters;
     }
-    // const pathItemObject: PathItemObject = oas.paths[path]
-    const pathItemObject = callback
-        ? callback[path]
-        : oas.paths[path];
-    const pathParams = pathItemObject.parameters;
     // First, consider parameters in Path Item Object:
+    const pathParams = pathItem.parameters;
     if (Array.isArray(pathParams)) {
         const pathItemParameters = pathParams.map(p => {
             if (typeof p.$ref === 'string') {
@@ -742,13 +782,9 @@ function getParameters(path, method, oas, callback) {
         parameters = parameters.concat(pathItemParameters);
     }
     // Second, consider parameters in Operation Object:
-    // const opObject: OperationObject = oas.paths[path][method]
-    const opObject = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
-    const opObjectParameters = opObject.parameters;
+    const opObjectParameters = operation.parameters;
     if (Array.isArray(opObjectParameters)) {
-        const opParameters = opObjectParameters.map(p => {
+        const operationParameters = opObjectParameters.map(p => {
             if (typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
@@ -758,69 +794,30 @@ function getParameters(path, method, oas, callback) {
                 return p;
             }
         });
-        parameters = parameters.concat(opParameters);
+        parameters = parameters.concat(operationParameters);
     }
     return parameters;
 }
 exports.getParameters = getParameters;
-/**
- * Returns an hash containing the callbacks defined in the given endpoint.
- */
-function getEndpointCallbacks(path, method, oas, data) {
-    const callbacks = {};
-    const operation = oas.paths[path][method];
-    if (typeof operation.callbacks === 'object') {
-        let callbacksObject = operation.callbacks;
-        for (let callbackName in callbacksObject) {
-            if (typeof callbacksObject[callbackName] === 'object') {
-                let callbackObject = callbacksObject[callbackName];
-                // Make sure we have CallbackObject:
-                if (typeof callbackObject.$ref === 'string') {
-                    callbackObject = resolveRef(callbackObject.$ref, oas);
-                }
-                else {
-                    callbackObject = callbackObject;
-                }
-                // Make sure CallbackObject contains PathItemObject:
-                for (let expression in callbackObject) {
-                    let pathItem = callbackObject[expression];
-                    if (typeof pathItem.$ref === 'string') {
-                        pathItem = resolveRef(callbackObject[callbackName]['$ref'], oas);
-                    }
-                    else {
-                        pathItem = pathItem;
-                    }
-                    const callback = { [expression]: pathItem };
-                    callbacks[callbackName] = Object.assign(Object.assign({}, callbacks[callbackName]), callback);
-                }
-            }
-        }
-    }
-    return callbacks;
-}
-exports.getEndpointCallbacks = getEndpointCallbacks;
 /**
  * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
  * definitions at the path item, definitions at the operation, or the OAS
  * default.
  */
-function getServers(path, method, oas, callback) {
+function getServers(operation, pathItem, oas) {
     let servers = [];
     // Global server definitions:
     if (Array.isArray(oas.servers) && oas.servers.length > 0) {
         servers = oas.servers;
     }
-    // Path item server definitions override global:
-    // const pathItem = oas.paths[path]
-    const pathItem = callback ? callback[path] : oas.paths[path];
+    // First, consider servers defined on the path
     if (Array.isArray(pathItem.servers) && pathItem.servers.length > 0) {
         servers = pathItem.servers;
     }
-    // Operation server definitions override path item:
-    const operationObj = pathItem[method];
-    if (Array.isArray(operationObj.servers) && operationObj.servers.length > 0) {
-        servers = operationObj.servers;
+    // Second, consider servers defined on the operation
+    if (Array.isArray(operation.servers) && operation.servers.length > 0) {
+        servers = operation.servers;
     }
     // Default, in case there is no server:
     if (servers.length === 0) {
@@ -861,9 +858,9 @@ exports.getSecuritySchemes = getSecuritySchemes;
  * Returns the list of sanitized keys of non-OAuth2 security schemes
  * required by the operation at the given path and method.
  */
-function getSecurityRequirements(path, method, securitySchemes, oas, callback) {
+function getSecurityRequirements(operation, securitySchemes, oas) {
     const results = [];
-    // First, consider global requirements:
+    // First, consider global requirements
     const globalSecurity = oas.security;
     if (globalSecurity && typeof globalSecurity !== 'undefined') {
         for (let secReq of globalSecurity) {
@@ -876,11 +873,7 @@ function getSecurityRequirements(path, method, securitySchemes, oas, callback) {
             }
         }
     }
-    // Local:
-    // const operation: OperationObject = oas.paths[path][method]
-    const operation = callback
-        ? callback[path][method]
-        : oas.paths[path][method];
+    // Second, consider operation requirements
     const localSecurity = operation.security;
     if (localSecurity && typeof localSecurity !== 'undefined') {
         for (let secReq of localSecurity) {
@@ -900,14 +893,22 @@ function getSecurityRequirements(path, method, securitySchemes, oas, callback) {
 exports.getSecurityRequirements = getSecurityRequirements;
 var CaseStyle;
 (function (CaseStyle) {
-    CaseStyle[CaseStyle["PascalCase"] = 0] = "PascalCase";
-    CaseStyle[CaseStyle["camelCase"] = 1] = "camelCase";
-    CaseStyle[CaseStyle["ALL_CAPS"] = 2] = "ALL_CAPS"; // Used for enum values
+    CaseStyle[CaseStyle["simple"] = 0] = "simple";
+    CaseStyle[CaseStyle["PascalCase"] = 1] = "PascalCase";
+    CaseStyle[CaseStyle["camelCase"] = 2] = "camelCase";
+    CaseStyle[CaseStyle["ALL_CAPS"] = 3] = "ALL_CAPS"; // Used for enum values
 })(CaseStyle = exports.CaseStyle || (exports.CaseStyle = {}));
 /**
  * First sanitizes given string and then also camel-cases it.
  */
 function sanitize(str, caseStyle) {
+    /**
+     * Used in conjunction to simpleNames, which only removes illegal
+     * characters and preserves casing
+     */
+    if (caseStyle === CaseStyle.simple) {
+        return str.replace(/[^a-zA-Z0-9_]/gi, '');
+    }
     /**
      * Remove all GraphQL unsafe characters
      */
@@ -956,17 +957,6 @@ function storeSaneName(saneStr, str, mapping) {
     return saneStr;
 }
 exports.storeSaneName = storeSaneName;
-/**
- * Return an object similar to the input object except the keys are all
- * sanitized
- */
-function sanitizeObjectKeys(obj) {
-    return Object.keys(obj).reduce((acc, key) => {
-        acc[sanitize(key, CaseStyle.camelCase)] = obj[key];
-        return acc;
-    }, {});
-}
-exports.sanitizeObjectKeys = sanitizeObjectKeys;
 /**
  * Stringifies and possibly trims the given string to the provided length.
  */
@@ -1021,7 +1011,7 @@ exports.uncapitalize = uncapitalize;
  * For operations that do not have an operationId, generate one
  */
 function generateOperationId(method, path) {
-    return sanitize(`${method}:${path}`, CaseStyle.camelCase);
+    return sanitize(`${method} ${path}`, CaseStyle.camelCase);
 }
 exports.generateOperationId = generateOperationId;
 //# sourceMappingURL=oas_3_tools.js.map

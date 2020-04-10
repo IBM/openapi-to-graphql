@@ -3,7 +3,7 @@
  */
 import { Oas2 } from './types/oas2';
 import { Operation } from './types/operation';
-import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, RequestBodyObject, ReferenceObject, LinkObject, CallbackObject, SecuritySchemeObject } from './types/oas3';
+import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, PathItemObject, RequestBodyObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
@@ -64,20 +64,22 @@ export declare function resolveRef(ref: string, oas: Oas3): any;
  */
 export declare function getBaseUrl(operation: Operation): string;
 /**
- * Returns object | array where all object keys are sanitized. Keys passed in
- * exceptions are not sanitized.
+ * Returns object/array/scalar where all object keys (if applicable) are
+ * sanitized.
  */
-export declare function sanitizeObjKeys(obj: object | Array<any>, exceptions?: string[]): object | Array<any>;
+export declare function sanitizeObjectKeys(obj: any, // obj does not necessarily need to be an object
+caseStyle?: CaseStyle): any;
 /**
  * Desanitizes keys in given object by replacing them with the keys stored in
  * the given mapping.
  */
-export declare function desanitizeObjKeys(obj: object | Array<any>, mapping?: object): object | Array<any>;
+export declare function desanitizeObjectKeys(obj: object | Array<any>, mapping?: object): object | Array<any>;
 /**
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object): {
+export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object, // NOTE: argument keys are sanitized!
+data: PreprocessingData): {
     path: string;
     query: {
         [key: string]: string;
@@ -93,66 +95,58 @@ export declare function instantiatePathAndGetQuery(path: string, parameters: Par
  */
 export declare function getSchemaTargetGraphQLType(schema: SchemaObject, data: PreprocessingData): string | null;
 /**
- * Determines an approximate name for the resource at the given path.
+ * Infers a resource name from the given URL path.
+ *
+ * For example, turns "/users/{userId}/car" into "userCar".
  */
 export declare function inferResourceNameFromPath(path: string): string;
 /**
- * Returns JSON-compatible schema required by the given endpoint - or null if it
- * does not exist.
+ * Returns JSON-compatible schema required by the given operation
  */
-export declare function getRequestBodyObject(endpoint: OperationObject, oas: Oas3): {
+export declare function getRequestBodyObject(operation: OperationObject, oas: Oas3): {
     payloadContentType: string;
     requestBodyObject: RequestBodyObject;
 } | null;
 /**
- * Returns the request schema (if any) for an endpoint at given path and method,
+ * Returns the request schema (if any) for the given operation,
  * a dictionary of names from different sources (if available), and whether the
- * request schema is required for the endpoint.
+ * request schema is required for the operation.
  */
-export declare function getRequestSchemaAndNames(path: string, method: string, oas: Oas3, callback?: CallbackObject): RequestSchemaAndNames;
+export declare function getRequestSchemaAndNames(path: string, method: string, operation: OperationObject, oas: Oas3): RequestSchemaAndNames;
 /**
- * Returns JSON-compatible schema produced by the given endpoint - or null if it
- * does not exist.
+ * Returns JSON-compatible schema produced by the given operation
  */
-export declare function getResponseObject(endpoint: OperationObject, statusCode: string, oas: Oas3): {
+export declare function getResponseObject(operation: OperationObject, statusCode: string, oas: Oas3): {
     responseContentType: string;
     responseObject: ResponseObject;
 } | null;
 /**
- * Returns the response schema for endpoint at given path and method and with
- * the given status code, and a dictionary of names from different sources (if
- * available).
+ * Returns the response schema for the given operation,
+ * a successful  status code, and a dictionary of names from different sources
+ * (if available).
  */
-export declare function getResponseSchemaAndNames(path: string, method: string, oas: Oas3, data: PreprocessingData, options: InternalOptions, callback?: CallbackObject): ResponseSchemaAndNames;
+export declare function getResponseSchemaAndNames(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData, options: InternalOptions): ResponseSchemaAndNames;
 /**
- * Returns the success status code for the operation at the given path and
- * method (or null).
+ * Returns a success status code for the given operation
  */
-export declare function getResponseStatusCode(path: string, method: string, oas: Oas3, data: PreprocessingData, callback?: CallbackObject): string | void;
+export declare function getResponseStatusCode(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData): string | void;
 /**
- * Returns an hash containing the links defined in the given endpoint.
+ * Returns a hash containing the links in the given operation.
  */
-export declare function getEndpointLinks(path: string, method: string, oas: Oas3, data: PreprocessingData): {
+export declare function getLinks(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData): {
     [key: string]: LinkObject;
 };
 /**
- * Returns the list of parameters for the endpoint at the given method and path.
- * Resolves possible references.
+ * Returns the list of parameters in the given operation.
  */
-export declare function getParameters(path: string, method: string, oas: Oas3, callback?: CallbackObject): ParameterObject[];
-/**
- * Returns an hash containing the callbacks defined in the given endpoint.
- */
-export declare function getEndpointCallbacks(path: string, method: string, oas: Oas3, data: PreprocessingData): {
-    [key: string]: CallbackObject;
-};
+export declare function getParameters(path: string, method: string, operation: OperationObject, pathItem: PathItemObject, oas: Oas3): ParameterObject[];
 /**
  * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
  * definitions at the path item, definitions at the operation, or the OAS
  * default.
  */
-export declare function getServers(path: string, method: string, oas: Oas3, callback?: CallbackObject): ServerObject[];
+export declare function getServers(operation: OperationObject, pathItem: PathItemObject, oas: Oas3): ServerObject[];
 /**
  * Returns a map of Security Scheme definitions, identified by keys. Resolves
  * possible references.
@@ -164,13 +158,14 @@ export declare function getSecuritySchemes(oas: Oas3): {
  * Returns the list of sanitized keys of non-OAuth2 security schemes
  * required by the operation at the given path and method.
  */
-export declare function getSecurityRequirements(path: string, method: string, securitySchemes: {
+export declare function getSecurityRequirements(operation: OperationObject, securitySchemes: {
     [key: string]: ProcessedSecurityScheme;
-}, oas: Oas3, callback?: CallbackObject): string[];
+}, oas: Oas3): string[];
 export declare enum CaseStyle {
-    PascalCase = 0,
-    camelCase = 1,
-    ALL_CAPS = 2
+    simple = 0,
+    PascalCase = 1,
+    camelCase = 2,
+    ALL_CAPS = 3
 }
 /**
  * First sanitizes given string and then also camel-cases it.
@@ -183,11 +178,6 @@ export declare function sanitize(str: string, caseStyle: CaseStyle): string;
 export declare function storeSaneName(saneStr: string, str: string, mapping: {
     [key: string]: string;
 }): string;
-/**
- * Return an object similar to the input object except the keys are all
- * sanitized
- */
-export declare function sanitizeObjectKeys(obj: object): object;
 /**
  * Stringifies and possibly trims the given string to the provided length.
  */

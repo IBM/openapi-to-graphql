@@ -16,41 +16,52 @@ function startServer(PORT) {
 
   const bodyParser = require('body-parser')
   app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
 
-  app.get('/api/o_d_d___n_a_m_e', (req, res) => {
+  app.get('/api/object', (req, res) => {
     console.log(req.method, req.path)
     res.send({
-      data: 'odd name'
+      data: 'object'
     })
   })
 
-  app.get('/api/w-e-i-r-d___n-a-m-e', (req, res) => {
+  app.get('/api/object2', (req, res) => {
     console.log(req.method, req.path)
-    res.send({
-      data: 'weird name'
-    })
+    if (typeof req.headers.specialheader === 'string') {
+      res.send({
+        data: `object2 with special header: '${req.headers.specialheader}'`
+      })
+    } else {
+      res.send({
+        data: 'object2'
+      })
+    }
   })
 
-  /**
-   * Cannot use f-u-n-k-y___p-a-r-a-m-e-t-e-r (like in the OAS) as it is not
-   * allowed by Express.js routing
-   *
-   * "The name of route parameters must be made up of "word characters"
-   * ([A-Za-z0-9_])."
-   */
-  app.get('/api/w-e-i-r-d___n-a-m-e2/:funky___parameter', (req, res) => {
+  app.post('/api/formUrlEncoded', (req, res) => {
     console.log(req.method, req.path)
-    res.send({
-      data: `weird name 2 param: ${req.params['funky___parameter']}`
-    })
+    res.send(req.body)
   })
 
-  app.get('/api/w-e-i-r-d___n-a-m-e3/:funky___parameter', (req, res) => {
+  app.get('/api/cars/:id', (req, res) => {
     console.log(req.method, req.path)
-    res.send({
-      data: `weird name 3 param: ${req.params['funky___parameter']}`
-    })
+    res.send(`Car ID: ${req.params.id}`)
   })
+
+  app.get('/api/cacti/:cactusId', (req, res) => {
+    console.log(req.method, req.path)
+    res.send(`Cactus ID: ${req.params.cactusId}`)
+  })
+
+  app.get(
+    '/api/eateries/:eatery/breads/:breadName/dishes/:dishKey',
+    (req, res) => {
+      console.log(req.method, req.path)
+      res.send(
+        `Parameters combined: ${req.params.eatery} ${req.params.breadName} ${req.params.dishKey}`
+      )
+    }
+  )
 
   return new Promise(resolve => {
     server = app.listen(PORT, () => {
@@ -74,7 +85,7 @@ function stopServer() {
 
 // if run from command line, start server:
 if (require.main === module) {
-  startServer(3005)
+  startServer(3006)
 }
 
 module.exports = {

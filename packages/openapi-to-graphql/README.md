@@ -160,6 +160,10 @@ Schema options:
 
 - `genericPayloadArgName` (type: `boolean`, default: `false`): Set the default argument name for the payload of a mutation to `requestBody`. Otherwise, the name will default to the camelCased pathname.
 
+- `simpleNames` (type: `boolean`, default: `false`): By default, field names are sanitized to conform with GraphQL conventions, i.e. types should be in PascalCase, fields should be in camelCase, and enum values should be in ALL_CAPS. This option will prevent OTG from enforcing camelCase field names and PascalCase type names, only removing illegal characters and staying as true to the provided names in the OAS as possible. 
+
+- `singularNames` (type: `boolean`, default: `false`): Experimental feature that will try to create more meaningful names from the operation path than the response object by leveraging common conventions. For example, given the operation `GET /users/{userId}/car`, OtG will create a `Query` field `userCar`. Note that because `users` is followed by the parameter `userId`, it insinuates that this operation will get the car that belongs to a singular user. Hence, the name `userCar` is more fitting than `usersCar` so the pluralizing 's' is dropped. This option will also consider irregular plural forms.
+
 ***
 
 Resolver options:
@@ -174,8 +178,8 @@ Resolver options:
 
 - `customResolvers` (type: `object`, default: `{}`): OpenAPI-to-GraphQL, by default, creates resolver functions that make REST calls to resolve fields in the generated GraphQL interface. This option allows users to provide custom resolver functions to be used in place of said ones created by OpenAPI-to-GraphQL. The field that the custom resolver will affect is identifed first by the [title](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#infoObject) of the OAS, then the [path](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#paths-object) of the operation, and lastly the [method](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#path-item-object) of the operation. The `customResolvers` object is thus a triply nested object where the outer key is the title, followed by the path, and finally the method, which points to the [resolver function](https://graphql.org/learn/execution/#root-fields-resolvers) itself. The resolver function can use the parameters `obj`, `args`, `context`, and `info` in order to produce the proper data, as do standard [resolver functions](https://graphql.org/learn/execution/#root-fields-resolvers) in GraphQL. Use cases include the resolution of complex relationships between types, implementing performance improvements like caching, or dealing with non-standard authentication requirements. _Note: Because the arguments are provided by the GraphQL interface, they may look different from the [parameters](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#parameterObject) defined by the OAS. For example, they will have [sanitized](https://github.com/Alan-Cha/openapi-to-graphql#characteristics) names. The [request body](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#requestBodyObject) will also be contained in the arguments as an [input object type](https://graphql.org/graphql-js/mutations-and-input-types/)._
 
-- `createSubscriptionsFromCallbacks` (type: `boolean`, default: `false`): Allow to generate subscription fields from CallbackObjects in OpenAPI schema. Path ( runtime expression ) of the [CallbackObject](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject) will be interpolated as topic of publish / subscription to use with a [pubsub](https://github.com/apollographql/graphql-subscriptions) instance.
-Read the [doc](./docs/SUBSCRIPTIONS.md) for explanations and examples regarding its usage.
+- `createSubscriptionsFromCallbacks` (type: `boolean`, default: `false`): Generates subscription fields from [callback objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject). The keys ([runtime expressions](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#runtimeExpression)) of the callback objects will be interpolated as the topic of a publish/subscription connection using [graphql-subscriptions](https://github.com/apollographql/graphql-subscriptions). Read the [doc](./docs/SUBSCRIPTIONS.md) for explanations and examples regarding its usage.
+
 ***
 
 Authentication options:
@@ -258,9 +262,9 @@ OpenAPI-to-GraphQL further provides `anyAuth` viewers (for queries and mutations
       password: "secret"
     }
   ) {
-    patentWithId (patentId: "test") {  // requires "exampleApiKeyProtocol"
+    patent (patentId: "test") {  // requires "exampleApiKeyProtocol"
       patentId
-      inventor {                       // requires "exampleBasicProtocol"
+      inventor {                 // requires "exampleBasicProtocol"
         name
       }
     }

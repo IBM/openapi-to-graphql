@@ -39,7 +39,7 @@ import {
 } from './types/options'
 import { Oas3, CallbackObject } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, Field } from './types/graphql'
+import { Args, Field, GraphQLOperationType } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
 import { GraphQLSchema, GraphQLObjectType } from 'graphql'
@@ -98,7 +98,10 @@ export async function createGraphQLSchema(
     typeof options.genericPayloadArgName === 'boolean'
       ? options.genericPayloadArgName
       : false
-
+  options.simpleNames =
+    typeof options.simpleNames === 'boolean' ? options.simpleNames : false
+  options.singularNames =
+    typeof options.singularNames === 'boolean' ? options.singularNames : false
   options.createSubscriptionsFromCallbacks =
     typeof options.createSubscriptionsFromCallbacks === 'boolean'
       ? options.createSubscriptionsFromCallbacks
@@ -178,6 +181,8 @@ async function translateOpenAPIToGraphQL(
     idFormats,
     selectQueryOrMutationField,
     genericPayloadArgName,
+    simpleNames,
+    singularNames,
 
     // Resolver options
     headers,
@@ -207,7 +212,10 @@ async function translateOpenAPIToGraphQL(
     fillEmptyResponses,
     addLimitArgument,
     idFormats,
+    selectQueryOrMutationField,
     genericPayloadArgName,
+    simpleNames,
+    singularNames,
 
     // Resolver options
     headers,
@@ -216,7 +224,6 @@ async function translateOpenAPIToGraphQL(
     connectOptions,
     baseUrl,
     customResolvers,
-    selectQueryOrMutationField,
     createSubscriptionsFromCallbacks,
 
     // Authentication options
@@ -249,10 +256,9 @@ async function translateOpenAPIToGraphQL(
   let authMutationFields = {}
   let authSubscriptionFields = {}
 
-  // todo parse data.callbacks to recompose subscription ?
-
+  // Add Query and Mutation operations
   Object.entries(data.operations).forEach(([operationId, operation]) => {
-    translationLog(`Process operation '${operationId}'...`)
+    translationLog(`Process operation '${operation.operationString}'...`)
 
     let field = getFieldForOperation(
       operation,
@@ -267,11 +273,15 @@ async function translateOpenAPIToGraphQL(
       Oas3Tools.CaseStyle.camelCase
     )
 
-    // Check if the operation should be added as a Query | Mutation | Subscription field
-    if (!operation.isMutation && !operation.isSubscription) {
-      let fieldName = Oas3Tools.uncapitalize(
-        operation.responseDefinition.graphQLTypeName
-      )
+    // Check if the operation should be added as a Query or Mutation
+    if (operation.operationType === GraphQLOperationType.Query) {
+      let fieldName = !singularNames
+        ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+        : Oas3Tools.sanitize(
+            Oas3Tools.inferResourceNameFromPath(operation.path),
+            Oas3Tools.CaseStyle.camelCase
+          )
+
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {
           if (typeof authQueryFields[securityRequirement] !== 'object') {
@@ -341,17 +351,32 @@ async function translateOpenAPIToGraphQL(
           queryFields[fieldName] = field
         }
       }
-    } else if (operation.isMutation && !operation.isSubscription) {
-      /**
-       * Use operationId to avoid problems differentiating operations with the
-       * same path but different methods
-       */
+    } else {
+      let saneFieldName
 
-      let saneFieldName = Oas3Tools.storeSaneName(
-        saneOperationId,
-        operationId,
-        data.saneMap
-      )
+      if (!singularNames) {
+        /**
+         * Use operationId to avoid problems differentiating operations with the
+         * same path but differnet methods
+         */
+
+        saneFieldName = Oas3Tools.storeSaneName(
+          saneOperationId,
+          operationId,
+          data.saneMap
+        )
+      } else {
+        const fieldName = `${
+          operation.method
+        }${Oas3Tools.inferResourceNameFromPath(operation.path)}`
+
+        saneFieldName = Oas3Tools.storeSaneName(
+          Oas3Tools.sanitize(fieldName, Oas3Tools.CaseStyle.camelCase),
+          fieldName,
+          data.saneMap
+        )
+      }
+
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {
           if (typeof authMutationFields[securityRequirement] !== 'object') {
@@ -390,7 +415,27 @@ async function translateOpenAPIToGraphQL(
           mutationFields[saneFieldName] = field
         }
       }
-    } else if (operation.isSubscription) {
+    }
+  })
+
+  // Add Subscription operations
+  Object.entries(data.callbackOperations).forEach(
+    ([operationId, operation]) => {
+      translationLog(`Process operation '${operationId}'...`)
+
+      let field = getFieldForOperation(
+        operation,
+        options.baseUrl,
+        data,
+        requestOptions,
+        connectOptions
+      )
+
+      const saneOperationId = Oas3Tools.sanitize(
+        operationId,
+        Oas3Tools.CaseStyle.camelCase
+      )
+
       // handle subscriptions from operation.callbacks
       // 1) cbName would be the subscription field name
       // each paths contained in operation.callbacks[cbName]
@@ -448,7 +493,7 @@ async function translateOpenAPIToGraphQL(
         }
       }
     }
-  })
+  )
 
   // Sorting fields
   queryFields = sortObject(queryFields)
@@ -494,21 +539,29 @@ async function translateOpenAPIToGraphQL(
   if (Object.keys(authQueryFields).length > 0) {
     Object.assign(
       queryFields,
-      createAndLoadViewer(authQueryFields, data, false, false)
+      createAndLoadViewer(authQueryFields, GraphQLOperationType.Query, data)
     )
   }
 
   if (Object.keys(authMutationFields).length > 0) {
     Object.assign(
       mutationFields,
-      createAndLoadViewer(authMutationFields, data, true, false)
+      createAndLoadViewer(
+        authMutationFields,
+        GraphQLOperationType.Mutation,
+        data
+      )
     )
   }
 
   if (Object.keys(authSubscriptionFields).length > 0) {
     Object.assign(
       subscriptionFields,
-      createAndLoadViewer(authSubscriptionFields, data, true, true)
+      createAndLoadViewer(
+        authSubscriptionFields,
+        GraphQLOperationType.Subscription,
+        data
+      )
     )
   }
 
@@ -597,7 +650,7 @@ function getFieldForOperation(
     data
   })
 
-  if (operation.isSubscription) {
+  if (operation.operationType === GraphQLOperationType.Subscription) {
     const responseSchemaName = operation.responseDefinition
       ? operation.responseDefinition.graphQLTypeName
       : null
@@ -623,20 +676,21 @@ function getFieldForOperation(
       args,
       description: operation.description
     }
-  }
+  } else {
+    const resolve = getResolver({
+      operation,
+      payloadName: payloadSchemaName,
+      data,
+      baseUrl,
+      requestOptions
+    })
 
-  const resolve = getResolver({
-    operation,
-    payloadName: payloadSchemaName,
-    data,
-    baseUrl,
-    requestOptions
-  })
-  return {
-    type,
-    resolve,
-    args,
-    description: operation.description
+    return {
+      type,
+      resolve,
+      args,
+      description: operation.description
+    }
   }
 }
 

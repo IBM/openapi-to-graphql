@@ -47,12 +47,20 @@ program
     'create placeholder schemas for operations with no response body rather than ignore them'
   )
   .option(
-    '-a, --addLimitArgument',
+    '--addLimitArgument',
     'add a limit argument on fields returning lists of objects/lists to control the data size'
   )
   .option(
-    '-g, --genericPayloadArgName',
-    'Sets argument name for the payload of a mutation to \'requestBody\''
+    '--genericPayloadArgName',
+    "Sets argument name for the payload of a mutation to 'requestBody'"
+  )
+  .option(
+    '--simpleNames',
+    'Only remove illegal characters from names in the OAS and ignore casing and formatting'
+  )
+  .option(
+    '--singularNames',
+    'Experimental feature that will create more meaningful names from the operation path'
   )
 
   // Resolver options
@@ -107,6 +115,8 @@ const options: Options = {
   fillEmptyResponses: program.fillEmptyResponses,
   addLimitArgument: program.addLimitArgument,
   genericPayloadArgName: program.genericPayloadArgName,
+  simpleNames: program.simpleNames,
+  singularNames: program.singularNames,
 
   // Resolver options
   headers,
@@ -275,7 +285,7 @@ function startGraphQLServer(
       }
     })
     .catch(err => {
-      console.log('OpenAPI-to-GraphQL creation event error: ', err.message)
+      console.log('OpenAPI-to-GraphQL creation event error:', err.message)
     })
 }
 

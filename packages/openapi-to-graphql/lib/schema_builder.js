@@ -88,7 +88,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
         if (def.graphQLType && typeof def.graphQLType !== 'undefined') {
             translationLog(`Reuse object type '${def.graphQLTypeName}'` +
                 (typeof operation === 'object'
-                    ? ` (for operation '${operation.operationId}')`
+                    ? ` (for operation '${operation.operationString}')`
                     : ''));
             return def.graphQLType;
         }
@@ -99,7 +99,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
             typeof def.graphQLInputObjectType !== 'undefined') {
             translationLog(`Reuse input object type '${def.graphQLInputObjectTypeName}'` +
                 (typeof operation === 'object'
-                    ? ` (for operation '${operation.operationId}')`
+                    ? ` (for operation '${operation.operationString}')`
                     : ''));
             return def.graphQLInputObjectType;
         }
@@ -111,7 +111,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     if (!isInputObjectType) {
         translationLog(`Create object type '${def.graphQLTypeName}'` +
             (typeof operation === 'object'
-                ? ` (for operation '${operation.operationId}')`
+                ? ` (for operation '${operation.operationString}')`
                 : ''));
         def.graphQLType = new graphql_1.GraphQLObjectType({
             name: def.graphQLTypeName,
@@ -133,7 +133,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
     else {
         translationLog(`Create input object type '${def.graphQLInputObjectTypeName}'` +
             (typeof operation === 'object'
-                ? ` (for operation '${operation.operationId}')`
+                ? ` (for operation '${operation.operationString}')`
                 : ''));
         def.graphQLInputObjectType = new graphql_1.GraphQLInputObjectType({
             name: def.graphQLInputObjectTypeName,
@@ -161,14 +161,14 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
     if (typeof def.graphQLType !== 'undefined') {
         translationLog(`Reuse union type '${def.graphQLTypeName}'` +
             (typeof operation === 'object'
-                ? ` (for operation '${operation.operationId}')`
+                ? ` (for operation '${operation.operationString}')`
                 : ''));
         return def.graphQLType;
     }
     else {
         translationLog(`Create union type '${def.graphQLTypeName}'` +
             (typeof operation === 'object'
-                ? ` (for operation '${operation.operationId}')`
+                ? ` (for operation '${operation.operationString}')`
                 : ''));
         const schema = def.schema;
         const description = typeof schema.description !== 'undefined'
@@ -400,7 +400,9 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         const requiredProperty = typeof def.required === 'object' && def.required.includes(fieldTypeKey);
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
-            const saneFieldTypeKey = Oas3Tools.sanitize(fieldTypeKey, Oas3Tools.CaseStyle.camelCase);
+            const saneFieldTypeKey = Oas3Tools.sanitize(fieldTypeKey, !data.options.simpleNames
+                ? Oas3Tools.CaseStyle.camelCase
+                : Oas3Tools.CaseStyle.simple);
             const sanePropName = Oas3Tools.storeSaneName(saneFieldTypeKey, fieldTypeKey, data.saneMap);
             fields[sanePropName] = {
                 type: requiredProperty
@@ -458,23 +460,22 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                     const linkedOp = data.operations[linkedOpId];
                     // Determine parameters provided via link
                     let argsFromLink = link.parameters;
-                    // Remove argsFromLinks from operation parameters
+                    // Get arguments that are not provided by the linked operation
                     let dynamicParams = linkedOp.parameters;
                     if (typeof argsFromLink === 'object') {
-                        dynamicParams = dynamicParams.filter(p => {
-                            // Here, we know argsFromLink is present:
-                            argsFromLink = argsFromLink;
-                            return typeof argsFromLink[p.name] === 'undefined';
+                        dynamicParams = dynamicParams.filter(param => {
+                            return typeof argsFromLink[param.name] === 'undefined';
                         });
                     }
                     // Get resolve function for link
                     const linkResolver = resolver_builder_1.getResolver({
                         operation: linkedOp,
-                        argsFromLink: Oas3Tools.sanitizeObjectKeys(argsFromLink),
+                        argsFromLink: argsFromLink,
                         data,
-                        baseUrl: data.options.baseUrl
+                        baseUrl: data.options.baseUrl,
+                        requestOptions: data.options.requestOptions
                     });
-                    // Get args for link
+                    // Get arguments for link
                     const args = getArgs({
                         parameters: dynamicParams,
                         operation: linkedOp,
@@ -731,7 +732,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
 function getArgs({ requestPayloadDef, parameters, operation, data }) {
     let args = {};
     // Handle params:
-    for (let parameter of parameters) {
+    for (const parameter of parameters) {
         // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
@@ -780,7 +781,6 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
          * The type of the parameter can either be contained in the "schema" field
          * or the "content" field (but not both)
          */
-        let type;
         let schema;
         if (typeof parameter.schema === 'object') {
             schema = parameter.schema;
@@ -815,13 +815,17 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             });
             continue;
         }
+        /**
+         * Resolving the reference is necessary later in the code and by doing it,
+         * we can avoid doing it a second time in resolveRev()
+         */
         if ('$ref' in schema) {
             schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas);
         }
         // TODO: remove
         const paramDef = preprocessor_1.createDataDef({ fromSchema: parameter.name }, schema, true, data);
         // @ts-ignore
-        type = getGraphQLType({
+        const type = getGraphQLType({
             def: paramDef,
             operation,
             data,
@@ -834,7 +838,9 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
          * NOTE: when matching these parameters back to requests, we need to again
          * use the real parameter name
          */
-        const saneName = Oas3Tools.sanitize(parameter.name, Oas3Tools.CaseStyle.camelCase);
+        const saneName = Oas3Tools.sanitize(parameter.name, !data.options.simpleNames
+            ? Oas3Tools.CaseStyle.camelCase
+            : Oas3Tools.CaseStyle.simple);
         // Parameters are not required when a default exists:
         let hasDefault = false;
         if (typeof parameter.schema === 'object') {
@@ -892,7 +898,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         // Sanitize the argument name
         const saneName = data.options.genericPayloadArgName
             ? 'requestBody'
-            : Oas3Tools.sanitize(requestPayloadDef.graphQLInputObjectTypeName, Oas3Tools.CaseStyle.camelCase);
+            : Oas3Tools.uncapitalize(requestPayloadDef.graphQLInputObjectTypeName); // Already sanitized
         const reqRequired = typeof operation === 'object' &&
             typeof operation.payloadRequired === 'boolean'
             ? operation.payloadRequired

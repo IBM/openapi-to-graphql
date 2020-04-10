@@ -3,6 +3,8 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
+import { Operation } from './operation'
+
 /**
  * Type definitions for the OpenAPI Specification 3.
  */
@@ -154,7 +156,6 @@ export type OperationObject = {
   parameters?: Array<ParameterObject | ReferenceObject>
   requestBody?: RequestBodyObject | ReferenceObject
   responses?: ResponsesObject
-  // callbacks?: any // TODO: extend?
   callbacks?: CallbacksObject
   deprecated?: boolean
   security?: SecurityRequirementObject[]
@@ -165,7 +166,14 @@ export type PathItemObject = {
   $ref?: string
   summary?: string
   description: string
-  [key: string]: any
+  get: OperationObject
+  put: OperationObject
+  post: OperationObject
+  delete: OperationObject
+  options: OperationObject
+  head: OperationObject
+  patch: OperationObject
+  trace: OperationObject
   servers?: ServerObject[]
   parameters?: [ParameterObject | ReferenceObject]
 }

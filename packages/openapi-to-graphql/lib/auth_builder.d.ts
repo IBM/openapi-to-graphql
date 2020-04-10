@@ -3,7 +3,7 @@
  * functions used by OpenAPI-to-GraphQL.
  */
 import { GraphQLObjectType as GQObjectType } from 'graphql';
-import { Args, ResolveFunction } from './types/graphql';
+import { Args, ResolveFunction, GraphQLOperationType } from './types/graphql';
 import { PreprocessingData } from './types/preprocessing_data';
 declare type Viewer = {
     type: GQObjectType;
@@ -17,7 +17,7 @@ declare type Viewer = {
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-export declare function createAndLoadViewer(queryFields: object, data: PreprocessingData, isMutation?: boolean, isSubscription?: boolean): {
+export declare function createAndLoadViewer(queryFields: object, operationType: GraphQLOperationType, data: PreprocessingData): {
     [key: string]: Viewer;
 };
 export {};

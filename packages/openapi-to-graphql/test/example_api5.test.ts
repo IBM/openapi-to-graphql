@@ -1,165 +1,193 @@
+// Copyright IBM Corp. 2017,2018. All Rights Reserved.
+// Node module: openapi-to-graphql
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
 'use strict'
 
 /* globals beforeAll, test, expect */
 
-import { graphql, parse, validate, execute, subscribe } from 'graphql'
-import { createServer } from 'http'
-import {
-  SubscriptionServer,
-  SubscriptionClient
-} from 'subscriptions-transport-ws'
-import { MQTTPubSub } from 'graphql-mqtt-subscriptions'
-import { connect } from 'mqtt'
+import { graphql } from 'graphql'
 
 import * as openAPIToGraphQL from '../lib/index'
-import { startServers, stopServers } from './example_api5_server'
+import { startServer, stopServer } from './example_api5_server'
 
 const oas = require('./fixtures/example_oas5.json')
-
-const TEST_PORT = 3000
-const HTTP_PORT = 3008
-const MQTT_PORT = 1885
-
-oas.servers[0].variables.port.default = String(HTTP_PORT)
-// oas.servers[1].variables.port.default = String(MQTT_PORT)
+const PORT = 3007
+// Update PORT for this test case:
+oas.servers[0].variables.port.default = String(PORT)
 
 let createdSchema
-let wsServer
-let mqttClient
+
 /**
- * Set up the schema first and run example API servers
+ * Set up the schema first and run example API server
  */
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
       .createGraphQLSchema(oas, {
-        fillEmptyResponses: true,
-        createSubscriptionsFromCallbacks: true
+        simpleNames: true
       })
-      .then(({ schema }) => {
+      .then(({ schema, report }) => {
         createdSchema = schema
-
-        mqttClient = connect(`mqtt://localhost:${MQTT_PORT}`, {
-          keepalive: 60,
-          reschedulePings: true,
-          // protocolId: 'MQTT',
-          // protocolVersion: 4,
-          reconnectPeriod: 2000,
-          connectTimeout: 5 * 1000,
-          clean: true
-        })
-
-        const pubsub = new MQTTPubSub({
-          client: mqttClient
-        })
-
-        wsServer = createServer((req, res) => {
-          res.writeHead(404)
-          res.end()
-        })
-
-        wsServer.listen(TEST_PORT)
-        new SubscriptionServer(
-          {
-            execute,
-            subscribe,
-            schema,
-            onConnect: (params, socket, ctx) => {
-              // adding pubsub to subscribe context
-              return { pubsub }
-            }
-          },
-          {
-            server: wsServer,
-            path: '/subscriptions'
-          }
-        )
       }),
-    startServers(HTTP_PORT, MQTT_PORT)
+    startServer(PORT)
   ])
 })
 
 /**
- * Shut down API servers
+ * Shut down API server
  */
 afterAll(() => {
-  mqttClient.end()
-  wsServer.close()
-  return stopServers()
+  return stopServer()
 })
 
-test('Receive data from the subscription after creating a new instance', () => {
-  const userName = 'Carlos'
-  const deviceName = 'Bot'
+// Testing the simpleNames option
 
-  const query = `subscription watchDevice($topicInput: TopicInput!) {
-    devicesEventListener(topicInput: $topicInput) {
-      name
-      userName
-      status
+/**
+ * Because of the simpleNames option, 'o_d_d___n_a_m_e' will not be turned into
+ * 'oDDNAME'.
+ */
+test('Basic simpleNames option test', () => {
+  const query = `{
+    o_d_d___n_a_m_e {
+      data
     }
   }`
 
-  const query2 = `mutation($deviceInput: DeviceInput!) {
-    createDevice(deviceInput: $deviceInput) {
-      name
-      userName
-      status
-    }
-  }`
-
-  return new Promise((resolve, reject) => {
-    const client = new SubscriptionClient(
-      `ws://localhost:${TEST_PORT}/subscriptions`
-    )
-
-    client.onError(err => reject)
-
-    let sub = client
-      .request({
-        query,
-        operationName: 'watchDevice',
-        variables: {
-          topicInput: {
-            method: 'POST',
-            userName: `${userName}`
-          }
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        o_d_d___n_a_m_e: {
+          data: 'odd name'
         }
-      })
-      .subscribe({
-        next: result => {
-          if (result.errors) {
-            reject(result.errors)
-          }
-
-          if (result.data) {
-            expect(result.data).toEqual({
-              devicesEventListener: {
-                name: `${deviceName}`,
-                userName: `${userName}`,
-                status: false
-              }
-            })
-            resolve()
-          }
-        },
-        error: e => reject(e)
-      })
-
-    setTimeout(() => {
-      graphql(createdSchema, query2, null, null, {
-        deviceInput: {
-          name: `${deviceName}`,
-          userName: `${userName}`,
-          status: false
-        }
-      })
-        .then(res => {
-          if (!res.data) {
-            reject(new Error('Failed mutation'))
-          }
-        })
-        .catch(reject)
-    }, 400)
+      }
+    })
   })
-}, 7000)
+})
+
+/**
+ * 'w-e-i-r-d___n-a-m-e' contains GraphQL unsafe characters.
+ *
+ * Because of the simpleNames option, 'w-e-i-r-d___n-a-m-e' will be turned into
+ * 'weird___name' and not 'wEIRDNAME'.
+ */
+test('Basic simpleNames option test with GraphQL unsafe values', () => {
+  const query = `{
+    weird___name {
+      data
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        weird___name: {
+          data: 'weird name'
+        }
+      }
+    })
+  })
+})
+
+/**
+ * 'w-e-i-r-d___n-a-m-e2' contains GraphQL unsafe characters.
+ *
+ * Because of the simpleNames option, 'w-e-i-r-d___n-a-m-e2' will be turned into
+ * 'weird___name2' and not 'wEIRDNAME2'.
+ */
+test('Basic simpleNames option test with GraphQL unsafe values and a parameter', () => {
+  const query = `{
+    weird___name2 (funky___parameter: "Arnold") {
+      data
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        weird___name2: {
+          data: 'weird name 2 param: Arnold'
+        }
+      }
+    })
+  })
+})
+
+/**
+ * Because of the simpleNames option, 'w-e-i-r-d___n-a-m-e___l-i-n-k' will be
+ * turned into 'weird___name___link' and not 'wEIRDNAMELINK'.
+ */
+test('Basic simpleNames option test with a link', () => {
+  const query = `{
+    o_d_d___n_a_m_e {
+      weird___name___link {
+        data
+      }
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        o_d_d___n_a_m_e: {
+          weird___name___link: {
+            data: 'weird name'
+          }
+        }
+      }
+    })
+  })
+})
+
+/**
+ * Because of the simpleNames option, 'w-e-i-r-d___n-a-m-e2___l-i-n-k' will be
+ * turned into 'weird___name2___link' and not 'wEIRDNAME2LINK'.
+ */
+test('Basic simpleNames option test with a link that has parameters', () => {
+  const query = `{
+    o_d_d___n_a_m_e {
+      weird___name2___link {
+        data
+      }
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        o_d_d___n_a_m_e: {
+          weird___name2___link: {
+            data: 'weird name 2 param: Charles'
+          }
+        }
+      }
+    })
+  })
+})
+
+/**
+ * Because of the simpleNames option, 'w-e-i-r-d___n-a-m-e3___l-i-n-k' will be
+ * turned into 'weird___name3___link3' and not 'wEIRDNAME3LINK'.
+ */
+test('Basic simpleNames option test with a link that has exposed parameters', () => {
+  const query = `{
+    o_d_d___n_a_m_e {
+      weird___name3___link (funky___parameter: "Brittany") {
+        data
+      }
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result).toEqual({
+      data: {
+        o_d_d___n_a_m_e: {
+          weird___name3___link: {
+            data: 'weird name 3 param: Brittany'
+          }
+        }
+      }
+    })
+  })
+})

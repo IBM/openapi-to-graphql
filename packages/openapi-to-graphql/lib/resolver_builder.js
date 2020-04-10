@@ -11,6 +11,7 @@ const querystring = require("querystring");
 const JSONPath = require("jsonpath-plus");
 const debug_1 = require("debug");
 const graphql_1 = require("graphql");
+const form_urlencoded_1 = require("form-urlencoded");
 const graphql_subscriptions_1 = require("graphql-subscriptions");
 const pubsub = new graphql_subscriptions_1.PubSub();
 const translationLog = debug_1.debug('translation');
@@ -20,7 +21,7 @@ const pubsubLog = debug_1.debug('pubsub');
  * If operationType is Subscription, creates and returns a resolver object that contains subscribe to perform subscription
  * and resolve to execute payload transformation
  */
-function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl, connectOptions }) {
+function getSubscribe({ operation, payloadName, data, baseUrl, connectOptions }) {
     // Determine the appropriate URL:
     if (typeof baseUrl === 'undefined') {
         baseUrl = Oas3Tools.getBaseUrl(operation);
@@ -57,7 +58,7 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
                 : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
             if (sanePayloadName in args) {
                 if (typeof args[sanePayloadName] === 'object') {
-                    const rawPayload = Oas3Tools.desanitizeObjKeys(args[sanePayloadName], data.saneMap);
+                    const rawPayload = Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap);
                     resolveData.usedPayload = rawPayload;
                 }
                 else {
@@ -65,10 +66,6 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
                     resolveData.usedPayload = rawPayload;
                 }
             }
-        }
-        pubsubLog(`Subscription schema : ${JSON.stringify(resolveData.usedPayload)}`);
-        if (typeof resolveData.usedParams === 'undefined') {
-            resolveData.usedParams = {};
         }
         if (connectOptions) {
             resolveData.usedRequestOptions = connectOptions;
@@ -80,15 +77,13 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
                     : method.toUpperCase()
             };
         }
+        pubsubLog(`Subscription schema: ${JSON.stringify(resolveData.usedPayload)}`);
         let value = path;
         let paramNameWithoutLocation = paramName;
         if (paramName.indexOf('.') !== -1) {
             paramNameWithoutLocation = paramName.split('.')[1];
         }
-        // /**
-        //  * see if the callback path contains constants expression
-        //  *
-        //  */
+        // See if the callback path contains constants expression
         if (value.search(/{|}/) === -1) {
             args[paramNameWithoutLocation] = isRuntimeExpression(value)
                 ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
@@ -97,14 +92,15 @@ function getSubscribe({ operation, argsFromLink = {}, payloadName, data, baseUrl
         else {
             // Replace callback expression with appropriate values
             const cbParams = value.match(/{([^}]*)}/g);
-            pubsubLog(`Analyzing subscription path : ${cbParams.toString()}`);
+            pubsubLog(`Analyzing subscription path: ${cbParams.toString()}`);
             cbParams.forEach(cbParam => {
                 value = value.replace(cbParam, resolveRuntimeExpression(paramName, cbParam.substring(1, cbParam.length - 1), resolveData, root, args));
             });
             args[paramNameWithoutLocation] = value;
         }
+        console.log('args', args);
         const topic = args[paramNameWithoutLocation] || 'test';
-        pubsubLog(`Subscribing to : ${topic}`);
+        pubsubLog(`Subscribing to: ${topic}`);
         return ctx.pubsub
             ? ctx.pubsub.asyncIterator(topic)
             : pubsub.asyncIterator(topic);
@@ -155,7 +151,7 @@ function getPublishResolver({ operation, argsFromLink = {}, responseName, data }
                 else {
                     responseBody = payload;
                 }
-                saneData = Oas3Tools.sanitizeObjKeys(payload);
+                saneData = Oas3Tools.sanitizeObjectKeys(payload);
             }
             else if ((Buffer.isBuffer(payload) || Array.isArray(payload)) &&
                 typeOfResponse === 'string') {
@@ -166,7 +162,7 @@ function getPublishResolver({ operation, argsFromLink = {}, responseName, data }
             if (typeOfResponse === 'object') {
                 try {
                     responseBody = JSON.parse(payload);
-                    saneData = Oas3Tools.sanitizeObjKeys(responseBody);
+                    saneData = Oas3Tools.sanitizeObjectKeys(responseBody);
                 }
                 catch (e) {
                     const errorString = `Cannot JSON parse payload` +
@@ -238,7 +234,9 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          * the user.
          */
         operation.parameters.forEach(param => {
-            const paramName = Oas3Tools.sanitize(param.name, Oas3Tools.CaseStyle.camelCase);
+            const paramName = Oas3Tools.sanitize(param.name, !data.options.simpleNames
+                ? Oas3Tools.CaseStyle.camelCase
+                : Oas3Tools.CaseStyle.simple);
             if (typeof args[paramName] === 'undefined' &&
                 param.schema &&
                 typeof param.schema === 'object') {
@@ -254,12 +252,11 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             }
         });
         // Handle arguments provided by links
-        for (let paramName in argsFromLink) {
+        for (const paramName in argsFromLink) {
+            const saneParamName = Oas3Tools.sanitize(paramName, !data.options.simpleNames
+                ? Oas3Tools.CaseStyle.camelCase
+                : Oas3Tools.CaseStyle.simple);
             let value = argsFromLink[paramName];
-            let paramNameWithoutLocation = paramName;
-            if (paramName.indexOf('.') !== -1) {
-                paramNameWithoutLocation = paramName.split('.')[1];
-            }
             /**
              * see if the link parameter contains constants that are appended to the link parameter
              *
@@ -270,7 +267,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
              * abc_{$response.body#/employerId}
              */
             if (value.search(/{|}/) === -1) {
-                args[paramNameWithoutLocation] = isRuntimeExpression(value)
+                args[saneParamName] = isRuntimeExpression(value)
                     ? resolveRuntimeExpression(paramName, value, resolveData, root, args)
                     : value;
             }
@@ -280,13 +277,13 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 linkParams.forEach(linkParam => {
                     value = value.replace(linkParam, resolveRuntimeExpression(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, root, args));
                 });
-                args[paramNameWithoutLocation] = value;
+                args[saneParamName] = value;
             }
         }
         // Stored used parameters to future requests:
         resolveData.usedParams = Object.assign(resolveData.usedParams, args);
         // Build URL (i.e., fill in path parameters):
-        const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(operation.path, operation.parameters, args);
+        const { path, query, headers } = Oas3Tools.instantiatePathAndGetQuery(operation.path, operation.parameters, args, data);
         const url = baseUrl + path;
         /**
          * The Content-type and accept property should not be changed because the
@@ -336,25 +333,24 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          * lookup here
          */
         resolveData.usedPayload = undefined;
-        if (payloadName && typeof payloadName === 'string') {
+        if (typeof payloadName === 'string') {
             // The option genericPayloadArgName will change the payload name to "requestBody"
             const sanePayloadName = data.options.genericPayloadArgName
                 ? 'requestBody'
                 : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
-            if (sanePayloadName in args) {
-                if (typeof args[sanePayloadName] === 'object') {
-                    // We need to desanitize the payload so the API understands it:
-                    const rawPayload = JSON.stringify(Oas3Tools.desanitizeObjKeys(args[sanePayloadName], data.saneMap));
-                    options.body = rawPayload;
-                    resolveData.usedPayload = rawPayload;
-                }
-                else {
-                    // Payload is not an object (stored as an application/json)
-                    const rawPayload = args[sanePayloadName];
-                    options.body = rawPayload;
-                    resolveData.usedPayload = rawPayload;
-                }
+            let rawPayload;
+            if (operation.payloadContentType === 'application/json') {
+                rawPayload = JSON.stringify(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
             }
+            else if (operation.payloadContentType === 'application/x-www-form-urlencoded') {
+                rawPayload = form_urlencoded_1.default(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
+            }
+            else {
+                // Payload is not an object
+                rawPayload = args[sanePayloadName];
+            }
+            options.body = rawPayload;
+            resolveData.usedPayload = rawPayload;
         }
         /**
          * Pass on OpenAPI-to-GraphQL options
@@ -477,7 +473,9 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                 }
                                 resolveData.responseHeaders = response.headers;
                                 // Deal with the fact that the server might send unsanitized data
-                                let saneData = Oas3Tools.sanitizeObjKeys(responseBody);
+                                let saneData = Oas3Tools.sanitizeObjectKeys(responseBody, !data.options.simpleNames
+                                    ? Oas3Tools.CaseStyle.camelCase
+                                    : Oas3Tools.CaseStyle.simple);
                                 // Pass on _openAPIToGraphQL to subsequent resolvers
                                 if (saneData && typeof saneData === 'object') {
                                     if (Array.isArray(saneData)) {

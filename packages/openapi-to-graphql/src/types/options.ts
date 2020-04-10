@@ -97,6 +97,32 @@ export type Options = {
    */
   genericPayloadArgName?: boolean
 
+  /**
+   * By default, field names are sanitized to conform with GraphQL conventions,
+   * i.e. types should be in PascalCase, fields should be in camelCase, and
+   * enum values should be in ALL_CAPS.
+   *
+   * This option will prevent OtG from enforcing camelCase field names and
+   * PascalCase type names, only removing illegal characters and staying as true
+   * to the provided names in the OAS as possible.
+   */
+  simpleNames?: boolean
+
+  /**
+   * Experimental feature that will try to create more meaningful names from
+   * the operation path than the response object by leveraging common
+   * conventions.
+   *
+   * For example, given the operation 'GET /users/{userId}/car', OtG will
+   * create a Query field 'userCar'. Note that because 'users' is followed by
+   * the parameter 'userId', it insinuates that this operation will get the car
+   * that belongs to a singular user. Hence, the name 'userCar' is more fitting
+   * than 'usersCar' so the pluralizing 's' is dropped.
+   *
+   * This option will also consider irregular plural forms.
+   */
+  singularNames?: boolean
+
   // Resolver options
 
   /**
@@ -151,10 +177,10 @@ export type Options = {
   }
 
   /**
-   * Allow to generate subscription fields from CallbackObjects in OpenAPI schema.
+   * Allow to generate subscription fields from callback objects in the OAS.
    *
-   * Path ( runtime expression ) of the CallbackObject will be interpolated,
-   * as topic of publish / subscription to use with a pubsub instance.
+   * The keys (runtime expressions) of the callback object will be interpolated
+   * as the topic of publish/subscription connection.
    */
   createSubscriptionsFromCallbacks?: boolean
 
@@ -273,6 +299,32 @@ export type InternalOptions = {
    */
   genericPayloadArgName: boolean
 
+  /**
+   * By default, field names are sanitized to conform with GraphQL conventions,
+   * i.e. types should be in PascalCase, fields should be in camelCase, and
+   * enum values should be in ALL_CAPS.
+   *
+   * This option will prevent OtG from enforcing camelCase field names and
+   * PascalCase type names, only removing illegal characters and staying as true
+   * to the provided names in the OAS as possible.
+   */
+  simpleNames: boolean
+
+  /**
+   * Experimental feature that will try to create more meaningful names from
+   * the operation path than the response object by leveraging common
+   * conventions.
+   *
+   * For example, given the operation 'GET /users/{userId}/car', OtG will
+   * create a Query field 'userCar'. Note that because 'users' is followed by
+   * the parameter 'userId', it insinuates that this operation will get the car
+   * that belongs to a singular user. Hence, the name 'userCar' is more fitting
+   * than 'usersCar' so the pluralizing 's' is dropped.
+   *
+   * This option will also consider irregular plural forms.
+   */
+  singularNames: boolean
+
   // Resolver options
 
   /**
@@ -327,12 +379,12 @@ export type InternalOptions = {
   }
 
   /**
-   * Allow to generate subscription fields from CallbackObjects in OpenAPI schema.
+   * Allow to generate subscription fields from callback objects in the OAS.
    *
-   * Path ( runtime expression ) of the CallbackObject will be interpolated,
-   * as topic of publish / subscription to use with a pubsub instance.
+   * The keys (runtime expressions) of the callback object will be interpolated
+   * as the topic of publish/subscription connection.
    */
-  createSubscriptionsFromCallbacks?: boolean
+  createSubscriptionsFromCallbacks: boolean
 
   // Authentication options
 

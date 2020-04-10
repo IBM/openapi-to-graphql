@@ -141,7 +141,14 @@ export declare type PathItemObject = {
     $ref?: string;
     summary?: string;
     description: string;
-    [key: string]: any;
+    get: OperationObject;
+    put: OperationObject;
+    post: OperationObject;
+    delete: OperationObject;
+    options: OperationObject;
+    head: OperationObject;
+    patch: OperationObject;
+    trace: OperationObject;
     servers?: ServerObject[];
     parameters?: [ParameterObject | ReferenceObject];
 };
