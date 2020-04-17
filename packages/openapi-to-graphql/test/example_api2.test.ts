@@ -75,6 +75,9 @@ test('Querying the two operations', () => {
     user {
       name
     }
+    getRobots(types: ["Droid", "Bot"]) {
+      name
+    }
   }`
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
@@ -84,6 +87,9 @@ test('Querying the two operations', () => {
         },
         user: {
           name: 'William B Ropp'
+        },
+        getRobots: {
+          name: "Nkiru Gwendoline"
         }
       }
     })

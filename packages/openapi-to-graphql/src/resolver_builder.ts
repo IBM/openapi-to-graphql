@@ -577,7 +577,14 @@ export function getResolver({
     )
 
     return new Promise((resolve, reject) => {
-      NodeRequest(options, (err, response, body) => {
+      NodeRequest({...options,
+        //
+        // Use `native` querystring library to avoid `foo[0]=bar&foo[1]=baz`
+        // which is not spec compliant. See https://github.com/request/request#requestoptions-callback
+        // for further information.
+        //
+        useQuerystring: true,
+      }, (err, response, body) => {
         if (err) {
           httpLog(err)
           reject(err)

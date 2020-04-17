@@ -73,6 +73,36 @@
           }
         }
       }
+    },
+    "/robots": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "types",
+            "required": true,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/robot"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -84,6 +114,16 @@
           "name": {
             "type": "string",
             "description": "The legal name of a user"
+          }
+        }
+      },
+      "robot": {
+        "type": "object",
+        "description": "A robot represents a not so natural person",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The legal name of a robot"
           }
         }
       }
