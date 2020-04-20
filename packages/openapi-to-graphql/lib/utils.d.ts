@@ -21,6 +21,7 @@ export declare const mitigations: {
     UNRESOLVABLE_SCHEMA: string;
     UNSUPPORTED_HTTP_SECURITY_SCHEME: string;
     UNSUPPORTED_JSON_SCHEMA_KEYWORD: string;
+    CALLBACKS_MULTIPLE_OPERATION_OBJECTS: string;
     AMBIGUOUS_LINK: string;
     LINK_NAME_COLLISION: string;
     UNRESOLVABLE_LINK: string;

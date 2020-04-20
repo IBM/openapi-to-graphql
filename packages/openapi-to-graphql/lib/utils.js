@@ -27,6 +27,7 @@ exports.mitigations = {
     UNRESOLVABLE_SCHEMA: `Ignore and continue. May lead to unexpected behavior.`,
     UNSUPPORTED_HTTP_SECURITY_SCHEME: `Ignore security scheme.`,
     UNSUPPORTED_JSON_SCHEMA_KEYWORD: `Ignore keyword and continue.`,
+    CALLBACKS_MULTIPLE_OPERATION_OBJECTS: `Select arbitrary operation object`,
     // Links
     AMBIGUOUS_LINK: `Use first occurance of '#/'.`,
     LINK_NAME_COLLISION: `Ignore link and maintain preexisting field.`,

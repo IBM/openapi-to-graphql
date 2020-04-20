@@ -11,6 +11,20 @@ const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const graphql_1 = require("./types/graphql");
 const preprocessingLog = debug_1.default('preprocessing');
+/**
+ * Given an operation object from the OAS, create an Operation, which contains
+ * the necessary data to create a GraphQL wrapper for said operation object.
+ *
+ * @param path The path of the operation object
+ * @param method The method of the operation object
+ * @param operationString A string representation of the path and the method (and the OAS title if applicable)
+ * @param operationType Whether the operation should be turned into a Query/Mutation/Subscription operation
+ * @param operation The operation object from the OAS
+ * @param pathItem The path item object from the OAS from which the operation object is derived from
+ * @param oas The OAS from which the path item and operation object are derived from
+ * @param data An assortment of data which at this point is mainly used enable logging
+ * @param options The options passed by the user
+ */
 function processOperation(path, method, operationString, operationType, operation, pathItem, oas, data, options) {
     // Determine description
     let description = operation.description;
@@ -181,7 +195,7 @@ function preprocessOas(oass, options) {
                     }
                 }
                 // Process all callbacks
-                if (operation.callbacks) {
+                if (data.options.createSubscriptionsFromCallbacks && operation.callbacks) {
                     Object.entries(operation.callbacks).forEach(([callbackName, callback]) => {
                         const resolvedCallback = !('$ref' in callback)
                             ? callback
@@ -190,7 +204,7 @@ function preprocessOas(oass, options) {
                             const resolvedCallbackPathItem = !('$ref' in callbackPathItem)
                                 ? callbackPathItem
                                 : Oas3Tools.resolveRef(callbackPathItem['$ref'], oas);
-                            Object.keys(resolvedCallbackPathItem)
+                            const callbackOperationObjectMethods = Object.keys(resolvedCallbackPathItem)
                                 .filter(objectKey => {
                                 /**
                                  * Get only fields that contain operation objects
@@ -198,8 +212,19 @@ function preprocessOas(oass, options) {
                                  * Can also contain other fields such as summary or description
                                  */
                                 return Oas3Tools.isOperation(objectKey);
-                            })
-                                .forEach(callbackMethod => {
+                            });
+                            if (callbackOperationObjectMethods.length > 0) {
+                                if (callbackOperationObjectMethods.length > 1) {
+                                    utils_1.handleWarning({
+                                        typeKey: 'CALLBACKS_MULTIPLE_OPERATION_OBJECT_METHODS',
+                                        message: `Callback '${callbackExpression}' on operation '${operationString}' has multiple operation objects with the methods '${callbackOperationObjectMethods}'. OpenAPI-to-GraphQL can only utilize one of these operation objects.`,
+                                        mitigationAddendum: `The operation with the method '${callbackOperationObjectMethods[0]}' will be selected and all others will be ignored.`,
+                                        data,
+                                        log: preprocessingLog
+                                    });
+                                }
+                                // Select only one of the operation object methods
+                                const callbackMethod = callbackOperationObjectMethods[0];
                                 const callbackOperationString = Oas3Tools.formatOperationString(method, callbackName);
                                 const callbackOperation = processOperation(callbackExpression, callbackMethod, callbackOperationString, graphql_1.GraphQLOperationType.Subscription, resolvedCallbackPathItem[callbackMethod], callbackPathItem, oas, data, options);
                                 if (callbackOperation) {
@@ -222,7 +247,7 @@ function preprocessOas(oass, options) {
                                         });
                                     }
                                 }
-                            });
+                            }
                         });
                     });
                 }
