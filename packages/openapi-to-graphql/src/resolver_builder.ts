@@ -285,7 +285,7 @@ export function getPublishResolver({
 }
 
 /**
- * if operationType is Query | Mutation, creates and returns a resolver function that performs API requests for the
+ * If operationType is Query/Mutation, creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
 export function getResolver({
