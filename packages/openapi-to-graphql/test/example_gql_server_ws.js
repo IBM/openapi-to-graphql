@@ -16,7 +16,6 @@ openAPIToGraphQL
   .createGraphQLSchema(oas5, {
     fillEmptyResponses: true,
     createSubscriptionsFromCallbacks: true
-    // operationIdFieldNames: true
   })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))
@@ -37,7 +36,6 @@ openAPIToGraphQL
       client
     })
 
-    // client.on('offline', => { pubsub.unsubscribeAll() })
     app.use(
       '/graphql',
       graphqlHTTP({
@@ -61,7 +59,7 @@ openAPIToGraphQL
           subscribe,
           schema,
           onConnect: (params, socket, ctx) => {
-            // adding pubsub to subscribe context
+            // Add pubsub to subscribe context
             return { pubsub }
           }
         },

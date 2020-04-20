@@ -87,9 +87,7 @@ function createGraphQLSchema(spec, options) {
         };
         let oass;
         if (Array.isArray(spec)) {
-            /**
-             * Convert all non-OAS 3.0.x into OAS 3.0.x
-             */
+            // Convert all non-OAS 3.0.x into OAS 3.0.x
             oass = yield Promise.all(spec.map(ele => {
                 return Oas3Tools.getValidOAS3(ele);
             }));
@@ -293,17 +291,6 @@ provideErrorExtensions, equivalentToMessages }) {
             translationLog(`Process operation '${operationId}'...`);
             let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
             const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
-            // handle subscriptions from operation.callbacks
-            // 1) cbName would be the subscription field name
-            // each paths contained in operation.callbacks[cbName]
-            // would be a channel to subscribe on the resolver
-            // but if callback object contains several operations
-            // how to be sure that the returned Graphql type would be the same ?
-            // By "forcing' a common response schema for every operation within the CB ?
-            // 2) cbName would be a prefix to the subscription field name
-            // each paths contained in operation.callbacks[cbName] would be appended to create a unique subscription
-            // console.log('SUB FIELD', field.args, field.subscribe.toString(), field.resolve.toString())
-            // console.log('SUB FIELD', operation)
             let saneFieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
             if (operation.inViewer) {
                 for (let securityRequirement of operation.securityRequirements) {

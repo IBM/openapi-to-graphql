@@ -68,7 +68,7 @@ beforeAll(() => {
             subscribe,
             schema,
             onConnect: (params, socket, ctx) => {
-              // adding pubsub to subscribe context
+              // Add pubsub to subscribe context
               return { pubsub }
             }
           },

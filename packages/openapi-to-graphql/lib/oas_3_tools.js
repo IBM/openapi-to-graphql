@@ -76,12 +76,6 @@ function countOperations(oas) {
                     for (let cbName in oas.paths[path][method].callbacks) {
                         for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
                             numOps++;
-                            // resolve $ref ??
-                            // for (let cbMethod in oas.paths[path][method].callbacks[cbName][cbPath]) {
-                            //   if (isOperation(cbMethod)) {
-                            //     numOps++
-                            //   }
-                            // }
                         }
                     }
                 }
@@ -134,12 +128,6 @@ function countOperationsSubscription(oas) {
                 for (let cbName in oas.paths[path][method].callbacks) {
                     for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
                         numOps++;
-                        // resolve $ref ??
-                        // for (let cbMethod in oas.paths[path][method].callbacks[cbName][cbPath]) {
-                        //   if (isOperation(cbMethod)) {
-                        //     numOps++
-                        //   }
-                        // }
                     }
                 }
             }
