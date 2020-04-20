@@ -590,12 +590,10 @@ function startServer(PORT) {
       typeof req.params.id !== 'undefined' &&
       typeof req.query['product-tag'] !== 'undefined'
     ) {
-      res
-        .status(200)
-        .send([
-          { text: 'Great product', timestamp: 1502787600000000 },
-          { text: 'I love it', timestamp: 1502787400000000 }
-        ])
+      res.status(200).send([
+        { text: 'Great product', timestamp: 1502787600000000 },
+        { text: 'I love it', timestamp: 1502787400000000 }
+      ])
     } else {
       res.status(400).send({
         message: 'wrong data'
@@ -797,7 +795,7 @@ function stopServer() {
   })
 }
 
-// if run from command line, start server:
+// If run from command line, start server:
 if (require.main === module) {
   startServer(3001)
 }

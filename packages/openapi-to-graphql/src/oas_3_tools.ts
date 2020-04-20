@@ -137,12 +137,6 @@ export function countOperations(oas: Oas3): number {
           for (let cbName in oas.paths[path][method].callbacks) {
             for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
               numOps++
-              // resolve $ref ??
-              // for (let cbMethod in oas.paths[path][method].callbacks[cbName][cbPath]) {
-              //   if (isOperation(cbMethod)) {
-              //     numOps++
-              //   }
-              // }
             }
           }
         }
@@ -197,12 +191,6 @@ export function countOperationsSubscription(oas: Oas3): number {
         for (let cbName in oas.paths[path][method].callbacks) {
           for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
             numOps++
-            // resolve $ref ??
-            // for (let cbMethod in oas.paths[path][method].callbacks[cbName][cbPath]) {
-            //   if (isOperation(cbMethod)) {
-            //     numOps++
-            //   }
-            // }
           }
         }
       }

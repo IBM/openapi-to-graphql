@@ -72,7 +72,7 @@ function stopServer() {
   })
 }
 
-// if run from command line, start server:
+// If run from command line, start server:
 if (require.main === module) {
   startServer(3005)
 }
