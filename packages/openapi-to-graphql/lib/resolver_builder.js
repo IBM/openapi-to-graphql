@@ -182,7 +182,7 @@ function getPublishResolver({ operation, argsFromLink = {}, responseName, data }
 }
 exports.getPublishResolver = getPublishResolver;
 /**
- * if operationType is Query | Mutation, creates and returns a resolver function that performs API requests for the
+ * If operationType is Query | Mutation, creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
 function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl, requestOptions }) {

@@ -27,7 +27,7 @@ declare type GetSubscribeParams = {
 export declare function getSubscribe({ operation, payloadName, data, baseUrl, connectOptions }: GetSubscribeParams): SubscriptionIterator;
 export declare function getPublishResolver({ operation, argsFromLink, responseName, data }: GetResolverParams): ResolveFunction;
 /**
- * if operationType is Query | Mutation, creates and returns a resolver function that performs API requests for the
+ * If operationType is Query/Mutation, creates and returns a resolver function that performs API requests for the
  * given GraphQL query
  */
 export declare function getResolver({ operation, argsFromLink, payloadName, data, baseUrl, requestOptions }: GetResolverParams): ResolveFunction;

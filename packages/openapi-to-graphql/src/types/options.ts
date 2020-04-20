@@ -156,8 +156,8 @@ export type Options = {
   baseUrl?: string
 
   /**
-   * Allows to define custom resolvers for fields on the query/mutation/subscription root
-   * operation type.
+   * Allows to define custom resolvers for fields on the Query/Mutation/Subscription
+   * root operation type.
    *
    * In other words, instead of resolving on an operation (REST call) defined in
    * the OAS, the field will resolve on the custom resolver. Note that this will
@@ -358,7 +358,7 @@ export type InternalOptions = {
   baseUrl?: string
 
   /**
-   * Allows to define custom resolvers for fields on the query/mutation/subscription
+   * Allows to define custom resolvers for fields on the Query/Mutation/Subscription
    * root operation type.
    *
    * In other words, instead of resolving on an operation (REST call) defined in
