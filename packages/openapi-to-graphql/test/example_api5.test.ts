@@ -17,6 +17,8 @@ const PORT = 3007
 // Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 
+// Testing the simpleNames option
+
 let createdSchema
 
 /**
@@ -41,8 +43,6 @@ beforeAll(() => {
 afterAll(() => {
   return stopServer()
 })
-
-// Testing the simpleNames option
 
 /**
  * Because of the simpleNames option, 'o_d_d___n_a_m_e' will not be turned into
