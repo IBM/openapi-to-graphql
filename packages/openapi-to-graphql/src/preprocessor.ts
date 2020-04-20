@@ -29,6 +29,20 @@ import { GraphQLOperationType } from './types/graphql'
 
 const preprocessingLog = debug('preprocessing')
 
+/**
+ * Given an operation object from the OAS, create an Operation, which contains
+ * the necessary data to create a GraphQL wrapper for said operation object.
+ *
+ * @param path The path of the operation object
+ * @param method The method of the operation object
+ * @param operationString A string representation of the path and the method (and the OAS title if applicable)
+ * @param operationType Whether the operation should be turned into a Query/Mutation/Subscription operation
+ * @param operation The operation object from the OAS
+ * @param pathItem The path item object from the OAS from which the operation object is derived from
+ * @param oas The OAS from which the path item and operation object are derived from
+ * @param data An assortment of data which at this point is mainly used enable logging
+ * @param options The options passed by the user
+ */
 function processOperation(
   path: string,
   method: string,
@@ -305,7 +319,10 @@ export function preprocessOas(
           }
 
           // Process all callbacks
-          if (operation.callbacks) {
+          if (
+            data.options.createSubscriptionsFromCallbacks &&
+            operation.callbacks
+          ) {
             Object.entries(operation.callbacks).forEach(
               ([callbackName, callback]) => {
                 const resolvedCallback = !('$ref' in callback)
@@ -323,59 +340,75 @@ export function preprocessOas(
                       ? callbackPathItem
                       : Oas3Tools.resolveRef(callbackPathItem['$ref'], oas)
 
-                    Object.keys(resolvedCallbackPathItem)
-                      .filter(objectKey => {
-                        /**
-                         * Get only fields that contain operation objects
-                         *
-                         * Can also contain other fields such as summary or description
-                         */
-                        return Oas3Tools.isOperation(objectKey)
-                      })
-                      .forEach(callbackMethod => {
-                        const callbackOperationString = Oas3Tools.formatOperationString(
-                          method,
-                          callbackName
-                        )
+                    const callbackOperationObjectMethods = Object.keys(
+                      resolvedCallbackPathItem
+                    ).filter(objectKey => {
+                      /**
+                       * Get only fields that contain operation objects
+                       *
+                       * Can also contain other fields such as summary or description
+                       */
+                      return Oas3Tools.isOperation(objectKey)
+                    })
 
-                        const callbackOperation = processOperation(
-                          callbackExpression,
-                          callbackMethod,
-                          callbackOperationString,
-                          GraphQLOperationType.Subscription,
-                          resolvedCallbackPathItem[callbackMethod],
-                          callbackPathItem,
-                          oas,
+                    if (callbackOperationObjectMethods.length > 0) {
+                      if (callbackOperationObjectMethods.length > 1) {
+                        handleWarning({
+                          typeKey:
+                            'CALLBACKS_MULTIPLE_OPERATION_OBJECT_METHODS',
+                          message: `Callback '${callbackExpression}' on operation '${operationString}' has multiple operation objects with the methods '${callbackOperationObjectMethods}'. OpenAPI-to-GraphQL can only utilize one of these operation objects.`,
+                          mitigationAddendum: `The operation with the method '${callbackOperationObjectMethods[0]}' will be selected and all others will be ignored.`,
                           data,
-                          options
-                        )
+                          log: preprocessingLog
+                        })
+                      }
 
-                        if (callbackOperation) {
-                          /**
-                           * Handle operationId property name collision
-                           * May occur if multiple OAS are provided
-                           */
-                          if (
-                            callbackOperation &&
-                            !(
-                              callbackOperation.operationId in
-                              data.callbackOperations
-                            )
-                          ) {
-                            data.callbackOperations[
-                              callbackOperation.operationId
-                            ] = callbackOperation
-                          } else {
-                            handleWarning({
-                              typeKey: 'DUPLICATE_OPERATIONID',
-                              message: `Multiple OASs share callback operations with the same operationId '${callbackOperation.operationId}'`,
-                              mitigationAddendum: `The callback operation from the OAS '${operationData.oas.info.title}' will be ignored`,
-                              data,
-                              log: preprocessingLog
-                            })
-                          }
+                      // Select only one of the operation object methods
+                      const callbackMethod = callbackOperationObjectMethods[0]
+
+                      const callbackOperationString = Oas3Tools.formatOperationString(
+                        method,
+                        callbackName
+                      )
+
+                      const callbackOperation = processOperation(
+                        callbackExpression,
+                        callbackMethod,
+                        callbackOperationString,
+                        GraphQLOperationType.Subscription,
+                        resolvedCallbackPathItem[callbackMethod],
+                        callbackPathItem,
+                        oas,
+                        data,
+                        options
+                      )
+
+                      if (callbackOperation) {
+                        /**
+                         * Handle operationId property name collision
+                         * May occur if multiple OAS are provided
+                         */
+                        if (
+                          callbackOperation &&
+                          !(
+                            callbackOperation.operationId in
+                            data.callbackOperations
+                          )
+                        ) {
+                          data.callbackOperations[
+                            callbackOperation.operationId
+                          ] = callbackOperation
+                        } else {
+                          handleWarning({
+                            typeKey: 'DUPLICATE_OPERATIONID',
+                            message: `Multiple OASs share callback operations with the same operationId '${callbackOperation.operationId}'`,
+                            mitigationAddendum: `The callback operation from the OAS '${operationData.oas.info.title}' will be ignored`,
+                            data,
+                            log: preprocessingLog
+                          })
                         }
-                      })
+                      }
+                    }
                   }
                 )
               }
