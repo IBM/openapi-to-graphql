@@ -195,7 +195,8 @@ function preprocessOas(oass, options) {
                     }
                 }
                 // Process all callbacks
-                if (data.options.createSubscriptionsFromCallbacks && operation.callbacks) {
+                if (data.options.createSubscriptionsFromCallbacks &&
+                    operation.callbacks) {
                     Object.entries(operation.callbacks).forEach(([callbackName, callback]) => {
                         const resolvedCallback = !('$ref' in callback)
                             ? callback
@@ -204,8 +205,7 @@ function preprocessOas(oass, options) {
                             const resolvedCallbackPathItem = !('$ref' in callbackPathItem)
                                 ? callbackPathItem
                                 : Oas3Tools.resolveRef(callbackPathItem['$ref'], oas);
-                            const callbackOperationObjectMethods = Object.keys(resolvedCallbackPathItem)
-                                .filter(objectKey => {
+                            const callbackOperationObjectMethods = Object.keys(resolvedCallbackPathItem).filter(objectKey => {
                                 /**
                                  * Get only fields that contain operation objects
                                  *

@@ -15,8 +15,11 @@ function startServer(PORT) {
   const app = express()
 
   const bodyParser = require('body-parser')
+  const cookieParser = require('cookie-parser')
+
   app.use(bodyParser.text())
   app.use(bodyParser.json())
+  app.use(cookieParser())
 
   const Users = {
     arlene: {
@@ -477,13 +480,15 @@ function startServer(PORT) {
   app.get('/api/cookie', (req, res) => {
     console.log(req.method, req.path, req.query, req.headers)
 
-    if ('cookie' in req.headers) {
+    if (req.cookies && req.cookies.cookie_type && req.cookies.cookie_size) {
       res
         .set('Content-Type', 'text/plain')
         .status(200)
-        .send(`Thanks for your cookie preferences: "${req.headers.cookie}"`)
+        .send(
+          `You ordered a ${req.cookies.cookie_size} ${req.cookies.cookie_type} cookie!`
+        )
     } else {
-      res.status(400).send('Need Cookie header parameter')
+      res.status(400).send('Need cookie header parameter')
     }
   })
 

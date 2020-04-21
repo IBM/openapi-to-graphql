@@ -606,8 +606,7 @@ test('Get response with cookies', () => {
   return graphql(createdSchema, query).then(result => {
     expect(result).toEqual({
       data: {
-        cookie:
-          'Thanks for your cookie preferences: "cookie_type=chocolate chip; cookie_size=mega-sized; "'
+        cookie: `You ordered a mega-sized chocolate chip cookie!`
       }
     })
   })
