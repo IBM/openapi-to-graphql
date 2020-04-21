@@ -14,7 +14,7 @@ os:
 install:
   - npm install
   - npm i -g typescript jest
-  - lerna bootstrap --no-ci
+  - lerna bootstrap --ci
 
 script: npm run test
 

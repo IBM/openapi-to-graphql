@@ -44,6 +44,3 @@ tmp
 
 # OS configuration
 *.DS_Store
-
-# Lock files:
-package-lock.json
