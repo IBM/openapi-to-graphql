@@ -26,7 +26,7 @@
       "description": "The location of the local test server.",
       "variables": {
         "port": {
-          "default": "3008"
+          "default": "3007"
         },
         "basePath": {
           "default": "api"
