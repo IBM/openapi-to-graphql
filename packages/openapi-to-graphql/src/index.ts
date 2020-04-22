@@ -181,6 +181,7 @@ async function translateOpenAPIToGraphQL(
     genericPayloadArgName,
     simpleNames,
     singularNames,
+    createSubscriptionsFromCallbacks,
 
     // Resolver options
     headers,
@@ -189,7 +190,7 @@ async function translateOpenAPIToGraphQL(
     connectOptions,
     baseUrl,
     customResolvers,
-    createSubscriptionsFromCallbacks,
+    customSubscriptionResolvers,
 
     // Authentication options
     viewer,
@@ -214,6 +215,7 @@ async function translateOpenAPIToGraphQL(
     genericPayloadArgName,
     simpleNames,
     singularNames,
+    createSubscriptionsFromCallbacks,
 
     // Resolver options
     headers,
@@ -222,7 +224,7 @@ async function translateOpenAPIToGraphQL(
     connectOptions,
     baseUrl,
     customResolvers,
-    createSubscriptionsFromCallbacks,
+    customSubscriptionResolvers,
 
     // Authentication options
     viewer,
@@ -243,18 +245,17 @@ async function translateOpenAPIToGraphQL(
 
   preliminaryChecks(options, data)
 
-  /**
-   * Create GraphQL fields for every operation and structure them based on their
-   * characteristics (query vs. mutation, auth vs. non-auth).
-   */
+  // Query, Mutation, and Subscription fields
   let queryFields = {}
   let mutationFields = {}
   let subscriptionFields = {}
+
+  // Authenticated Query, Mutation, and Subscription fields
   let authQueryFields = {}
   let authMutationFields = {}
   let authSubscriptionFields = {}
 
-  // Add Query and Mutation operations
+  // Add Query and Mutation fields
   Object.entries(data.operations).forEach(([operationId, operation]) => {
     translationLog(`Process operation '${operation.operationString}'...`)
 
@@ -357,7 +358,6 @@ async function translateOpenAPIToGraphQL(
          * Use operationId to avoid problems differentiating operations with the
          * same path but differnet methods
          */
-
         saneFieldName = Oas3Tools.storeSaneName(
           saneOperationId,
           operationId,
@@ -416,7 +416,7 @@ async function translateOpenAPIToGraphQL(
     }
   })
 
-  // Add Subscription operations
+  // Add Subscription fields
   Object.entries(data.callbackOperations).forEach(
     ([operationId, operation]) => {
       translationLog(`Process operation '${operationId}'...`)
@@ -497,9 +497,7 @@ async function translateOpenAPIToGraphQL(
     authSubscriptionFields[key] = sortObject(authSubscriptionFields[key])
   })
 
-  /**
-   * Count created queries / mutations
-   */
+  // Count created Query, Mutation, and Subscription fields
   options.report.numQueriesCreated =
     Object.keys(queryFields).length +
     Object.keys(authQueryFields).reduce((sum, key) => {
@@ -519,7 +517,8 @@ async function translateOpenAPIToGraphQL(
     }, 0)
 
   /**
-   * Organize created queries / mutations / subscriptions into viewer objects.
+   * Organize authenticated Query, Mutation, and Subscriptions fields into
+   * viewer objects.
    */
   if (Object.keys(authQueryFields).length > 0) {
     Object.assign(
@@ -550,15 +549,12 @@ async function translateOpenAPIToGraphQL(
     )
   }
 
-  /**
-   * Build up the schema
-   */
+  // Build up the schema
   const schemaConfig: GraphQLSchemaConfig = {
     query:
       Object.keys(queryFields).length > 0
         ? new GraphQLObjectType({
             name: 'Query',
-            description: 'The start of any query',
             fields: queryFields
           })
         : GraphQLTools.getEmptyObjectType('Query'), // A GraphQL schema must contain a Query object type
@@ -566,7 +562,6 @@ async function translateOpenAPIToGraphQL(
       Object.keys(mutationFields).length > 0
         ? new GraphQLObjectType({
             name: 'Mutation',
-            description: 'The start of any mutation',
             fields: mutationFields
           })
         : null,
@@ -574,7 +569,6 @@ async function translateOpenAPIToGraphQL(
       Object.keys(subscriptionFields).length > 0
         ? new GraphQLObjectType({
             name: 'Subscription',
-            description: 'The start of any subscription',
             fields: subscriptionFields
           })
         : null
@@ -584,7 +578,7 @@ async function translateOpenAPIToGraphQL(
    * Fill in yet undefined object types to avoid GraphQLSchema from breaking.
    *
    * The reason: once creating the schema, the 'fields' thunks will resolve and
-   * if a field references an undefined object types, GraphQL will throw.
+   * if a field references an undefined object type, GraphQL will throw.
    */
   Object.entries(data.operations).forEach(([opId, operation]) => {
     if (typeof operation.responseDefinition.graphQLType === 'undefined') {
@@ -616,12 +610,10 @@ function getFieldForOperation(
     operation
   })
 
-  // Create resolve function:
   const payloadSchemaName = operation.payloadDefinition
     ? operation.payloadDefinition.graphQLInputObjectTypeName
     : null
 
-  // Create args:
   const args: Args = getArgs({
     /**
      * Even though these arguments seems redundent because of the operation
@@ -635,6 +627,7 @@ function getFieldForOperation(
     data
   })
 
+  // Get resolver and subscribe function for Subscription fields
   if (operation.operationType === GraphQLOperationType.Subscription) {
     const responseSchemaName = operation.responseDefinition
       ? operation.responseDefinition.graphQLTypeName
@@ -661,6 +654,8 @@ function getFieldForOperation(
       args,
       description: operation.description
     }
+
+    // Get resolver for Query and Mutation fields
   } else {
     const resolve = getResolver({
       operation,
@@ -676,6 +671,65 @@ function getFieldForOperation(
       args,
       description: operation.description
     }
+  }
+}
+
+/**
+ * Ensure that the customResolvers/customSubscriptionResolvers object is a
+ * triply nested object using the name of the OAS, the path, and the method
+ * as keys.
+ */
+function checkCustomResolversStructure(
+  customResolvers: any,
+  data: PreprocessingData
+) {
+  if (typeof customResolvers === 'object') {
+    // Check that all OASs that are referenced in the customResolvers are provided
+    Object.keys(customResolvers)
+      .filter(title => {
+        // If no OAS contains this title
+        return !data.oass.some(oas => {
+          return title === oas.info.title
+        })
+      })
+      .forEach(title => {
+        handleWarning({
+          typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
+          message:
+            `Custom resolvers reference OAS '${title}' but no such ` +
+            `OAS was provided`,
+          data,
+          log: translationLog
+        })
+      })
+
+    // TODO: Only run the following test on OASs that exist. See previous check.
+    Object.keys(customResolvers).forEach(title => {
+      // Get all operations from a particular OAS
+      const operations = Object.values(data.operations).filter(operation => {
+        return title === operation.oas.info.title
+      })
+
+      Object.keys(customResolvers[title]).forEach(path => {
+        Object.keys(customResolvers[title][path]).forEach(method => {
+          if (
+            !operations.some(operation => {
+              return path === operation.path && method === operation.method
+            })
+          ) {
+            handleWarning({
+              typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
+              message:
+                `A custom resolver references an operation with ` +
+                `path '${path}' and method '${method}' but no such operation ` +
+                `exists in OAS '${title}'`,
+              data,
+              log: translationLog
+            })
+          }
+        })
+      })
+    })
   }
 }
 
@@ -706,54 +760,10 @@ function preliminaryChecks(
   })
 
   // Check customResolvers
-  if (typeof options.customResolvers === 'object') {
-    // Check that all OASs that are referenced in the customResolvers are provided
-    Object.keys(options.customResolvers)
-      .filter(title => {
-        // If no OAS contains this title
-        return !data.oass.some(oas => {
-          return title === oas.info.title
-        })
-      })
-      .forEach(title => {
-        handleWarning({
-          typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
-          message:
-            `Custom resolvers reference OAS '${title}' but no such ` +
-            `OAS was provided`,
-          data,
-          log: translationLog
-        })
-      })
+  checkCustomResolversStructure(options.customResolvers, data)
 
-    // TODO: Only run the following test on OASs that exist. See previous check.
-    Object.keys(options.customResolvers).forEach(title => {
-      // Get all operations from a particular OAS
-      const operations = Object.values(data.operations).filter(operation => {
-        return title === operation.oas.info.title
-      })
-
-      Object.keys(options.customResolvers[title]).forEach(path => {
-        Object.keys(options.customResolvers[title][path]).forEach(method => {
-          if (
-            !operations.some(operation => {
-              return path === operation.path && method === operation.method
-            })
-          ) {
-            handleWarning({
-              typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
-              message:
-                `A custom resolver references an operation with ` +
-                `path '${path}' and method '${method}' but no such operation ` +
-                `exists in OAS '${title}'`,
-              data,
-              log: translationLog
-            })
-          }
-        })
-      })
-    })
-  }
+  // Check customSubscriptionResolvers
+  checkCustomResolversStructure(options.customSubscriptionResolvers, data)
 }
 
 export { sanitize, CaseStyle } from './oas_3_tools'
