@@ -103,6 +103,13 @@ export declare type Options = {
      */
     singularNames?: boolean;
     /**
+     * Allow to generate subscription fields from callback objects in the OAS.
+     *
+     * The keys (runtime expressions) of the callback object will be interpolated
+     * as the topic of publish/subscription connection.
+     */
+    createSubscriptionsFromCallbacks?: boolean;
+    /**
      * Custom headers to send with every request made by a resolve function.
      */
     headers?: {
@@ -132,8 +139,8 @@ export declare type Options = {
      */
     baseUrl?: string;
     /**
-     * Allows to define custom resolvers for fields on the Query/Mutation/Subscription
-     * root operation type.
+     * Allows to define custom resolvers for fields on the Query/Mutation root
+     * operation type.
      *
      * In other words, instead of resolving on an operation (REST call) defined in
      * the OAS, the field will resolve on the custom resolver. Note that this will
@@ -149,17 +156,35 @@ export declare type Options = {
     customResolvers?: {
         [title: string]: {
             [path: string]: {
-                [method: string]: ResolveFunction | ResolveObject;
+                [method: string]: ResolveFunction;
             };
         };
     };
     /**
-     * Allow to generate subscription fields from callback objects in the OAS.
+     * Allows to define custom resolvers and subscribe functions for fields on the
+     * Subscription root operation type.
      *
-     * The keys (runtime expressions) of the callback object will be interpolated
-     * as the topic of publish/subscription connection.
+     * In other words, instead of resolving on an operation (REST call) defined in
+     * the OAS, the field will resolve on the custom resolver. Note that this will
+     * also affect the behavior of links.
+     *
+     * The field is identifed first by the title of the OAS, then the path of the
+     * operation, and lastly the method of the operation.
+     *
+     * Use cases include the resolution of complex relationships between types,
+     * implementing performance improvements like caching, or dealing with
+     * non-standard authentication requirements.
+     *
+     * Note: Subscription fields will only be generated if the
+     * createSubscriptionsFromCallbacks option is enabled.
      */
-    createSubscriptionsFromCallbacks?: boolean;
+    customSubscriptionResolvers?: {
+        [title: string]: {
+            [path: string]: {
+                [method: string]: ResolveObject;
+            };
+        };
+    };
     /**
      * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
      * basic auth and API key credentials.
@@ -281,6 +306,13 @@ export declare type InternalOptions = {
      */
     singularNames: boolean;
     /**
+     * Allow to generate subscription fields from callback objects in the OAS.
+     *
+     * The keys (runtime expressions) of the callback object will be interpolated
+     * as the topic of publish/subscription connection.
+     */
+    createSubscriptionsFromCallbacks: boolean;
+    /**
      * Custom headers to send with every request made by a resolve function.
      */
     headers?: {
@@ -310,8 +342,8 @@ export declare type InternalOptions = {
      */
     baseUrl?: string;
     /**
-     * Allows to define custom resolvers for fields on the Query/Mutation/Subscription
-     * root operation type.
+     * Allows to define custom resolvers for fields on the Query/Mutation root
+     * operation type.
      *
      * In other words, instead of resolving on an operation (REST call) defined in
      * the OAS, the field will resolve on the custom resolver. Note that this will
@@ -327,17 +359,35 @@ export declare type InternalOptions = {
     customResolvers?: {
         [title: string]: {
             [path: string]: {
-                [method: string]: ResolveFunction | ResolveObject;
+                [method: string]: ResolveFunction;
             };
         };
     };
     /**
-     * Allow to generate subscription fields from callback objects in the OAS.
+     * Allows to define custom resolvers and subscribe functions for fields on the
+     * Subscription root operation type.
      *
-     * The keys (runtime expressions) of the callback object will be interpolated
-     * as the topic of publish/subscription connection.
+     * In other words, instead of resolving on an operation (REST call) defined in
+     * the OAS, the field will resolve on the custom resolver. Note that this will
+     * also affect the behavior of links.
+     *
+     * The field is identifed first by the title of the OAS, then the path of the
+     * operation, and lastly the method of the operation.
+     *
+     * Use cases include the resolution of complex relationships between types,
+     * implementing performance improvements like caching, or dealing with
+     * non-standard authentication requirements.
+     *
+     * Note: Subscription fields will only be generated if the
+     * createSubscriptionsFromCallbacks option is enabled.
      */
-    createSubscriptionsFromCallbacks: boolean;
+    customSubscriptionResolvers?: {
+        [title: string]: {
+            [path: string]: {
+                [method: string]: ResolveObject;
+            };
+        };
+    };
     /**
      * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
      * basic auth and API key credentials.

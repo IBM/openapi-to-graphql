@@ -82,7 +82,7 @@ export function getSubscribe({
   }
 
   // Return custom resolver if it is defined
-  const customResolvers = data.options.customResolvers
+  const customResolvers = data.options.customSubscriptionResolvers
   const title = operation.oas.info.title
   const path = operation.path
   const method = operation.method
@@ -97,7 +97,7 @@ export function getSubscribe({
     translationLog(
       `Use custom subscribe resolver for ${operation.operationString}`
     )
-    const customResolver = customResolvers[title][path][method] as ResolveObject
+    const customResolver = customResolvers[title][path][method]
     if (typeof customResolver.subscribe === 'function') {
       return customResolver.subscribe
     }
@@ -201,7 +201,7 @@ export function getPublishResolver({
   data
 }: GetResolverParams): ResolveFunction {
   // Return custom resolver if it is defined
-  const customResolvers = data.options.customResolvers
+  const customResolvers = data.options.customSubscriptionResolvers
   const title = operation.oas.info.title
   const path = operation.path
   const method = operation.method
@@ -216,7 +216,7 @@ export function getPublishResolver({
     translationLog(
       `Use custom publish resolver for ${operation.operationString}`
     )
-    const customResolver = customResolvers[title][path][method] as ResolveObject
+    const customResolver = customResolvers[title][path][method]
     if (typeof customResolver.resolve === 'function') {
       return customResolver.resolve
     }

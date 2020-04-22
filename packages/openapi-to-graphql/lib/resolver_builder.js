@@ -27,7 +27,7 @@ function getSubscribe({ operation, payloadName, data, baseUrl, connectOptions })
         baseUrl = Oas3Tools.getBaseUrl(operation);
     }
     // Return custom resolver if it is defined
-    const customResolvers = data.options.customResolvers;
+    const customResolvers = data.options.customSubscriptionResolvers;
     const title = operation.oas.info.title;
     const path = operation.path;
     const method = operation.method;
@@ -113,7 +113,7 @@ exports.getSubscribe = getSubscribe;
  */
 function getPublishResolver({ operation, argsFromLink = {}, responseName, data }) {
     // Return custom resolver if it is defined
-    const customResolvers = data.options.customResolvers;
+    const customResolvers = data.options.customSubscriptionResolvers;
     const title = operation.oas.info.title;
     const path = operation.path;
     const method = operation.method;
