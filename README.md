@@ -51,6 +51,7 @@ Here are some guides to further help you get started:
 - [CLI + Loopback tutorial](./docs/tutorials/cli_loopback.md): Learn how to quickly spin up GraphQL wrappers using the OpenAPI-to-GraphQL CLI.
 - [Library tutorial](./docs/tutorials/watson.md): Learn how to use OpenAPI-to-GraphQL as a library, and how to improve the resulting GraphQL wrappers using OAS `link` definitions.
 - [LoopBack tutorial](./docs/tutorials/loopback.md): Learn how to use OpenAPI-to-GraphQL to create GraphQL wrappers for APIs created with LoopBack 4.
+- [Subscriptions tutorial](./packages/openapi-to-graphql/docs/subscriptions.md): Learn how to create a GraphQL API that supports subscription operations - including how to set up the API server that creates a PubSub instance wrapping a MQTT client.
 
 ## Characteristics
 
@@ -73,6 +74,9 @@ Here are some guides to further help you get started:
   Non-safe, non-idempotent API operations (e.g., `POST`, `PUT`, `DELETE`) are translated to GraphQL [mutations](http://graphql.org/learn/queries/#mutations). Input payload is type-checked.
 
   <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/mutations.png" alt="Example of mutation" width="600">
+  
+- **Subscriptions**
+GraphQL [subscription operations](http://spec.graphql.org/draft/#sec-Subscription) allow clients to receive a stream of events, and thus to receive updates whenver data changes on the GraphQL server. OpenAPI-to-GraphQL can create subscriptions based on [`callback`](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject) objects defined in an OpenAPI.
 
 - **Authentication**
   OpenAPI-to-GraphQL currently supports authentication via API Key and basic auth. OpenAPI-to-GraphQL wraps secured endpoints into a `viewer`, which takes the API key / credentials as input.
