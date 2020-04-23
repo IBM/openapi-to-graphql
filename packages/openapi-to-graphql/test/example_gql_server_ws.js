@@ -25,8 +25,8 @@ openAPIToGraphQL
     const client = connect(`mqtt://localhost:1885`, {
       keepalive: 60,
       reschedulePings: true,
-      // protocolId: 'MQTT',
-      // protocolVersion: 4,
+      protocolId: 'MQTT',
+      protocolVersion: 4,
       reconnectPeriod: 2000,
       connectTimeout: 5 * 1000,
       clean: true

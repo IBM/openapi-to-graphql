@@ -365,7 +365,7 @@ provideErrorExtensions, equivalentToMessages }) {
         /**
          * Organize authenticated Query, Mutation, and Subscriptions fields into
          * viewer objects.
-        */
+         */
         if (Object.keys(authQueryFields).length > 0) {
             Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, graphql_1.GraphQLOperationType.Query, data));
         }

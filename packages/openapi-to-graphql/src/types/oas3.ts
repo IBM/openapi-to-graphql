@@ -244,7 +244,6 @@ type ComponentsObject = {
   callbacks?: {
     [key: string]: CallbackObject | ReferenceObject
   }
-  // callbacks?: CallbacksObject
 }
 
 type TagObject = {

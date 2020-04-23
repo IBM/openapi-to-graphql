@@ -21,7 +21,7 @@ const HTTP_PORT = 3008
 const MQTT_PORT = 1885
 
 oas.servers[0].variables.port.default = String(HTTP_PORT)
-// oas.servers[1].variables.port.default = String(MQTT_PORT)
+oas.servers[1].variables.port.default = String(MQTT_PORT)
 
 let createdSchema
 let wsServer
@@ -44,8 +44,8 @@ beforeAll(() => {
         mqttClient = connect(`mqtt://localhost:${MQTT_PORT}`, {
           keepalive: 60,
           reschedulePings: true,
-          // protocolId: 'MQTT',
-          // protocolVersion: 4,
+          protocolId: 'MQTT',
+          protocolVersion: 4,
           reconnectPeriod: 2000,
           connectTimeout: 5 * 1000,
           clean: true

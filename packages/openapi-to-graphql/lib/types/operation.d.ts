@@ -107,7 +107,8 @@ export declare type Operation = {
      */
     inViewer: boolean;
     /**
-     * Type of operation
+     * Type of root operation type, i.e. whether the generated field should be
+     * added to the Query, Mutation, or Subscription root operation
      */
     operationType: GraphQLOperationType;
     /**

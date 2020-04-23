@@ -539,8 +539,6 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                     }
                                     saneData = arraySaneData;
                                 }
-                                // if (operation.callbacks)
-                                // pubsub.publish(``, saneData) ?
                                 resolve(saneData);
                             }
                             else {
@@ -713,9 +711,10 @@ function getAuthReqAndProtcolName(operation, _openAPIToGraphQL) {
     };
 }
 /**
- * Given a link parameter | callback path, determine the value
+ * Given a link parameter or callback path, determine the value from the runtime
+ * expression
  *
- * The link parameter | callback path is a reference to data contained in the
+ * The link parameter or callback path is a reference to data contained in the
  * url/method/statuscode or response/request body/query/path/header
  */
 function resolveRuntimeExpression(paramName, value, resolveData, root, args) {
