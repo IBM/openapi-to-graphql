@@ -4,7 +4,6 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import * as NodeRequest from 'request'
 import { ResolveFunction, ResolveObject, GraphQLOperationType } from './graphql'
 
 /**
@@ -26,6 +25,10 @@ export type Report = {
   numQueriesCreated: number
   numMutationsCreated: number
   numSubscriptionsCreated: number
+}
+
+export type RequestOptions = {
+  [key: string]: any
 }
 
 export type ConnectOptions = {
@@ -148,7 +151,7 @@ export type Options = {
    * calls to the API backend.
    * e.g. Setup the web proxy to use.
    */
-  requestOptions?: NodeRequest.OptionsWithUrl
+  requestOptions?: RequestOptions
 
   /**
    * Allows to override or add options to the PubSub connect object used to make
@@ -374,7 +377,7 @@ export type InternalOptions = {
    * calls to the API backend.
    * e.g. Setup the web proxy to use.
    */
-  requestOptions?: NodeRequest.OptionsWithUrl
+  requestOptions?: RequestOptions
 
   /**
    * Allows to override or add options to the PubSub connect object used to make

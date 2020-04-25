@@ -3,8 +3,20 @@
 // Node module: openapi-to-graphql
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-const NodeRequest = require("request");
+const fetchImport = require("isomorphic-unfetch");
+const fetch = (fetchImport.default || fetchImport);
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
 const querystring = require("querystring");
@@ -381,9 +393,10 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             Object.assign(options.qs, authQs);
             // Add authentication cookie if created
             if (authCookie !== null) {
-                const j = NodeRequest.jar();
-                j.setCookie(authCookie, options.url);
-                options.jar = j;
+                if (!('cookie' in options.headers)) {
+                    options.headers['cookie'] = '';
+                }
+                options.headers['cookie'] += authCookie;
             }
         }
         // Extract OAuth token from context (if available)
@@ -397,17 +410,28 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         }
         resolveData.usedRequestOptions = options;
         resolveData.usedStatusCode = operation.statusCode;
+        // remove trailing chars
+        if (options.headers['cookie']) {
+            options.headers['cookie'] = options.headers['cookie'].replace(/; ?$/, '');
+        }
         // Make the call
         httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}\n` +
             `headers: ${JSON.stringify(options.headers)}\n` +
             `request body: ${options.body}`);
+        const { url: resolveUrl, qs } = options, opt = __rest(options, ["url", "qs"]);
         return new Promise((resolve, reject) => {
-            NodeRequest(options, (err, response, body) => {
-                if (err) {
-                    httpLog(err);
-                    reject(err);
-                }
-                else if (response.statusCode < 200 || response.statusCode > 299) {
+            fetch(`${resolveUrl}?${querystring.stringify(qs)}`, opt)
+                .catch(err => {
+                httpLog(err);
+                reject(err);
+            })
+                .then(response => response.text().then(body => {
+                response.statusCode = response.status;
+                const responseHeaders = Array.from(response.headers.entries()).reduce((headers, [key, value]) => {
+                    headers[key] = value;
+                    return headers;
+                }, {});
+                if (response.statusCode < 200 || response.statusCode > 299) {
                     httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
                     const errorString = `Could not invoke operation ${operation.operationString}`;
                     if (data.options.provideErrorExtensions) {
@@ -434,7 +458,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 }
                 else {
                     httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
-                    if (response.headers['content-type']) {
+                    if (responseHeaders['content-type']) {
                         /**
                          * Throw warning if the non-application/json content does not
                          * match the OAS.
@@ -443,12 +467,12 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                          *
                          * i.e. text/plain; charset=utf-8
                          */
-                        if (!(response.headers['content-type'].includes(operation.responseContentType) ||
-                            operation.responseContentType.includes(response.headers['content-type']))) {
+                        if (!(responseHeaders['content-type'].includes(operation.responseContentType) ||
+                            operation.responseContentType.includes(responseHeaders['content-type']))) {
                             const errorString = `Operation ` +
                                 `${operation.operationString} ` +
                                 `should have a content-type '${operation.responseContentType}' ` +
-                                `but has '${response.headers['content-type']}' instead`;
+                                `but has '${responseHeaders['content-type']}' instead`;
                             httpLog(errorString);
                             reject(errorString);
                         }
@@ -459,7 +483,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                              * content-type may not be necessarily 'application/json' it can be
                              * 'application/json; charset=utf-8' for example
                              */
-                            if (response.headers['content-type'].includes('application/json')) {
+                            if (responseHeaders['content-type'].includes('application/json')) {
                                 let responseBody;
                                 try {
                                     responseBody = JSON.parse(body);
@@ -471,7 +495,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                     httpLog(errorString);
                                     reject(errorString);
                                 }
-                                resolveData.responseHeaders = response.headers;
+                                resolveData.responseHeaders = responseHeaders;
                                 // Deal with the fact that the server might send unsanitized data
                                 let saneData = Oas3Tools.sanitizeObjectKeys(responseBody, !data.options.simpleNames
                                     ? Oas3Tools.CaseStyle.camelCase
@@ -564,7 +588,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                         }
                     }
                 }
-            });
+            }));
         });
     };
 }
@@ -654,7 +678,7 @@ function getAuthOptions(operation, _openAPIToGraphQL, data) {
                             authQs[security.def.name] = apiKey;
                         }
                         else if (security.def.in === 'cookie') {
-                            authCookie = NodeRequest.cookie(`${security.def.name}=${apiKey}`);
+                            authCookie = `${security.def.name}=${apiKey}; `;
                         }
                     }
                     else {
