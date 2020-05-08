@@ -76,7 +76,9 @@ Here are some guides to further help you get started:
   <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/mutations.png" alt="Example of mutation" width="600">
   
 - **Subscriptions**
-GraphQL [subscription operations](http://spec.graphql.org/draft/#sec-Subscription) allow clients to receive a stream of events, and thus to receive updates whenver data changes on the GraphQL server. OpenAPI-to-GraphQL can create subscriptions based on [`callback`](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject) objects defined in an OpenAPI.
+  GraphQL [subscriptions](http://spec.graphql.org/draft/#sec-Subscription) allow clients to receive a stream of events, such as updates whenever data changes on the GraphQL server. OpenAPI-to-GraphQL can create subscriptions based on [`callback`](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject) objects defined in the OAS.
+
+  <img src="https://raw.githubusercontent.com/ibm/openapi-to-graphql/master/docs/subscriptions.png" alt="Example of subscription" width="600">
 
 - **Authentication**
   OpenAPI-to-GraphQL currently supports authentication via API Key and basic auth. OpenAPI-to-GraphQL wraps secured endpoints into a `viewer`, which takes the API key / credentials as input.
