@@ -4,8 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-const graphql_input_string_1 = require("graphql-input-string");
-const graphql_input_number_1 = require("graphql-input-number");
+const graphql_scalar_1 = require("graphql-scalar");
 const graphql_1 = require("graphql");
 // Imports:
 const GraphQLJSON = require("graphql-type-json");
@@ -361,22 +360,23 @@ function createOrReuseEnum({ def, data }) {
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
 function getScalarType({ def, schema, isInputObjectType, data }) {
-    const name = isInputObjectType
-        ? def.graphQLInputObjectTypeName
-        : def.graphQLTypeName;
-    const options = {};
-    const typeSet = { type: null, defaultValue: undefined };
-    if (isInputObjectType) {
-        options.name = name;
+    const options = { name: '' };
+    if (isInputObjectType
+        && schema) {
         const type = schema.type;
+        options.name = schema.title || 'StrictType' + (Math.random() * Date.now()).toString(16).replace('.', '');
+        if (type === 'string') {
+            options.trim = true;
+            // options.nonEmpty = !schema.nullable
+        }
         switch (true) {
             case typeof schema.minimum === 'number':
             case typeof schema.minLength === 'number':
-                options.min = schema.minLength || schema.minimum;
+                options.minimum = type === 'string' ? schema.minLength : schema.minimum;
                 break;
             case typeof schema.maximum === 'number':
             case typeof schema.maxLength === 'number':
-                options.max = schema.maxLength || schema.maximum;
+                options.maximum = type === 'string' ? schema.maxLength : schema.maximum;
                 break;
             case typeof schema.pattern === 'string':
                 const qualifier = schema.pattern.match(/\/(.)$/) || ['', ''];
@@ -388,39 +388,26 @@ function getScalarType({ def, schema, isInputObjectType, data }) {
                 break;
             case typeof schema.format === 'string':
             case typeof schema.enum !== 'undefined':
-                const format = schema.format || '-';
+                const $format = schema.format || '-';
                 const $enum = schema.enum || [];
-                options.sanitize = (data) => format.startsWith('int') ? parseInt(data) : (format === 'float' ? parseFloat(data) : data);
-                options.test = (data) => format === 'int64' ? Number.isSafeInteger(data) : (format === 'int32' ? data <= Math.pow(2, 31) : ($enum.includes(data) || utils_1.strictTypeOf(data, type)));
+                options.sanitize = (data) => $format.startsWith('int') ? parseInt(data) : ($format === 'float' ? parseFloat(data) : ($format === 'date' || $format === 'date-time' ? utils_1.isSafeDate(data) : data));
+                options.validate = (data) => $format === 'int64' ? utils_1.isSafeLong(data) : ($format === 'int32' ? utils_1.isSafeInteger(data) : ($enum.includes(String(data)) || utils_1.strictTypeOf(data, type)));
                 break;
         }
+        // options.default = schema.default
     }
     switch (def.targetGraphQLType) {
         case 'id':
             def.graphQLType = graphql_1.GraphQLID;
             break;
         case 'string':
-            options.trim = true;
-            options.empty = schema.nullable || !schema.required;
-            typeSet.type = isInputObjectType ? graphql_input_string_1.default(options) : graphql_1.GraphQLString;
-            if (schema.default) {
-                typeSet.defaultValue = schema.default;
-            }
-            def.graphQLType = typeSet;
+            def.graphQLType = isInputObjectType && schema ? graphql_scalar_1.createStringScalar(options) : graphql_1.GraphQLString;
             break;
         case 'integer':
-            typeSet.type = isInputObjectType ? graphql_input_number_1.GraphQLInputInt(options) : graphql_1.GraphQLInt;
-            if (schema.default) {
-                typeSet.defaultValue = schema.default;
-            }
-            def.graphQLType = typeSet;
+            def.graphQLType = isInputObjectType && schema ? graphql_scalar_1.createIntScalar(options) : graphql_1.GraphQLInt;
             break;
         case 'number':
-            typeSet.type = isInputObjectType ? graphql_input_number_1.GraphQLInputFloat(options) : graphql_1.GraphQLFloat;
-            if (schema.default) {
-                typeSet.defaultValue = schema.default;
-            }
-            def.graphQLType = typeSet;
+            def.graphQLType = isInputObjectType && schema ? graphql_scalar_1.createFloatScalar(options) : graphql_1.GraphQLFloat;
             break;
         case 'boolean':
             def.graphQLType = graphql_1.GraphQLBoolean;

@@ -51,6 +51,31 @@ export const mitigations = {
   OAUTH_SECURITY_SCHEME: `Ignore security scheme`
 }
 
+const MAX_INT = 2147483647
+const MIN_INT = -2147483648
+
+const MAX_LONG = 9007199254740991
+const MIN_LONG = -9007199254740992
+
+export function isSafeInteger(n: unknown): n is number {
+  return (
+    typeof n === 'number' &&
+    isFinite(n) &&
+    Math.floor(n) === n &&
+    n <= MAX_INT &&
+    n >= MIN_INT
+  )
+}
+
+export function isSafeLong(n: unknown): n is number {
+  return typeof n === 'number' && isFinite(n) && n <= MAX_LONG && n >= MIN_LONG
+}
+
+export function isSafeDate(n: string): boolean {
+  const parsed = Date.parse(n)
+  return typeof parsed === 'number' && parsed !== NaN && parsed > 0
+}
+
 /**
  * check if a literal is falsy or not
  */

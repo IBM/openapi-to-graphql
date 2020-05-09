@@ -18,14 +18,15 @@ import {
   LinkObject
 } from './types/oas3'
 import { Args, GraphQLType, ResolveFunction } from './types/graphql'
-import GraphQLInputString from 'graphql-input-string';
 import {
-  GraphQLInputInt,
-  GraphQLInputFloat,
-} from 'graphql-input-number';
+  createStringScalar,
+  createIntScalar,
+  createFloatScalar,
+  ScalarSanitizeFunction,
+  ScalarValidateFunction
+} from 'graphql-scalar'
 
 import {
-  GraphQLError,
   GraphQLScalarType,
   GraphQLObjectType,
   GraphQLString,
@@ -48,7 +49,14 @@ import * as Oas3Tools from './oas_3_tools'
 import { getResolver } from './resolver_builder'
 import { createDataDef } from './preprocessor'
 import debug from 'debug'
-import { handleWarning, sortObject, strictTypeOf } from './utils'
+import {
+  handleWarning,
+  sortObject,
+  isSafeInteger,
+  isSafeLong,
+  strictTypeOf,
+  isSafeDate
+} from './utils'
 
 type GetArgsParams = {
   requestPayloadDef?: DataDefinition
@@ -89,18 +97,27 @@ type LinkOpRefToOpIdParams = {
   data: PreprocessingData
 }
 
-type StrictScalarConfig = {
+interface StrictScalarConfig {
   name: string
   description?: string
-  min?: number
-  max?: number
+  maximum?: number
+  minimum?: number
+  maxLength?: number
+  minLength?: number
+  nonEmpty?: boolean
+  pattern?: RegExp | string
+  singleline?: string
   trim?: boolean
-  empty?: boolean
-  pattern?: string | RegExp
-  test?: Function
-  sanitize?: Function
-  parse?: Function
-  error?: () => GraphQLError
+}
+
+interface StrictScalarNumberConfig extends StrictScalarConfig {
+  sanitize?: ScalarSanitizeFunction<number>
+  validate?: ScalarValidateFunction<number>
+}
+
+interface StrictScalarStringConfig extends StrictScalarConfig {
+  sanitize?: ScalarSanitizeFunction<string>
+  validate?: ScalarValidateFunction<string>
 }
 
 const translationLog = debug('translation')
@@ -557,47 +574,65 @@ function getScalarType({
   isInputObjectType,
   data
 }: CreateOrReuseSimpleTypeParams): GraphQLScalarType {
+  const options: StrictScalarNumberConfig | StrictScalarStringConfig = {
+    name: ''
+  }
 
-  const name = isInputObjectType
-    ? def.graphQLInputObjectTypeName
-    : def.graphQLTypeName;
-
-  const options = {} as StrictScalarConfig;
-  const typeSet = { type: null, defaultValue: undefined }
-
-  if(isInputObjectType){
-
-    options.name = name;
-
+  if (isInputObjectType && schema) {
     const type = schema.type
 
-    switch(true){
+    options.name =
+      schema.title ||
+      'StrictType' + (Math.random() * Date.now()).toString(16).replace('.', '')
+
+    if (type === 'string') {
+      options.trim = true
+      // options.nonEmpty = !schema.nullable
+    }
+
+    switch (true) {
       case typeof schema.minimum === 'number':
       case typeof schema.minLength === 'number':
-      	options.min = schema.minLength || schema.minimum
-      break;
+        options.minimum = type === 'string' ? schema.minLength : schema.minimum
+        break
       case typeof schema.maximum === 'number':
       case typeof schema.maxLength === 'number':
-      	options.max = schema.maxLength || schema.maximum
-      break;
+        options.maximum = type === 'string' ? schema.maxLength : schema.maximum
+        break
       case typeof schema.pattern === 'string':
         const qualifier = schema.pattern.match(/\/(.)$/) || ['', '']
-        const $pattern = schema.pattern.replace(/^\//, '').replace(/\/(.)?$/, '')
+        const $pattern = schema.pattern
+          .replace(/^\//, '')
+          .replace(/\/(.)?$/, '')
 
         options.pattern = new RegExp($pattern, qualifier[1])
-      break;
+        break
       case typeof schema.description === 'string':
-	      options.description = schema.description.replace(/\s/g, '').trim()
-      break;
+        options.description = schema.description.replace(/\s/g, '').trim()
+        break
       case typeof schema.format === 'string':
       case typeof schema.enum !== 'undefined':
-        const format = schema.format || '-'
+        const $format = schema.format || '-'
         const $enum = schema.enum || []
 
-        options.sanitize = (data) => format.startsWith('int') ? parseInt( data ) : ( format === 'float' ? parseFloat( data ) : data)
-        options.test = (data) => format === 'int64' ? Number.isSafeInteger( data ) : ( format === 'int32' ? data <= Math.pow(2, 31) : ($enum.includes(data) || strictTypeOf(data, type)) )
-      break;
+        options.sanitize = (data: any) =>
+          $format.startsWith('int')
+            ? parseInt(data)
+            : $format === 'float'
+            ? parseFloat(data)
+            : $format === 'date' || $format === 'date-time'
+            ? isSafeDate(data)
+            : data
+        options.validate = (data: any) =>
+          $format === 'int64'
+            ? isSafeLong(data)
+            : $format === 'int32'
+            ? isSafeInteger(data)
+            : $enum.includes(String(data)) || strictTypeOf(data, type)
+        break
     }
+
+    // options.default = schema.default
   }
 
   switch (def.targetGraphQLType) {
@@ -605,33 +640,22 @@ function getScalarType({
       def.graphQLType = GraphQLID
       break
     case 'string':
-      options.trim = true
-      options.empty = schema.nullable || !schema.required
-      typeSet.type = isInputObjectType ? GraphQLInputString(options) : GraphQLString
-
-      if(schema.default){
-        typeSet.defaultValue = schema.default
-      }
-
-      def.graphQLType = typeSet
+      def.graphQLType =
+        isInputObjectType && schema
+          ? createStringScalar(options as StrictScalarStringConfig)
+          : GraphQLString
       break
     case 'integer':
-      typeSet.type = isInputObjectType ? GraphQLInputInt(options) : GraphQLInt
-
-      if(schema.default){
-        typeSet.defaultValue = schema.default
-      }
-
-      def.graphQLType = typeSet
+      def.graphQLType =
+        isInputObjectType && schema
+          ? createIntScalar(options as StrictScalarNumberConfig)
+          : GraphQLInt
       break
     case 'number':
-      typeSet.type = isInputObjectType ? GraphQLInputFloat(options) : GraphQLFloat
-
-      if(schema.default){
-        typeSet.defaultValue = schema.default
-      }
-
-      def.graphQLType = typeSet
+      def.graphQLType =
+        isInputObjectType && schema
+          ? createFloatScalar(options as StrictScalarNumberConfig)
+          : GraphQLFloat
       break
     case 'boolean':
       def.graphQLType = GraphQLBoolean

@@ -33,6 +33,9 @@ export declare const mitigations: {
     LIMIT_ARGUMENT_NAME_COLLISION: string;
     OAUTH_SECURITY_SCHEME: string;
 };
+export declare function isSafeInteger(n: unknown): n is number;
+export declare function isSafeLong(n: unknown): n is number;
+export declare function isSafeDate(n: string): boolean;
 /**
  * get the correct type of a variable
  */
