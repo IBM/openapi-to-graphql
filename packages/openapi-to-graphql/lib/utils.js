@@ -47,18 +47,18 @@ exports.mitigations = {
  * check if a literal is falsy or not
  */
 const isLiteralFalsey = (variable) => {
-    return (variable === "" || variable === false || variable === 0);
+    return variable === '' || variable === false || variable === 0;
 };
 /**
  * provide the name of primitive and/or reference types
  */
 const checkTypeName = (target, type) => {
-    let typeName = "";
+    let typeName = '';
     if (isLiteralFalsey(target)) {
-        typeName = (typeof target);
+        typeName = typeof target;
     }
     else {
-        typeName = ("" + (target && target.constructor.name));
+        typeName = '' + (target && target.constructor.name);
     }
     return !!(typeName.toLowerCase().indexOf(type) + 1);
 };
