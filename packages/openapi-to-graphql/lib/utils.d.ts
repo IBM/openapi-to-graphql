@@ -34,6 +34,10 @@ export declare const mitigations: {
     OAUTH_SECURITY_SCHEME: string;
 };
 /**
+ * get the correct type of a variable
+ */
+export declare function strictTypeOf(value: any, type: any): boolean;
+/**
  * Utilities that are specific to OpenAPI-to-GraphQL
  */
 export declare function handleWarning({ typeKey, message, mitigationAddendum, path, data, log }: {

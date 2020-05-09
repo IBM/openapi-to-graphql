@@ -4,6 +4,8 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+const graphql_input_string_1 = require("graphql-input-string");
+const graphql_input_number_1 = require("graphql-input-number");
 const graphql_1 = require("graphql");
 // Imports:
 const GraphQLJSON = require("graphql-type-json");
@@ -16,7 +18,7 @@ const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
  */
-function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType = false }) {
+function getGraphQLType({ def, schema, operation, data, iteration = 0, isInputObjectType = false }) {
     const name = isInputObjectType
         ? def.graphQLInputObjectTypeName
         : def.graphQLTypeName;
@@ -47,6 +49,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
             return createOrReuseList({
                 def,
                 operation,
+                schema,
                 data,
                 iteration,
                 isInputObjectType
@@ -61,6 +64,8 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
         default:
             return getScalarType({
                 def,
+                schema,
+                isInputObjectType,
                 data
             });
     }
@@ -273,7 +278,7 @@ function checkAmbiguousMemberTypes(def, types, data) {
 /**
  * Creates a list type or returns an existing one, and stores it in data
  */
-function createOrReuseList({ def, operation, iteration, isInputObjectType, data }) {
+function createOrReuseList({ def, operation, schema, iteration, isInputObjectType, data }) {
     const name = isInputObjectType
         ? def.graphQLInputObjectTypeName
         : def.graphQLTypeName;
@@ -301,6 +306,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
     const itemsType = getGraphQLType({
         def: itemDef,
         data,
+        schema,
         operation,
         iteration: iteration + 1,
         isInputObjectType
@@ -354,19 +360,67 @@ function createOrReuseEnum({ def, data }) {
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType({ def, data }) {
+function getScalarType({ def, schema, isInputObjectType, data }) {
+    const name = isInputObjectType
+        ? def.graphQLInputObjectTypeName
+        : def.graphQLTypeName;
+    const options = {};
+    const typeSet = { type: null, defaultValue: undefined };
+    if (isInputObjectType) {
+        options.name = name;
+        const type = schema.type;
+        switch (true) {
+            case typeof schema.minimum === 'number':
+            case typeof schema.minLength === 'number':
+                options.min = schema.minLength || schema.minimum;
+                break;
+            case typeof schema.maximum === 'number':
+            case typeof schema.maxLength === 'number':
+                options.max = schema.maxLength || schema.maximum;
+                break;
+            case typeof schema.pattern === 'string':
+                const qualifier = schema.pattern.match(/\/(.)$/) || ['', ''];
+                const $pattern = schema.pattern.replace(/^\//, '').replace(/\/(.)?$/, '');
+                options.pattern = new RegExp($pattern, qualifier[1]);
+                break;
+            case typeof schema.description === 'string':
+                options.description = schema.description.replace(/\s/g, '').trim();
+                break;
+            case typeof schema.format === 'string':
+            case typeof schema.enum !== 'undefined':
+                const format = schema.format || '-';
+                const $enum = schema.enum || [];
+                options.sanitize = (data) => format.startsWith('int') ? parseInt(data) : (format === 'float' ? parseFloat(data) : data);
+                options.test = (data) => format === 'int64' ? Number.isSafeInteger(data) : (format === 'int32' ? data <= Math.pow(2, 31) : ($enum.includes(data) || utils_1.strictTypeOf(data, type)));
+                break;
+        }
+    }
     switch (def.targetGraphQLType) {
         case 'id':
             def.graphQLType = graphql_1.GraphQLID;
             break;
         case 'string':
-            def.graphQLType = graphql_1.GraphQLString;
+            options.trim = true;
+            options.empty = schema.nullable || !schema.required;
+            typeSet.type = isInputObjectType ? graphql_input_string_1.default(options) : graphql_1.GraphQLString;
+            if (schema.default) {
+                typeSet.defaultValue = schema.default;
+            }
+            def.graphQLType = typeSet;
             break;
         case 'integer':
-            def.graphQLType = graphql_1.GraphQLInt;
+            typeSet.type = isInputObjectType ? graphql_input_number_1.GraphQLInputInt(options) : graphql_1.GraphQLInt;
+            if (schema.default) {
+                typeSet.defaultValue = schema.default;
+            }
+            def.graphQLType = typeSet;
             break;
         case 'number':
-            def.graphQLType = graphql_1.GraphQLFloat;
+            typeSet.type = isInputObjectType ? graphql_input_number_1.GraphQLInputFloat(options) : graphql_1.GraphQLFloat;
+            if (schema.default) {
+                typeSet.defaultValue = schema.default;
+            }
+            def.graphQLType = typeSet;
             break;
         case 'boolean':
             def.graphQLType = graphql_1.GraphQLBoolean;
@@ -828,6 +882,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         const type = getGraphQLType({
             def: paramDef,
             operation,
+            schema,
             data,
             iteration: 0,
             isInputObjectType: true

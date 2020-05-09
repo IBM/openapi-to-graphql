@@ -44,6 +44,54 @@ exports.mitigations = {
     OAUTH_SECURITY_SCHEME: `Ignore security scheme`
 };
 /**
+ * check if a literal is falsy or not
+ */
+const isLiteralFalsey = (variable) => {
+    return (variable === "" || variable === false || variable === 0);
+};
+/**
+ * provide the name of primitive and/or reference types
+ */
+const checkTypeName = (target, type) => {
+    let typeName = "";
+    if (isLiteralFalsey(target)) {
+        typeName = (typeof target);
+    }
+    else {
+        typeName = ("" + (target && target.constructor.name));
+    }
+    return !!(typeName.toLowerCase().indexOf(type) + 1);
+};
+/**
+ * get the correct type of a variable
+ */
+function strictTypeOf(value, type) {
+    let result = false;
+    type = type || [];
+    if (typeof type === 'object') {
+        if (typeof type.length !== 'number') {
+            return result;
+        }
+        let bitPiece = 0;
+        type = [].slice.call(type);
+        type.forEach(_type => {
+            if (typeof _type === 'function') {
+                _type = (_type.name || _type.displayName).toLowerCase();
+            }
+            bitPiece |= Number(checkTypeName(value, _type));
+        });
+        result = Boolean(bitPiece);
+    }
+    else {
+        if (typeof type === 'function') {
+            type = (type.name || type.displayName).toLowerCase();
+        }
+        result = checkTypeName(value, type);
+    }
+    return result;
+}
+exports.strictTypeOf = strictTypeOf;
+/**
  * Utilities that are specific to OpenAPI-to-GraphQL
  */
 function handleWarning({ typeKey, message, mitigationAddendum, path, data, log }) {

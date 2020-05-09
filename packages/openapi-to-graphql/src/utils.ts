@@ -55,19 +55,19 @@ export const mitigations = {
  * check if a literal is falsy or not
  */
 const isLiteralFalsey = (variable): boolean => {
-  return (variable === "" || variable === false || variable === 0)
+  return variable === '' || variable === false || variable === 0
 }
 
 /**
  * provide the name of primitive and/or reference types
  */
 const checkTypeName = (target, type): boolean => {
-  let typeName = ""
+  let typeName = ''
 
-  if(isLiteralFalsey(target)){
-      typeName = (typeof target)
-  }else{
-      typeName = ("" + (target && target.constructor.name))
+  if (isLiteralFalsey(target)) {
+    typeName = typeof target
+  } else {
+    typeName = '' + (target && target.constructor.name)
   }
   return !!(typeName.toLowerCase().indexOf(type) + 1)
 }
@@ -75,34 +75,34 @@ const checkTypeName = (target, type): boolean => {
 /**
  * get the correct type of a variable
  */
- export function strictTypeOf (value, type): boolean {
+export function strictTypeOf(value, type): boolean {
   let result = false
 
   type = type || []
 
-  if(typeof type === 'object'){
-      if(typeof type.length !== 'number'){
-          return result
+  if (typeof type === 'object') {
+    if (typeof type.length !== 'number') {
+      return result
+    }
+
+    let bitPiece = 0
+
+    type = [].slice.call(type)
+
+    type.forEach(_type => {
+      if (typeof _type === 'function') {
+        _type = (_type.name || _type.displayName).toLowerCase()
       }
+      bitPiece |= Number(checkTypeName(value, _type))
+    })
 
-      let bitPiece = 0
+    result = Boolean(bitPiece)
+  } else {
+    if (typeof type === 'function') {
+      type = (type.name || type.displayName).toLowerCase()
+    }
 
-      type = [].slice.call(type)
-
-      type.forEach( _type => {
-          if(typeof _type === 'function'){
-              _type = (_type.name || _type.displayName).toLowerCase()
-          }
-          bitPiece |= Number(checkTypeName(value, _type))
-      });
-
-      result = Boolean(bitPiece)
-  }else{
-      if(typeof type === 'function'){
-          type = (type.name || type.displayName).toLowerCase()
-      }
-
-      result = checkTypeName(value, type)
+    result = checkTypeName(value, type)
   }
   return result
 }

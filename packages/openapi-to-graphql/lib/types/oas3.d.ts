@@ -8,6 +8,11 @@ declare type ExternalDocumentationObject = {
 export declare type SchemaObject = {
     $ref?: string;
     title?: string;
+    minimum?: number;
+    maximum?: number;
+    maxLength?: number;
+    minLength?: number;
+    pattern?: string;
     type?: 'string' | 'number' | 'object' | 'array' | 'boolean' | 'integer';
     format?: string;
     nullable?: boolean;
