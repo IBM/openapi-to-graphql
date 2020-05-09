@@ -581,14 +581,17 @@ function getScalarType({
       	options.max = schema.maxLength || schema.maximum
       break;
       case typeof schema.pattern === 'string':
-        options.pattern = schema.pattern
+        const qualifier = schema.pattern.match(/\/(.)$/) || ['', '']
+        const $pattern = schema.pattern.replace(/^\//, '').replace(/\/(.)?$/, '')
+
+        options.pattern = new RegExp($pattern, qualifier[1])
       break;
       case typeof schema.description === 'string':
 	      options.description = schema.description.replace(/\s/g, '').trim()
       break;
       case typeof schema.format === 'string':
       case typeof schema.enum !== 'undefined':
-        const format = schema.format || ''
+        const format = schema.format || '-'
         const $enum = schema.enum || []
 
         options.sanitize = (data) => format.startsWith('int') ? parseInt( data ) : ( format === 'float' ? parseFloat( data ) : data)
