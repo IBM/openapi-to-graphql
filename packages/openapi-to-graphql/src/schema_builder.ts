@@ -18,7 +18,14 @@ import {
   LinkObject
 } from './types/oas3'
 import { Args, GraphQLType, ResolveFunction } from './types/graphql'
+import GraphQLInputString from 'graphql-input-string';
 import {
+  GraphQLInputInt,
+  GraphQLInputFloat,
+} from 'graphql-input-number';
+
+import {
+  GraphQLError,
   GraphQLScalarType,
   GraphQLObjectType,
   GraphQLString,
@@ -41,7 +48,7 @@ import * as Oas3Tools from './oas_3_tools'
 import { getResolver } from './resolver_builder'
 import { createDataDef } from './preprocessor'
 import debug from 'debug'
-import { handleWarning, sortObject } from './utils'
+import { handleWarning, sortObject, strictTypeOf } from './utils'
 
 type GetArgsParams = {
   requestPayloadDef?: DataDefinition
@@ -52,6 +59,7 @@ type GetArgsParams = {
 
 type CreateOrReuseComplexTypeParams = {
   def: DataDefinition
+  schema?: SchemaObject
   operation?: Operation
   iteration?: number // Count of recursions used to create type
   isInputObjectType?: boolean // Does not require isInputObjectType because unions must be composed of objects
@@ -60,6 +68,8 @@ type CreateOrReuseComplexTypeParams = {
 
 type CreateOrReuseSimpleTypeParams = {
   def: DataDefinition
+  schema?: SchemaObject
+  isInputObjectType?: boolean // Does not require isInputObjectType because unions must be composed of objects
   data: PreprocessingData
 }
 
@@ -79,6 +89,20 @@ type LinkOpRefToOpIdParams = {
   data: PreprocessingData
 }
 
+type StrictScalarConfig = {
+  name: string
+  description?: string
+  min?: number
+  max?: number
+  trim?: boolean
+  empty?: boolean
+  pattern?: string | RegExp
+  test?: Function
+  sanitize?: Function
+  parse?: Function
+  error?: () => GraphQLError
+}
+
 const translationLog = debug('translation')
 
 /**
@@ -86,6 +110,7 @@ const translationLog = debug('translation')
  */
 export function getGraphQLType({
   def,
+  schema,
   operation,
   data,
   iteration = 0,
@@ -125,6 +150,7 @@ export function getGraphQLType({
       return createOrReuseList({
         def,
         operation,
+        schema,
         data,
         iteration,
         isInputObjectType
@@ -141,6 +167,8 @@ export function getGraphQLType({
     default:
       return getScalarType({
         def,
+        schema,
+        isInputObjectType,
         data
       })
   }
@@ -422,6 +450,7 @@ function checkAmbiguousMemberTypes(
 function createOrReuseList({
   def,
   operation,
+  schema,
   iteration,
   isInputObjectType,
   data
@@ -461,6 +490,7 @@ function createOrReuseList({
   const itemsType = getGraphQLType({
     def: itemDef,
     data,
+    schema,
     operation,
     iteration: iteration + 1,
     isInputObjectType
@@ -523,20 +553,82 @@ function createOrReuseEnum({
  */
 function getScalarType({
   def,
+  schema,
+  isInputObjectType,
   data
 }: CreateOrReuseSimpleTypeParams): GraphQLScalarType {
+
+  const name = isInputObjectType
+    ? def.graphQLInputObjectTypeName
+    : def.graphQLTypeName;
+
+  const options = {} as StrictScalarConfig;
+  const typeSet = { type: null, defaultValue: undefined }
+
+  if(isInputObjectType){
+
+    options.name = name;
+
+    const type = schema.type
+
+    switch(true){
+      case typeof schema.minimum === 'number':
+      case typeof schema.minLength === 'number':
+      	options.min = schema.minLength || schema.minimum
+      break;
+      case typeof schema.maximum === 'number':
+      case typeof schema.maxLength === 'number':
+      	options.max = schema.maxLength || schema.maximum
+      break;
+      case typeof schema.pattern === 'string':
+        options.pattern = schema.pattern
+      break;
+      case typeof schema.description === 'string':
+	      options.description = schema.description.replace(/\s/g, '').trim()
+      break;
+      case typeof schema.format === 'string':
+      case typeof schema.enum !== 'undefined':
+        const format = schema.format || ''
+        const $enum = schema.enum || []
+
+        options.sanitize = (data) => format.startsWith('int') ? parseInt( data ) : ( format === 'float' ? parseFloat( data ) : data)
+        options.test = (data) => format === 'int64' ? Number.isSafeInteger( data ) : ( format === 'int32' ? data <= Math.pow(2, 31) : ($enum.includes(data) || strictTypeOf(data, type)) )
+      break;
+    }
+  }
+
   switch (def.targetGraphQLType) {
     case 'id':
       def.graphQLType = GraphQLID
       break
     case 'string':
-      def.graphQLType = GraphQLString
+      options.trim = true
+      options.empty = schema.nullable || !schema.required
+      typeSet.type = isInputObjectType ? GraphQLInputString(options) : GraphQLString
+
+      if(schema.default){
+        typeSet.defaultValue = schema.default
+      }
+
+      def.graphQLType = typeSet
       break
     case 'integer':
-      def.graphQLType = GraphQLInt
+      typeSet.type = isInputObjectType ? GraphQLInputInt(options) : GraphQLInt
+
+      if(schema.default){
+        typeSet.defaultValue = schema.default
+      }
+
+      def.graphQLType = typeSet
       break
     case 'number':
-      def.graphQLType = GraphQLFloat
+      typeSet.type = isInputObjectType ? GraphQLInputFloat(options) : GraphQLFloat
+
+      if(schema.default){
+        typeSet.defaultValue = schema.default
+      }
+
+      def.graphQLType = typeSet
       break
     case 'boolean':
       def.graphQLType = GraphQLBoolean
@@ -1113,6 +1205,7 @@ export function getArgs({
     const type = getGraphQLType({
       def: paramDef,
       operation,
+      schema,
       data,
       iteration: 0,
       isInputObjectType: true
