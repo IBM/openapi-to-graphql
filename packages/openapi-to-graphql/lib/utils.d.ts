@@ -33,8 +33,25 @@ export declare const mitigations: {
     LIMIT_ARGUMENT_NAME_COLLISION: string;
     OAUTH_SECURITY_SCHEME: string;
 };
+/**
+ * verify that a variable contains a safe int (2^31)
+ */
 export declare function isSafeInteger(n: unknown): n is number;
+/**
+ * verify that a variable contains a safe long (2^53)
+ */
 export declare function isSafeLong(n: unknown): n is number;
+/**
+ * verify that a vriable contains a valid UUID string
+ */
+export declare function isUUID(s: any): boolean;
+/**
+ * verify
+ */
+export declare function isURL(s: any): boolean;
+/**
+ * verify that a vriable contains a safe date/date-time string
+ */
 export declare function isSafeDate(n: string): boolean;
 /**
  * get the correct type of a variable

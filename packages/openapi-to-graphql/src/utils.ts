@@ -57,6 +57,9 @@ const MIN_INT = -2147483648
 const MAX_LONG = 9007199254740991
 const MIN_LONG = -9007199254740992
 
+/**
+ * verify that a variable contains a safe int (2^31)
+ */
 export function isSafeInteger(n: unknown): n is number {
   return (
     typeof n === 'number' &&
@@ -67,13 +70,51 @@ export function isSafeInteger(n: unknown): n is number {
   )
 }
 
+/**
+ * verify that a variable contains a safe long (2^53)
+ */
+
 export function isSafeLong(n: unknown): n is number {
   return typeof n === 'number' && isFinite(n) && n <= MAX_LONG && n >= MIN_LONG
 }
 
+/**
+ * verify that a vriable contains a valid UUID string
+ */
+
+export function isUUID(s: any): boolean {
+  const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  return uuidRegExp.test(s)
+}
+
+/**
+ * verify
+ */
+
+export function isURL(s: any): boolean {
+  let res = null
+  try {
+    res = s.match(
+      /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z0-9]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g
+    )
+  } catch (e) {
+    res = null
+  }
+  return res !== null
+}
+
+/**
+ * verify that a vriable contains a safe date/date-time string
+ */
+
 export function isSafeDate(n: string): boolean {
   const parsed = Date.parse(n)
-  return typeof parsed === 'number' && parsed !== NaN && parsed > 0
+  return (
+    typeof parsed === 'number' &&
+    parsed !== NaN &&
+    parsed > 0 &&
+    String(parsed).length === 13
+  )
 }
 
 /**
@@ -102,6 +143,10 @@ const checkTypeName = (target, type): boolean => {
  */
 export function strictTypeOf(value, type): boolean {
   let result = false
+
+  if (type === 'integer') {
+    type = 'number'
+  }
 
   type = type || []
 

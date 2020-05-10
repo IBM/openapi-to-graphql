@@ -23,10 +23,13 @@ import {
   createIntScalar,
   createFloatScalar,
   ScalarSanitizeFunction,
-  ScalarValidateFunction
+  ScalarValidateFunction,
+  ScalarCoerceFunction,
+  ScalarParseFunction
 } from 'graphql-scalar'
 
 import {
+  GraphQLError,
   GraphQLScalarType,
   GraphQLObjectType,
   GraphQLString,
@@ -55,7 +58,9 @@ import {
   isSafeInteger,
   isSafeLong,
   strictTypeOf,
-  isSafeDate
+  isSafeDate,
+  isUUID,
+  isURL
 } from './utils'
 
 type GetArgsParams = {
@@ -111,11 +116,17 @@ interface StrictScalarConfig {
 }
 
 interface StrictScalarNumberConfig extends StrictScalarConfig {
+  serialize?: ScalarSanitizeFunction<number>
+  parse?: ScalarParseFunction<number, number>
+  coerce?: ScalarCoerceFunction<number>
   sanitize?: ScalarSanitizeFunction<number>
   validate?: ScalarValidateFunction<number>
 }
 
 interface StrictScalarStringConfig extends StrictScalarConfig {
+  serialize?: ScalarSanitizeFunction<string>
+  parse?: ScalarParseFunction<string, string>
+  coerce?: ScalarCoerceFunction<string>
   sanitize?: ScalarSanitizeFunction<string>
   validate?: ScalarValidateFunction<string>
 }
@@ -580,59 +591,106 @@ function getScalarType({
 
   if (isInputObjectType && schema) {
     const type = schema.type
+    const title = schema.title || ''
 
     options.name =
-      schema.title ||
-      'StrictType' + (Math.random() * Date.now()).toString(16).replace('.', '')
+      title.split(' ').join('') ||
+      'StrictScalarType' +
+        (Math.random() * Date.now()).toString(16).replace('.', '')
 
     if (type === 'string') {
       options.trim = true
-      // options.nonEmpty = !schema.nullable
+      if ('nullable' in schema) options.nonEmpty = !schema.nullable
     }
 
     switch (true) {
       case typeof schema.minimum === 'number':
       case typeof schema.minLength === 'number':
-        options.minimum = type === 'string' ? schema.minLength : schema.minimum
+        if (type === 'string') {
+          options.minLength = schema.minLength
+        }
+
+        if (type === 'number' || type === 'integer') {
+          options.minimum = schema.minimum
+        }
         break
       case typeof schema.maximum === 'number':
       case typeof schema.maxLength === 'number':
-        options.maximum = type === 'string' ? schema.maxLength : schema.maximum
+        if (type === 'string') {
+          options.maxLength = schema.maxLength
+        }
+
+        if (type === 'number' || type === 'integer') {
+          options.maximum = schema.maximum
+        }
         break
       case typeof schema.pattern === 'string':
-        const qualifier = schema.pattern.match(/\/(.)$/) || ['', '']
+        const $qualifier = schema.pattern.match(/\/(.)$/) || ['', '']
         const $pattern = schema.pattern
           .replace(/^\//, '')
           .replace(/\/(.)?$/, '')
 
-        options.pattern = new RegExp($pattern, qualifier[1])
+        if (type === 'string') {
+          options.pattern = new RegExp($pattern, $qualifier[1])
+        }
         break
       case typeof schema.description === 'string':
         options.description = schema.description.replace(/\s/g, '').trim()
         break
+      case type !== 'object' && type !== 'array' && type === 'boolean':
       case typeof schema.format === 'string':
       case typeof schema.enum !== 'undefined':
         const $format = schema.format || '-'
         const $enum = schema.enum || []
 
-        options.sanitize = (data: any) =>
-          $format.startsWith('int')
-            ? parseInt(data)
-            : $format === 'float'
+        options.parse = (data: any) => {
+          if (type === 'string') {
+            return String(data) as string
+          }
+
+          return data
+        }
+
+        options.coerce = (data: any) => {
+          if (type === 'number' || $format === 'float') {
+            if (!isFinite(data)) {
+              throw new GraphQLError('Float cannot represent non numeric value')
+            }
+          }
+
+          if (type === 'string') {
+            if (typeof data !== 'string') {
+              throw new GraphQLError(
+                'String cannot represent a non string value'
+              )
+            }
+          }
+
+          return data
+        }
+
+        options.sanitize = (data: any) => {
+          return type === 'integer' || $format.startsWith('int')
+            ? parseInt(data, 10)
+            : type === 'number' || $format === 'float'
             ? parseFloat(data)
             : $format === 'date' || $format === 'date-time'
-            ? isSafeDate(data)
+            ? isSafeDate(data) && data
             : data
+        }
+
         options.validate = (data: any) =>
           $format === 'int64'
             ? isSafeLong(data)
             : $format === 'int32'
             ? isSafeInteger(data)
+            : $format === 'uuid'
+            ? isUUID(data)
+            : $format === 'url'
+            ? isURL(data)
             : $enum.includes(String(data)) || strictTypeOf(data, type)
         break
     }
-
-    // options.default = schema.default
   }
 
   switch (def.targetGraphQLType) {
@@ -696,6 +754,7 @@ function createFields({
     const objectType = getGraphQLType({
       def: fieldTypeDefinition,
       operation,
+      schema: fieldSchema,
       data,
       iteration: iteration + 1,
       isInputObjectType
@@ -1308,6 +1367,7 @@ export function getArgs({
     const reqObjectType = getGraphQLType({
       def: requestPayloadDef,
       data,
+      schema: requestPayloadDef.schema,
       operation,
       isInputObjectType: true // Request payloads will always be an input object type
     })
@@ -1324,7 +1384,15 @@ export function getArgs({
         : false
 
     args[saneName] = {
-      type: reqRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
+      type: reqRequired
+        ? new GraphQLNonNull(reqObjectType)
+        : typeof (requestPayloadDef.schema as SchemaObject).default !==
+          'undefined'
+        ? {
+            type: reqObjectType,
+            defaultValue: (requestPayloadDef.schema as SchemaObject).default
+          }
+        : reqObjectType,
       // TODO: addendum to the description explaining this is the request body
       description: requestPayloadDef.schema.description
     }

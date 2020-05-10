@@ -360,54 +360,117 @@ function createOrReuseEnum({ def, data }) {
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
 function getScalarType({ def, schema, isInputObjectType, data }) {
-    const options = { name: '' };
-    if (isInputObjectType
-        && schema) {
+    const options = {
+        name: ''
+    };
+    if (isInputObjectType && schema) {
         const type = schema.type;
-        options.name = schema.title || 'StrictType' + (Math.random() * Date.now()).toString(16).replace('.', '');
+        const title = schema.title || '';
+        options.name =
+            title.split(' ').join('') ||
+                'StrictScalarType' + (Math.random() * Date.now()).toString(16).replace('.', '');
         if (type === 'string') {
             options.trim = true;
-            // options.nonEmpty = !schema.nullable
+            if ('nullable' in schema)
+                options.nonEmpty = !schema.nullable;
         }
         switch (true) {
             case typeof schema.minimum === 'number':
             case typeof schema.minLength === 'number':
-                options.minimum = type === 'string' ? schema.minLength : schema.minimum;
+                if (type === 'string') {
+                    options.minLength = schema.minLength;
+                }
+                if (type === 'number' || type === 'integer') {
+                    options.minimum = schema.minimum;
+                }
                 break;
             case typeof schema.maximum === 'number':
             case typeof schema.maxLength === 'number':
-                options.maximum = type === 'string' ? schema.maxLength : schema.maximum;
+                if (type === 'string') {
+                    options.maxLength = schema.maxLength;
+                }
+                if (type === 'number' || type === 'integer') {
+                    options.maximum = schema.maximum;
+                }
                 break;
             case typeof schema.pattern === 'string':
-                const qualifier = schema.pattern.match(/\/(.)$/) || ['', ''];
-                const $pattern = schema.pattern.replace(/^\//, '').replace(/\/(.)?$/, '');
-                options.pattern = new RegExp($pattern, qualifier[1]);
+                const $qualifier = schema.pattern.match(/\/(.)$/) || ['', ''];
+                const $pattern = schema.pattern
+                    .replace(/^\//, '')
+                    .replace(/\/(.)?$/, '');
+                if (type === 'string') {
+                    options.pattern = new RegExp($pattern, $qualifier[1]);
+                }
                 break;
             case typeof schema.description === 'string':
                 options.description = schema.description.replace(/\s/g, '').trim();
                 break;
+            case type !== 'object' && type !== 'array' && type === 'boolean':
             case typeof schema.format === 'string':
             case typeof schema.enum !== 'undefined':
                 const $format = schema.format || '-';
                 const $enum = schema.enum || [];
-                options.sanitize = (data) => $format.startsWith('int') ? parseInt(data) : ($format === 'float' ? parseFloat(data) : ($format === 'date' || $format === 'date-time' ? utils_1.isSafeDate(data) : data));
-                options.validate = (data) => $format === 'int64' ? utils_1.isSafeLong(data) : ($format === 'int32' ? utils_1.isSafeInteger(data) : ($enum.includes(String(data)) || utils_1.strictTypeOf(data, type)));
+                options.parse = (data) => {
+                    if (type === 'string') {
+                        return String(data);
+                    }
+                    return data;
+                };
+                options.coerce = (data) => {
+                    if (type === 'number' || $format === 'float') {
+                        if (!isFinite(data)) {
+                            throw new graphql_1.GraphQLError('Float cannot represent non numeric value');
+                        }
+                    }
+                    if (type === 'string') {
+                        if (typeof data !== 'string') {
+                            throw new graphql_1.GraphQLError('String cannot represent a non string value');
+                        }
+                    }
+                    return data;
+                };
+                options.sanitize = (data) => {
+                    return type === 'integer' || $format.startsWith('int')
+                        ? parseInt(data, 10)
+                        : type === 'number' || $format === 'float'
+                            ? parseFloat(data)
+                            : $format === 'date' || $format === 'date-time'
+                                ? utils_1.isSafeDate(data) && data
+                                : data;
+                };
+                options.validate = (data) => $format === 'int64'
+                    ? utils_1.isSafeLong(data)
+                    : $format === 'int32'
+                        ? utils_1.isSafeInteger(data)
+                        : $format === 'uuid'
+                            ? utils_1.isUUID(data)
+                            : $format === 'url'
+                                ? utils_1.isURL(data)
+                                : $enum.includes(String(data)) || utils_1.strictTypeOf(data, type);
                 break;
         }
-        // options.default = schema.default
     }
     switch (def.targetGraphQLType) {
         case 'id':
             def.graphQLType = graphql_1.GraphQLID;
             break;
         case 'string':
-            def.graphQLType = isInputObjectType && schema ? graphql_scalar_1.createStringScalar(options) : graphql_1.GraphQLString;
+            def.graphQLType =
+                isInputObjectType && schema
+                    ? graphql_scalar_1.createStringScalar(options)
+                    : graphql_1.GraphQLString;
             break;
         case 'integer':
-            def.graphQLType = isInputObjectType && schema ? graphql_scalar_1.createIntScalar(options) : graphql_1.GraphQLInt;
+            def.graphQLType =
+                isInputObjectType && schema
+                    ? graphql_scalar_1.createIntScalar(options)
+                    : graphql_1.GraphQLInt;
             break;
         case 'number':
-            def.graphQLType = isInputObjectType && schema ? graphql_scalar_1.createFloatScalar(options) : graphql_1.GraphQLFloat;
+            def.graphQLType =
+                isInputObjectType && schema
+                    ? graphql_scalar_1.createFloatScalar(options)
+                    : graphql_1.GraphQLFloat;
             break;
         case 'boolean':
             def.graphQLType = graphql_1.GraphQLBoolean;
@@ -434,6 +497,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         const objectType = getGraphQLType({
             def: fieldTypeDefinition,
             operation,
+            schema: fieldSchema,
             data,
             iteration: iteration + 1,
             isInputObjectType
@@ -934,6 +998,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         const reqObjectType = getGraphQLType({
             def: requestPayloadDef,
             data,
+            schema: requestPayloadDef.schema,
             operation,
             isInputObjectType: true // Request payloads will always be an input object type
         });
@@ -946,7 +1011,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             ? operation.payloadRequired
             : false;
         args[saneName] = {
-            type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : reqObjectType,
+            type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : typeof requestPayloadDef.schema.default !== 'undefined' ? { type: reqObjectType, defaultValue: requestPayloadDef.schema.default } : reqObjectType,
             // TODO: addendum to the description explaining this is the request body
             description: requestPayloadDef.schema.description
         };

@@ -47,24 +47,53 @@ const MAX_INT = 2147483647;
 const MIN_INT = -2147483648;
 const MAX_LONG = 9007199254740991;
 const MIN_LONG = -9007199254740992;
+/**
+ * verify that a variable contains a safe int (2^31)
+ */
 function isSafeInteger(n) {
-    return typeof n === 'number' &&
+    return (typeof n === 'number' &&
         isFinite(n) &&
         Math.floor(n) === n &&
         n <= MAX_INT &&
-        n >= MIN_INT;
+        n >= MIN_INT);
 }
 exports.isSafeInteger = isSafeInteger;
+/**
+ * verify that a variable contains a safe long (2^53)
+ */
 function isSafeLong(n) {
-    return typeof n === 'number' &&
-        isFinite(n) &&
-        n <= MAX_LONG &&
-        n >= MIN_LONG;
+    return typeof n === 'number' && isFinite(n) && n <= MAX_LONG && n >= MIN_LONG;
 }
 exports.isSafeLong = isSafeLong;
+/**
+ * verify that a vriable contains a valid UUID string
+ */
+function isUUID(s) {
+    const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegExp.test(s);
+}
+exports.isUUID = isUUID;
+/**
+ * verify
+ */
+function isURL(s) {
+    let res = null;
+    try {
+        res = s.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z0-9]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+    }
+    catch (e) {
+        res = null;
+    }
+    return (res !== null);
+}
+exports.isURL = isURL;
+;
+/**
+ * verify that a vriable contains a safe date/date-time string
+ */
 function isSafeDate(n) {
     const parsed = Date.parse(n);
-    return typeof parsed === 'number' && parsed !== NaN && parsed > 0;
+    return typeof parsed === 'number' && parsed !== NaN && parsed > 0 && String(parsed).length === 13;
 }
 exports.isSafeDate = isSafeDate;
 /**
@@ -91,6 +120,9 @@ const checkTypeName = (target, type) => {
  */
 function strictTypeOf(value, type) {
     let result = false;
+    if (type === 'integer') {
+        type = 'number';
+    }
     type = type || [];
     if (typeof type === 'object') {
         if (typeof type.length !== 'number') {
