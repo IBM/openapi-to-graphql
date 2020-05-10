@@ -368,7 +368,8 @@ function getScalarType({ def, schema, isInputObjectType, data }) {
         const title = schema.title || '';
         options.name =
             title.split(' ').join('') ||
-                'StrictScalarType' + (Math.random() * Date.now()).toString(16).replace('.', '');
+                'StrictScalarType' +
+                    (Math.random() * Date.now()).toString(16).replace('.', '');
         if (type === 'string') {
             options.trim = true;
             if ('nullable' in schema)
@@ -1011,7 +1012,15 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             ? operation.payloadRequired
             : false;
         args[saneName] = {
-            type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : typeof requestPayloadDef.schema.default !== 'undefined' ? { type: reqObjectType, defaultValue: requestPayloadDef.schema.default } : reqObjectType,
+            type: reqRequired
+                ? new graphql_1.GraphQLNonNull(reqObjectType)
+                : typeof requestPayloadDef.schema.default !==
+                    'undefined'
+                    ? {
+                        type: reqObjectType,
+                        defaultValue: requestPayloadDef.schema.default
+                    }
+                    : reqObjectType,
             // TODO: addendum to the description explaining this is the request body
             description: requestPayloadDef.schema.description
         };

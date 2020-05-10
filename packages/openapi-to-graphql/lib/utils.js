@@ -84,16 +84,18 @@ function isURL(s) {
     catch (e) {
         res = null;
     }
-    return (res !== null);
+    return res !== null;
 }
 exports.isURL = isURL;
-;
 /**
  * verify that a vriable contains a safe date/date-time string
  */
 function isSafeDate(n) {
     const parsed = Date.parse(n);
-    return typeof parsed === 'number' && parsed !== NaN && parsed > 0 && String(parsed).length === 13;
+    return (typeof parsed === 'number' &&
+        parsed !== NaN &&
+        parsed > 0 &&
+        String(parsed).length === 13);
 }
 exports.isSafeDate = isSafeDate;
 /**
