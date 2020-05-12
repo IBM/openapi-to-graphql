@@ -41,11 +41,11 @@ exports.createIntScalar = (config) => {
                     originalValue: unknownValue,
                     value: unknownValue,
                     ast,
-                    config,
+                    config
                 });
             }
         }
-        // Sanitization Phase  
+        // Sanitization Phase
         if (sanitize && value != null) {
             const valueOrNull = sanitize(value);
             if (valueOrNull == null) {
@@ -60,7 +60,7 @@ exports.createIntScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         if (maximum != null && value > maximum) {
@@ -69,7 +69,7 @@ exports.createIntScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         if (validate && !validate(value)) {
@@ -78,7 +78,7 @@ exports.createIntScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         return value;

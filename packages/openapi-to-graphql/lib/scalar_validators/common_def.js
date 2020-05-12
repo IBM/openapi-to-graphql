@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const graphql_1 = require("graphql");
 const graphql_2 = require("graphql");
-exports.defaultErrorHandler = ({ code, ast, }) => {
+exports.defaultErrorHandler = ({ code, ast }) => {
     throw new graphql_2.GraphQLError(`code=${code}`, ast ? [ast] : []);
 };
 exports.defaultSerialize = (x) => x;

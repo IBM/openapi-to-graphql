@@ -56,7 +56,7 @@ exports.createStringScalar = (config) => {
                     originalValue: unknownValue,
                     value: unknownValue,
                     ast,
-                    config,
+                    config
                 });
             }
         }
@@ -130,7 +130,7 @@ exports.createStringScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         if (minLength != null && value.length < minLength) {
@@ -139,7 +139,7 @@ exports.createStringScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         if (maxLength != null && value.length > maxLength) {
@@ -148,7 +148,7 @@ exports.createStringScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         if (regex != null && !regex.test(value)) {
@@ -157,7 +157,7 @@ exports.createStringScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         if (validate && !validate(value)) {
@@ -166,7 +166,7 @@ exports.createStringScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         return value;

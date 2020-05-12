@@ -414,9 +414,9 @@ function getScalarType({ def, schema, isInputObjectType, data }) {
                 const $format = schema.format || '-';
                 const $enum = schema.enum || [];
                 options.coerce = (data) => {
-                    if ($format === 'int64'
-                        || $format === 'long'
-                        || $format === 'float') {
+                    if ($format === 'int64' ||
+                        $format === 'long' ||
+                        $format === 'float') {
                         if (!isFinite(data)) {
                             throw new graphql_1.GraphQLError('Float cannot represent non numeric value');
                         }

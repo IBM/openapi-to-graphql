@@ -79,10 +79,12 @@ function toDate(n) {
     const parsed = Date.parse(n);
     const $ref = new Date();
     $ref.setTime(parsed);
-    return typeof parsed === 'number' &&
+    return ((typeof parsed === 'number' &&
         parsed !== NaN &&
         parsed > 0 &&
-        String(parsed).length === 13 && $ref || null;
+        String(parsed).length === 13 &&
+        $ref) ||
+        null);
 }
 /**
  *
@@ -97,8 +99,7 @@ exports.serializeDate = serializeDate;
  */
 function isSafeDate(n) {
     const date = toDate(n);
-    return (date !== null &&
-        (date.getTime()) !== NaN);
+    return date !== null && date.getTime() !== NaN;
 }
 exports.isSafeDate = isSafeDate;
 /**

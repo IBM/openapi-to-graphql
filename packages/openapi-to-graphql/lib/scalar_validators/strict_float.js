@@ -42,7 +42,7 @@ exports.createFloatScalar = (config) => {
                     originalValue: unknownValue,
                     value: unknownValue,
                     ast,
-                    config,
+                    config
                 });
             }
         }
@@ -61,7 +61,7 @@ exports.createFloatScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         if (maximum != null && value > maximum) {
@@ -70,7 +70,7 @@ exports.createFloatScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         if (validate && !validate(value)) {
@@ -79,7 +79,7 @@ exports.createFloatScalar = (config) => {
                 originalValue: unknownValue,
                 value,
                 ast,
-                config,
+                config
             });
         }
         return value;
