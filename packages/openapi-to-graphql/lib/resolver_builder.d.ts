@@ -1,8 +1,7 @@
-import { ConnectOptions } from './types/options';
+import { ConnectOptions, RequestOptions } from './types/options';
 import { Operation } from './types/operation';
 import { ResolveFunction, SubscriptionIterator } from './types/graphql';
 import { PreprocessingData } from './types/preprocessing_data';
-import * as NodeRequest from 'request';
 declare type GetResolverParams = {
     operation: Operation;
     argsFromLink?: {
@@ -12,7 +11,7 @@ declare type GetResolverParams = {
     responseName?: string;
     data: PreprocessingData;
     baseUrl?: string;
-    requestOptions?: NodeRequest.OptionsWithUrl;
+    requestOptions?: RequestOptions;
 };
 declare type GetSubscribeParams = {
     operation: Operation;

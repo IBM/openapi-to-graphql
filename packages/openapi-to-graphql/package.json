@@ -71,10 +71,10 @@
     "form-urlencoded": "^4.1.1",
     "graphql-subscriptions": "^1.1.0",
     "graphql-type-json": "^0.2.1",
+    "isomorphic-unfetch": "^3.0.0",
     "jsonpath-plus": "^3.0.0",
     "oas-validator": "^3.1.0",
     "pluralize": "^8.0.0",
-    "request": "^2.88.0",
     "swagger2openapi": "^5.1.0"
   },
   "peerDependencies": {

@@ -1,4 +1,3 @@
-import * as NodeRequest from 'request';
 import { ResolveFunction, ResolveObject, GraphQLOperationType } from './graphql';
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
@@ -18,6 +17,9 @@ export declare type Report = {
     numQueriesCreated: number;
     numMutationsCreated: number;
     numSubscriptionsCreated: number;
+};
+export declare type RequestOptions = {
+    [key: string]: any;
 };
 export declare type ConnectOptions = {
     [key: string]: boolean | number | string;
@@ -126,7 +128,7 @@ export declare type Options = {
      * calls to the API backend.
      * e.g. Setup the web proxy to use.
      */
-    requestOptions?: NodeRequest.OptionsWithUrl;
+    requestOptions?: RequestOptions;
     /**
      * Allows to override or add options to the PubSub connect object used to make
      * publish/subscribe to the API backend.
@@ -329,7 +331,7 @@ export declare type InternalOptions = {
      * calls to the API backend.
      * e.g. Setup the web proxy to use.
      */
-    requestOptions?: NodeRequest.OptionsWithUrl;
+    requestOptions?: RequestOptions;
     /**
      * Allows to override or add options to the PubSub connect object used to make
      * publish/subscribe to the API backend.

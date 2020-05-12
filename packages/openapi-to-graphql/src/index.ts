@@ -35,6 +35,7 @@ import {
   Options,
   InternalOptions,
   Report,
+  RequestOptions,
   ConnectOptions
 } from './types/options'
 import { Oas3, CallbackObject } from './types/oas3'
@@ -43,7 +44,6 @@ import { Args, Field, GraphQLOperationType } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
 import { GraphQLSchema, GraphQLObjectType } from 'graphql'
-import * as NodeRequest from 'request'
 
 // Imports:
 import { getGraphQLType, getArgs } from './schema_builder'
@@ -600,7 +600,7 @@ function getFieldForOperation(
   operation: Operation,
   baseUrl: string,
   data: PreprocessingData,
-  requestOptions: NodeRequest.OptionsWithUrl,
+  requestOptions: RequestOptions,
   connectOptions: ConnectOptions
 ): Field {
   // Create GraphQL Type for response:
