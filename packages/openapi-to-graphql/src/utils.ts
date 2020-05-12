@@ -60,7 +60,7 @@ const MIN_LONG = -9007199254740992
 /**
  * verify that a variable contains a safe int (2^31)
  */
-export function isSafeInteger(n: unknown): n is number {
+export function isSafeInteger(n: unknown): boolean {
   return (
     typeof n === 'number' &&
     isFinite(n) &&
@@ -74,33 +74,45 @@ export function isSafeInteger(n: unknown): n is number {
  * verify that a variable contains a safe long (2^53)
  */
 
-export function isSafeLong(n: unknown): n is number {
+export function isSafeLong(n: unknown): boolean {
   return typeof n === 'number' && isFinite(n) && n <= MAX_LONG && n >= MIN_LONG
 }
 
 /**
- * verify that a vriable contains a valid UUID string
+ *
  */
 
-export function isUUID(s: any): boolean {
-  const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  return uuidRegExp.test(s)
+export function isSafeFloat(n: unknown): boolean {
+  return false
 }
 
 /**
- * verify
+ *
  */
 
-export function isURL(s: any): boolean {
-  let res = null
-  try {
-    res = s.match(
-      /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z0-9]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g
-    )
-  } catch (e) {
-    res = null
-  }
-  return res !== null
+function toDate(n: string) {
+  const parsed = Date.parse(n)
+  const $ref = new Date()
+
+  $ref.setTime(parsed)
+
+  return (
+    (typeof parsed === 'number' &&
+      parsed !== NaN &&
+      parsed > 0 &&
+      String(parsed).length === 13 &&
+      $ref) ||
+    null
+  )
+}
+
+/**
+ *
+ */
+
+export function serializeDate(n: string) {
+  const date = toDate(n)
+  return date && date.toJSON()
 }
 
 /**
@@ -108,13 +120,47 @@ export function isURL(s: any): boolean {
  */
 
 export function isSafeDate(n: string): boolean {
-  const parsed = Date.parse(n)
-  return (
-    typeof parsed === 'number' &&
-    parsed !== NaN &&
-    parsed > 0 &&
-    String(parsed).length === 13
-  )
+  const date = toDate(n)
+  return date !== null && date.getTime() !== NaN
+}
+
+/**
+ *
+ */
+
+export function isURL(s: string): boolean {
+  let res = null
+  const urlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z0-9]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g
+  try {
+    res = s.match(urlRegex)
+  } catch (e) {
+    res = null
+  }
+  return res !== null
+}
+
+/**
+ *
+ */
+
+export function isEmail(s: string): boolean {
+  const emailRegex = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
+  return emailRegex.test(s)
+}
+
+/**
+ *
+ */
+
+export function isUUIDOrGUID(s: string): boolean {
+  const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+  const guidRegExp = /^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi
+
+  if (s.startsWith('{')) {
+    s = s.substring(1, s.length - 1)
+  }
+
+  return uuidRegExp.test(s) || guidRegExp.test(s)
 }
 
 /**

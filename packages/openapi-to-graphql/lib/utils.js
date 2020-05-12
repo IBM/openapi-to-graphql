@@ -66,20 +66,49 @@ function isSafeLong(n) {
 }
 exports.isSafeLong = isSafeLong;
 /**
- * verify that a vriable contains a valid UUID string
+ *
  */
-function isUUID(s) {
-    const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    return uuidRegExp.test(s);
+function isSafeFloat(n) {
+    return false;
 }
-exports.isUUID = isUUID;
+exports.isSafeFloat = isSafeFloat;
 /**
- * verify
+ *
+ */
+function toDate(n) {
+    const parsed = Date.parse(n);
+    const $ref = new Date();
+    $ref.setTime(parsed);
+    return typeof parsed === 'number' &&
+        parsed !== NaN &&
+        parsed > 0 &&
+        String(parsed).length === 13 && $ref || null;
+}
+/**
+ *
+ */
+function serializeDate(n) {
+    const date = toDate(n);
+    return date && date.toJSON();
+}
+exports.serializeDate = serializeDate;
+/**
+ * verify that a vriable contains a safe date/date-time string
+ */
+function isSafeDate(n) {
+    const date = toDate(n);
+    return (date !== null &&
+        (date.getTime()) !== NaN);
+}
+exports.isSafeDate = isSafeDate;
+/**
+ *
  */
 function isURL(s) {
     let res = null;
+    const urlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z0-9]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g;
     try {
-        res = s.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z0-9]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
+        res = s.match(urlRegex);
     }
     catch (e) {
         res = null;
@@ -88,16 +117,25 @@ function isURL(s) {
 }
 exports.isURL = isURL;
 /**
- * verify that a vriable contains a safe date/date-time string
+ *
  */
-function isSafeDate(n) {
-    const parsed = Date.parse(n);
-    return (typeof parsed === 'number' &&
-        parsed !== NaN &&
-        parsed > 0 &&
-        String(parsed).length === 13);
+function isEmail(s) {
+    const emailRegex = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+    return emailRegex.test(s);
 }
-exports.isSafeDate = isSafeDate;
+exports.isEmail = isEmail;
+/**
+ *
+ */
+function isUUIDOrGUID(s) {
+    const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const guidRegExp = /^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi;
+    if (s.startsWith('{')) {
+        s = s.substring(1, s.length - 1);
+    }
+    return uuidRegExp.test(s) || guidRegExp.test(s);
+}
+exports.isUUIDOrGUID = isUUIDOrGUID;
 /**
  * check if a literal is falsy or not
  */

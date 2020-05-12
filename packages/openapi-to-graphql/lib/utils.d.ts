@@ -36,23 +36,35 @@ export declare const mitigations: {
 /**
  * verify that a variable contains a safe int (2^31)
  */
-export declare function isSafeInteger(n: unknown): n is number;
+export declare function isSafeInteger(n: unknown): boolean;
 /**
  * verify that a variable contains a safe long (2^53)
  */
-export declare function isSafeLong(n: unknown): n is number;
+export declare function isSafeLong(n: unknown): boolean;
 /**
- * verify that a vriable contains a valid UUID string
+ *
  */
-export declare function isUUID(s: any): boolean;
+export declare function isSafeFloat(n: unknown): boolean;
 /**
- * verify
+ *
  */
-export declare function isURL(s: any): boolean;
+export declare function serializeDate(n: string): string;
 /**
  * verify that a vriable contains a safe date/date-time string
  */
 export declare function isSafeDate(n: string): boolean;
+/**
+ *
+ */
+export declare function isURL(s: string): boolean;
+/**
+ *
+ */
+export declare function isEmail(s: string): boolean;
+/**
+ *
+ */
+export declare function isUUIDOrGUID(s: string): boolean;
 /**
  * get the correct type of a variable
  */

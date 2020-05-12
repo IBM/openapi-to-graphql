@@ -4,7 +4,9 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-const graphql_scalar_1 = require("graphql-scalar");
+const strict_string_1 = require("./scalar_validators/strict_string");
+const strict_int_1 = require("./scalar_validators/strict_int");
+const strict_float_1 = require("./scalar_validators/strict_float");
 const graphql_1 = require("graphql");
 // Imports:
 const GraphQLJSON = require("graphql-type-json");
@@ -411,14 +413,10 @@ function getScalarType({ def, schema, isInputObjectType, data }) {
             case typeof schema.enum !== 'undefined':
                 const $format = schema.format || '-';
                 const $enum = schema.enum || [];
-                options.parse = (data) => {
-                    if (type === 'string') {
-                        return String(data);
-                    }
-                    return data;
-                };
                 options.coerce = (data) => {
-                    if (type === 'number' || $format === 'float') {
+                    if ($format === 'int64'
+                        || $format === 'long'
+                        || $format === 'float') {
                         if (!isFinite(data)) {
                             throw new graphql_1.GraphQLError('Float cannot represent non numeric value');
                         }
@@ -430,24 +428,32 @@ function getScalarType({ def, schema, isInputObjectType, data }) {
                     }
                     return data;
                 };
+                options.serialize = (data) => {
+                    if ($format === 'date' || $format === 'date-time') {
+                        return utils_1.serializeDate(data);
+                    }
+                    return data;
+                };
                 options.sanitize = (data) => {
                     return type === 'integer' || $format.startsWith('int')
-                        ? parseInt(data, 10)
-                        : type === 'number' || $format === 'float'
-                            ? parseFloat(data)
-                            : $format === 'date' || $format === 'date-time'
-                                ? utils_1.isSafeDate(data) && data
-                                : data;
+                        ? utils_1.isSafeInteger(data) && parseInt(data, 10)
+                        : $format === 'long'
+                            ? utils_1.isSafeLong(data) && data
+                            : type === 'number' || $format === 'float'
+                                ? utils_1.isSafeFloat(data) && parseFloat(data)
+                                : $format === 'date' || $format === 'date-time'
+                                    ? utils_1.isSafeDate(data) && data
+                                    : $format === 'uuid'
+                                        ? utils_1.isUUIDOrGUID(data) && data
+                                        : $format === 'email'
+                                            ? utils_1.isEmail(data) && data
+                                            : $format === 'url'
+                                                ? utils_1.isURL(data) && data
+                                                : data;
                 };
-                options.validate = (data) => $format === 'int64'
-                    ? utils_1.isSafeLong(data)
-                    : $format === 'int32'
-                        ? utils_1.isSafeInteger(data)
-                        : $format === 'uuid'
-                            ? utils_1.isUUID(data)
-                            : $format === 'url'
-                                ? utils_1.isURL(data)
-                                : $enum.includes(String(data)) || utils_1.strictTypeOf(data, type);
+                options.validate = (data) => {
+                    return $enum.includes(data) || utils_1.strictTypeOf(data, type);
+                };
                 break;
         }
     }
@@ -458,19 +464,19 @@ function getScalarType({ def, schema, isInputObjectType, data }) {
         case 'string':
             def.graphQLType =
                 isInputObjectType && schema
-                    ? graphql_scalar_1.createStringScalar(options)
+                    ? strict_string_1.createStringScalar(options)
                     : graphql_1.GraphQLString;
             break;
         case 'integer':
             def.graphQLType =
                 isInputObjectType && schema
-                    ? graphql_scalar_1.createIntScalar(options)
+                    ? strict_int_1.createIntScalar(options)
                     : graphql_1.GraphQLInt;
             break;
         case 'number':
             def.graphQLType =
                 isInputObjectType && schema
-                    ? graphql_scalar_1.createFloatScalar(options)
+                    ? strict_float_1.createFloatScalar(options)
                     : graphql_1.GraphQLFloat;
             break;
         case 'boolean':

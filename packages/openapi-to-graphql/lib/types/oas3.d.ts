@@ -25,7 +25,7 @@ export declare type SchemaObject = {
     additionalProperties?: SchemaObject | ReferenceObject;
     items?: SchemaObject | ReferenceObject;
     additionalItems?: boolean | string[];
-    enum?: string[];
+    enum?: any[];
     allOf?: (SchemaObject | ReferenceObject)[];
     anyOf?: (SchemaObject | ReferenceObject)[];
     oneOf?: (SchemaObject | ReferenceObject)[];
@@ -69,7 +69,7 @@ export declare type MediaTypeObject = {
 };
 export declare type ParameterObject = {
     name: string;
-    in: 'query' | 'header' | 'path' | 'cookie';
+    in: 'query' | 'header' | 'path' | 'cookie' | 'body';
     description?: string;
     required?: boolean;
     deprecated?: boolean;

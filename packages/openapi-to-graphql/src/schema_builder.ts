@@ -11,6 +11,10 @@
 import { PreprocessingData } from './types/preprocessing_data'
 import { Operation, DataDefinition } from './types/operation'
 import {
+  StrictScalarNumberConfig,
+  StrictScalarStringConfig
+} from './types/strict_scalars'
+import {
   Oas3,
   SchemaObject,
   ParameterObject,
@@ -18,15 +22,10 @@ import {
   LinkObject
 } from './types/oas3'
 import { Args, GraphQLType, ResolveFunction } from './types/graphql'
-import {
-  createStringScalar,
-  createIntScalar,
-  createFloatScalar,
-  ScalarSanitizeFunction,
-  ScalarValidateFunction,
-  ScalarCoerceFunction,
-  ScalarParseFunction
-} from 'graphql-scalar'
+
+import { createStringScalar } from './scalar_validators/strict_string'
+import { createIntScalar } from './scalar_validators/strict_int'
+import { createFloatScalar } from './scalar_validators/strict_float'
 
 import {
   GraphQLError,
@@ -57,11 +56,15 @@ import {
   sortObject,
   isSafeInteger,
   isSafeLong,
+  isSafeFloat,
   strictTypeOf,
   isSafeDate,
-  isUUID,
+  serializeDate,
+  isUUIDOrGUID,
+  isEmail,
   isURL
 } from './utils'
+import { serialize } from 'v8'
 
 type GetArgsParams = {
   requestPayloadDef?: DataDefinition
@@ -100,35 +103,6 @@ type LinkOpRefToOpIdParams = {
   linkKey: string
   operation: Operation
   data: PreprocessingData
-}
-
-interface StrictScalarConfig {
-  name: string
-  description?: string
-  maximum?: number
-  minimum?: number
-  maxLength?: number
-  minLength?: number
-  nonEmpty?: boolean
-  pattern?: RegExp | string
-  singleline?: string
-  trim?: boolean
-}
-
-interface StrictScalarNumberConfig extends StrictScalarConfig {
-  serialize?: ScalarSanitizeFunction<number>
-  parse?: ScalarParseFunction<number, number>
-  coerce?: ScalarCoerceFunction<number>
-  sanitize?: ScalarSanitizeFunction<number>
-  validate?: ScalarValidateFunction<number>
-}
-
-interface StrictScalarStringConfig extends StrictScalarConfig {
-  serialize?: ScalarSanitizeFunction<string>
-  parse?: ScalarParseFunction<string, string>
-  coerce?: ScalarCoerceFunction<string>
-  sanitize?: ScalarSanitizeFunction<string>
-  validate?: ScalarValidateFunction<string>
 }
 
 const translationLog = debug('translation')
@@ -643,16 +617,12 @@ function getScalarType({
         const $format = schema.format || '-'
         const $enum = schema.enum || []
 
-        options.parse = (data: any) => {
-          if (type === 'string') {
-            return String(data) as string
-          }
-
-          return data
-        }
-
         options.coerce = (data: any) => {
-          if (type === 'number' || $format === 'float') {
+          if (
+            $format === 'int64' ||
+            $format === 'long' ||
+            $format === 'float'
+          ) {
             if (!isFinite(data)) {
               throw new GraphQLError('Float cannot represent non numeric value')
             }
@@ -665,30 +635,37 @@ function getScalarType({
               )
             }
           }
+          return data
+        }
 
+        options.serialize = (data: any) => {
+          if ($format === 'date' || $format === 'date-time') {
+            return serializeDate(data)
+          }
           return data
         }
 
         options.sanitize = (data: any) => {
           return type === 'integer' || $format.startsWith('int')
-            ? parseInt(data, 10)
+            ? isSafeInteger(data) && parseInt(data, 10)
+            : $format === 'long'
+            ? isSafeLong(data) && data
             : type === 'number' || $format === 'float'
-            ? parseFloat(data)
+            ? isSafeFloat(data) && parseFloat(data)
             : $format === 'date' || $format === 'date-time'
             ? isSafeDate(data) && data
+            : $format === 'uuid'
+            ? isUUIDOrGUID(data) && data
+            : $format === 'email'
+            ? isEmail(data) && data
+            : $format === 'url'
+            ? isURL(data) && data
             : data
         }
 
-        options.validate = (data: any) =>
-          $format === 'int64'
-            ? isSafeLong(data)
-            : $format === 'int32'
-            ? isSafeInteger(data)
-            : $format === 'uuid'
-            ? isUUID(data)
-            : $format === 'url'
-            ? isURL(data)
-            : $enum.includes(String(data)) || strictTypeOf(data, type)
+        options.validate = (data: any) => {
+          return $enum.includes(data) || strictTypeOf(data, type)
+        }
         break
     }
   }
