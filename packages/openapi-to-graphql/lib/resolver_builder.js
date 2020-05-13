@@ -402,7 +402,14 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             `headers: ${JSON.stringify(options.headers)}\n` +
             `request body: ${options.body}`);
         return new Promise((resolve, reject) => {
-            NodeRequest(options, (err, response, body) => {
+            NodeRequest(Object.assign(Object.assign({}, options), { 
+                /**
+                 * Use `native` querystring library to avoid `foo[0]=bar&foo[1]=baz`
+                 * which is not spec compliant.
+                 * See https://github.com/request/request#requestoptions-callback
+                 * for further information.
+                 */
+                useQuerystring: true }), (err, response, body) => {
                 if (err) {
                     httpLog(err);
                     reject(err);

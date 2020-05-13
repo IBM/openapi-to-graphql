@@ -259,3 +259,35 @@ test('inferResourceNameFromPath() field with long path', () => {
     })
   })
 })
+
+/**
+ * If an array parameter has the explode attribute configured, then the query
+ * string should be serialized that way
+ *
+ * e.g. http://localhost:3004/api/robots?types=Droid&types=Bot
+ *
+ * ... as opposed to...
+ *
+ * e.g. http://localhost:3004/api/robots?types=Droid%2CBot
+ */
+test('Array parameters that are configured with explode should be properly serialized', () => {
+  const query = `{
+    explodeParameters(arrayParam: ["a", "b", "c"]) {
+      arrayParam
+    }
+    noExplodeParameters(arrayParam: ["a", "b", "c"]) {
+      arrayParam
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      explodeParameters: {
+        arrayParam: ['a', 'b', 'c']
+      },
+      noExplodeParameters: {
+        arrayParam: 'a,b,c'
+      }
+    })
+  })
+})

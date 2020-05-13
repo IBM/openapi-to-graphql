@@ -63,6 +63,20 @@ function startServer(PORT) {
     }
   )
 
+  app.get('/api/explodeParameters', (req, res) => {
+    console.log(req.method, req.path)
+    res.send({
+      arrayParam: req.query.arrayParam
+    })
+  })
+
+  app.get('/api/noExplodeParameters', (req, res) => {
+    console.log(req.method, req.path)
+    res.send({
+      arrayParam: req.query.arrayParam
+    })
+  })
+
   return new Promise(resolve => {
     server = app.listen(PORT, () => {
       console.log(`Example API accessible on port ${PORT}`)

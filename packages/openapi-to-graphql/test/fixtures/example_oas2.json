@@ -86,6 +86,16 @@
             "description": "The legal name of a user"
           }
         }
+      },
+      "robot": {
+        "type": "object",
+        "description": "A robot represents a not so natural person",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The legal name of a robot"
+          }
+        }
       }
     }
   },
