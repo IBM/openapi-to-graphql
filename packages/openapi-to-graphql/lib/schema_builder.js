@@ -369,8 +369,8 @@ function getScalarType({ def, schema, isInputObjectType, data }) {
         const type = schema.type;
         const title = schema.title || '';
         options.name =
-            title.split(' ').join('') ||
-                'StrictScalarType' +
+            title.split(/\s+/).map(utils_1.ucFirst).join('') ||
+                'StrictScalar' + utils_1.ucFirst(type) + 'Type' +
                     (Math.random() * Date.now()).toString(16).replace('.', '');
         if (type === 'string') {
             options.trim = true;

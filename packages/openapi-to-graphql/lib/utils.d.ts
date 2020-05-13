@@ -66,6 +66,10 @@ export declare function isEmail(s: string): boolean;
  */
 export declare function isUUIDOrGUID(s: string): boolean;
 /**
+ *
+ */
+export declare function ucFirst(s: string): string;
+/**
  * get the correct type of a variable
  */
 export declare function strictTypeOf(value: any, type: any): boolean;

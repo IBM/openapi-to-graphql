@@ -54,6 +54,7 @@ import debug from 'debug'
 import {
   handleWarning,
   sortObject,
+  ucFirst,
   isSafeInteger,
   isSafeLong,
   isSafeFloat,
@@ -568,8 +569,13 @@ function getScalarType({
     const title = schema.title || ''
 
     options.name =
-      title.split(' ').join('') ||
-      'StrictScalarType' +
+      title
+        .split(/\s+/)
+        .map(ucFirst)
+        .join('') ||
+      'StrictScalar' +
+        ucFirst(type) +
+        'Type' +
         (Math.random() * Date.now()).toString(16).replace('.', '')
 
     if (type === 'string') {

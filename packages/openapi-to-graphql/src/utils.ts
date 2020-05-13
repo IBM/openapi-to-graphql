@@ -83,7 +83,7 @@ export function isSafeLong(n: unknown): boolean {
  */
 
 export function isSafeFloat(n: unknown): boolean {
-  return false
+  return typeof n === 'number' && n % 1 !== 0
 }
 
 /**
@@ -161,6 +161,18 @@ export function isUUIDOrGUID(s: string): boolean {
   }
 
   return uuidRegExp.test(s) || guidRegExp.test(s)
+}
+
+/**
+ *
+ */
+
+export function ucFirst(s: string): string {
+  if (typeof s !== 'string') {
+    return ''
+  }
+
+  return s.replace(/^./, c => c.toUpperCase())
 }
 
 /**

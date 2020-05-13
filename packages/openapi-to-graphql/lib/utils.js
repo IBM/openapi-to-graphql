@@ -69,7 +69,7 @@ exports.isSafeLong = isSafeLong;
  *
  */
 function isSafeFloat(n) {
-    return false;
+    return typeof n === 'number' && (n % 1 !== 0);
 }
 exports.isSafeFloat = isSafeFloat;
 /**
@@ -137,6 +137,16 @@ function isUUIDOrGUID(s) {
     return uuidRegExp.test(s) || guidRegExp.test(s);
 }
 exports.isUUIDOrGUID = isUUIDOrGUID;
+/**
+ *
+ */
+function ucFirst(s) {
+    if (typeof s !== 'string') {
+        return '';
+    }
+    return s.replace(/^./, (c) => c.toUpperCase());
+}
+exports.ucFirst = ucFirst;
 /**
  * check if a literal is falsy or not
  */
