@@ -31,13 +31,6 @@ function startServer(PORT) {
     })
   })
 
-  app.get('/api/robots', (req, res) => {
-    console.log(req.method, req.path)
-    res.send({
-      name: "Nkiru Gwendoline"
-    })
-  })
-
   return new Promise(resolve => {
     server = app.listen(PORT, () => {
       console.log(`Example API accessible on port ${PORT}`)

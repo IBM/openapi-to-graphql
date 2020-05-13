@@ -422,19 +422,18 @@ export function instantiatePathAndGetQuery(
 
           // Query parameters
           case 'query':
-            //
-            // Spec-compliant query string serialization:
-            // http://spec.openapis.org/oas/v3.0.3#style-examples
-            //
-            // Whenever the query string value is an array, we check if it
-            // should be `exploded`. In this case, we don't serialize anything.
-            // Otherwise, the array will be joined in comma-separated fashion.
-            //
-            //
+            /**
+             * Spec-compliant query string serialization:
+             * http:pec.openapis.org/oas/v3.0.3#style-examples
+             *
+             * Whenever the query string value is an array, we check if it
+             * should be `exploded`. In this case, we don't serialize anything.
+             * Otherwise, the array will be joined in comma-separated fashion.
+             */
             const arg = args[sanitizedParamName]
             const shouldBeCommaSeparated = Array.isArray(arg) && !param.explode
 
-            query[param.name] = shouldBeCommaSeparated ? arg.join(",") : arg
+            query[param.name] = shouldBeCommaSeparated ? arg.join(',') : arg
             break
 
           // Header parameters

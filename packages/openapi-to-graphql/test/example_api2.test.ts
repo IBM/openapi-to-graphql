@@ -66,32 +66,3 @@ test('The option operationIdFieldNames should allow both operations to be presen
   const gqlTypes = Object.keys(createdSchema._typeMap.Query.getFields()).length
   expect(gqlTypes).toEqual(oasGetCount)
 })
-
-test('Querying the two operations', () => {
-  const query = `query {
-    getUser {
-      name
-    }
-    user {
-      name
-    }
-    getRobots(types: ["Droid", "Bot"]) {
-      name
-    }
-  }`
-  return graphql(createdSchema, query).then(result => {
-    expect(result).toEqual({
-      data: {
-        getUser: {
-          name: 'Arlene L McMahon'
-        },
-        user: {
-          name: 'William B Ropp'
-        },
-        getRobots: {
-          name: "Nkiru Gwendoline"
-        }
-      }
-    })
-  })
-})
