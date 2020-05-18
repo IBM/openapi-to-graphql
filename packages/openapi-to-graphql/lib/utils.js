@@ -53,27 +53,27 @@ const MIN_LONG = -9007199254740992;
 function isSafeInteger(n) {
     return (typeof n === 'number' &&
         isFinite(n) &&
-        Math.floor(n) === n &&
         n <= MAX_INT &&
-        n >= MIN_INT);
+        n >= MIN_INT &&
+        n % 1 === 0);
 }
 exports.isSafeInteger = isSafeInteger;
 /**
  * verify that a variable contains a safe long (2^53)
  */
 function isSafeLong(n) {
-    return typeof n === 'number' && isFinite(n) && n <= MAX_LONG && n >= MIN_LONG;
+    return typeof n === 'number' && isFinite(n) && n <= MAX_LONG && n >= MIN_LONG && n % 1 === 0;
 }
 exports.isSafeLong = isSafeLong;
 /**
  *
  */
 function isSafeFloat(n) {
-    return typeof n === 'number' && (n % 1 !== 0);
+    return typeof n === 'number' && n % 0.5 !== 0;
 }
 exports.isSafeFloat = isSafeFloat;
 /**
- *
+ * convert a date and/or date-time string into a date object
  */
 function toDate(n) {
     const parsed = Date.parse(n);
@@ -87,7 +87,7 @@ function toDate(n) {
         null);
 }
 /**
- *
+ * serialize a date string into the ISO format
  */
 function serializeDate(n) {
     const date = toDate(n);
@@ -103,7 +103,7 @@ function isSafeDate(n) {
 }
 exports.isSafeDate = isSafeDate;
 /**
- *
+ * verify is a string is a valid URL
  */
 function isURL(s) {
     let res = null;
@@ -118,7 +118,8 @@ function isURL(s) {
 }
 exports.isURL = isURL;
 /**
- *
+ * verify if a string is a valid EMAIL
+ * See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/EmailAddress.ts#L4
  */
 function isEmail(s) {
     const emailRegex = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
@@ -126,7 +127,8 @@ function isEmail(s) {
 }
 exports.isEmail = isEmail;
 /**
- *
+ * verify if a string is a valid GUID/UUID
+ * See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/GUID.ts#L4
  */
 function isUUIDOrGUID(s) {
     const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -138,13 +140,13 @@ function isUUIDOrGUID(s) {
 }
 exports.isUUIDOrGUID = isUUIDOrGUID;
 /**
- *
+ * convert the fist letter of a word in a string to upper case
  */
 function ucFirst(s) {
     if (typeof s !== 'string') {
         return '';
     }
-    return s.replace(/^./, (c) => c.toUpperCase());
+    return s.replace(/^./, c => c.toUpperCase());
 }
 exports.ucFirst = ucFirst;
 /**
@@ -154,48 +156,41 @@ const isLiteralFalsey = (variable) => {
     return variable === '' || variable === false || variable === 0;
 };
 /**
+ * check if a variable contains a reference type (not a literal)
+ */
+const isPrimitive = (arg) => {
+    return typeof arg === 'object' || Boolean(arg) && typeof arg.apply === 'function';
+};
+/**
  * provide the name of primitive and/or reference types
  */
 const checkTypeName = (target, type) => {
     let typeName = '';
-    if (isLiteralFalsey(target)) {
+    // we need to separate checks for literal types and 
+    // primitive types so we can speed up performance and
+    // keep things simple
+    if (isLiteralFalsey(target) || !isPrimitive(target)) {
+        // literal 
         typeName = typeof target;
     }
     else {
-        typeName = '' + (target && target.constructor.name);
+        // primitive/reference
+        typeName = (Object.prototype.toString.call(target)).replace(/^\[object (.+)\]$/, '$1');
     }
-    return !!(typeName.toLowerCase().indexOf(type) + 1);
+    // check if the type matches
+    return Boolean(typeName.toLowerCase().indexOf(type) + 1);
 };
 /**
  * get the correct type of a variable
  */
 function strictTypeOf(value, type) {
-    let result = false;
+    // swagger/OpenAPI 'integer' type is converted 
+    // a JavaScript 'number' type for compatibility
     if (type === 'integer') {
         type = 'number';
     }
-    type = type || [];
-    if (typeof type === 'object') {
-        if (typeof type.length !== 'number') {
-            return result;
-        }
-        let bitPiece = 0;
-        type = [].slice.call(type);
-        type.forEach(_type => {
-            if (typeof _type === 'function') {
-                _type = (_type.name || _type.displayName).toLowerCase();
-            }
-            bitPiece |= Number(checkTypeName(value, _type));
-        });
-        result = Boolean(bitPiece);
-    }
-    else {
-        if (typeof type === 'function') {
-            type = (type.name || type.displayName).toLowerCase();
-        }
-        result = checkTypeName(value, type);
-    }
-    return result;
+    type = type || '';
+    return checkTypeName(value, type);
 }
 exports.strictTypeOf = strictTypeOf;
 /**

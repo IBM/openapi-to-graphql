@@ -64,9 +64,9 @@ export function isSafeInteger(n: unknown): boolean {
   return (
     typeof n === 'number' &&
     isFinite(n) &&
-    Math.floor(n) === n &&
     n <= MAX_INT &&
-    n >= MIN_INT
+    n >= MIN_INT &&
+    n % 1 === 0
   )
 }
 
@@ -75,7 +75,13 @@ export function isSafeInteger(n: unknown): boolean {
  */
 
 export function isSafeLong(n: unknown): boolean {
-  return typeof n === 'number' && isFinite(n) && n <= MAX_LONG && n >= MIN_LONG
+  return (
+    typeof n === 'number' &&
+    isFinite(n) &&
+    n <= MAX_LONG &&
+    n >= MIN_LONG &&
+    n % 1 === 0
+  )
 }
 
 /**
@@ -83,11 +89,11 @@ export function isSafeLong(n: unknown): boolean {
  */
 
 export function isSafeFloat(n: unknown): boolean {
-  return typeof n === 'number' && n % 1 !== 0
+  return typeof n === 'number' && n % 0.5 !== 0
 }
 
 /**
- *
+ * convert a date and/or date-time string into a date object
  */
 
 function toDate(n: string) {
@@ -107,7 +113,7 @@ function toDate(n: string) {
 }
 
 /**
- *
+ * serialize a date string into the ISO format
  */
 
 export function serializeDate(n: string) {
@@ -125,7 +131,7 @@ export function isSafeDate(n: string): boolean {
 }
 
 /**
- *
+ * verify is a string is a valid URL
  */
 
 export function isURL(s: string): boolean {
@@ -140,7 +146,8 @@ export function isURL(s: string): boolean {
 }
 
 /**
- *
+ * verify if a string is a valid EMAIL
+ * See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/EmailAddress.ts#L4
  */
 
 export function isEmail(s: string): boolean {
@@ -149,7 +156,8 @@ export function isEmail(s: string): boolean {
 }
 
 /**
- *
+ * verify if a string is a valid GUID/UUID
+ * See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/GUID.ts#L4
  */
 
 export function isUUIDOrGUID(s: string): boolean {
@@ -164,7 +172,7 @@ export function isUUIDOrGUID(s: string): boolean {
 }
 
 /**
- *
+ * convert the fist letter of a word in a string to upper case
  */
 
 export function ucFirst(s: string): string {
@@ -178,61 +186,55 @@ export function ucFirst(s: string): string {
 /**
  * check if a literal is falsy or not
  */
-const isLiteralFalsey = (variable): boolean => {
+const isLiteralFalsey = (variable: unknown): boolean => {
   return variable === '' || variable === false || variable === 0
+}
+
+/**
+ * check if a variable contains a reference type (not a literal)
+ */
+
+const isPrimitive = (arg: any): boolean => {
+  return (
+    typeof arg === 'object' || (Boolean(arg) && typeof arg.apply === 'function')
+  )
 }
 
 /**
  * provide the name of primitive and/or reference types
  */
-const checkTypeName = (target, type): boolean => {
+const checkTypeName = (target: unknown, type: string): boolean => {
   let typeName = ''
 
-  if (isLiteralFalsey(target)) {
+  // we need to separate checks for literal types and
+  // primitive types so we can speed up performance and
+  // keep things simple
+  if (isLiteralFalsey(target) || !isPrimitive(target)) {
+    // literal
     typeName = typeof target
   } else {
-    typeName = '' + (target && target.constructor.name)
+    // primitive/reference
+    typeName = Object.prototype.toString
+      .call(target)
+      .replace(/^\[object (.+)\]$/, '$1')
   }
-  return !!(typeName.toLowerCase().indexOf(type) + 1)
+
+  // check if the type matches
+  return Boolean(typeName.toLowerCase().indexOf(type) + 1)
 }
 
 /**
  * get the correct type of a variable
  */
-export function strictTypeOf(value, type): boolean {
-  let result = false
-
+export function strictTypeOf(value: unknown, type: string): boolean {
+  // swagger/OpenAPI 'integer' type is converted
+  // a JavaScript 'number' type for compatibility
   if (type === 'integer') {
     type = 'number'
   }
 
-  type = type || []
-
-  if (typeof type === 'object') {
-    if (typeof type.length !== 'number') {
-      return result
-    }
-
-    let bitPiece = 0
-
-    type = [].slice.call(type)
-
-    type.forEach(_type => {
-      if (typeof _type === 'function') {
-        _type = (_type.name || _type.displayName).toLowerCase()
-      }
-      bitPiece |= Number(checkTypeName(value, _type))
-    })
-
-    result = Boolean(bitPiece)
-  } else {
-    if (typeof type === 'function') {
-      type = (type.name || type.displayName).toLowerCase()
-    }
-
-    result = checkTypeName(value, type)
-  }
-  return result
+  type = type || ''
+  return checkTypeName(value, type)
 }
 
 /**

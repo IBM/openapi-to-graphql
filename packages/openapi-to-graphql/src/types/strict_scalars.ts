@@ -8,7 +8,7 @@ export interface IScalarParseError<TConfig, TCode = string> {
   config: TConfig
 }
 
-// may throw
+// function type may throw an error
 
 export type ScalarParseErrorHandler<TInternal, TConfig, TCode = string> = (
   errorInfo: IScalarParseError<TConfig, TCode>
