@@ -289,11 +289,13 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          *
          * NOTE: This may cause the user to encounter unexpected changes
          */
-        headers['content-type'] =
-            typeof operation.payloadContentType !== 'undefined'
-                ? operation.payloadContentType
-                : 'application/json';
-        headers.accept =
+        if (operation.payloadRequired) {
+            headers['content-type'] =
+                typeof operation.payloadContentType !== 'undefined'
+                    ? operation.payloadContentType
+                    : 'application/json';
+        }
+        headers['accept'] =
             typeof operation.responseContentType !== 'undefined'
                 ? operation.responseContentType
                 : 'application/json';
