@@ -93,7 +93,6 @@ function processOperation(
           payloadSchema as SchemaObject,
           true,
           data,
-          undefined,
           oas
         )
       : undefined
@@ -135,8 +134,8 @@ function processOperation(
     responseSchema as SchemaObject,
     false,
     data,
-    links,
-    oas
+    oas,
+    links
   )
 
   // Parameters
@@ -598,21 +597,15 @@ function getProcessedSecuritySchemes(
 
 /**
  * Method to either create a new or reuse an existing, centrally stored data
- * definition. Data definitions are objects that hold a schema (= JSON schema),
- * an otName (= String to use as the name for object types), and an iotName
- * (= String to use as the name for input object types). Eventually, data
- * definitions also hold an ot (= the object type for the schema) and an iot
- * (= the input object type for the schema).
- *
- * Either names or preferredName should exist.
+ * definition.
  */
 export function createDataDef(
   names: Oas3Tools.SchemaNames,
   schema: SchemaObject,
   isInputObjectType: boolean,
   data: PreprocessingData,
-  links?: { [key: string]: LinkObject },
-  oas?: Oas3
+  oas: Oas3,
+  links?: { [key: string]: LinkObject }
 ): DataDefinition {
   const preferredName = getPreferredName(names)
 
@@ -847,7 +840,6 @@ export function createDataDef(
                 itemsSchema as SchemaObject,
                 isInputObjectType,
                 data,
-                undefined,
                 oas
               )
 
@@ -1039,7 +1031,7 @@ function getSchemaName(
 }
 
 /**
- * Add the properties to the data definition
+ * Recursively add all of the properties of an object to the data definition
  */
 function addObjectPropertiesToDataDef(
   def: DataDefinition,
@@ -1047,7 +1039,7 @@ function addObjectPropertiesToDataDef(
   required: string[],
   isInputObjectType: boolean,
   data: PreprocessingData,
-  oas?: Oas3
+  oas: Oas3
 ) {
   /**
    * Resolve all required properties
@@ -1078,7 +1070,6 @@ function addObjectPropertiesToDataDef(
         propSchema,
         isInputObjectType,
         data,
-        undefined,
         oas
       )
 
@@ -1428,7 +1419,6 @@ function createDataDefFromAnyOf(
                 propertySchema,
                 isInputObjectType,
                 data,
-                undefined,
                 oas
               )
 
@@ -1549,7 +1539,6 @@ function createDataDefFromOneOf(
               memberSchema,
               isInputObjectType,
               data,
-              undefined,
               oas
             )
             ;(def.subDefinitions as DataDefinition[]).push(subDefinition)

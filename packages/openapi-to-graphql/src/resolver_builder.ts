@@ -180,8 +180,6 @@ export function getSubscribe({
       args[paramNameWithoutLocation] = value
     }
 
-    console.log('args', args)
-
     const topic = args[paramNameWithoutLocation] || 'test'
     pubsubLog(`Subscribing to: ${topic}`)
     return ctx.pubsub

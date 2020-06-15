@@ -3,15 +3,6 @@
 // Node module: openapi-to-graphql
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
@@ -38,27 +29,25 @@ exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
  * if errors occur.
  */
 function getValidOAS3(spec) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return new Promise((resolve, reject) => {
         // CASE: translate
         if (typeof spec.swagger === 'string' &&
             spec.swagger === '2.0') {
-            preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`);
-            const result = yield Swagger2OpenAPI.convertObj(spec, {});
-            return result.openapi;
+            preprocessingLog(`Received Swagger - going to translate to OpenAPI Specification...`);
+            Swagger2OpenAPI.convertObj(spec, {})
+                .then(options => resolve(options.openapi))
+                .catch(error => reject(`Could not convert Swagger '${spec.info.title}' to OpenAPI Specification. ${error.message}`));
             // CASE: validate
         }
         else if (typeof spec.openapi === 'string' &&
             /^3/.test(spec.openapi)) {
-            preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`);
-            const valid = OASValidator.validateSync(spec, {});
-            if (!valid) {
-                throw new Error(`Validation of OpenAPI Specification failed.`);
-            }
-            preprocessingLog(`OpenAPI Specification is validated`);
-            return spec;
+            preprocessingLog(`Received OpenAPI Specification - going to validate...`);
+            OASValidator.validateSync(spec, {})
+                .then(() => resolve(spec))
+                .catch(error => reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${error.message}`));
         }
         else {
-            throw new Error(`Invalid specification provided`);
+            reject(`Invalid specification provided`);
         }
     });
 }

@@ -25,7 +25,7 @@ const translationLog = debug_1.default('translation');
  * rootQueryFields/rootMutationFields for further processing
  */
 function createAndLoadViewer(queryFields, operationType, data) {
-    let results = {};
+    const results = {};
     /**
      * To ensure that viewers have unique names, we add a numerical postfix.
      *
@@ -166,7 +166,7 @@ const getViewerAnyAuthOT = (name, queryFields, data) => {
     let args = {};
     for (let protocolName in data.security) {
         // Create input object types for the viewer arguments
-        const def = preprocessor_1.createDataDef({ fromRef: protocolName }, data.security[protocolName].schema, true, data);
+        const def = preprocessor_1.createDataDef({ fromRef: protocolName }, data.security[protocolName].schema, true, data, data.security[protocolName].oas);
         const type = schema_builder_1.getGraphQLType({
             def,
             data,

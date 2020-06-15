@@ -361,8 +361,6 @@ function startServer(PORT) {
   }
 
   app.get('/api/users', (req, res) => {
-    console.log(req.method, req.path)
-
     const limit = req.query.limit
     if (typeof limit === 'string') {
       res.send(Object.values(Users).slice(0, Number(limit)))
@@ -372,8 +370,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/users/:username', (req, res) => {
-    console.log(req.method, req.path)
-
     if (req.params.username in Users) {
       res.send(Users[req.params.username])
     } else {
@@ -384,8 +380,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/users/:username/car', (req, res) => {
-    console.log(req.method, req.path)
-
     if (req.params.username in Users) {
       res.send(Cars[req.params.username])
     } else {
@@ -396,8 +390,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/users/:username/friends', (req, res) => {
-    console.log(req.method, req.path)
-
     if (req.params.username in Users) {
       const friends = Users[req.params.username].friends.map(friendName => {
         return Users[friendName]
@@ -412,8 +404,6 @@ function startServer(PORT) {
   })
 
   app.post('/api/users', (req, res) => {
-    console.log(req.method, req.path)
-
     const user = req.body
     if (
       'name' in user &&
@@ -430,8 +420,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/assets/:companyId', (req, res) => {
-    console.log(req.method, req.path)
-
     const assets = []
     Object.entries(Users).forEach(([username, user]) => {
       if (req.params.companyId === user.employerId) {
@@ -451,14 +439,10 @@ function startServer(PORT) {
   })
 
   app.get('/api/cars', (req, res) => {
-    console.log(req.method, req.path)
-
     res.send(Object.values(Cars))
   })
 
   app.get('/api/companies/:id', (req, res) => {
-    console.log(req.method, req.path)
-
     if (req.params.id in Companies) {
       res.status(200).send(Companies[req.params.id])
     } else {
@@ -469,8 +453,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/coffeeLocation', (req, res) => {
-    console.log(req.method, req.path)
-
     res.send({
       lat: parseFloat(req.query.lat) + 5,
       long: parseFloat(req.query.long) + 5
@@ -478,8 +460,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/cookie', (req, res) => {
-    console.log(req.method, req.path, req.query, req.headers)
-
     if (req.cookies && req.cookies.cookie_type && req.cookies.cookie_size) {
       res
         .set('Content-Type', 'text/plain')
@@ -493,16 +473,12 @@ function startServer(PORT) {
   })
 
   app.get('/api/copier', (req, res) => {
-    console.log(req.method, req.path, req.query, req.headers)
-
     res.status(200).send({
       body: req.query.query
     })
   })
 
   app.get('/api/cleanDesks', (req, res) => {
-    console.log(req.method, req.path)
-
     res
       .set('Content-Type', 'text/plain')
       .status(200)
@@ -510,8 +486,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/dirtyDesks', (req, res) => {
-    console.log(req.method, req.path)
-
     res
       .set('Content-Type', 'text/plain')
       .status(200)
@@ -519,14 +493,10 @@ function startServer(PORT) {
   })
 
   app.get('/api/bonuses', (req, res) => {
-    console.log(req.method, req.path)
-
     res.status(204).send()
   })
 
   app.get('/api/offices/:id', (req, res) => {
-    console.log(req.method, req.path)
-
     const accept = req.headers['accept']
     if (accept.includes('text/plain')) {
       res
@@ -550,8 +520,6 @@ function startServer(PORT) {
   })
 
   app.post('/api/products', (req, res) => {
-    console.log(req.method, req.path)
-
     const product = req.body
 
     if (
@@ -568,8 +536,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/products/:id', (req, res) => {
-    console.log(req.method, req.path, req.params, req.query)
-
     if (
       typeof req.params['id'] !== 'undefined' &&
       typeof req.query['product-tag'] !== 'undefined'
@@ -589,8 +555,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/products/:id/reviews', (req, res) => {
-    console.log(req.method, req.path, req.params, req.query)
-
     if (
       typeof req.params.id !== 'undefined' &&
       typeof req.query['product-tag'] !== 'undefined'
@@ -607,14 +571,10 @@ function startServer(PORT) {
   })
 
   app.get('/api/papers', (req, res) => {
-    console.log(req.method, req.path)
-
     res.status(200).send(Object.values(Papers))
   })
 
   app.post('/api/papers', (req, res) => {
-    console.log(req.method, req.path)
-
     const contentType = req.headers['content-type']
     if (contentType.includes('text/plain')) {
       res
@@ -631,8 +591,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/patents/:id', authMiddleware, (req, res) => {
-    console.log(req.method, req.path)
-
     // Find patent based off of patent ID
     const patent = Object.values(Patents).find(currentPatent => {
       return currentPatent['patent-id'] === req.params.id
@@ -646,8 +604,6 @@ function startServer(PORT) {
   })
 
   app.post('/api/projects', authMiddleware, (req, res) => {
-    console.log(req.method, req.path)
-
     const project = req.body
 
     if ('project-id' in project && 'lead-id' in project) {
@@ -660,8 +616,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/projects/:id', authMiddleware, (req, res) => {
-    console.log(req.method, req.path)
-
     // Find project based off of projectId
     const project = Object.values(Projects).find(currentProject => {
       return currentProject.projectId === Number(req.params.id)
@@ -675,22 +629,16 @@ function startServer(PORT) {
   })
 
   app.get('/api/scanner', (req, res) => {
-    console.log(req.method, req.path, req.query, req.headers)
-
     res.status(200).send({ body: req.query.query })
   })
 
   app.post('/api/scanner/:path', (req, res) => {
-    console.log(req.method, req.path)
-
     res.status(200).send({
       body: `req.body: ${req.body}, req.query.query: ${req.query.query}, req.path.path: ${req.params.path}`
     })
   })
 
   app.get('/api/snack', (req, res) => {
-    console.log(req.method, req.path, req.query, req.headers)
-
     if ('snack_type' in req.headers && 'snack_size' in req.headers) {
       res
         .set('Content-Type', 'text/plain')
@@ -702,8 +650,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/status', (req, res) => {
-    console.log(req.method, req.path, req.query, req.headers)
-
     if (
       typeof req.query.limit !== 'undefined' &&
       typeof req.get('exampleHeader') !== 'undefined'
@@ -720,8 +666,6 @@ function startServer(PORT) {
   })
 
   app.post('/api/status', (req, res) => {
-    console.log(req.method, req.path, req.query, req.headers)
-
     if ('hello' in req.body && req.body['hello'] === 'world') {
       res.status(200).send('success')
     } else {
@@ -732,8 +676,6 @@ function startServer(PORT) {
   })
 
   app.get('/api/secure', (req, res) => {
-    console.log(req.method, req.path, req.query, req.headers)
-
     if (req.get('authorization') === 'Bearer abcdef') {
       res
         .status(200)
@@ -747,14 +689,10 @@ function startServer(PORT) {
   })
 
   app.get('/api/trashcans', (req, res) => {
-    console.log(req.method, req.path)
-
     res.status(200).send(Array.from(Object.values(TrashCans)))
   })
 
   app.get('/api/trashcans/:username', (req, res) => {
-    console.log(req.method, req.path)
-
     if (req.params.username in Users) {
       res.status(200).send(TrashCans[req.params.username])
     } else {
@@ -765,8 +703,6 @@ function startServer(PORT) {
   })
 
   app.post('/api/trashcans/:username', (req, res) => {
-    console.log(req.method, req.path)
-
     const trashItem = req.body
 
     if (req.params.username in Users) {

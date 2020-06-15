@@ -4,7 +4,8 @@
 import { PreprocessingData } from './types/preprocessing_data';
 import { Operation, DataDefinition } from './types/operation';
 import { ParameterObject } from './types/oas3';
-import { Args, GraphQLType } from './types/graphql';
+import { Args } from './types/graphql';
+import { GraphQLOutputType, GraphQLInputType } from 'graphql';
 declare type GetArgsParams = {
     requestPayloadDef?: DataDefinition;
     parameters: ParameterObject[];
@@ -21,7 +22,7 @@ declare type CreateOrReuseComplexTypeParams = {
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
  */
-export declare function getGraphQLType({ def, operation, data, iteration, isInputObjectType }: CreateOrReuseComplexTypeParams): GraphQLType;
+export declare function getGraphQLType({ def, operation, data, iteration, isInputObjectType }: CreateOrReuseComplexTypeParams): GraphQLOutputType | GraphQLInputType;
 /**
  * Creates the arguments for resolving a field
  */

@@ -46,7 +46,7 @@ function processOperation(path, method, operationString, operationType, operatio
     // Request schema
     const { payloadContentType, payloadSchema, payloadSchemaNames, payloadRequired } = Oas3Tools.getRequestSchemaAndNames(path, method, operation, oas);
     const payloadDefinition = payloadSchema && typeof payloadSchema !== 'undefined'
-        ? createDataDef(payloadSchemaNames, payloadSchema, true, data, undefined, oas)
+        ? createDataDef(payloadSchemaNames, payloadSchema, true, data, oas)
         : undefined;
     // Response schema
     const { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, operation, oas, data, options);
@@ -63,7 +63,7 @@ function processOperation(path, method, operationString, operationType, operatio
     }
     // Links
     const links = Oas3Tools.getLinks(path, method, operation, oas, data);
-    const responseDefinition = createDataDef(responseSchemaNames, responseSchema, false, data, links, oas);
+    const responseDefinition = createDataDef(responseSchemaNames, responseSchema, false, data, oas, links);
     // Parameters
     const parameters = Oas3Tools.getParameters(path, method, operation, pathItem, oas);
     // Security protocols
@@ -403,15 +403,9 @@ function getProcessedSecuritySchemes(oas, data) {
 }
 /**
  * Method to either create a new or reuse an existing, centrally stored data
- * definition. Data definitions are objects that hold a schema (= JSON schema),
- * an otName (= String to use as the name for object types), and an iotName
- * (= String to use as the name for input object types). Eventually, data
- * definitions also hold an ot (= the object type for the schema) and an iot
- * (= the input object type for the schema).
- *
- * Either names or preferredName should exist.
+ * definition.
  */
-function createDataDef(names, schema, isInputObjectType, data, links, oas) {
+function createDataDef(names, schema, isInputObjectType, data, oas, links) {
     const preferredName = getPreferredName(names);
     // Basic validation test
     if (typeof schema !== 'object') {
@@ -580,7 +574,7 @@ function createDataDef(names, schema, isInputObjectType, data, links, oas) {
                             }
                             const subDefinition = createDataDef(
                             // Is this the correct classification for this name? It does not matter in the long run.
-                            { fromRef: itemsName }, itemsSchema, isInputObjectType, data, undefined, oas);
+                            { fromRef: itemsName }, itemsSchema, isInputObjectType, data, oas);
                             // Add list item reference
                             def.subDefinitions = subDefinition;
                         }
@@ -722,7 +716,7 @@ function getSchemaName(names, usedNames) {
     return schemaName;
 }
 /**
- * Add the properties to the data definition
+ * Recursively add all of the properties of an object to the data definition
  */
 function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, data, oas) {
     /**
@@ -746,7 +740,7 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
             const subDefinition = createDataDef({
                 fromRef: propSchemaName,
                 fromSchema: propSchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
-            }, propSchema, isInputObjectType, data, undefined, oas);
+            }, propSchema, isInputObjectType, data, oas);
             // Add field type references
             def.subDefinitions[propertyKey] = subDefinition;
         }
@@ -985,7 +979,7 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                             const subDefinition = createDataDef({
                                 fromRef: propertyName,
                                 fromSchema: propertySchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
-                            }, propertySchema, isInputObjectType, data, undefined, oas);
+                            }, propertySchema, isInputObjectType, data, oas);
                             /**
                              * Add field type references
                              * There should not be any collisions
@@ -1068,7 +1062,7 @@ function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInpu
                             fromRef,
                             fromSchema: memberSchema.title,
                             fromPath: `${saneName}Member`
-                        }, memberSchema, isInputObjectType, data, undefined, oas);
+                        }, memberSchema, isInputObjectType, data, oas);
                         def.subDefinitions.push(subDefinition);
                     }
                     else {

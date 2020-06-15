@@ -44,7 +44,7 @@ export declare function handleWarning({ typeKey, message, mitigationAddendum, pa
     data: PreprocessingData;
     log?: Function;
 }): void;
-export declare function sortObject(o: any): {};
+export declare function sortObject<T>(o: T): T;
 /**
  * Finds the common property names between two objects
  */

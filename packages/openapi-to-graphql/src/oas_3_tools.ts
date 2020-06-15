@@ -91,37 +91,47 @@ export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export async function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
-  // CASE: translate
-  if (
-    typeof (spec as Oas2).swagger === 'string' &&
-    (spec as Oas2).swagger === '2.0'
-  ) {
-    preprocessingLog(
-      `Received OpenAPI Specification 2.0 - going to translate...`
-    )
-    const result: { openapi: Oas3 } = await Swagger2OpenAPI.convertObj(spec, {})
-    return result.openapi as Oas3
+export function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
+  return new Promise((resolve, reject) => {
+    // CASE: translate
+    if (
+      typeof (spec as Oas2).swagger === 'string' &&
+      (spec as Oas2).swagger === '2.0'
+    ) {
+      preprocessingLog(
+        `Received Swagger - going to translate to OpenAPI Specification...`
+      )
 
-    // CASE: validate
-  } else if (
-    typeof (spec as Oas3).openapi === 'string' &&
-    /^3/.test((spec as Oas3).openapi)
-  ) {
-    preprocessingLog(
-      `Received OpenAPI Specification 3.0.x - going to validate...`
-    )
-    const valid = OASValidator.validateSync(spec, {})
-    if (!valid) {
-      throw new Error(`Validation of OpenAPI Specification failed.`)
+      Swagger2OpenAPI.convertObj(spec, {})
+        .then(options => resolve(options.openapi))
+        .catch(error =>
+          reject(
+            `Could not convert Swagger '${
+              (spec as Oas2).info.title
+            }' to OpenAPI Specification. ${error.message}`
+          )
+        )
+
+      // CASE: validate
+    } else if (
+      typeof (spec as Oas3).openapi === 'string' &&
+      /^3/.test((spec as Oas3).openapi)
+    ) {
+      preprocessingLog(`Received OpenAPI Specification - going to validate...`)
+
+      OASValidator.validateSync(spec, {})
+        .then(() => resolve(spec as Oas3))
+        .catch(error =>
+          reject(
+            `Could not validate OpenAPI Specification '${
+              (spec as Oas3).info.title
+            }'. ${error.message}`
+          )
+        )
+    } else {
+      reject(`Invalid specification provided`)
     }
-
-    preprocessingLog(`OpenAPI Specification is validated`)
-
-    return spec as Oas3
-  } else {
-    throw new Error(`Invalid specification provided`)
-  }
+  })
 }
 
 /**
