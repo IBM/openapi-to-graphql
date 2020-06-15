@@ -98,10 +98,10 @@ export function handleWarning({
 
 // Code provided by codename- from StackOverflow
 // Link: https://stackoverflow.com/a/29622653
-export function sortObject(o) {
+export function sortObject<T>(o: T): T {
   return Object.keys(o)
     .sort()
-    .reduce((r, k) => ((r[k] = o[k]), r), {})
+    .reduce((r, k) => ((r[k] = o[k]), r), {}) as T
 }
 
 /**

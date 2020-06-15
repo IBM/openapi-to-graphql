@@ -18,14 +18,12 @@ function startServer(PORT) {
   app.use(bodyParser.json())
 
   app.get('/api/user', (req, res) => {
-    console.log(req.method, req.path)
     res.send({
       name: 'Arlene L McMahon'
     })
   })
 
   app.get('/api/user2', (req, res) => {
-    console.log(req.method, req.path)
     res.send({
       name: 'William B Ropp'
     })

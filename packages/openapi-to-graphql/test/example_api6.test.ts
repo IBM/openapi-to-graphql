@@ -250,12 +250,36 @@ test('inferResourceNameFromPath() field with irregular plural form', () => {
  */
 test('inferResourceNameFromPath() field with long path', () => {
   const query = `{
-  eateryBreadDish(eatery: "Mike's", breadName:"challah", dishKey: "bread pudding")
- }`
+    eateryBreadDish(eatery: "Mike's", breadName: "challah", dishKey: "bread pudding")
+  }`
 
   return graphql(createdSchema, query).then(result => {
     expect(result.data).toEqual({
       eateryBreadDish: "Parameters combined: Mike's challah bread pudding"
+    })
+  })
+})
+
+/**
+ * '/nestedReferenceInParameter' contains a query parameter 'russianDoll' that
+ * contains reference to a component schema.
+ */
+test('Nested reference in parameter schema', () => {
+  const query = `{
+    nestedReferenceInParameter(russianDoll: {
+      name: "Gertrude",
+      nestedDoll: {
+        name: "Tatiana",
+        nestedDoll: {
+          name: "Lidia"
+        }
+      }
+    })
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      nestedReferenceInParameter: 'Gertrude, Tatiana, Lidia'
     })
   })
 })

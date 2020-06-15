@@ -62,11 +62,3 @@ export type ResolveObject = {
   subscribe: SubscriptionIterator
   resolve?: ResolveFunction
 }
-
-export type Field = {
-  type: GraphQLType
-  resolve?: ResolveFunction
-  subscribe?: SubscriptionIterator
-  args?: Args
-  description: string
-}

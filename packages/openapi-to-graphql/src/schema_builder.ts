@@ -32,7 +32,8 @@ import {
   GraphQLEnumType,
   GraphQLFieldConfigMap,
   GraphQLOutputType,
-  GraphQLUnionType
+  GraphQLUnionType,
+  GraphQLInputType
 } from 'graphql'
 
 // Imports:
@@ -90,7 +91,7 @@ export function getGraphQLType({
   data,
   iteration = 0,
   isInputObjectType = false
-}: CreateOrReuseComplexTypeParams): GraphQLType {
+}: CreateOrReuseComplexTypeParams): GraphQLOutputType | GraphQLInputType {
   const name = isInputObjectType
     ? def.graphQLInputObjectTypeName
     : def.graphQLTypeName
@@ -1101,15 +1102,14 @@ export function getArgs({
       schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas)
     }
 
-    // TODO: remove
     const paramDef = createDataDef(
       { fromSchema: parameter.name },
       schema as SchemaObject,
       true,
-      data
+      data,
+      operation.oas
     )
 
-    // @ts-ignore
     const type = getGraphQLType({
       def: paramDef,
       operation,

@@ -25,11 +25,4 @@ export declare type ResolveObject = {
     subscribe: SubscriptionIterator;
     resolve?: ResolveFunction;
 };
-export declare type Field = {
-    type: GraphQLType;
-    resolve?: ResolveFunction;
-    subscribe?: SubscriptionIterator;
-    args?: Args;
-    description: string;
-};
 export {};

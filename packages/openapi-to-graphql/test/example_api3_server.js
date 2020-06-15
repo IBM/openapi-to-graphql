@@ -22,70 +22,18 @@ function startServer(PORT) {
     arlene: {
       name: 'Arlene L McMahon',
       masterpieceTitle: 'software'
-      // address: {
-      //   street: '4656 Cherry Camp Road',
-      //   city: 'Elk Grove Village'
-      // },
-      // employerId: 'binsol',
-      // hobbies: ['tap dancing', 'bowling'],
-      // status: 'staff',
-      // nomenclature: {
-      //   suborder: 'Haplorhini',
-      //   family: 'Hominidae',
-      //   genus: 'Homo',
-      //   species: 'sapiens'
-      // }
     },
     will: {
       name: 'William B Ropp',
       masterpieceTitle: ''
-      // address: {
-      //   street: '3180 Little Acres Lane',
-      //   city: 'Macomb'
-      // },
-      // employerId: 'binsol',
-      // hobbies: ['tap dancing', 'baseball'],
-      // status: 'staff',
-      // nomenclature: {
-      //   suborder: 'Haplorhini',
-      //   family: 'Hominidae',
-      //   genus: 'Homo',
-      //   species: 'sapiens'
-      // }
     },
     johnny: {
       name: 'John C Barnes',
       masterpieceTitle: ''
-      // address: {
-      //   street: '372 Elk Rd Little',
-      //   city: 'Tucson'
-      // },
-      // employerId: 'binsol',
-      // hobbies: ['chess', 'tennis'],
-      // status: 'staff',
-      // nomenclature: {
-      //   suborder: 'Haplorhini',
-      //   family: 'Hominidae',
-      //   genus: 'Homo',
-      //   species: 'sapiens'
-      // }
     },
     heather: {
       name: 'Heather J Tate',
       masterpieceTitle: ''
-      // address: {
-      //   street: '3636 Poplar Chase Lane',
-      //   city: 'Post Falls'
-      // },
-      // employerId: 'ccc',
-      // hobbies: ['making money', 'counting money'],
-      // status: 'alumni',
-      // nomenclature: {
-      //   suborder: 'Haplorhini',
-      //   family: 'Hominidae',
-      //   genus: 'Homo',
-      //   species: 'ihavelotsofmoneyus'
-      // }
     }
   }
 
@@ -195,17 +143,14 @@ function startServer(PORT) {
   }
 
   app.get('/api/authors/:authorId', (req, res) => {
-    console.log(req.method, req.path)
     res.send(Authors[req.params.authorId])
   })
 
   app.get('/api/books/:bookId', (req, res) => {
-    console.log(req.method, req.path)
     res.send(Books[req.params.bookId])
   })
 
   app.get('/api/nextWorks/:authorId', authMiddleware, (req, res) => {
-    console.log(req.method, req.path)
     res.send(NextWorks[req.params.authorId])
   })
 

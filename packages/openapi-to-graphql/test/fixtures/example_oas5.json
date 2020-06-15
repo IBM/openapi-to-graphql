@@ -44,7 +44,7 @@
         "description": "Basic simpleNames option test",
         "responses": {
           "200": {
-            "description": "Mandatory field",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
@@ -83,7 +83,7 @@
         "description": "Basic simpleNames option test with GraphQL unsafe values",
         "responses": {
           "200": {
-            "description": "Mandatory field",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
@@ -115,7 +115,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Mandatory field",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {
@@ -147,7 +147,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Mandatory field",
+            "description": "Success",
             "content": {
               "application/json": {
                 "schema": {

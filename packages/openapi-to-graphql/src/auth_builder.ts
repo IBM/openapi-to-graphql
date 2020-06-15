@@ -50,7 +50,7 @@ export function createAndLoadViewer(
   operationType: GraphQLOperationType,
   data: PreprocessingData
 ): { [key: string]: Viewer } {
-  let results = {}
+  const results = {}
   /**
    * To ensure that viewers have unique names, we add a numerical postfix.
    *
@@ -250,7 +250,8 @@ const getViewerAnyAuthOT = (
       { fromRef: protocolName },
       data.security[protocolName].schema,
       true,
-      data
+      data,
+      data.security[protocolName].oas
     )
 
     const type = getGraphQLType({

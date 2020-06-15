@@ -37,12 +37,17 @@ import {
   Report,
   ConnectOptions
 } from './types/options'
-import { Oas3, CallbackObject } from './types/oas3'
+import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, Field, GraphQLOperationType } from './types/graphql'
+import { Args, GraphQLOperationType } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
-import { GraphQLSchema, GraphQLObjectType } from 'graphql'
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLFieldConfig
+} from 'graphql'
 import * as NodeRequest from 'request'
 
 // Imports:
@@ -70,103 +75,100 @@ const translationLog = debug('translation')
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export async function createGraphQLSchema(
+export function createGraphQLSchema(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options?: Options
 ): Promise<Result> {
-  if (typeof options === 'undefined') {
-    options = {}
-  }
+  return new Promise((resolve, reject) => {
+    if (typeof options === 'undefined') {
+      options = {}
+    }
 
-  // Setting default options
-  options.strict = typeof options.strict === 'boolean' ? options.strict : false
+    // Setting default options
+    options.strict =
+      typeof options.strict === 'boolean' ? options.strict : false
 
-  // Schema options
-  options.operationIdFieldNames =
-    typeof options.operationIdFieldNames === 'boolean'
-      ? options.operationIdFieldNames
-      : false
-  options.fillEmptyResponses =
-    typeof options.fillEmptyResponses === 'boolean'
-      ? options.fillEmptyResponses
-      : false
-  options.addLimitArgument =
-    typeof options.addLimitArgument === 'boolean'
-      ? options.addLimitArgument
-      : false
-  options.genericPayloadArgName =
-    typeof options.genericPayloadArgName === 'boolean'
-      ? options.genericPayloadArgName
-      : false
-  options.simpleNames =
-    typeof options.simpleNames === 'boolean' ? options.simpleNames : false
-  options.singularNames =
-    typeof options.singularNames === 'boolean' ? options.singularNames : false
-  options.createSubscriptionsFromCallbacks =
-    typeof options.createSubscriptionsFromCallbacks === 'boolean'
-      ? options.createSubscriptionsFromCallbacks
-      : false
+    // Schema options
+    options.operationIdFieldNames =
+      typeof options.operationIdFieldNames === 'boolean'
+        ? options.operationIdFieldNames
+        : false
+    options.fillEmptyResponses =
+      typeof options.fillEmptyResponses === 'boolean'
+        ? options.fillEmptyResponses
+        : false
+    options.addLimitArgument =
+      typeof options.addLimitArgument === 'boolean'
+        ? options.addLimitArgument
+        : false
+    options.genericPayloadArgName =
+      typeof options.genericPayloadArgName === 'boolean'
+        ? options.genericPayloadArgName
+        : false
+    options.simpleNames =
+      typeof options.simpleNames === 'boolean' ? options.simpleNames : false
+    options.singularNames =
+      typeof options.singularNames === 'boolean' ? options.singularNames : false
+    options.createSubscriptionsFromCallbacks =
+      typeof options.createSubscriptionsFromCallbacks === 'boolean'
+        ? options.createSubscriptionsFromCallbacks
+        : false
 
-  // Authentication options
-  options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
-  options.sendOAuthTokenInQuery =
-    typeof options.sendOAuthTokenInQuery === 'boolean'
-      ? options.sendOAuthTokenInQuery
-      : false
+    // Authentication options
+    options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
+    options.sendOAuthTokenInQuery =
+      typeof options.sendOAuthTokenInQuery === 'boolean'
+        ? options.sendOAuthTokenInQuery
+        : false
 
-  // Logging options
-  options.provideErrorExtensions =
-    typeof options.provideErrorExtensions === 'boolean'
-      ? options.provideErrorExtensions
-      : true
-  options.equivalentToMessages =
-    typeof options.equivalentToMessages === 'boolean'
-      ? options.equivalentToMessages
-      : true
+    // Logging options
+    options.provideErrorExtensions =
+      typeof options.provideErrorExtensions === 'boolean'
+        ? options.provideErrorExtensions
+        : true
+    options.equivalentToMessages =
+      typeof options.equivalentToMessages === 'boolean'
+        ? options.equivalentToMessages
+        : true
 
-  options['report'] = {
-    warnings: [],
-    numOps: 0,
-    numOpsQuery: 0,
-    numOpsMutation: 0,
-    numOpsSubscription: 0,
-    numQueriesCreated: 0,
-    numMutationsCreated: 0,
-    numSubscriptionsCreated: 0
-  }
+    options['report'] = {
+      warnings: [],
+      numOps: 0,
+      numOpsQuery: 0,
+      numOpsMutation: 0,
+      numOpsSubscription: 0,
+      numQueriesCreated: 0,
+      numMutationsCreated: 0,
+      numSubscriptionsCreated: 0
+    }
 
-  let oass: Oas3[]
-
-  if (Array.isArray(spec)) {
-    // Convert all non-OAS 3.0.x into OAS 3.0.x
-    oass = await Promise.all(
-      spec.map(ele => {
-        return Oas3Tools.getValidOAS3(ele)
+    if (Array.isArray(spec)) {
+      // Convert all non-OAS 3 into OAS 3
+      Promise.all(
+        spec.map(ele => {
+          return Oas3Tools.getValidOAS3(ele)
+        })
+      ).then(oass => {
+        resolve(translateOpenAPIToGraphQL(oass, options as InternalOptions))
       })
-    )
-  } else {
-    /**
-     * Check if the spec is a valid OAS 3.0.x
-     * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
-     * translate the spec into a GraphQL schema
-     */
-    oass = [await Oas3Tools.getValidOAS3(spec)]
-  }
+    } else {
+      /**
+       * Check if the spec is a valid OAS 3
+       * If the spec is OAS 2.0, attempt to translate it into 3, then try to
+       * translate the spec into a GraphQL schema
+       */
 
-  const { schema, report } = await translateOpenAPIToGraphQL(
-    oass,
-    options as InternalOptions
-  )
-  return {
-    schema,
-    report
-  }
+      Oas3Tools.getValidOAS3(spec).then(oas => {
+        resolve(translateOpenAPIToGraphQL([oas], options as InternalOptions))
+      })
+    }
+  })
 }
 
 /**
- * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
+ * Creates a GraphQL interface from the given OpenAPI Specification 3
  */
-async function translateOpenAPIToGraphQL(
+function translateOpenAPIToGraphQL(
   oass: Oas3[],
   {
     strict,
@@ -201,7 +203,7 @@ async function translateOpenAPIToGraphQL(
     provideErrorExtensions,
     equivalentToMessages
   }: InternalOptions
-): Promise<{ schema: GraphQLSchema; report: Report }> {
+): { schema: GraphQLSchema; report: Report } {
   const options = {
     strict,
     report,
@@ -246,20 +248,34 @@ async function translateOpenAPIToGraphQL(
   preliminaryChecks(options, data)
 
   // Query, Mutation, and Subscription fields
-  let queryFields = {}
-  let mutationFields = {}
-  let subscriptionFields = {}
+  let queryFields: { [fieldName: string]: GraphQLFieldConfig<any, any> } = {}
+  let mutationFields: { [fieldName: string]: GraphQLFieldConfig<any, any> } = {}
+  let subscriptionFields: {
+    [fieldName: string]: GraphQLFieldConfig<any, any>
+  } = {}
 
   // Authenticated Query, Mutation, and Subscription fields
-  let authQueryFields = {}
-  let authMutationFields = {}
-  let authSubscriptionFields = {}
+  let authQueryFields: {
+    [fieldName: string]: {
+      [securityRequirement: string]: GraphQLFieldConfig<any, any>
+    }
+  } = {}
+  let authMutationFields: {
+    [fieldName: string]: {
+      [securityRequirement: string]: GraphQLFieldConfig<any, any>
+    }
+  } = {}
+  let authSubscriptionFields: {
+    [fieldName: string]: {
+      [securityRequirement: string]: GraphQLFieldConfig<any, any>
+    }
+  } = {}
 
   // Add Query and Mutation fields
   Object.entries(data.operations).forEach(([operationId, operation]) => {
     translationLog(`Process operation '${operation.operationString}'...`)
 
-    let field = getFieldForOperation(
+    const field = getFieldForOperation(
       operation,
       options.baseUrl,
       data,
@@ -602,13 +618,13 @@ function getFieldForOperation(
   data: PreprocessingData,
   requestOptions: NodeRequest.OptionsWithUrl,
   connectOptions: ConnectOptions
-): Field {
+): GraphQLFieldConfig<any, any> {
   // Create GraphQL Type for response:
   const type = getGraphQLType({
     def: operation.responseDefinition,
     data,
     operation
-  })
+  }) as GraphQLOutputType
 
   const payloadSchemaName = operation.payloadDefinition
     ? operation.payloadDefinition.graphQLInputObjectTypeName
