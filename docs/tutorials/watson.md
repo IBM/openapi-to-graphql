@@ -15,13 +15,13 @@ The following code shows all that's needed to create and run a GraphQL wrapper a
 ```javascript
 const express = require('express')
 const graphqlHTTP = require('express-graphql')
-const OTG = require('openapi-to-graphql')
+const OtG = require('openapi-to-graphql')
 const bodyParser = require('body-parser')
 
 async function startServer () {
   // use OpenAPI-to-GraphQL to create a GraphQL schema:
   const oas = require('path/to/language-translator-v2.json')
-  const {schema} = await OTG.createGraphQLSchema(oas)
+  const {schema} = await OtG.createGraphQLSchema(oas)
 
   // setup Express.js app and serve the schema:
   const app = express()

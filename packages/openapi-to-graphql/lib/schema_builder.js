@@ -195,12 +195,9 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
             description,
             types,
             resolveType: (source, context, info) => {
-                const properties = Object.keys(source);
-                // Remove custom _openAPIToGraphQL property used to pass data
-                const otgIndex = properties.indexOf('_openAPIToGraphQL');
-                if (otgIndex !== -1) {
-                    properties.splice(otgIndex, 1);
-                }
+                const properties = Object.keys(source)
+                    // Remove custom _openAPIToGraphQL property used to pass data
+                    .filter(property => property !== '_openAPIToGraphQL');
                 /**
                  * Find appropriate member type
                  *
@@ -214,13 +211,9 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
                  */
                 return types.find(type => {
                     const typeFields = Object.keys(type.getFields());
+                    // The type should be a superset of the properties
                     if (properties.length <= typeFields.length) {
-                        for (let i = 0; i < properties.length; i++) {
-                            if (!typeFields.includes(properties[i])) {
-                                return false;
-                            }
-                        }
-                        return true;
+                        return properties.every(property => typeFields.includes(property));
                     }
                     return false;
                 });

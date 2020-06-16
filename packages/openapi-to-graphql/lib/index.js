@@ -25,7 +25,8 @@ function createGraphQLSchema(spec, options) {
             options = {};
         }
         // Setting default options
-        options.strict = typeof options.strict === 'boolean' ? options.strict : false;
+        options.strict =
+            typeof options.strict === 'boolean' ? options.strict : false;
         // Schema options
         options.operationIdFieldNames =
             typeof options.operationIdFieldNames === 'boolean'
