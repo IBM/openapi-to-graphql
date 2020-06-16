@@ -141,7 +141,7 @@ test('Get resource with status code: 2XX', () => {
 
 /**
  * Some operations do not have a response body. The option fillEmptyResponses
- * allows OtG to handle these cases.
+ * allows OpenAPI-to-GraphQL to handle these cases.
  */
 test('Get resource with no response schema and status code: 204 and fillEmptyResponses', () => {
   const query = `{
@@ -157,7 +157,7 @@ test('Get resource with no response schema and status code: 204 and fillEmptyRes
   })
 })
 
-// Link objects in the OAS allow OtG to create nested GraphQL objects that resolve on different API calls
+// Link objects in the OAS allow OpenAPI-to-GraphQL to create nested GraphQL objects that resolve on different API calls
 test('Get nested resource via link $response.body#/...', () => {
   const query = `{
     user (username: "arlene") {
