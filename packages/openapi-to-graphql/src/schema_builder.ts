@@ -33,7 +33,8 @@ import {
   GraphQLFieldConfigMap,
   GraphQLOutputType,
   GraphQLUnionType,
-  GraphQLInputType
+  GraphQLInputType,
+  GraphQLInputFieldConfigMap
 } from 'graphql'
 
 // Imports:
@@ -91,7 +92,9 @@ export function getGraphQLType<TSource, TContext, TArgs>({
   data,
   iteration = 0,
   isInputObjectType = false
-}: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>): GraphQLOutputType | GraphQLInputType {
+}: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>):
+  | GraphQLOutputType
+  | GraphQLInputType {
   const name = isInputObjectType
     ? def.graphQLInputObjectTypeName
     : def.graphQLTypeName
@@ -231,7 +234,7 @@ function createOrReuseOt<TSource, TContext, TArgs>({
           data,
           iteration,
           isInputObjectType: false
-        })
+        }) as GraphQLFieldConfigMap<TSource, TContext, TArgs>
       }
     })
 
@@ -249,7 +252,6 @@ function createOrReuseOt<TSource, TContext, TArgs>({
     def.graphQLInputObjectType = new GraphQLInputObjectType({
       name: def.graphQLInputObjectTypeName,
       description,
-      // @ts-ignore
       fields: () => {
         return createFields({
           def,
@@ -258,7 +260,7 @@ function createOrReuseOt<TSource, TContext, TArgs>({
           data,
           iteration,
           isInputObjectType: true
-        })
+        }) as GraphQLInputFieldConfigMap
       }
     })
 
@@ -554,10 +556,9 @@ function createFields<TSource, TContext, TArgs>({
   data,
   iteration,
   isInputObjectType
-}: CreateFieldsParams<TSource, TContext, TArgs>): GraphQLFieldConfigMap<
-  any,
-  any
-> {
+}: CreateFieldsParams<TSource, TContext, TArgs>):
+  | GraphQLFieldConfigMap<any, any>
+  | GraphQLInputFieldConfigMap {
   let fields: GraphQLFieldConfigMap<any, any> = {}
 
   const fieldTypeDefinitions = def.subDefinitions as {
@@ -674,7 +675,6 @@ function createFields<TSource, TContext, TArgs>({
             argsFromLink: argsFromLink as { [key: string]: string },
             data,
             baseUrl: data.options.baseUrl,
-            // @ts-ignore
             requestOptions: data.options.requestOptions
           })
 

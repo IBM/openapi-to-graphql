@@ -25,7 +25,7 @@ const translationLog = debug_1.default('translation');
  * rootQueryFields/rootMutationFields for further processing
  */
 function createAndLoadViewer(queryFields, operationType, data) {
-    let results = {};
+    const results = {};
     /**
      * To ensure that viewers have unique names, we add a numerical postfix.
      *
@@ -108,7 +108,7 @@ exports.createAndLoadViewer = createAndLoadViewer;
 function getViewerOT(name, protocolName, securityType, queryFields, data) {
     const scheme = data.security[protocolName];
     // Resolve function:
-    const resolve = (root, args, ctx) => {
+    const resolve = (root, args, context) => {
         const security = {};
         const saneProtocolName = Oas3Tools.sanitize(protocolName, Oas3Tools.CaseStyle.camelCase);
         security[Oas3Tools.storeSaneName(saneProtocolName, protocolName, data.saneMap)] = args;
@@ -177,7 +177,7 @@ function getViewerAnyAuthOT(name, queryFields, data) {
     }
     args = utils_1.sortObject(args);
     // Pass object containing security information to fields
-    const resolve = (root, args, ctx) => {
+    const resolve = (root, args, context) => {
         return {
             _openAPIToGraphQL: {
                 security: args

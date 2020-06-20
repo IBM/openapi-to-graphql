@@ -19,7 +19,7 @@ export declare type SubscriptionContext = {
     pubsub: any;
     [key: string]: any;
 };
-export declare type SubscriptionIterator = (root: object, args: object, ctx: SubscriptionContext, info?: object) => AsyncIterable<string | string[]>;
+export declare type SubscriptionIterator = (root: object, args: object, context: SubscriptionContext, info?: object) => AsyncIterable<string | string[]>;
 export declare type Field<TSource, TContext, TArgs> = {
     type: GraphQLType;
     resolve?: GraphQLFieldResolver<TSource, TContext, TArgs>;

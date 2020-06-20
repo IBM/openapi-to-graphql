@@ -107,8 +107,9 @@ function getSubscribe({ operation, payloadName, data, baseUrl, connectOptions })
 }
 exports.getSubscribe = getSubscribe;
 /*
- * If operationType is Subscription, creates and returns a resolver function triggered
- * after a message has been published to the corresponding subscribe topic(s) to execute payload transformation
+ * If operationType is Subscription, creates and returns a resolver function
+ * triggered after a message has been published to the corresponding subscribe
+ * topic(s) to execute payload transformation
  */
 function getPublishResolver({ operation, responseName, data }) {
     // Return custom resolver if it is defined
@@ -125,7 +126,7 @@ function getPublishResolver({ operation, responseName, data }) {
         return customResolvers[title][path][method].resolve;
     }
     return (payload, args, context, info) => {
-        // Validate and format based on operation.responseDefinition  ...
+        // Validate and format based on operation.responseDefinition
         const typeOfResponse = operation.responseDefinition.targetGraphQLType;
         pubsubLog(`Message received: ${responseName}, ${typeOfResponse}, ${JSON.stringify(payload)}`);
         let responseBody;
@@ -178,8 +179,8 @@ function getPublishResolver({ operation, responseName, data }) {
 }
 exports.getPublishResolver = getPublishResolver;
 /**
- * If operationType is Query/Mutation, creates and returns a resolver function that performs API requests for the
- * given GraphQL query
+ * If operationType is Query/Mutation, creates and returns a resolver function
+ * that performs API requests for the given GraphQL query
  */
 function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl, requestOptions }) {
     // Determine the appropriate URL:
@@ -314,7 +315,6 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                         context,
                         info
                     });
-                    console.log('headers', headers);
                     if (typeof headers === 'object') {
                         Object.assign(options.headers, headers, headers);
                     }
@@ -364,7 +364,6 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             options.body = rawPayload;
             resolveData.usedPayload = rawPayload;
         }
-        console.log('ctx', context);
         /**
          * Pass on OpenAPI-to-GraphQL options
          */
@@ -374,14 +373,12 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 Object.assign(options.headers, data.options.headers);
             }
             else if (typeof data.options.headers === 'function') {
-                console.log('is Function');
                 const headers = data.options.headers(method, path, title, {
                     source,
                     args,
                     context,
                     info
                 });
-                console.log('result', headers);
                 if (typeof headers === 'object') {
                     Object.assign(options.headers, headers);
                 }
@@ -391,30 +388,6 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 Object.assign(options.qs, data.options.qs);
             }
         }
-        // /**
-        //  * Pass on OpenAPI-to-GraphQL options
-        //  */
-        // if (typeof data.options === 'object') {
-        //   // Headers:
-        //   if (typeof data.options.headers === 'object') {
-        //     Object.assign(options.headers, data.options.headers)
-        //   } else if (typeof data.options.headers === 'function') {
-        //     const headers = data.options.headers(
-        //       ctx['request'],
-        //       method,
-        //       path,
-        //       title
-        //     )
-        //     if (typeof headers === 'object') {
-        //       Object.assign(options.headers, headers)
-        //     }
-        //   }
-        //   // Query string:
-        //   if (typeof data.options.qs === 'object') {
-        //     Object.assign(options.qs, data.options.qs)
-        //   }
-        // }
-        // console.log('header options', options.headers, requestOptions.headers, data.options)
         // Get authentication headers and query parameters
         if (source &&
             typeof source === 'object' &&
@@ -615,7 +588,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
 exports.getResolver = getResolver;
 /**
  * Attempts to create an object to become an OAuth query string by extracting an
- * OAuth token from the ctx based on the JSON path provided in the options.
+ * OAuth token from the context based on the JSON path provided in the options.
  */
 function createOAuthQS(data, context) {
     return typeof data.options.tokenJSONpath !== 'string'
@@ -641,7 +614,7 @@ function extractToken(data, context) {
 }
 /**
  * Attempts to create an OAuth authorization header by extracting an OAuth token
- * from the ctx based on the JSON path provided in the options.
+ * from the context based on the JSON path provided in the options.
  */
 function createOAuthHeader(data, context) {
     if (typeof data.options.tokenJSONpath !== 'string') {
