@@ -1,5 +1,6 @@
 import * as NodeRequest from 'request';
-import { ResolveFunction, ResolveObject, GraphQLOperationType } from './graphql';
+import { GraphQLOperationType, SubscriptionContext } from './graphql';
+import { GraphQLFieldResolver, GraphQLResolveInfo } from 'graphql';
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
  */
@@ -29,12 +30,24 @@ export declare type OasTitlePathMethodObject<T> = {
         };
     };
 };
-export declare type Options = Partial<InternalOptions>;
-export declare type InternalOptions = {
-    /**
-     * Adhere to the OAS as closely as possible. If set to true, any deviation
-     * from the OAS will lead OpenAPI-to-GraphQL to throw.
-     */
+export declare type Headers = {
+    [key: string]: string;
+};
+/**
+ * Given a set parameters corresponding to a specific operation in the OAS,
+ * provide the appropriate headers
+ */
+export declare type RequestHeadersFunction<TSource, TContext, TArgs> = (method: string, path: string, title: string, resolverParams?: {
+    source: TSource;
+    args: TArgs;
+    context: TContext;
+    info: GraphQLResolveInfo;
+}) => Headers;
+export declare type RequestOptions<TSource, TContext, TArgs> = Omit<NodeRequest.OptionsWithUrl, 'headers'> & {
+    headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>;
+};
+export declare type Options<TSource, TContext, TArgs> = Partial<InternalOptions<TSource, TContext, TArgs>>;
+export declare type InternalOptions<TSource, TContext, TArgs> = {
     strict: boolean;
     /**
      * Holds information about the GraphQL schema generation process
@@ -124,9 +137,7 @@ export declare type InternalOptions = {
     /**
      * Custom headers to send with every request made by a resolve function.
      */
-    headers?: {
-        [key: string]: string;
-    };
+    headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>;
     /**
      * Custom query parameters to send with every reqeust by a resolve function.
      */
@@ -138,7 +149,7 @@ export declare type InternalOptions = {
      * calls to the API backend.
      * e.g. Setup the web proxy to use.
      */
-    requestOptions?: NodeRequest.OptionsWithUrl;
+    requestOptions?: RequestOptions<TSource, TContext, TArgs>;
     /**
      * Allows to override or add options to the PubSub connect object used to make
      * publish/subscribe to the API backend.
@@ -165,7 +176,7 @@ export declare type InternalOptions = {
      * implementing performance improvements like caching, or dealing with
      * non-standard authentication requirements.
      */
-    customResolvers?: OasTitlePathMethodObject<ResolveFunction>;
+    customResolvers?: OasTitlePathMethodObject<GraphQLFieldResolver<TSource, TContext, TArgs>>;
     /**
      * Allows to define custom resolvers and subscribe functions for fields on the
      * Subscription root operation type.
@@ -184,7 +195,10 @@ export declare type InternalOptions = {
      * Note: Subscription fields will only be generated if the
      * createSubscriptionsFromCallbacks option is enabled.
      */
-    customSubscriptionResolvers?: OasTitlePathMethodObject<ResolveObject>;
+    customSubscriptionResolvers?: OasTitlePathMethodObject<{
+        subscribe: GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>;
+        resolve: GraphQLFieldResolver<TSource, TContext, TArgs>;
+    }>;
     /**
      * Determines whether OpenAPI-to-GraphQL should create viewers that allow users to pass
      * basic auth and API key credentials.

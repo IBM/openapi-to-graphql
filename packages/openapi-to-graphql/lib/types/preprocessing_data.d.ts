@@ -24,7 +24,7 @@ export declare type ProcessedSecurityScheme = {
      */
     oas: Oas3;
 };
-export declare type PreprocessingData = {
+export declare type PreprocessingData<TSource, TContext, TArgs> = {
     /**
      * List of operation objects
      */
@@ -63,7 +63,7 @@ export declare type PreprocessingData = {
     /**
      * Options passed to OpenAPI-to-GraphQL by the user
      */
-    options: InternalOptions;
+    options: InternalOptions<TSource, TContext, TArgs>;
     /**
      * All of the provided OASs
      */

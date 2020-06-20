@@ -5,7 +5,8 @@
 
 // Type imports:
 import * as NodeRequest from 'request'
-import { GraphQLOperationType } from './graphql'
+import { GraphQLOperationType, SubscriptionContext } from './graphql'
+import { GraphQLFieldResolver, GraphQLResolveInfo } from 'graphql'
 
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
@@ -41,17 +42,35 @@ export type OasTitlePathMethodObject<T> = {
   }
 }
 
-export type Options = Partial<InternalOptions>
+export type Headers = { [key: string]: string }
 
-export type RequestHeadersFunction = (params: {
-  req: any
-  method: string
-  path: string
-  title: string
-}) => object
+/**
+ * Given a set parameters corresponding to a specific operation in the OAS,
+ * provide the appropriate headers
+ */
+export type RequestHeadersFunction<TSource, TContext, TArgs> = (
+  method: string,
+  path: string,
+  title: string,
+  resolverParams?: {
+    source: TSource
+    args: TArgs
+    context: TContext
+    info: GraphQLResolveInfo
+  }
+) => Headers
 
-export type InternalOptions = {
-  /**
+export type RequestOptions<TSource, TContext, TArgs> = Omit<
+  NodeRequest.OptionsWithUrl,
+  'headers'
+> & {
+  headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>
+}
+      
+export type Options<TSource, TContext, TArgs> = Partial<InternalOptions<TSource, TContext, TArgs>>
+
+export type InternalOptions<TSource, TContext, TArgs> = {
+  /*
    * Adhere to the OAS as closely as possible. If set to true, any deviation
    * from the OAS will lead OpenAPI-to-GraphQL to throw.
    */
@@ -159,7 +178,7 @@ export type InternalOptions = {
   /**
    * Custom headers to send with every request made by a resolve function.
    */
-  headers?: { [key: string]: string } | RequestHeadersFunction
+  headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>
 
   /**
    * Custom query parameters to send with every reqeust by a resolve function.
@@ -171,7 +190,7 @@ export type InternalOptions = {
    * calls to the API backend.
    * e.g. Setup the web proxy to use.
    */
-  requestOptions?: NodeRequest.OptionsWithUrl
+  requestOptions?: RequestOptions<TSource, TContext, TArgs>
 
   /**
    * Allows to override or add options to the PubSub connect object used to make
@@ -201,7 +220,7 @@ export type InternalOptions = {
    * implementing performance improvements like caching, or dealing with
    * non-standard authentication requirements.
    */
-  customResolvers?: OasTitlePathMethodObject<ResolveFunction>
+  customResolvers?: OasTitlePathMethodObject<GraphQLFieldResolver<TSource, TContext, TArgs>>
 
   /**
    * Allows to define custom resolvers and subscribe functions for fields on the
@@ -221,7 +240,10 @@ export type InternalOptions = {
    * Note: Subscription fields will only be generated if the
    * createSubscriptionsFromCallbacks option is enabled.
    */
-  customSubscriptionResolvers?: OasTitlePathMethodObject<ResolveObject>
+  customSubscriptionResolvers?: OasTitlePathMethodObject<{
+    subscribe: GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>
+    resolve: GraphQLFieldResolver<TSource, TContext, TArgs>
+  }>
 
   // Authentication options
 

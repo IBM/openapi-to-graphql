@@ -43,7 +43,7 @@ const preprocessingLog = debug('preprocessing')
  * @param data An assortment of data which at this point is mainly used enable logging
  * @param options The options passed by the user
  */
-function processOperation(
+function processOperation<TSource, TContext, TArgs>(
   path: string,
   method: string,
   operationString: string,
@@ -51,8 +51,8 @@ function processOperation(
   operation: OperationObject,
   pathItem: PathItemObject,
   oas: Oas3,
-  data: PreprocessingData,
-  options: InternalOptions
+  data: PreprocessingData<TSource, TContext, TArgs>,
+  options: InternalOptions<TSource, TContext, TArgs>
 ): Operation {
   // Determine description
   let description = operation.description
@@ -184,11 +184,11 @@ function processOperation(
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OpenAPI-to-GraphQL to use
  */
-export function preprocessOas(
+export function preprocessOas<TSource, TContext, TArgs>(
   oass: Oas3[],
-  options: InternalOptions
-): PreprocessingData {
-  const data: PreprocessingData = {
+  options: InternalOptions<TSource, TContext, TArgs>
+): PreprocessingData<TSource, TContext, TArgs> {
+  const data: PreprocessingData<TSource, TContext, TArgs> = {
     operations: {},
     callbackOperations: {},
     usedTypeNames: [
@@ -458,9 +458,9 @@ export function preprocessOas(
  *   }
  * }
  */
-function getProcessedSecuritySchemes(
+function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
   oas: Oas3,
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 ): { [key: string]: ProcessedSecurityScheme } {
   const result = {}
   const security = Oas3Tools.getSecuritySchemes(oas)
@@ -599,11 +599,11 @@ function getProcessedSecuritySchemes(
  * Method to either create a new or reuse an existing, centrally stored data
  * definition.
  */
-export function createDataDef(
+export function createDataDef<TSource, TContext, TArgs>(
   names: Oas3Tools.SchemaNames,
   schema: SchemaObject,
   isInputObjectType: boolean,
-  data: PreprocessingData,
+  data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3,
   links?: { [key: string]: LinkObject }
 ): DataDefinition {
@@ -1033,12 +1033,12 @@ function getSchemaName(
 /**
  * Recursively add all of the properties of an object to the data definition
  */
-function addObjectPropertiesToDataDef(
+function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
   def: DataDefinition,
   schema: SchemaObject,
   required: string[],
   isInputObjectType: boolean,
-  data: PreprocessingData,
+  data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3
 ) {
   /**
@@ -1096,10 +1096,10 @@ function addObjectPropertiesToDataDef(
  * Recursively traverse a schema and resolve allOf by appending the data to the
  * parent schema
  */
-function resolveAllOf(
+function resolveAllOf<TSource, TContext, TArgs>(
   schema: SchemaObject | ReferenceObject,
   references: { [reference: string]: SchemaObject },
-  data: PreprocessingData,
+  data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3
 ): SchemaObject {
   // Dereference schema
@@ -1218,9 +1218,9 @@ type MemberSchemaData = {
  * In the context of schemas that use keywords that combine member schemas,
  * collect data on certain aspects so it is all in one place for processing.
  */
-function getMemberSchemaData(
+function getMemberSchemaData<TSource, TContext, TArgs>(
   schemas: (SchemaObject | ReferenceObject)[],
-  data: PreprocessingData,
+  data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3
 ): MemberSchemaData {
   const result: MemberSchemaData = {
@@ -1320,13 +1320,13 @@ function hasNestedAnyOfUsage(
  * anyOf should resolve into an object that contains the superset of all
  * properties from the member schemas
  */
-function createDataDefFromAnyOf(
+function createDataDefFromAnyOf<TSource, TContext, TArgs>(
   saneName: string,
   saneInputName: string,
   collapsedSchema: SchemaObject,
   isInputObjectType: boolean,
   def: DataDefinition,
-  data: PreprocessingData,
+  data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3
 ) {
   const anyOfData = getMemberSchemaData(collapsedSchema.anyOf, data, oas)
@@ -1484,13 +1484,13 @@ function createDataDefFromAnyOf(
   }
 }
 
-function createDataDefFromOneOf(
+function createDataDefFromOneOf<TSource, TContext, TArgs>(
   saneName: string,
   saneInputName: string,
   collapsedSchema: SchemaObject,
   isInputObjectType: boolean,
   def: DataDefinition,
-  data: PreprocessingData,
+  data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3
 ) {
   const oneOfData = getMemberSchemaData(collapsedSchema.oneOf, data, oas)

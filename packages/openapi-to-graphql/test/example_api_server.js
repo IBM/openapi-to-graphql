@@ -365,7 +365,7 @@ function startServer(PORT) {
     if (typeof limit === 'string') {
       res.send(Object.values(Users).slice(0, Number(limit)))
     } else {
-      res.send(Object.values(Users))
+      res.status(404).send()
     }
   })
 

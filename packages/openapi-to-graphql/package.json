@@ -82,7 +82,7 @@
   },
   "devDependencies": {
     "@types/graphql": "^14.0.3",
-    "@types/jest": "^25.1.0",
+    "@types/jest": "^25.2.3",
     "@types/node": "^13.5.0",
     "@types/request": "^2.48.1",
     "aedes": "^0.40.1",
