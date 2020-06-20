@@ -25,7 +25,7 @@ const translationLog = debug_1.default('translation');
  * rootQueryFields/rootMutationFields for further processing
  */
 function createAndLoadViewer(queryFields, operationType, data) {
-    const results = {};
+    let results = {};
     /**
      * To ensure that viewers have unique names, we add a numerical postfix.
      *
@@ -105,7 +105,7 @@ exports.createAndLoadViewer = createAndLoadViewer;
 /**
  * Gets the viewer Object, resolve function, and arguments
  */
-const getViewerOT = (name, protocolName, securityType, queryFields, data) => {
+function getViewerOT(name, protocolName, securityType, queryFields, data) {
     const scheme = data.security[protocolName];
     // Resolve function:
     const resolve = (root, args, ctx) => {
@@ -157,12 +157,12 @@ const getViewerOT = (name, protocolName, securityType, queryFields, data) => {
         args,
         description
     };
-};
+}
 /**
  * Create an object containing an AnyAuth viewer, its resolve function,
  * and its args.
  */
-const getViewerAnyAuthOT = (name, queryFields, data) => {
+function getViewerAnyAuthOT(name, queryFields, data) {
     let args = {};
     for (let protocolName in data.security) {
         // Create input object types for the viewer arguments
@@ -195,5 +195,5 @@ const getViewerAnyAuthOT = (name, queryFields, data) => {
         description: `A viewer that wraps operations for all available ` +
             `authentication mechanisms`
     };
-};
+}
 //# sourceMappingURL=auth_builder.js.map

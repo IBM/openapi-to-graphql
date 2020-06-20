@@ -466,6 +466,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         argsFromLink: argsFromLink,
                         data,
                         baseUrl: data.options.baseUrl,
+                        // @ts-ignore
                         requestOptions: data.options.requestOptions
                     });
                     // Get arguments for link
@@ -515,10 +516,10 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
  * Returns the operationId that an operationRef is associated to
  *
  * NOTE: If the operation does not natively have operationId, this function
- *  will try to produce an operationId the same way preprocessor.js does it.
+ * will try to produce an operationId the same way preprocessor.js does it.
  *
- *  Any changes to constructing operationIds in preprocessor.js should be
- *  reflected here.
+ * Any changes to constructing operationIds in preprocessor.js should be
+ * reflected here.
  */
 function linkOpRefToOpId({ links, linkKey, operation, data }) {
     const link = links[linkKey];
@@ -720,12 +721,64 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
     }
 }
 /**
+ * Determin if an argument should be created if the argument has already been
+ * provided through the options
+ */
+function skipArg(parameter, operation, data) {
+    if (typeof data.options === 'object') {
+        switch (parameter.in) {
+            case 'header':
+                // Check header option
+                if (typeof data.options.headers === 'object' &&
+                    parameter.name in data.options.headers) {
+                    return true;
+                }
+                else if (typeof data.options.headers === 'function') {
+                    const headers = data.options.headers(operation.method, operation.path, operation.oas.info.title);
+                    if (typeof headers === 'object') {
+                        return true;
+                    }
+                    // Check requestOptions option
+                }
+                else if (typeof data.options.requestOptions === 'object') {
+                    if (typeof data.options.requestOptions.headers === 'object' &&
+                        parameter.name in data.options.requestOptions.headers) {
+                        return true;
+                    }
+                    else if (typeof data.options.requestOptions.headers === 'function') {
+                        const headers = data.options.requestOptions.headers(operation.method, operation.path, operation.oas.info.title);
+                        if (typeof headers === 'object') {
+                            return true;
+                        }
+                    }
+                }
+                break;
+            case 'query':
+                // Check header option
+                if (typeof data.options.qs === 'object' &&
+                    parameter.name in data.options.qs) {
+                    return true;
+                    // Check requestOptions option
+                }
+                else if (typeof data.options.requestOptions === 'object' &&
+                    typeof data.options.requestOptions.qs === 'object' &&
+                    parameter.name in data.options.requestOptions.qs) {
+                    return true;
+                }
+                break;
+        }
+    }
+    return false;
+}
+/**
  * Creates the arguments for resolving a field
+ *
+ * Arguments that are provided via options will be ignored
  */
 function getArgs({ requestPayloadDef, parameters, operation, data }) {
     let args = {};
     // Handle params:
-    for (const parameter of parameters) {
+    parameters.forEach(parameter => {
         // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
@@ -735,38 +788,11 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
                 data,
                 log: translationLog
             });
-            continue;
+            return;
         }
         // If this parameter is provided via options, ignore
-        if (typeof data.options === 'object') {
-            switch (parameter.in) {
-                case 'header':
-                    // Check header option
-                    if (typeof data.options.headers === 'object' &&
-                        parameter.name in data.options.headers) {
-                        continue;
-                    }
-                    // Check requestOptions option
-                    if (typeof data.options.requestOptions === 'object' &&
-                        typeof data.options.requestOptions.headers === 'object' &&
-                        parameter.name in data.options.requestOptions.headers) {
-                        continue;
-                    }
-                    break;
-                case 'query':
-                    // Check header option
-                    if (typeof data.options.qs === 'object' &&
-                        parameter.name in data.options.qs) {
-                        continue;
-                    }
-                    // Check requestOptions option
-                    if (typeof data.options.requestOptions === 'object' &&
-                        typeof data.options.requestOptions.qs === 'object' &&
-                        parameter.name in data.options.requestOptions.qs) {
-                        continue;
-                    }
-                    break;
-            }
+        if (skipArg(parameter, operation, data)) {
+            return;
         }
         /**
          * Determine type of parameter
@@ -793,7 +819,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
                     data,
                     log: translationLog
                 });
-                continue;
+                return;
             }
         }
         else {
@@ -806,7 +832,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
                 data,
                 log: translationLog
             });
-            continue;
+            return;
         }
         /**
          * Resolving the reference is necessary later in the code and by doing it,
@@ -848,7 +874,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             type: paramRequired ? new graphql_1.GraphQLNonNull(type) : type,
             description: parameter.description // Might be undefined
         };
-    }
+    });
     // Add limit argument
     if (data.options.addLimitArgument &&
         typeof operation.responseDefinition === 'object' &&

@@ -55,7 +55,7 @@ function handleWarning({ typeKey, message, mitigationAddendum, path, data, log }
             ? `${mitigation} ${mitigationAddendum}`
             : mitigation
     };
-    if (typeof path !== undefined) {
+    if (path) {
         warning['path'] = path;
     }
     if (data.options.strict) {

@@ -54,7 +54,7 @@ export const mitigations = {
 /**
  * Utilities that are specific to OpenAPI-to-GraphQL
  */
-export function handleWarning({
+export function handleWarning<TSource, TContext, TArgs>({
   typeKey,
   message,
   mitigationAddendum,
@@ -66,7 +66,7 @@ export function handleWarning({
   message: string
   mitigationAddendum?: string
   path?: string[]
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
   log?: Function
 }) {
   const mitigation = mitigations[typeKey]
@@ -79,7 +79,7 @@ export function handleWarning({
       : mitigation
   }
 
-  if (typeof path !== undefined) {
+  if (path) {
     warning['path'] = path
   }
 

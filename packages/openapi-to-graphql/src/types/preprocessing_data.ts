@@ -33,7 +33,7 @@ export type ProcessedSecurityScheme = {
   oas: Oas3
 }
 
-export type PreprocessingData = {
+export type PreprocessingData<TSource, TContext, TArgs> = {
   /**
    * List of operation objects
    */
@@ -70,7 +70,7 @@ export type PreprocessingData = {
   /**
    * Options passed to OpenAPI-to-GraphQL by the user
    */
-  options: InternalOptions
+  options: InternalOptions<TSource, TContext, TArgs>
 
   /**
    * All of the provided OASs

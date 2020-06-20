@@ -36,12 +36,12 @@ export declare const mitigations: {
 /**
  * Utilities that are specific to OpenAPI-to-GraphQL
  */
-export declare function handleWarning({ typeKey, message, mitigationAddendum, path, data, log }: {
+export declare function handleWarning<TSource, TContext, TArgs>({ typeKey, message, mitigationAddendum, path, data, log }: {
     typeKey: string;
     message: string;
     mitigationAddendum?: string;
     path?: string[];
-    data: PreprocessingData;
+    data: PreprocessingData<TSource, TContext, TArgs>;
     log?: Function;
 }): void;
 export declare function sortObject<T>(o: T): T;

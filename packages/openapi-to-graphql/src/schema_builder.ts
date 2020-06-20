@@ -17,7 +17,7 @@ import {
   ReferenceObject,
   LinkObject
 } from './types/oas3'
-import { Args, GraphQLType, ResolveFunction } from './types/graphql'
+import { Args, GraphQLType } from './types/graphql'
 import {
   GraphQLScalarType,
   GraphQLObjectType,
@@ -44,40 +44,40 @@ import { createDataDef } from './preprocessor'
 import debug from 'debug'
 import { handleWarning, sortObject } from './utils'
 
-type GetArgsParams = {
+type GetArgsParams<TSource, TContext, TArgs> = {
   requestPayloadDef?: DataDefinition
   parameters: ParameterObject[]
   operation?: Operation
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 }
 
-type CreateOrReuseComplexTypeParams = {
+type CreateOrReuseComplexTypeParams<TSource, TContext, TArgs> = {
   def: DataDefinition
   operation?: Operation
   iteration?: number // Count of recursions used to create type
   isInputObjectType?: boolean // Does not require isInputObjectType because unions must be composed of objects
-  data: PreprocessingData // Data produced by preprocessing
+  data: PreprocessingData<TSource, TContext, TArgs> // Data produced by preprocessing
 }
 
-type CreateOrReuseSimpleTypeParams = {
+type CreateOrReuseSimpleTypeParams<TSource, TContext, TArgs> = {
   def: DataDefinition
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 }
 
-type CreateFieldsParams = {
+type CreateFieldsParams<TSource, TContext, TArgs> = {
   def: DataDefinition
   links: { [key: string]: LinkObject }
   operation: Operation
   iteration: number
   isInputObjectType: boolean
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 }
 
-type LinkOpRefToOpIdParams = {
+type LinkOpRefToOpIdParams<TSource, TContext, TArgs> = {
   links: { [key: string]: LinkObject }
   linkKey: string
   operation: Operation
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 }
 
 const translationLog = debug('translation')
@@ -85,13 +85,13 @@ const translationLog = debug('translation')
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
  */
-export function getGraphQLType({
+export function getGraphQLType<TSource, TContext, TArgs>({
   def,
   operation,
   data,
   iteration = 0,
   isInputObjectType = false
-}: CreateOrReuseComplexTypeParams): GraphQLOutputType | GraphQLInputType {
+}: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>): GraphQLOutputType | GraphQLInputType {
   const name = isInputObjectType
     ? def.graphQLInputObjectTypeName
     : def.graphQLTypeName
@@ -162,13 +162,13 @@ export function getGraphQLType({
  *       resolve   // Optional function defining how to obtain this type
  *   })
  */
-function createOrReuseOt({
+function createOrReuseOt<TSource, TContext, TArgs>({
   def,
   operation,
   data,
   iteration,
   isInputObjectType
-}: CreateOrReuseComplexTypeParams):
+}: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>):
   | GraphQLObjectType
   | GraphQLInputObjectType
   | GraphQLJSON {
@@ -269,12 +269,12 @@ function createOrReuseOt({
 /**
  * Creates a union type or return an existing one, and stores it in data
  */
-function createOrReuseUnion({
+function createOrReuseUnion<TSource, TContext, TArgs>({
   def,
   operation,
   data,
   iteration
-}: CreateOrReuseComplexTypeParams): GraphQLUnionType {
+}: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>): GraphQLUnionType {
   // Try to reuse existing union type
   if (typeof def.graphQLType !== 'undefined') {
     translationLog(
@@ -362,10 +362,10 @@ function createOrReuseUnion({
  *
  * i.e. member types that can be confused with each other.
  */
-function checkAmbiguousMemberTypes(
+function checkAmbiguousMemberTypes<TSource, TContext, TArgs>(
   def: DataDefinition,
   types: GraphQLObjectType[],
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 ): void {
   types.sort((a, b) => {
     const aFieldLength = Object.keys(a.getFields()).length
@@ -412,13 +412,13 @@ function checkAmbiguousMemberTypes(
 /**
  * Creates a list type or returns an existing one, and stores it in data
  */
-function createOrReuseList({
+function createOrReuseList<TSource, TContext, TArgs>({
   def,
   operation,
   iteration,
   isInputObjectType,
   data
-}: CreateOrReuseComplexTypeParams): GraphQLList<any> {
+}: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>): GraphQLList<any> {
   const name = isInputObjectType
     ? def.graphQLInputObjectTypeName
     : def.graphQLTypeName
@@ -478,10 +478,10 @@ function createOrReuseList({
 /**
  * Creates an enum type or returns an existing one, and stores it in data
  */
-function createOrReuseEnum({
+function createOrReuseEnum<TSource, TContext, TArgs>({
   def,
   data
-}: CreateOrReuseSimpleTypeParams): GraphQLEnumType {
+}: CreateOrReuseSimpleTypeParams<TSource, TContext, TArgs>): GraphQLEnumType {
   /**
    * Try to reuse existing enum type
    *
@@ -514,10 +514,10 @@ function createOrReuseEnum({
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType({
+function getScalarType<TSource, TContext, TArgs>({
   def,
   data
-}: CreateOrReuseSimpleTypeParams): GraphQLScalarType {
+}: CreateOrReuseSimpleTypeParams<TSource, TContext, TArgs>): GraphQLScalarType {
   switch (def.targetGraphQLType) {
     case 'id':
       def.graphQLType = GraphQLID
@@ -547,14 +547,17 @@ function getScalarType({
 /**
  * Creates the fields object to be used by an (input) object type
  */
-function createFields({
+function createFields<TSource, TContext, TArgs>({
   def,
   links,
   operation,
   data,
   iteration,
   isInputObjectType
-}: CreateFieldsParams): GraphQLFieldConfigMap<any, any> {
+}: CreateFieldsParams<TSource, TContext, TArgs>): GraphQLFieldConfigMap<
+  any,
+  any
+> {
   let fields: GraphQLFieldConfigMap<any, any> = {}
 
   const fieldTypeDefinitions = def.subDefinitions as {
@@ -671,6 +674,7 @@ function createFields({
             argsFromLink: argsFromLink as { [key: string]: string },
             data,
             baseUrl: data.options.baseUrl,
+            // @ts-ignore
             requestOptions: data.options.requestOptions
           })
 
@@ -727,17 +731,17 @@ function createFields({
  * Returns the operationId that an operationRef is associated to
  *
  * NOTE: If the operation does not natively have operationId, this function
- *  will try to produce an operationId the same way preprocessor.js does it.
+ * will try to produce an operationId the same way preprocessor.js does it.
  *
- *  Any changes to constructing operationIds in preprocessor.js should be
- *  reflected here.
+ * Any changes to constructing operationIds in preprocessor.js should be
+ * reflected here.
  */
-function linkOpRefToOpId({
+function linkOpRefToOpId<TSource, TContext, TArgs>({
   links,
   linkKey,
   operation,
   data
-}: LinkOpRefToOpIdParams): string {
+}: LinkOpRefToOpIdParams<TSource, TContext, TArgs>): string {
   const link = links[linkKey]
 
   if (typeof link.operationRef === 'string') {
@@ -974,18 +978,97 @@ function linkOpRefToOpId({
 }
 
 /**
- * Creates the arguments for resolving a field
+ * Determin if an argument should be created if the argument has already been
+ * provided through the options
  */
-export function getArgs({
+function skipArg<TSource, TContext, TArgs>(
+  parameter: ParameterObject,
+  operation: Operation,
+  data: PreprocessingData<TSource, TContext, TArgs>
+): boolean {
+  if (typeof data.options === 'object') {
+    switch (parameter.in) {
+      case 'header':
+        // Check header option
+        if (
+          typeof data.options.headers === 'object' &&
+          parameter.name in data.options.headers
+        ) {
+          return true
+        } else if (typeof data.options.headers === 'function') {
+          const headers = data.options.headers(
+            operation.method,
+            operation.path,
+            operation.oas.info.title
+          )
+
+          if (typeof headers === 'object') {
+            return true
+          }
+
+          // Check requestOptions option
+        } else if (typeof data.options.requestOptions === 'object') {
+          if (
+            typeof data.options.requestOptions.headers === 'object' &&
+            parameter.name in data.options.requestOptions.headers
+          ) {
+            return true
+          } else if (
+            typeof data.options.requestOptions.headers === 'function'
+          ) {
+            const headers = data.options.requestOptions.headers(
+              operation.method,
+              operation.path,
+              operation.oas.info.title
+            )
+
+            if (typeof headers === 'object') {
+              return true
+            }
+          }
+        }
+
+        break
+
+      case 'query':
+        // Check header option
+        if (
+          typeof data.options.qs === 'object' &&
+          parameter.name in data.options.qs
+        ) {
+          return true
+
+          // Check requestOptions option
+        } else if (
+          typeof data.options.requestOptions === 'object' &&
+          typeof data.options.requestOptions.qs === 'object' &&
+          parameter.name in data.options.requestOptions.qs
+        ) {
+          return true
+        }
+
+        break
+    }
+  }
+
+  return false
+}
+
+/**
+ * Creates the arguments for resolving a field
+ *
+ * Arguments that are provided via options will be ignored
+ */
+export function getArgs<TSource, TContext, TArgs>({
   requestPayloadDef,
   parameters,
   operation,
   data
-}: GetArgsParams): Args {
+}: GetArgsParams<TSource, TContext, TArgs>): Args {
   let args = {}
 
   // Handle params:
-  for (const parameter of parameters) {
+  parameters.forEach(parameter => {
     // We need at least a name
     if (typeof parameter.name !== 'string') {
       handleWarning({
@@ -996,52 +1079,12 @@ export function getArgs({
         data,
         log: translationLog
       })
-      continue
+      return
     }
 
     // If this parameter is provided via options, ignore
-    if (typeof data.options === 'object') {
-      switch (parameter.in) {
-        case 'header':
-          // Check header option
-          if (
-            typeof data.options.headers === 'object' &&
-            parameter.name in data.options.headers
-          ) {
-            continue
-          }
-
-          // Check requestOptions option
-          if (
-            typeof data.options.requestOptions === 'object' &&
-            typeof data.options.requestOptions.headers === 'object' &&
-            parameter.name in data.options.requestOptions.headers
-          ) {
-            continue
-          }
-
-          break
-
-        case 'query':
-          // Check header option
-          if (
-            typeof data.options.qs === 'object' &&
-            parameter.name in data.options.qs
-          ) {
-            continue
-          }
-
-          // Check requestOptions option
-          if (
-            typeof data.options.requestOptions === 'object' &&
-            typeof data.options.requestOptions.qs === 'object' &&
-            parameter.name in data.options.requestOptions.qs
-          ) {
-            continue
-          }
-
-          break
-      }
+    if (skipArg(parameter, operation, data)) {
+      return
     }
 
     /**
@@ -1070,7 +1113,7 @@ export function getArgs({
           data,
           log: translationLog
         })
-        continue
+        return
       }
     } else {
       // Invalid OAS according to 3.0.2
@@ -1083,7 +1126,7 @@ export function getArgs({
         data,
         log: translationLog
       })
-      continue
+      return
     }
 
     /**
@@ -1140,7 +1183,7 @@ export function getArgs({
       type: paramRequired ? new GraphQLNonNull(type) : type,
       description: parameter.description // Might be undefined
     }
-  }
+  })
 
   // Add limit argument
   if (
@@ -1221,10 +1264,10 @@ function getLinkLocationType(linkLocation: string): string {
  * Used in the context of links, specifically those using an external operationRef
  * Based on the location of the OAS, retrieve said OAS
  */
-function getOasFromLinkLocation(
+function getOasFromLinkLocation<TSource, TContext, TArgs>(
   linkLocation: string,
   link: LinkObject,
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 ): Oas3 {
   // May be an external reference
   switch (getLinkLocationType(linkLocation)) {

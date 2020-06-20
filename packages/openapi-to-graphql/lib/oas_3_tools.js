@@ -287,55 +287,6 @@ function desanitizeObjectKeys(obj, mapping = {}) {
 }
 exports.desanitizeObjectKeys = desanitizeObjectKeys;
 /**
- * Replaces the path parameter in the given path with values in the given args.
- * Furthermore adds the query parameters for a request.
- */
-function instantiatePathAndGetQuery(path, parameters, args, // NOTE: argument keys are sanitized!
-data) {
-    const query = {};
-    const headers = {};
-    // Case: nothing to do
-    if (Array.isArray(parameters)) {
-        // Iterate parameters:
-        for (const param of parameters) {
-            const sanitizedParamName = sanitize(param.name, !data.options.simpleNames ? CaseStyle.camelCase : CaseStyle.simple);
-            if (sanitizedParamName && sanitizedParamName in args) {
-                switch (param.in) {
-                    // Path parameters
-                    case 'path':
-                        path = path.replace(`{${param.name}}`, args[sanitizedParamName]);
-                        break;
-                    // Query parameters
-                    case 'query':
-                        query[param.name] = args[sanitizedParamName];
-                        break;
-                    // Header parameters
-                    case 'header':
-                        headers[param.name] = args[sanitizedParamName];
-                        break;
-                    // Cookie parameters
-                    case 'cookie':
-                        if (!('cookie' in headers)) {
-                            headers['cookie'] = '';
-                        }
-                        headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `;
-                        break;
-                    default:
-                        httpLog(`Warning: The parameter location '${param.in}' in the ` +
-                            `parameter '${param.name}' of operation '${path}' is not ` +
-                            `supported`);
-                }
-            }
-            else {
-                httpLog(`Warning: The parameter '${param.name}' of operation '${path}' ` +
-                    `could not be found`);
-            }
-        }
-    }
-    return { path, query, headers };
-}
-exports.instantiatePathAndGetQuery = instantiatePathAndGetQuery;
-/**
  * Returns the GraphQL type that the provided schema should be made into
  *
  * Does not consider allOf, anyOf, oneOf, or not (handled separately)
@@ -539,7 +490,7 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
             };
             let description = `String represents payload of content type '${payloadContentType}'`;
             if ('description' in payloadSchema &&
-                typeof payloadSchema['description'] === 'string') {
+                typeof payloadSchema.description === 'string') {
                 description += `\n\nOriginal top level description: '${payloadSchema['description']}'`;
             }
             payloadSchema = {

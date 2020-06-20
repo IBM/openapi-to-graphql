@@ -7,18 +7,12 @@
  * Utilities related to GraphQL.
  */
 
-import {
-  GraphQLObjectType as GQObjectType,
-  GraphQLInputObjectType as GQInputObjectType,
-  GraphQLObjectType,
-  GraphQLInputObjectType,
-  GraphQLString
-} from 'graphql'
+import { GraphQLObjectType, GraphQLString } from 'graphql'
 
 /**
  * Returns empty GraphQLObjectType.
  */
-export function getEmptyObjectType(name: string): GQObjectType {
+export function getEmptyObjectType(name: string): GraphQLObjectType {
   return new GraphQLObjectType({
     name: name + 'Placeholder',
     description: 'Placeholder object',

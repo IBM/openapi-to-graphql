@@ -10,13 +10,13 @@
 
 // Type imports:
 import {
-  GraphQLObjectType as GQObjectType,
   GraphQLString,
   GraphQLObjectType,
   GraphQLNonNull,
-  GraphQLFieldConfigMap
+  GraphQLFieldConfigMap,
+  GraphQLFieldResolver
 } from 'graphql'
-import { Args, ResolveFunction, GraphQLOperationType } from './types/graphql'
+import { Args, GraphQLOperationType } from './types/graphql'
 import {
   PreprocessingData,
   ProcessedSecurityScheme
@@ -30,9 +30,9 @@ import { handleWarning, sortObject } from './utils'
 import { createDataDef } from './preprocessor'
 
 // Type definitions & exports:
-type Viewer = {
-  type: GQObjectType
-  resolve: ResolveFunction
+type Viewer<TSource, TContext, TArgs> = {
+  type: GraphQLObjectType
+  resolve: GraphQLFieldResolver<TSource, TContext, TArgs>
   args: Args
   description: string
 }
@@ -45,12 +45,12 @@ const translationLog = debug('translation')
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-export function createAndLoadViewer(
+export function createAndLoadViewer<TSource, TContext, TArgs>(
   queryFields: object,
   operationType: GraphQLOperationType,
-  data: PreprocessingData
-): { [key: string]: Viewer } {
-  const results = {}
+  data: PreprocessingData<TSource, TContext, TArgs>
+): { [key: string]: Viewer<TSource, TContext, TArgs> } {
+  let results = {}
   /**
    * To ensure that viewers have unique names, we add a numerical postfix.
    *
@@ -162,13 +162,13 @@ export function createAndLoadViewer(
 /**
  * Gets the viewer Object, resolve function, and arguments
  */
-const getViewerOT = (
+function getViewerOT<TSource, TContext, TArgs>(
   name: string,
   protocolName: string,
   securityType: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
-  data: PreprocessingData
-): Viewer => {
+  data: PreprocessingData<TSource, TContext, TArgs>
+): Viewer<TSource, TContext, TArgs> {
   const scheme: ProcessedSecurityScheme = data.security[protocolName]
 
   // Resolve function:
@@ -238,11 +238,11 @@ const getViewerOT = (
  * Create an object containing an AnyAuth viewer, its resolve function,
  * and its args.
  */
-const getViewerAnyAuthOT = (
+function getViewerAnyAuthOT<TSource, TContext, TArgs>(
   name: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
-  data: PreprocessingData
-): Viewer => {
+  data: PreprocessingData<TSource, TContext, TArgs>
+): Viewer<TSource, TContext, TArgs> {
   let args = {}
   for (let protocolName in data.security) {
     // Create input object types for the viewer arguments

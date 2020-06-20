@@ -398,84 +398,13 @@ export function desanitizeObjectKeys(
 }
 
 /**
- * Replaces the path parameter in the given path with values in the given args.
- * Furthermore adds the query parameters for a request.
- */
-export function instantiatePathAndGetQuery(
-  path: string,
-  parameters: ParameterObject[],
-  args: object, // NOTE: argument keys are sanitized!
-  data: PreprocessingData
-): {
-  path: string
-  query: { [key: string]: string }
-  headers: { [key: string]: string }
-} {
-  const query = {}
-  const headers = {}
-
-  // Case: nothing to do
-  if (Array.isArray(parameters)) {
-    // Iterate parameters:
-    for (const param of parameters) {
-      const sanitizedParamName = sanitize(
-        param.name,
-        !data.options.simpleNames ? CaseStyle.camelCase : CaseStyle.simple
-      )
-
-      if (sanitizedParamName && sanitizedParamName in args) {
-        switch (param.in) {
-          // Path parameters
-          case 'path':
-            path = path.replace(`{${param.name}}`, args[sanitizedParamName])
-            break
-
-          // Query parameters
-          case 'query':
-            query[param.name] = args[sanitizedParamName]
-            break
-
-          // Header parameters
-          case 'header':
-            headers[param.name] = args[sanitizedParamName]
-            break
-
-          // Cookie parameters
-          case 'cookie':
-            if (!('cookie' in headers)) {
-              headers['cookie'] = ''
-            }
-
-            headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `
-            break
-
-          default:
-            httpLog(
-              `Warning: The parameter location '${param.in}' in the ` +
-                `parameter '${param.name}' of operation '${path}' is not ` +
-                `supported`
-            )
-        }
-      } else {
-        httpLog(
-          `Warning: The parameter '${param.name}' of operation '${path}' ` +
-            `could not be found`
-        )
-      }
-    }
-  }
-
-  return { path, query, headers }
-}
-
-/**
  * Returns the GraphQL type that the provided schema should be made into
  *
  * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
-export function getSchemaTargetGraphQLType(
+export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
   schema: SchemaObject,
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 ): string | null {
   // CASE: object
   if (schema.type === 'object' || typeof schema.properties === 'object') {
@@ -729,7 +658,7 @@ export function getRequestSchemaAndNames(
 
       if (
         'description' in payloadSchema &&
-        typeof payloadSchema['description'] === 'string'
+        typeof payloadSchema.description === 'string'
       ) {
         description += `\n\nOriginal top level description: '${payloadSchema['description']}'`
       }
@@ -808,13 +737,13 @@ export function getResponseObject(
  * a successful  status code, and a dictionary of names from different sources
  * (if available).
  */
-export function getResponseSchemaAndNames(
+export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
   path: string,
   method: string,
   operation: OperationObject,
   oas: Oas3,
-  data: PreprocessingData,
-  options: InternalOptions
+  data: PreprocessingData<TSource, TContext, TArgs>,
+  options: InternalOptions<TSource, TContext, TArgs>
 ): ResponseSchemaAndNames {
   const statusCode = getResponseStatusCode(path, method, operation, oas, data)
   if (!statusCode) {
@@ -896,12 +825,12 @@ export function getResponseSchemaAndNames(
 /**
  * Returns a success status code for the given operation
  */
-export function getResponseStatusCode(
+export function getResponseStatusCode<TSource, TContext, TArgs>(
   path: string,
   method: string,
   operation: OperationObject,
   oas: Oas3,
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 ): string | void {
   if (typeof operation.responses === 'object') {
     const codes = Object.keys(operation.responses)
@@ -936,12 +865,12 @@ export function getResponseStatusCode(
 /**
  * Returns a hash containing the links in the given operation.
  */
-export function getLinks(
+export function getLinks<TSource, TContext, TArgs>(
   path: string,
   method: string,
   operation: OperationObject,
   oas: Oas3,
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 ): { [key: string]: LinkObject } {
   const links = {}
   const statusCode = getResponseStatusCode(path, method, operation, oas, data)

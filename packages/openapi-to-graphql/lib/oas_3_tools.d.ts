@@ -75,25 +75,11 @@ caseStyle?: CaseStyle): any;
  */
 export declare function desanitizeObjectKeys(obj: object | Array<any>, mapping?: object): object | Array<any>;
 /**
- * Replaces the path parameter in the given path with values in the given args.
- * Furthermore adds the query parameters for a request.
- */
-export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object, // NOTE: argument keys are sanitized!
-data: PreprocessingData): {
-    path: string;
-    query: {
-        [key: string]: string;
-    };
-    headers: {
-        [key: string]: string;
-    };
-};
-/**
  * Returns the GraphQL type that the provided schema should be made into
  *
  * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
-export declare function getSchemaTargetGraphQLType(schema: SchemaObject, data: PreprocessingData): string | null;
+export declare function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(schema: SchemaObject, data: PreprocessingData<TSource, TContext, TArgs>): string | null;
 /**
  * Infers a resource name from the given URL path.
  *
@@ -125,15 +111,15 @@ export declare function getResponseObject(operation: OperationObject, statusCode
  * a successful  status code, and a dictionary of names from different sources
  * (if available).
  */
-export declare function getResponseSchemaAndNames(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData, options: InternalOptions): ResponseSchemaAndNames;
+export declare function getResponseSchemaAndNames<TSource, TContext, TArgs>(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>, options: InternalOptions<TSource, TContext, TArgs>): ResponseSchemaAndNames;
 /**
  * Returns a success status code for the given operation
  */
-export declare function getResponseStatusCode(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData): string | void;
+export declare function getResponseStatusCode<TSource, TContext, TArgs>(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>): string | void;
 /**
  * Returns a hash containing the links in the given operation.
  */
-export declare function getLinks(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData): {
+export declare function getLinks<TSource, TContext, TArgs>(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>): {
     [key: string]: LinkObject;
 };
 /**

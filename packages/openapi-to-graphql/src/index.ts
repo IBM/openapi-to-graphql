@@ -39,7 +39,7 @@ import {
 } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, GraphQLOperationType } from './types/graphql'
+import { Args, GraphQLOperationType, SubscriptionContext } from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
 import {
@@ -75,9 +75,9 @@ const translationLog = debug('translation')
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export function createGraphQLSchema(
+export function createGraphQLSchema<TSource, TContext, TArgs>(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
-  options?: Options
+  options?: Options<TSource, TContext, TArgs>
 ): Promise<Result> {
   return new Promise((resolve, reject) => {
     if (typeof options === 'undefined') {
@@ -149,7 +149,7 @@ export function createGraphQLSchema(
           return Oas3Tools.getValidOAS3(ele)
         })
       ).then(oass => {
-        resolve(translateOpenAPIToGraphQL(oass, options as InternalOptions))
+        resolve(translateOpenAPIToGraphQL(oass, options as InternalOptions<TSource, TContext, TArgs>))
       })
     } else {
       /**
@@ -159,7 +159,7 @@ export function createGraphQLSchema(
        */
 
       Oas3Tools.getValidOAS3(spec).then(oas => {
-        resolve(translateOpenAPIToGraphQL([oas], options as InternalOptions))
+        resolve(translateOpenAPIToGraphQL([oas], options as InternalOptions<TSource, TContext, TArgs>))
       })
     }
   })
@@ -168,7 +168,7 @@ export function createGraphQLSchema(
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3
  */
-function translateOpenAPIToGraphQL(
+function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
   oass: Oas3[],
   {
     strict,
@@ -202,7 +202,7 @@ function translateOpenAPIToGraphQL(
     // Logging options
     provideErrorExtensions,
     equivalentToMessages
-  }: InternalOptions
+  }: InternalOptions<TSource, TContext, TArgs>
 ): { schema: GraphQLSchema; report: Report } {
   const options = {
     strict,
@@ -243,7 +243,10 @@ function translateOpenAPIToGraphQL(
    * Extract information from the OASs and put it inside a data structure that
    * is easier for OpenAPI-to-GraphQL to use
    */
-  const data: PreprocessingData = preprocessOas(oass, options)
+  const data: PreprocessingData<TSource, TContext, TArgs> = preprocessOas(
+    oass,
+    options
+  )
 
   preliminaryChecks(options, data)
 
@@ -612,13 +615,13 @@ function translateOpenAPIToGraphQL(
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation(
+function getFieldForOperation<TSource, TContext, TArgs>(
   operation: Operation,
   baseUrl: string,
-  data: PreprocessingData,
+  data: PreprocessingData<TSource, TContext, TArgs>,
   requestOptions: NodeRequest.OptionsWithUrl,
   connectOptions: ConnectOptions
-): GraphQLFieldConfig<any, any> {
+): GraphQLFieldConfig<TSource, TContext | SubscriptionContext, TArgs> {
   // Create GraphQL Type for response:
   const type = getGraphQLType({
     def: operation.responseDefinition,
@@ -678,6 +681,7 @@ function getFieldForOperation(
       payloadName: payloadSchemaName,
       data,
       baseUrl,
+      // @ts-ignore
       requestOptions
     })
 
@@ -695,9 +699,9 @@ function getFieldForOperation(
  * triply nested object using the name of the OAS, the path, and the method
  * as keys.
  */
-function checkCustomResolversStructure(
+function checkCustomResolversStructure<TSource, TContext, TArgs>(
   customResolvers: any,
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 ) {
   if (typeof customResolvers === 'object') {
     // Check that all OASs that are referenced in the customResolvers are provided
@@ -752,9 +756,9 @@ function checkCustomResolversStructure(
 /**
  * Ensures that the options are valid
  */
-function preliminaryChecks(
-  options: InternalOptions,
-  data: PreprocessingData
+function preliminaryChecks<TSource, TContext, TArgs>(
+  options: InternalOptions<TSource, TContext, TArgs>,
+  data: PreprocessingData<TSource, TContext, TArgs>
 ): void {
   // Check if OASs have unique titles
   const titles = data.oass.map(oas => {
