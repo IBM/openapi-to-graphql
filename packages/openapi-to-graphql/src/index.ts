@@ -39,7 +39,11 @@ import {
 } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, GraphQLOperationType, SubscriptionContext } from './types/graphql'
+import {
+  Args,
+  GraphQLOperationType,
+  SubscriptionContext
+} from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
 import {
@@ -149,7 +153,12 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
           return Oas3Tools.getValidOAS3(ele)
         })
       ).then(oass => {
-        resolve(translateOpenAPIToGraphQL(oass, options as InternalOptions<TSource, TContext, TArgs>))
+        resolve(
+          translateOpenAPIToGraphQL(
+            oass,
+            options as InternalOptions<TSource, TContext, TArgs>
+          )
+        )
       })
     } else {
       /**
@@ -159,7 +168,12 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
        */
 
       Oas3Tools.getValidOAS3(spec).then(oas => {
-        resolve(translateOpenAPIToGraphQL([oas], options as InternalOptions<TSource, TContext, TArgs>))
+        resolve(
+          translateOpenAPIToGraphQL(
+            [oas],
+            options as InternalOptions<TSource, TContext, TArgs>
+          )
+        )
       })
     }
   })
@@ -681,7 +695,6 @@ function getFieldForOperation<TSource, TContext, TArgs>(
       payloadName: payloadSchemaName,
       data,
       baseUrl,
-      // @ts-ignore
       requestOptions
     })
 

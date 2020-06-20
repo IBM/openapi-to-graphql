@@ -50,7 +50,7 @@ export function createAndLoadViewer<TSource, TContext, TArgs>(
   operationType: GraphQLOperationType,
   data: PreprocessingData<TSource, TContext, TArgs>
 ): { [key: string]: Viewer<TSource, TContext, TArgs> } {
-  let results = {}
+  const results = {}
   /**
    * To ensure that viewers have unique names, we add a numerical postfix.
    *
@@ -172,7 +172,7 @@ function getViewerOT<TSource, TContext, TArgs>(
   const scheme: ProcessedSecurityScheme = data.security[protocolName]
 
   // Resolve function:
-  const resolve = (root, args, ctx) => {
+  const resolve = (root, args, context) => {
     const security = {}
     const saneProtocolName = Oas3Tools.sanitize(
       protocolName,
@@ -271,7 +271,7 @@ function getViewerAnyAuthOT<TSource, TContext, TArgs>(
   args = sortObject(args)
 
   // Pass object containing security information to fields
-  const resolve = (root, args, ctx) => {
+  const resolve = (root, args, context) => {
     return {
       _openAPIToGraphQL: {
         security: args

@@ -32,7 +32,7 @@ const oas = require('./fixtures/example_oas.json')
 
 openAPIToGraphQL
   .createGraphQLSchema(oas, {
-    headers: (req, method, path, title) => {
+    headers: (method, path, title) => {
       if (method === 'get' && path === '/snack') {
         return {
           snack_type: 'chips',

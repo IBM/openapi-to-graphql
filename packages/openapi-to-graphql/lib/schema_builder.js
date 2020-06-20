@@ -138,7 +138,6 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
         def.graphQLInputObjectType = new graphql_1.GraphQLInputObjectType({
             name: def.graphQLInputObjectTypeName,
             description,
-            // @ts-ignore
             fields: () => {
                 return createFields({
                     def,
@@ -466,7 +465,6 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         argsFromLink: argsFromLink,
                         data,
                         baseUrl: data.options.baseUrl,
-                        // @ts-ignore
                         requestOptions: data.options.requestOptions
                     });
                     // Get arguments for link

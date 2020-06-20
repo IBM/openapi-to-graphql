@@ -48,7 +48,7 @@ export type SubscriptionContext = {
 export type SubscriptionIterator = (
   root: object,
   args: object,
-  ctx: SubscriptionContext,
+  context: SubscriptionContext,
   info?: object
 ) => AsyncIterable<string | string[]>
 

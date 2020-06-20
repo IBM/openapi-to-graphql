@@ -1,5 +1,5 @@
 # Subscriptions with OpenAPI-to-GraphQL
-Since version 2.1.0, OpenAPI-to-GraphQL supports [GraphQL _subscription_ operations](http://spec.graphql.org/draft/#sec-Subscription). In GraphQL, using a subscription query, clients subscribe to updates on the data defined in the query. In this scneario, when data changes, the server publishes these changes to all clients that have active subscriptions for that data.
+Since version 2.1.0, OpenAPI-to-GraphQL supports [GraphQL _subscription_ operations](http://spec.graphql.org/draft/#sec-Subscription). In GraphQL, using a subscription query, clients subscribe to updates on the data defined in the query. In this scenario, when data changes, the server publishes these changes to all clients that have active subscriptions for that data.
 
 The OpenAPI specification can define similar behavior using [callbacks](https://swagger.io/specification/#callbackObject): a callback defines a request that the server may initiate in response to receiving another request. Callbacks can thus be used to model publish/subscribe behavior. I.e., when the server receives a request to update some data, it can then itself issue callback requests (outside of the first request/response cycle) to any number of subscribed clients to inform about the new data.
 

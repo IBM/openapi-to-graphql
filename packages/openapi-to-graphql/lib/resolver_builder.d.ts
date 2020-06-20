@@ -32,8 +32,8 @@ declare type GetSubscribeParams<TSource, TContext, TArgs> = {
 export declare function getSubscribe<TSource, TContext, TArgs>({ operation, payloadName, data, baseUrl, connectOptions }: GetSubscribeParams<TSource, TContext, TArgs>): GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>;
 export declare function getPublishResolver<TSource, TContext, TArgs>({ operation, responseName, data }: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<TSource, TContext, TArgs>;
 /**
- * If operationType is Query/Mutation, creates and returns a resolver function that performs API requests for the
- * given GraphQL query
+ * If operationType is Query/Mutation, creates and returns a resolver function
+ * that performs API requests for the given GraphQL query
  */
 export declare function getResolver<TSource, TContext, TArgs>({ operation, argsFromLink, payloadName, data, baseUrl, requestOptions }: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<TSource, TContext, TArgs>;
 /**

@@ -456,7 +456,6 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions, connectO
             payloadName: payloadSchemaName,
             data,
             baseUrl,
-            // @ts-ignore
             requestOptions
         });
         return {

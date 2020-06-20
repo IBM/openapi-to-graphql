@@ -104,7 +104,7 @@ const portNumber: number = program.port ? program.port : 3000
 const headers: { [key: string]: string } = parseKeyValuePairs(program.header)
 const qs: { [key: string]: string } = parseKeyValuePairs(program.queryString)
 
-const options: Options = {
+const options: Options<any, any, any> = {
   strict: program.strict,
 
   // Resolver options
@@ -250,9 +250,9 @@ function getRemoteFileSpec(uri): Promise<Oas3> {
  * @param {object} oas the OAS specification file
  * @param {number} port the port number to listen on on this server
  */
-function startGraphQLServer(
+function startGraphQLServer<TSource, TContext, TArgs>(
   oas: Oas3 | Oas2 | (Oas3 | Oas2)[],
-  options: Options,
+  options: Options<TSource, TContext, TArgs>,
   port: number
 ): void {
   // Create GraphQL interface

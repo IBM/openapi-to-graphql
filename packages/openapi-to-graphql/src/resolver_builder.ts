@@ -192,8 +192,9 @@ export function getSubscribe<TSource, TContext, TArgs>({
 }
 
 /*
- * If operationType is Subscription, creates and returns a resolver function triggered
- * after a message has been published to the corresponding subscribe topic(s) to execute payload transformation
+ * If operationType is Subscription, creates and returns a resolver function
+ * triggered after a message has been published to the corresponding subscribe
+ * topic(s) to execute payload transformation
  */
 export function getPublishResolver<TSource, TContext, TArgs>({
   operation,
@@ -225,7 +226,7 @@ export function getPublishResolver<TSource, TContext, TArgs>({
   }
 
   return (payload, args, context, info) => {
-    // Validate and format based on operation.responseDefinition  ...
+    // Validate and format based on operation.responseDefinition
     const typeOfResponse = operation.responseDefinition.targetGraphQLType
     pubsubLog(
       `Message received: ${responseName}, ${typeOfResponse}, ${JSON.stringify(
@@ -287,8 +288,8 @@ export function getPublishResolver<TSource, TContext, TArgs>({
 }
 
 /**
- * If operationType is Query/Mutation, creates and returns a resolver function that performs API requests for the
- * given GraphQL query
+ * If operationType is Query/Mutation, creates and returns a resolver function
+ * that performs API requests for the given GraphQL query
  */
 export function getResolver<TSource, TContext, TArgs>({
   operation,
@@ -490,8 +491,6 @@ export function getResolver<TSource, TContext, TArgs>({
             info
           })
 
-          console.log('headers', headers)
-
           if (typeof headers === 'object') {
             Object.assign(options.headers, headers, headers)
           }
@@ -546,8 +545,6 @@ export function getResolver<TSource, TContext, TArgs>({
       resolveData.usedPayload = rawPayload
     }
 
-    console.log('ctx', context)
-
     /**
      * Pass on OpenAPI-to-GraphQL options
      */
@@ -556,16 +553,12 @@ export function getResolver<TSource, TContext, TArgs>({
       if (typeof data.options.headers === 'object') {
         Object.assign(options.headers, data.options.headers)
       } else if (typeof data.options.headers === 'function') {
-        console.log('is Function')
-
         const headers = data.options.headers(method, path, title, {
           source,
           args,
           context,
           info
         })
-
-        console.log('result', headers)
 
         if (typeof headers === 'object') {
           Object.assign(options.headers, headers)
@@ -577,34 +570,6 @@ export function getResolver<TSource, TContext, TArgs>({
         Object.assign(options.qs, data.options.qs)
       }
     }
-
-    // /**
-    //  * Pass on OpenAPI-to-GraphQL options
-    //  */
-    // if (typeof data.options === 'object') {
-    //   // Headers:
-    //   if (typeof data.options.headers === 'object') {
-    //     Object.assign(options.headers, data.options.headers)
-    //   } else if (typeof data.options.headers === 'function') {
-    //     const headers = data.options.headers(
-    //       ctx['request'],
-    //       method,
-    //       path,
-    //       title
-    //     )
-
-    //     if (typeof headers === 'object') {
-    //       Object.assign(options.headers, headers)
-    //     }
-    //   }
-
-    //   // Query string:
-    //   if (typeof data.options.qs === 'object') {
-    //     Object.assign(options.qs, data.options.qs)
-    //   }
-    // }
-
-    // console.log('header options', options.headers, requestOptions.headers, data.options)
 
     // Get authentication headers and query parameters
     if (
@@ -875,7 +840,7 @@ export function getResolver<TSource, TContext, TArgs>({
 
 /**
  * Attempts to create an object to become an OAuth query string by extracting an
- * OAuth token from the ctx based on the JSON path provided in the options.
+ * OAuth token from the context based on the JSON path provided in the options.
  */
 function createOAuthQS<TSource, TContext, TArgs>(
   data: PreprocessingData<TSource, TContext, TArgs>,
@@ -910,7 +875,7 @@ function extractToken<TSource, TContext, TArgs>(
 
 /**
  * Attempts to create an OAuth authorization header by extracting an OAuth token
- * from the ctx based on the JSON path provided in the options.
+ * from the context based on the JSON path provided in the options.
  */
 function createOAuthHeader<TSource, TContext, TArgs>(
   data: PreprocessingData<TSource, TContext, TArgs>,
