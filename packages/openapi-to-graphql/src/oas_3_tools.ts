@@ -40,6 +40,7 @@ import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning } from './utils'
+import * as jsonptr from 'json-ptr'
 import * as pluralize from 'pluralize'
 
 // Type definitions & exports:
@@ -231,37 +232,7 @@ export function countOperationsWithPayload(oas: Oas3): number {
  * Resolves the given reference in the given object.
  */
 export function resolveRef(ref: string, oas: Oas3): any {
-  // Break path into individual tokens
-  const parts = ref.split('/')
-  const resolvedObject = resolveRefHelper(oas, parts)
-
-  if (resolvedObject !== null) {
-    return resolvedObject
-  } else {
-    throw new Error(
-      `Could not resolve reference '${ref}' in OAS '${oas.info.title}'`
-    )
-  }
-}
-
-/**
- * Helper for resolveRef
- *
- * @param parts The path to be resolved, but broken into tokens
- */
-function resolveRefHelper(obj: object, parts?: string[]): any {
-  if (parts.length === 0) {
-    return obj
-  }
-
-  const firstElement = parts.splice(0, 1)[0]
-  if (firstElement in obj) {
-    return resolveRefHelper(obj[firstElement], parts)
-  } else if (firstElement === '#') {
-    return resolveRefHelper(obj, parts)
-  } else {
-    return null
-  }
+  return jsonptr.get(oas, ref)
 }
 
 /**
