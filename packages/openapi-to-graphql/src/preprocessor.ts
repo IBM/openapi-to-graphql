@@ -1504,14 +1504,10 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
     if (
       oneOfData.allTargetGraphQLTypes.every(memberTargetGraphQLType => {
         return memberTargetGraphQLType === 'object'
-      }) &&
-      oneOfData.allProperties.length > 0 // Redundant check
+      })
     ) {
       // Ensure that parent schema is compatiable with oneOf
-      if (
-        def.targetGraphQLType === null ||
-        def.targetGraphQLType === 'object'
-      ) {
+      if (def.targetGraphQLType === 'union') {
         def.subDefinitions = []
 
         collapsedSchema.oneOf.forEach(memberSchema => {

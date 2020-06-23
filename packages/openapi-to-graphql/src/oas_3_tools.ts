@@ -377,6 +377,13 @@ export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
   schema: SchemaObject,
   data: PreprocessingData<TSource, TContext, TArgs>
 ): string | null {
+  if (schema.oneOf) {
+    return 'union'
+  }
+
+  if (schema.allOf) {
+    return 'object'
+  }
   // CASE: object
   if (schema.type === 'object' || typeof schema.properties === 'object') {
     // TODO: additionalProperties is more like a flag than a type itself
