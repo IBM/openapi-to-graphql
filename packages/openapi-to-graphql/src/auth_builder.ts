@@ -26,7 +26,7 @@ import {
 import { getGraphQLType } from './schema_builder'
 import * as Oas3Tools from './oas_3_tools'
 import debug from 'debug'
-import { handleWarning, sortObject } from './utils'
+import { handleWarning, sortObject, MitigationTypes } from './utils'
 import { createDataDef } from './preprocessor'
 
 // Type definitions & exports:
@@ -92,7 +92,7 @@ export function createAndLoadViewer<TSource, TContext, TArgs>(
 
         default:
           handleWarning({
-            typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+            mitigationType: MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
             message:
               `Currently unsupported HTTP authentication protocol ` +
               `type 'http' and scheme '${scheme}'`,

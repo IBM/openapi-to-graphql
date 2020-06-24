@@ -43,7 +43,7 @@ import * as Oas3Tools from './oas_3_tools'
 import { getResolver } from './resolver_builder'
 import { createDataDef } from './preprocessor'
 import debug from 'debug'
-import { handleWarning, sortObject } from './utils'
+import { handleWarning, sortObject, MitigationTypes } from './utils'
 
 type GetArgsParams<TSource, TContext, TArgs> = {
   requestPayloadDef?: DataDefinition
@@ -395,7 +395,7 @@ function checkAmbiguousMemberTypes<TSource, TContext, TArgs>(
         })
       ) {
         handleWarning({
-          typeKey: 'AMBIGUOUS_UNION_MEMBERS',
+          mitigationType: MitigationTypes.AMBIGUOUS_UNION_MEMBERS,
           message:
             `Union created from schema '${JSON.stringify(def)}' contains ` +
             `member types such as '${currentType}' and '${otherType}' ` +
@@ -607,7 +607,7 @@ function createFields<TSource, TContext, TArgs>({
       }
     } else {
       handleWarning({
-        typeKey: 'CANNOT_GET_FIELD_TYPE',
+        mitigationType: MitigationTypes.CANNOT_GET_FIELD_TYPE,
         message:
           `Cannot obtain GraphQL type for field '${fieldTypeKey}' in ` +
           `GraphQL type '${JSON.stringify(def.schema)}'.`,
@@ -627,7 +627,7 @@ function createFields<TSource, TContext, TArgs>({
       // Check if key is already in fields
       if (saneLinkKey in fields) {
         handleWarning({
-          typeKey: 'LINK_NAME_COLLISION',
+          mitigationType: MitigationTypes.LINK_NAME_COLLISION,
           message:
             `Cannot create link '${saneLinkKey}' because parent ` +
             `object type already contains a field with the same (sanitized) name.`,
@@ -713,7 +713,7 @@ function createFields<TSource, TContext, TArgs>({
           }
         } else {
           handleWarning({
-            typeKey: 'UNRESOLVABLE_LINK',
+            mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
             message: `Cannot resolve target of link '${saneLinkKey}'`,
             data,
             log: translationLog
@@ -773,7 +773,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
         const lastPathIndex = operationRef.lastIndexOf('#/paths/')
         if (firstPathIndex !== lastPathIndex) {
           handleWarning({
-            typeKey: 'AMBIGUOUS_LINK',
+            mitigationType: MitigationTypes.AMBIGUOUS_LINK,
             message:
               `The link '${linkKey}' in operation '${operation.operationString}' ` +
               `contains an ambiguous operationRef '${operationRef}', ` +
@@ -791,7 +791,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
         // Cannot find relative path candidate
       } else {
         handleWarning({
-          typeKey: 'UNRESOLVABLE_LINK',
+          mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
           message:
             `The link '${linkKey}' in operation '${operation.operationString}' ` +
             `does not contain a valid path in operationRef '${operationRef}', ` +
@@ -837,7 +837,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
           // Check if method is a valid method
           if (!Oas3Tools.OAS_OPERATIONS.includes(linkMethod)) {
             handleWarning({
-              typeKey: 'UNRESOLVABLE_LINK',
+              mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
               message:
                 `The operationRef '${operationRef}' contains an ` +
                 `invalid HTTP method '${linkMethod}'`,
@@ -850,7 +850,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
           // There is no method at the end of the path
         } else {
           handleWarning({
-            typeKey: 'UNRESOLVABLE_LINK',
+            mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
             message:
               `The operationRef '${operationRef}' does not contain an` +
               `HTTP method`,
@@ -905,7 +905,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
               return linkedOpId
             } else {
               handleWarning({
-                typeKey: 'UNRESOLVABLE_LINK',
+                mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
                 message:
                   `The link '${linkKey}' references an operation with ` +
                   `operationId '${linkedOpId}' but no such operation exists. ` +
@@ -921,7 +921,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
             // Path and method could not be found
           } else {
             handleWarning({
-              typeKey: 'UNRESOLVABLE_LINK',
+              mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
               message:
                 `Cannot identify path and/or method, '${linkPath} and ` +
                 `'${linkMethod}' respectively, from operationRef ` +
@@ -936,7 +936,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
           // External link could not be resolved
         } else {
           handleWarning({
-            typeKey: 'UNRESOLVABLE_LINK',
+            mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
             message:
               `The link '${link.operationRef}' references an external OAS ` +
               `but it was not provided`,
@@ -950,7 +950,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
         // Cannot split relative path into path and method sections
       } else {
         handleWarning({
-          typeKey: 'UNRESOLVABLE_LINK',
+          mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
           message:
             `Cannot extract path and/or method from operationRef ` +
             `'${operationRef}' in link '${linkKey}'`,
@@ -964,7 +964,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
       // Cannot extract relative path from absolute path
     } else {
       handleWarning({
-        typeKey: 'UNRESOLVABLE_LINK',
+        mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
         message:
           `Cannot extract path and/or method from operationRef ` +
           `'${operationRef}' in link '${linkKey}'`,
@@ -1072,7 +1072,7 @@ export function getArgs<TSource, TContext, TArgs>({
     // We need at least a name
     if (typeof parameter.name !== 'string') {
       handleWarning({
-        typeKey: 'INVALID_OAS',
+        mitigationType: MitigationTypes.INVALID_OAS,
         message:
           `The operation '${operation.operationString}' contains a ` +
           `parameter '${JSON.stringify(parameter)}' with no 'name' property`,
@@ -1104,7 +1104,7 @@ export function getArgs<TSource, TContext, TArgs>({
         schema = parameter.content['application/json'].schema
       } else {
         handleWarning({
-          typeKey: 'NON_APPLICATION_JSON_SCHEMA',
+          mitigationType: MitigationTypes.NON_APPLICATION_JSON_SCHEMA,
           message:
             `The operation '${operation.operationString}' contains a ` +
             `parameter '${JSON.stringify(parameter)}' that has a 'content' ` +
@@ -1118,7 +1118,7 @@ export function getArgs<TSource, TContext, TArgs>({
     } else {
       // Invalid OAS according to 3.0.2
       handleWarning({
-        typeKey: 'INVALID_OAS',
+        mitigationType: MitigationTypes.INVALID_OAS,
         message:
           `The operation '${operation.operationString}' contains a ` +
           `parameter '${JSON.stringify(parameter)}' with no 'schema' or ` +
@@ -1199,7 +1199,7 @@ export function getArgs<TSource, TContext, TArgs>({
     // Make sure slicing arguments will not overwrite preexisting arguments
     if ('limit' in args) {
       handleWarning({
-        typeKey: 'LIMIT_ARGUMENT_NAME_COLLISION',
+        mitigationType: MitigationTypes.LIMIT_ARGUMENT_NAME_COLLISION,
         message:
           `The 'limit' argument cannot be added ` +
           `because of a preexisting argument in ` +
@@ -1284,7 +1284,7 @@ function getOasFromLinkLocation<TSource, TContext, TArgs>(
       } else if (possibleOass.length > 1) {
         // Some ambiguity
         handleWarning({
-          typeKey: 'AMBIGUOUS_LINK',
+          mitigationType: MitigationTypes.AMBIGUOUS_LINK,
           message:
             `The operationRef '${link.operationRef}' references an ` +
             `OAS '${linkLocation}' but multiple OASs share the same title`,
@@ -1294,7 +1294,7 @@ function getOasFromLinkLocation<TSource, TContext, TArgs>(
       } else {
         // No OAS had the expected title
         handleWarning({
-          typeKey: 'UNRESOLVABLE_LINK',
+          mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
           message:
             `The operationRef '${link.operationRef}' references an ` +
             `OAS '${linkLocation}' but no such OAS was provided`,
@@ -1316,7 +1316,7 @@ function getOasFromLinkLocation<TSource, TContext, TArgs>(
     // In cases of names like api.io
     default:
       handleWarning({
-        typeKey: 'UNRESOLVABLE_LINK',
+        mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
         message:
           `The link location of the operationRef ` +
           `'${link.operationRef}' is currently not supported\n` +

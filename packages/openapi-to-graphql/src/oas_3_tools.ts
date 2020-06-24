@@ -39,7 +39,7 @@ import { InternalOptions } from './types/options'
 import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
 import debug from 'debug'
-import { handleWarning } from './utils'
+import { handleWarning, MitigationTypes } from './utils'
 import * as jsonptr from 'json-ptr'
 import * as pluralize from 'pluralize'
 
@@ -784,7 +784,7 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
         responseSchema: {
           description:
             'Placeholder to support operations with no response schema',
-          type: 'string'
+          type: 'object'
         }
       }
     }
@@ -812,7 +812,7 @@ export function getResponseStatusCode<TSource, TContext, TArgs>(
       return successCodes[0]
     } else if (successCodes.length > 1) {
       handleWarning({
-        typeKey: 'MULTIPLE_RESPONSES',
+        mitigationType: MitigationTypes.MULTIPLE_RESPONSES,
         message:
           `Operation '${formatOperationString(
             method,

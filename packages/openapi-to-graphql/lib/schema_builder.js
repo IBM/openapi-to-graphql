@@ -249,7 +249,7 @@ function checkAmbiguousMemberTypes(def, types, data) {
                 return Object.keys(otherType.getFields()).includes(field);
             })) {
                 utils_1.handleWarning({
-                    typeKey: 'AMBIGUOUS_UNION_MEMBERS',
+                    mitigationType: utils_1.MitigationTypes.AMBIGUOUS_UNION_MEMBERS,
                     message: `Union created from schema '${JSON.stringify(def)}' contains ` +
                         `member types such as '${currentType}' and '${otherType}' ` +
                         `which are ambiguous. Ambiguous member types can cause ` +
@@ -405,7 +405,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         }
         else {
             utils_1.handleWarning({
-                typeKey: 'CANNOT_GET_FIELD_TYPE',
+                mitigationType: utils_1.MitigationTypes.CANNOT_GET_FIELD_TYPE,
                 message: `Cannot obtain GraphQL type for field '${fieldTypeKey}' in ` +
                     `GraphQL type '${JSON.stringify(def.schema)}'.`,
                 data,
@@ -421,7 +421,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             // Check if key is already in fields
             if (saneLinkKey in fields) {
                 utils_1.handleWarning({
-                    typeKey: 'LINK_NAME_COLLISION',
+                    mitigationType: utils_1.MitigationTypes.LINK_NAME_COLLISION,
                     message: `Cannot create link '${saneLinkKey}' because parent ` +
                         `object type already contains a field with the same (sanitized) name.`,
                     data,
@@ -498,7 +498,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                 }
                 else {
                     utils_1.handleWarning({
-                        typeKey: 'UNRESOLVABLE_LINK',
+                        mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                         message: `Cannot resolve target of link '${saneLinkKey}'`,
                         data,
                         log: translationLog
@@ -547,7 +547,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 const lastPathIndex = operationRef.lastIndexOf('#/paths/');
                 if (firstPathIndex !== lastPathIndex) {
                     utils_1.handleWarning({
-                        typeKey: 'AMBIGUOUS_LINK',
+                        mitigationType: utils_1.MitigationTypes.AMBIGUOUS_LINK,
                         message: `The link '${linkKey}' in operation '${operation.operationString}' ` +
                             `contains an ambiguous operationRef '${operationRef}', ` +
                             `meaning it has multiple instances of the string '#/paths/'`,
@@ -562,7 +562,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
             }
             else {
                 utils_1.handleWarning({
-                    typeKey: 'UNRESOLVABLE_LINK',
+                    mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                     message: `The link '${linkKey}' in operation '${operation.operationString}' ` +
                         `does not contain a valid path in operationRef '${operationRef}', ` +
                         `meaning it does not contain a string '#/paths/'`,
@@ -600,7 +600,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                     // Check if method is a valid method
                     if (!Oas3Tools.OAS_OPERATIONS.includes(linkMethod)) {
                         utils_1.handleWarning({
-                            typeKey: 'UNRESOLVABLE_LINK',
+                            mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                             message: `The operationRef '${operationRef}' contains an ` +
                                 `invalid HTTP method '${linkMethod}'`,
                             data,
@@ -612,7 +612,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 }
                 else {
                     utils_1.handleWarning({
-                        typeKey: 'UNRESOLVABLE_LINK',
+                        mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                         message: `The operationRef '${operationRef}' does not contain an` +
                             `HTTP method`,
                         data,
@@ -657,7 +657,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                         }
                         else {
                             utils_1.handleWarning({
-                                typeKey: 'UNRESOLVABLE_LINK',
+                                mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                                 message: `The link '${linkKey}' references an operation with ` +
                                     `operationId '${linkedOpId}' but no such operation exists. ` +
                                     `Note that the operationId may be autogenerated but ` +
@@ -671,7 +671,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                     }
                     else {
                         utils_1.handleWarning({
-                            typeKey: 'UNRESOLVABLE_LINK',
+                            mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                             message: `Cannot identify path and/or method, '${linkPath} and ` +
                                 `'${linkMethod}' respectively, from operationRef ` +
                                 `'${operationRef}' in link '${linkKey}'`,
@@ -684,7 +684,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 }
                 else {
                     utils_1.handleWarning({
-                        typeKey: 'UNRESOLVABLE_LINK',
+                        mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                         message: `The link '${link.operationRef}' references an external OAS ` +
                             `but it was not provided`,
                         data,
@@ -696,7 +696,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
             }
             else {
                 utils_1.handleWarning({
-                    typeKey: 'UNRESOLVABLE_LINK',
+                    mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                     message: `Cannot extract path and/or method from operationRef ` +
                         `'${operationRef}' in link '${linkKey}'`,
                     data,
@@ -708,7 +708,7 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
         }
         else {
             utils_1.handleWarning({
-                typeKey: 'UNRESOLVABLE_LINK',
+                mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                 message: `Cannot extract path and/or method from operationRef ` +
                     `'${operationRef}' in link '${linkKey}'`,
                 data,
@@ -780,7 +780,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
-                typeKey: 'INVALID_OAS',
+                mitigationType: utils_1.MitigationTypes.INVALID_OAS,
                 message: `The operation '${operation.operationString}' contains a ` +
                     `parameter '${JSON.stringify(parameter)}' with no 'name' property`,
                 data,
@@ -809,7 +809,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             }
             else {
                 utils_1.handleWarning({
-                    typeKey: 'NON_APPLICATION_JSON_SCHEMA',
+                    mitigationType: utils_1.MitigationTypes.NON_APPLICATION_JSON_SCHEMA,
                     message: `The operation '${operation.operationString}' contains a ` +
                         `parameter '${JSON.stringify(parameter)}' that has a 'content' ` +
                         `property but no schemas in application/json format. The ` +
@@ -823,7 +823,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         else {
             // Invalid OAS according to 3.0.2
             utils_1.handleWarning({
-                typeKey: 'INVALID_OAS',
+                mitigationType: utils_1.MitigationTypes.INVALID_OAS,
                 message: `The operation '${operation.operationString}' contains a ` +
                     `parameter '${JSON.stringify(parameter)}' with no 'schema' or ` +
                     `'content' property`,
@@ -885,7 +885,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         // Make sure slicing arguments will not overwrite preexisting arguments
         if ('limit' in args) {
             utils_1.handleWarning({
-                typeKey: 'LIMIT_ARGUMENT_NAME_COLLISION',
+                mitigationType: utils_1.MitigationTypes.LIMIT_ARGUMENT_NAME_COLLISION,
                 message: `The 'limit' argument cannot be added ` +
                     `because of a preexisting argument in ` +
                     `operation ${operation.operationString}`,
@@ -958,7 +958,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
             else if (possibleOass.length > 1) {
                 // Some ambiguity
                 utils_1.handleWarning({
-                    typeKey: 'AMBIGUOUS_LINK',
+                    mitigationType: utils_1.MitigationTypes.AMBIGUOUS_LINK,
                     message: `The operationRef '${link.operationRef}' references an ` +
                         `OAS '${linkLocation}' but multiple OASs share the same title`,
                     data,
@@ -968,7 +968,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
             else {
                 // No OAS had the expected title
                 utils_1.handleWarning({
-                    typeKey: 'UNRESOLVABLE_LINK',
+                    mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                     message: `The operationRef '${link.operationRef}' references an ` +
                         `OAS '${linkLocation}' but no such OAS was provided`,
                     data,
@@ -986,7 +986,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
         // In cases of names like api.io
         default:
             utils_1.handleWarning({
-                typeKey: 'UNRESOLVABLE_LINK',
+                mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                 message: `The link location of the operationRef ` +
                     `'${link.operationRef}' is currently not supported\n` +
                     `Currently only the title of the OAS is supported`,

@@ -180,7 +180,7 @@ provideErrorExtensions, equivalentToMessages }) {
                     }
                     if (fieldName in authQueryFields[securityRequirement]) {
                         utils_1.handleWarning({
-                            typeKey: 'DUPLICATE_FIELD_NAME',
+                            mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
                             message: `Multiple operations have the same name ` +
                                 `'${fieldName}' and security requirement ` +
                                 `'${securityRequirement}'. GraphQL field names must be ` +
@@ -207,7 +207,7 @@ provideErrorExtensions, equivalentToMessages }) {
                 }
                 if (fieldName in queryFields) {
                     utils_1.handleWarning({
-                        typeKey: 'DUPLICATE_FIELD_NAME',
+                        mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
                         message: `Multiple operations have the same name ` +
                             `'${fieldName}'. GraphQL field names must be ` +
                             `unique so only one can be added to the Query object. ` +
@@ -241,7 +241,7 @@ provideErrorExtensions, equivalentToMessages }) {
                     }
                     if (saneFieldName in authMutationFields[securityRequirement]) {
                         utils_1.handleWarning({
-                            typeKey: 'DUPLICATE_FIELD_NAME',
+                            mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
                             message: `Multiple operations have the same name ` +
                                 `'${saneFieldName}' and security requirement ` +
                                 `'${securityRequirement}'. GraphQL field names must be ` +
@@ -259,7 +259,7 @@ provideErrorExtensions, equivalentToMessages }) {
             else {
                 if (saneFieldName in mutationFields) {
                     utils_1.handleWarning({
-                        typeKey: 'DUPLICATE_FIELD_NAME',
+                        mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
                         message: `Multiple operations have the same name ` +
                             `'${saneFieldName}'. GraphQL field names must be ` +
                             `unique so only one can be added to the Mutation object. ` +
@@ -287,7 +287,7 @@ provideErrorExtensions, equivalentToMessages }) {
                 }
                 if (saneFieldName in authSubscriptionFields[securityRequirement]) {
                     utils_1.handleWarning({
-                        typeKey: 'DUPLICATE_FIELD_NAME',
+                        mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
                         message: `Multiple operations have the same name ` +
                             `'${saneFieldName}' and security requirement ` +
                             `'${securityRequirement}'. GraphQL field names must be ` +
@@ -305,7 +305,7 @@ provideErrorExtensions, equivalentToMessages }) {
         else {
             if (saneFieldName in subscriptionFields) {
                 utils_1.handleWarning({
-                    typeKey: 'DUPLICATE_FIELD_NAME',
+                    mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
                     message: `Multiple operations have the same name ` +
                         `'${saneFieldName}'. GraphQL field names must be ` +
                         `unique so only one can be added to the Mutation object. ` +
@@ -483,7 +483,7 @@ function checkCustomResolversStructure(customResolvers, data) {
         })
             .forEach(title => {
             utils_1.handleWarning({
-                typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
+                mitigationType: utils_1.MitigationTypes.CUSTOM_RESOLVER_UNKNOWN_OAS,
                 message: `Custom resolvers reference OAS '${title}' but no such ` +
                     `OAS was provided`,
                 data,
@@ -502,7 +502,7 @@ function checkCustomResolversStructure(customResolvers, data) {
                         return path === operation.path && method === operation.method;
                     })) {
                         utils_1.handleWarning({
-                            typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
+                            mitigationType: utils_1.MitigationTypes.CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD,
                             message: `A custom resolver references an operation with ` +
                                 `path '${path}' and method '${method}' but no such operation ` +
                                 `exists in OAS '${title}'`,
@@ -528,7 +528,7 @@ function preliminaryChecks(options, data) {
         return titles.indexOf(title) !== index;
     })).forEach(title => {
         utils_1.handleWarning({
-            typeKey: 'MULTIPLE_OAS_SAME_TITLE',
+            mitigationType: utils_1.MitigationTypes.MULTIPLE_OAS_SAME_TITLE,
             message: `Multiple OAS share the same title '${title}'`,
             data,
             log: translationLog

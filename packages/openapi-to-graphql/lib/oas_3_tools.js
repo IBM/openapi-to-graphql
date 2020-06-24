@@ -583,7 +583,7 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
                 responseContentType: 'application/json',
                 responseSchema: {
                     description: 'Placeholder to support operations with no response schema',
-                    type: 'string'
+                    type: 'object'
                 }
             };
         }
@@ -605,7 +605,7 @@ function getResponseStatusCode(path, method, operation, oas, data) {
         }
         else if (successCodes.length > 1) {
             utils_1.handleWarning({
-                typeKey: 'MULTIPLE_RESPONSES',
+                mitigationType: utils_1.MitigationTypes.MULTIPLE_RESPONSES,
                 message: `Operation '${formatOperationString(method, path, oas.info.title)}' ` +
                     `contains multiple possible successful response object ` +
                     `(HTTP code 200-299 or 2XX). Only one can be chosen.`,

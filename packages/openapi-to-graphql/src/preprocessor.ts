@@ -24,7 +24,7 @@ import {
 import * as Oas3Tools from './oas_3_tools'
 import * as deepEqual from 'deep-equal'
 import debug from 'debug'
-import { handleWarning, getCommonPropertyNames } from './utils'
+import { handleWarning, getCommonPropertyNames, MitigationTypes } from './utils'
 import { GraphQLOperationType } from './types/graphql'
 
 const preprocessingLog = debug('preprocessing')
@@ -114,7 +114,7 @@ function processOperation<TSource, TContext, TArgs>(
 
   if (!responseSchema || typeof responseSchema !== 'object') {
     handleWarning({
-      typeKey: 'MISSING_RESPONSE_SCHEMA',
+      mitigationType: MitigationTypes.MISSING_RESPONSE_SCHEMA,
       message:
         `Operation ${operationString} has no (valid) response schema. ` +
         `You can use the fillEmptyResponses option to create a ` +
@@ -224,7 +224,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
     )
     commonSecurityPropertyName.forEach(propertyName => {
       handleWarning({
-        typeKey: 'DUPLICATE_SECURITY_SCHEME',
+        mitigationType: MitigationTypes.DUPLICATE_SECURITY_SCHEME,
         message: `Multiple OASs share security schemes with the same name '${propertyName}'`,
         mitigationAddendum:
           `The security scheme from OAS ` +
@@ -308,7 +308,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
               data.operations[operationData.operationId] = operationData
             } else {
               handleWarning({
-                typeKey: 'DUPLICATE_OPERATIONID',
+                mitigationType: MitigationTypes.DUPLICATE_OPERATIONID,
                 message: `Multiple OASs share operations with the same operationId '${operationData.operationId}'`,
                 mitigationAddendum: `The operation from the OAS '${operationData.oas.info.title}' will be ignored`,
                 data,
@@ -353,8 +353,8 @@ export function preprocessOas<TSource, TContext, TArgs>(
                     if (callbackOperationObjectMethods.length > 0) {
                       if (callbackOperationObjectMethods.length > 1) {
                         handleWarning({
-                          typeKey:
-                            'CALLBACKS_MULTIPLE_OPERATION_OBJECT_METHODS',
+                          mitigationType:
+                            MitigationTypes.CALLBACKS_MULTIPLE_OPERATION_OBJECTS,
                           message: `Callback '${callbackExpression}' on operation '${operationString}' has multiple operation objects with the methods '${callbackOperationObjectMethods}'. OpenAPI-to-GraphQL can only utilize one of these operation objects.`,
                           mitigationAddendum: `The operation with the method '${callbackOperationObjectMethods[0]}' will be selected and all others will be ignored.`,
                           data,
@@ -399,7 +399,8 @@ export function preprocessOas<TSource, TContext, TArgs>(
                           ] = callbackOperation
                         } else {
                           handleWarning({
-                            typeKey: 'DUPLICATE_OPERATIONID',
+                            mitigationType:
+                              MitigationTypes.DUPLICATE_OPERATIONID,
                             message: `Multiple OASs share callback operations with the same operationId '${callbackOperation.operationId}'`,
                             mitigationAddendum: `The callback operation from the OAS '${operationData.oas.info.title}' will be ignored`,
                             data,
@@ -535,7 +536,7 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
 
           default:
             handleWarning({
-              typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+              mitigationType: MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
               message:
                 `Currently unsupported HTTP authentication protocol ` +
                 `type 'http' and scheme '${protocol.scheme}' in OAS ` +
@@ -549,7 +550,7 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
       // TODO: Implement
       case 'openIdConnect':
         handleWarning({
-          typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+          mitigationType: MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
           message:
             `Currently unsupported HTTP authentication protocol ` +
             `type 'openIdConnect' in OAS '${oas.info.title}'`,
@@ -561,7 +562,7 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
 
       case 'oauth2':
         handleWarning({
-          typeKey: 'OAUTH_SECURITY_SCHEME',
+          mitigationType: MitigationTypes.OAUTH_SECURITY_SCHEME,
           message:
             `OAuth security scheme found in OAS '${oas.info.title}'. ` +
             `OAuth support is provided using the 'tokenJSONpath' option`,
@@ -574,7 +575,7 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
 
       default:
         handleWarning({
-          typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+          mitigationType: MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
           message:
             `Unsupported HTTP authentication protocol` +
             `type '${protocol.type}' in OAS '${oas.info.title}'`,
@@ -612,7 +613,7 @@ export function createDataDef<TSource, TContext, TArgs>(
   // Basic validation test
   if (typeof schema !== 'object') {
     handleWarning({
-      typeKey: 'MISSING_SCHEMA',
+      mitigationType: MitigationTypes.MISSING_SCHEMA,
       message:
         `Could not create data definition for schema with ` +
         `preferred name '${preferredName}' and schema '${JSON.stringify(
@@ -675,7 +676,7 @@ export function createDataDef<TSource, TContext, TArgs>(
               )
             ) {
               handleWarning({
-                typeKey: 'DUPLICATE_LINK_KEY',
+                mitigationType: MitigationTypes.DUPLICATE_LINK_KEY,
                 message:
                   `Multiple operations with the same response body share the same sanitized ` +
                   `link key '${saneLinkKey}' but have different link definitions ` +
@@ -770,7 +771,7 @@ export function createDataDef<TSource, TContext, TArgs>(
         hasNestedOneOfUsage(collapsedSchema, oas)
       ) {
         handleWarning({
-          typeKey: 'COMBINE_SCHEMAS',
+          mitigationType: MitigationTypes.COMBINE_SCHEMAS,
           message:
             `Schema '${JSON.stringify(schema)}' contains either both ` +
             `'anyOf' and 'oneOf' or nested 'anyOf' and 'oneOf' which ` +
@@ -865,7 +866,7 @@ export function createDataDef<TSource, TContext, TArgs>(
               )
             } else {
               handleWarning({
-                typeKey: 'OBJECT_MISSING_PROPERTIES',
+                mitigationType: MitigationTypes.OBJECT_MISSING_PROPERTIES,
                 message:
                   `Schema ${JSON.stringify(schema)} does not have ` +
                   `any properties`,
@@ -882,7 +883,7 @@ export function createDataDef<TSource, TContext, TArgs>(
         // No target GraphQL type
 
         handleWarning({
-          typeKey: 'UNKNOWN_TARGET_TYPE',
+          mitigationType: MitigationTypes.UNKNOWN_TARGET_TYPE,
           message: `No GraphQL target type could be identified for schema '${JSON.stringify(
             schema
           )}'.`,
@@ -1077,7 +1078,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
       def.subDefinitions[propertyKey] = subDefinition
     } else {
       handleWarning({
-        typeKey: 'DUPLICATE_FIELD_NAME',
+        mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
         message:
           `By way of resolving 'allOf', multiple schemas contain ` +
           `properties with the same name, preventing consolidation. Cannot ` +
@@ -1132,7 +1133,7 @@ function resolveAllOf<TSource, TContext, TArgs>(
           // Incompatible schema type
 
           handleWarning({
-            typeKey: 'UNRESOLVABLE_SCHEMA',
+            mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
             message:
               `Resolving 'allOf' field in schema '${collapsedSchema}' ` +
               `results in incompatible schema type from partial schema '${resolvedSchema}'.`,
@@ -1154,7 +1155,7 @@ function resolveAllOf<TSource, TContext, TArgs>(
               // Conflicting property
 
               handleWarning({
-                typeKey: 'UNRESOLVABLE_SCHEMA',
+                mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
                 message:
                   `Resolving 'allOf' field in schema '${collapsedSchema}' ` +
                   `results in incompatible property field from partial schema '${resolvedSchema}'.`,
@@ -1343,7 +1344,7 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
       }) &&
       anyOfData.allProperties.length > 0 // Redundant check
     ) {
-      // Ensure that parent schema is compatiable with oneOf
+      // Ensure that parent schema is compatible with oneOf
       if (
         def.targetGraphQLType === null ||
         def.targetGraphQLType === 'object'
@@ -1450,7 +1451,7 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
         // The parent schema is incompatible with the member schemas
 
         handleWarning({
-          typeKey: 'COMBINE_SCHEMAS',
+          mitigationType: MitigationTypes.COMBINE_SCHEMAS,
           message:
             `Schema '${JSON.stringify(def.schema)}' contains 'anyOf' and ` +
             `some member schemas are object types so create a GraphQL ` +
@@ -1468,7 +1469,7 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
       // The member schemas are not all object types
 
       handleWarning({
-        typeKey: 'COMBINE_SCHEMAS',
+        mitigationType: MitigationTypes.COMBINE_SCHEMAS,
         message:
           `Schema '${def.schema}' contains 'anyOf' and ` +
           `some member schemas are object types so create a GraphQL ` +
@@ -1507,7 +1508,20 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
       }) &&
       oneOfData.allProperties.length > 0 // Redundant check
     ) {
-      // Ensure that parent schema is compatiable with oneOf
+      // Input object types cannot be composed of unions
+      if (isInputObjectType) {
+        handleWarning({
+          mitigationType: MitigationTypes.INPUT_UNION,
+          message: `Input object types cannot be composed of union types.`,
+          data,
+          log: preprocessingLog
+        })
+
+        def.targetGraphQLType = 'json'
+        return def
+      }
+
+      // Ensure that parent schema is compatible with oneOf
       if (
         def.targetGraphQLType === null ||
         def.targetGraphQLType === 'object'
@@ -1544,7 +1558,7 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
             ;(def.subDefinitions as DataDefinition[]).push(subDefinition)
           } else {
             handleWarning({
-              typeKey: 'COMBINE_SCHEMAS',
+              mitigationType: MitigationTypes.COMBINE_SCHEMAS,
               message:
                 `Schema '${JSON.stringify(def.schema)}' contains 'oneOf' so ` +
                 `create a GraphQL union type but member schema '${JSON.stringify(
@@ -1575,7 +1589,7 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
           return def
         } else {
           handleWarning({
-            typeKey: 'COMBINE_SCHEMAS',
+            mitigationType: MitigationTypes.COMBINE_SCHEMAS,
             message:
               `Schema '${JSON.stringify(def.schema)}' contains 'oneOf' so ` +
               `create a GraphQL union type but all member schemas are not` +
@@ -1593,7 +1607,7 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
         // The parent schema is incompatible with the member schemas
 
         handleWarning({
-          typeKey: 'COMBINE_SCHEMAS',
+          mitigationType: MitigationTypes.COMBINE_SCHEMAS,
           message:
             `Schema '${JSON.stringify(
               def.schema
@@ -1612,7 +1626,7 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
       // The member schemas are not all object types
 
       handleWarning({
-        typeKey: 'COMBINE_SCHEMAS',
+        mitigationType: MitigationTypes.COMBINE_SCHEMAS,
         message:
           `Schema '${JSON.stringify(def.schema)}' contains 'oneOf' so create ` +
           `a GraphQL union type but some member schemas are non-object ` +
