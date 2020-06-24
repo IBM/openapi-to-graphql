@@ -62,7 +62,7 @@ function createAndLoadViewer(queryFields, operationType, data) {
                     break;
                 default:
                     utils_1.handleWarning({
-                        typeKey: 'UNSUPPORTED_HTTP_SECURITY_SCHEME',
+                        mitigationType: utils_1.MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
                         message: `Currently unsupported HTTP authentication protocol ` +
                             `type 'http' and scheme '${scheme}'`,
                         data,

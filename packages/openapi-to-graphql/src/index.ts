@@ -67,7 +67,7 @@ import * as Oas3Tools from './oas_3_tools'
 import { createAndLoadViewer } from './auth_builder'
 import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
-import { sortObject, handleWarning } from './utils'
+import { sortObject, handleWarning, MitigationTypes } from './utils'
 
 type Result = {
   schema: GraphQLSchema
@@ -337,7 +337,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
           if (fieldName in authQueryFields[securityRequirement]) {
             handleWarning({
-              typeKey: 'DUPLICATE_FIELD_NAME',
+              mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
               message:
                 `Multiple operations have the same name ` +
                 `'${fieldName}' and security requirement ` +
@@ -370,7 +370,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
         if (fieldName in queryFields) {
           handleWarning({
-            typeKey: 'DUPLICATE_FIELD_NAME',
+            mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
             message:
               `Multiple operations have the same name ` +
               `'${fieldName}'. GraphQL field names must be ` +
@@ -416,7 +416,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
           if (saneFieldName in authMutationFields[securityRequirement]) {
             handleWarning({
-              typeKey: 'DUPLICATE_FIELD_NAME',
+              mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
               message:
                 `Multiple operations have the same name ` +
                 `'${saneFieldName}' and security requirement ` +
@@ -433,7 +433,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
       } else {
         if (saneFieldName in mutationFields) {
           handleWarning({
-            typeKey: 'DUPLICATE_FIELD_NAME',
+            mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
             message:
               `Multiple operations have the same name ` +
               `'${saneFieldName}'. GraphQL field names must be ` +
@@ -480,7 +480,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
           if (saneFieldName in authSubscriptionFields[securityRequirement]) {
             handleWarning({
-              typeKey: 'DUPLICATE_FIELD_NAME',
+              mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
               message:
                 `Multiple operations have the same name ` +
                 `'${saneFieldName}' and security requirement ` +
@@ -497,7 +497,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
       } else {
         if (saneFieldName in subscriptionFields) {
           handleWarning({
-            typeKey: 'DUPLICATE_FIELD_NAME',
+            mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
             message:
               `Multiple operations have the same name ` +
               `'${saneFieldName}'. GraphQL field names must be ` +
@@ -727,7 +727,7 @@ function checkCustomResolversStructure<TSource, TContext, TArgs>(
       })
       .forEach(title => {
         handleWarning({
-          typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
+          mitigationType: MitigationTypes.CUSTOM_RESOLVER_UNKNOWN_OAS,
           message:
             `Custom resolvers reference OAS '${title}' but no such ` +
             `OAS was provided`,
@@ -751,7 +751,8 @@ function checkCustomResolversStructure<TSource, TContext, TArgs>(
             })
           ) {
             handleWarning({
-              typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
+              mitigationType:
+                MitigationTypes.CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD,
               message:
                 `A custom resolver references an operation with ` +
                 `path '${path}' and method '${method}' but no such operation ` +
@@ -785,7 +786,7 @@ function preliminaryChecks<TSource, TContext, TArgs>(
     })
   ).forEach(title => {
     handleWarning({
-      typeKey: 'MULTIPLE_OAS_SAME_TITLE',
+      mitigationType: MitigationTypes.MULTIPLE_OAS_SAME_TITLE,
       message: `Multiple OAS share the same title '${title}'`,
       data,
       log: translationLog

@@ -283,3 +283,44 @@ test('Nested reference in parameter schema', () => {
     })
   })
 })
+
+/**
+ * 'POST inputUnion' has a request body that contains a oneOf. The request body
+ * will be converted into an input object type while the oneOf will be turned
+ * into a union type. However, according to the spec, input object types cannot
+ * be composed of unions. As a fall back, this pattern should default to the
+ * arbitrary JSON type instead.
+ */
+test('Input object types composed of union types should default to arbitrary JSON type', () => {
+  const query = `{
+    __type(name: "Mutation") {
+      fields {
+        name
+        args {
+          name
+          type {
+            name
+          }
+        }
+      }
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(
+      result.data['__type'].fields.find(
+        field => field.name === 'postInputUnion'
+      )
+    ).toEqual({
+      name: 'postInputUnion',
+      args: [
+        {
+          name: 'inputUnionInput',
+          type: {
+            name: 'JSON'
+          }
+        }
+      ]
+    })
+  })
+})
