@@ -207,7 +207,7 @@ test('Request body using application/x-www-form-urlencoded containing object wit
 })
 
 /**
- * '/cars/{id}' should create a 'car' field
+ * GET '/cars/{id}' should create a 'car' field
  *
  * Also the path parameter just contains the term 'id'
  */
@@ -223,9 +223,8 @@ test('inferResourceNameFromPath() field with simple plural form', () => {
   })
 })
 
-//
 /**
- * '/cacti/{cactusId}' should create an 'cactus' field
+ * GET '/cacti/{cactusId}' should create an 'cactus' field
  *
  * Also the path parameter is the combination of the singular form and 'id'
  */
@@ -242,7 +241,7 @@ test('inferResourceNameFromPath() field with irregular plural form', () => {
 })
 
 /**
- * '/eateries/{eatery}/breads/{breadName}/dishes/{dishKey}/ should create an
+ * GET '/eateries/{eatery}/breads/{breadName}/dishes/{dishKey}/ should create an
  * 'eateryBreadDish' field
  *
  * The path parameters are the singular form, some combination with the term
@@ -321,6 +320,21 @@ test('Input object types composed of union types should default to arbitrary JSO
           }
         }
       ]
+    })
+  })
+})
+
+/**
+ * GET 'strictGetOperation/' should not receive a Content-Type header
+ */
+test('Get operation should not receive Content-Type', () => {
+  const query = `{
+    strictGetOperation
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      strictGetOperation: 'Perfect!'
     })
   })
 })

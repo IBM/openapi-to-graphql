@@ -294,6 +294,23 @@
           }
         }
       }
+    },
+    "/strictGetOperation": {
+      "get": {
+        "description": "An arbitrary object",
+        "responses": {
+          "200": {
+            "description": "Mandatory field",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

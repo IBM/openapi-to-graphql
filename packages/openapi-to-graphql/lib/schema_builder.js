@@ -595,10 +595,11 @@ function linkOpRefToOpId({ links, linkKey, operation, data }) {
                 // Get method
                 // Check if there is a method at the end of the linkPath
                 if (pivotSlashIndex !== linkRelativePathAndMethod.length - 1) {
-                    // Start at +1 because we do not want the starting '/'
-                    linkMethod = linkRelativePathAndMethod.substring(pivotSlashIndex + 1);
-                    // Check if method is a valid method
-                    if (!Oas3Tools.OAS_OPERATIONS.includes(linkMethod)) {
+                    try {
+                        // Start at +1 because we do not want the starting '/'
+                        linkMethod = Oas3Tools.methodToHttpMethod(linkRelativePathAndMethod.substring(pivotSlashIndex + 1));
+                    }
+                    catch (_a) {
                         utils_1.handleWarning({
                             mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                             message: `The operationRef '${operationRef}' contains an ` +

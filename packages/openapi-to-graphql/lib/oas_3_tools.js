@@ -15,16 +15,41 @@ const httpLog = debug_1.default('http');
 const preprocessingLog = debug_1.default('preprocessing');
 const translationLog = debug_1.default('translation');
 // OAS constants
-exports.OAS_OPERATIONS = [
-    'get',
-    'put',
-    'post',
-    'patch',
-    'delete',
-    'options',
-    'head'
-];
+var HTTP_METHODS;
+(function (HTTP_METHODS) {
+    HTTP_METHODS["get"] = "get";
+    HTTP_METHODS["put"] = "put";
+    HTTP_METHODS["post"] = "post";
+    HTTP_METHODS["patch"] = "patch";
+    HTTP_METHODS["delete"] = "delete";
+    HTTP_METHODS["options"] = "options";
+    HTTP_METHODS["head"] = "head";
+})(HTTP_METHODS = exports.HTTP_METHODS || (exports.HTTP_METHODS = {}));
 exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
+/**
+ * Given an HTTP method, convert it to the HTTP_METHODS enum
+ */
+function methodToHttpMethod(method) {
+    switch (method.toLowerCase()) {
+        case 'get':
+            return HTTP_METHODS.get;
+        case 'put':
+            return HTTP_METHODS.put;
+        case 'post':
+            return HTTP_METHODS.post;
+        case 'patch':
+            return HTTP_METHODS.patch;
+        case 'delete':
+            return HTTP_METHODS.delete;
+        case 'options':
+            return HTTP_METHODS.options;
+        case 'head':
+            return HTTP_METHODS.head;
+        default:
+            throw new Error(`Invalid HTTP method '${method}'`);
+    }
+}
+exports.methodToHttpMethod = methodToHttpMethod;
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
@@ -60,7 +85,7 @@ function countOperations(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method)) {
+            if (isHttpMethod(method)) {
                 numOps++;
                 if (oas.paths[path][method].callbacks) {
                     for (let cbName in oas.paths[path][method].callbacks) {
@@ -82,7 +107,7 @@ function countOperationsQuery(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method) && method.toLowerCase() === 'get') {
+            if (isHttpMethod(method) && method.toLowerCase() === HTTP_METHODS.get) {
                 numOps++;
             }
         }
@@ -97,7 +122,7 @@ function countOperationsMutation(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method) && method.toLowerCase() !== 'get') {
+            if (isHttpMethod(method) && method.toLowerCase() !== HTTP_METHODS.get) {
                 numOps++;
             }
         }
@@ -112,8 +137,8 @@ function countOperationsSubscription(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method) &&
-                method.toLowerCase() !== 'get' &&
+            if (isHttpMethod(method) &&
+                method.toLowerCase() !== HTTP_METHODS.get &&
                 oas.paths[path][method].callbacks) {
                 for (let cbName in oas.paths[path][method].callbacks) {
                     for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
@@ -133,7 +158,7 @@ function countOperationsWithPayload(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method) &&
+            if (isHttpMethod(method) &&
                 typeof oas.paths[path][method].requestBody === 'object') {
                 numOps++;
             }
@@ -662,7 +687,7 @@ exports.getLinks = getLinks;
  */
 function getParameters(path, method, operation, pathItem, oas) {
     let parameters = [];
-    if (!isOperation(method)) {
+    if (!isHttpMethod(method)) {
         translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
             `which is not an operation.`);
         return parameters;
@@ -875,10 +900,10 @@ exports.trim = trim;
  * Determines if the given "method" is indeed an operation. Alternatively, the
  * method could point to other types of information (e.g., parameters, servers).
  */
-function isOperation(method) {
-    return exports.OAS_OPERATIONS.includes(method.toLowerCase());
+function isHttpMethod(method) {
+    return Object.keys(HTTP_METHODS).includes(method.toLowerCase());
 }
-exports.isOperation = isOperation;
+exports.isHttpMethod = isHttpMethod;
 /**
  * Formats a string that describes an operation in the form:
  * {name of OAS} {HTTP method in ALL_CAPS} {operation path}

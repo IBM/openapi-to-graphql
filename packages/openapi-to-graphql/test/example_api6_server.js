@@ -5,6 +5,8 @@
 
 'use strict'
 
+const { send } = require('process')
+
 let server // holds server object for shutdown
 
 /**
@@ -73,6 +75,17 @@ function startServer(PORT) {
 
   app.get('/api/nestedReferenceInParameter', (req, res) => {
     res.send(stringifyRussianDolls(req.query.russianDoll))
+  })
+
+  app.get('/api/strictGetOperation', (req, res) => {
+    if (req.headers['content-type']) {
+      res
+        .status(400)
+        .set('Content-Type', 'text/plain')
+        .send('Get request should not have Content-Type')
+    } else {
+      res.set('Content-Type', 'text/plain').send('Perfect!')
+    }
   })
 
   return new Promise(resolve => {

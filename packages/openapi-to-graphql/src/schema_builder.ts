@@ -807,7 +807,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
     // Infer operationId from relative path
     if (typeof linkRelativePathAndMethod === 'string') {
       let linkPath
-      let linkMethod
+      let linkMethod: Oas3Tools.HTTP_METHODS
 
       /**
        * NOTE: I wish we could extract the linkedOpId by matching the
@@ -831,11 +831,12 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
 
         // Check if there is a method at the end of the linkPath
         if (pivotSlashIndex !== linkRelativePathAndMethod.length - 1) {
-          // Start at +1 because we do not want the starting '/'
-          linkMethod = linkRelativePathAndMethod.substring(pivotSlashIndex + 1)
-
-          // Check if method is a valid method
-          if (!Oas3Tools.OAS_OPERATIONS.includes(linkMethod)) {
+          try {
+            // Start at +1 because we do not want the starting '/'
+            linkMethod = Oas3Tools.methodToHttpMethod(
+              linkRelativePathAndMethod.substring(pivotSlashIndex + 1)
+            )
+          } catch {
             handleWarning({
               mitigationType: MitigationTypes.UNRESOLVABLE_LINK,
               message:
@@ -847,6 +848,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
 
             return
           }
+
           // There is no method at the end of the path
         } else {
           handleWarning({
