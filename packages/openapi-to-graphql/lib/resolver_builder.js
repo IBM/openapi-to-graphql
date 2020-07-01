@@ -283,13 +283,13 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         const { path, qs, headers } = extractRequestDataFromArgs(operation.path, operation.parameters, args, data);
         const url = baseUrl + path;
         /**
-         * The Content-type and accept property should not be changed because the
+         * The Content-Type and Accept property should not be changed because the
          * object type has already been created and unlike these properties, it
          * cannot be easily changed
          *
          * NOTE: This may cause the user to encounter unexpected changes
          */
-        if (operation.payloadRequired) {
+        if (operation.method !== Oas3Tools.HTTP_METHODS.get) {
             headers['content-type'] =
                 typeof operation.payloadContentType !== 'undefined'
                     ? operation.payloadContentType

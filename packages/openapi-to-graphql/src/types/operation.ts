@@ -27,6 +27,8 @@ import {
   GraphQLUnionType
 } from 'graphql'
 
+import { HTTP_METHODS } from '../oas_3_tools'
+
 import * as GraphQLJSON from 'graphql-type-json'
 
 export type DataDefinition = {
@@ -119,7 +121,7 @@ export type Operation = {
   /**
    * HTTP method for this operation
    */
-  method: string
+  method: HTTP_METHODS
 
   /**
    * Content-type of the request payload

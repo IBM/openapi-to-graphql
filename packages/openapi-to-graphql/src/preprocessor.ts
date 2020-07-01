@@ -26,6 +26,7 @@ import * as deepEqual from 'deep-equal'
 import debug from 'debug'
 import { handleWarning, getCommonPropertyNames, MitigationTypes } from './utils'
 import { GraphQLOperationType } from './types/graphql'
+import { methodToHttpMethod } from './oas_3_tools'
 
 const preprocessingLog = debug('preprocessing')
 
@@ -45,7 +46,7 @@ const preprocessingLog = debug('preprocessing')
  */
 function processOperation<TSource, TContext, TArgs>(
   path: string,
-  method: string,
+  method: Oas3Tools.HTTP_METHODS,
   operationString: string,
   operationType: GraphQLOperationType,
   operation: OperationObject,
@@ -165,7 +166,7 @@ function processOperation<TSource, TContext, TArgs>(
     operationType,
     description,
     path,
-    method: method.toLowerCase(),
+    method,
     payloadContentType,
     payloadDefinition,
     payloadRequired,
@@ -250,18 +251,27 @@ export function preprocessOas<TSource, TContext, TArgs>(
            *
            * Can also contain other fields such as summary or description
            */
-          return Oas3Tools.isOperation(objectKey)
+          return Oas3Tools.isHttpMethod(objectKey)
         })
-        .forEach(method => {
-          const operation = pathItem[method] as OperationObject
-
+        .forEach(rawMethod => {
           const operationString =
             oass.length === 1
-              ? Oas3Tools.formatOperationString(method, path)
-              : Oas3Tools.formatOperationString(method, path, oas.info.title)
+              ? Oas3Tools.formatOperationString(rawMethod, path)
+              : Oas3Tools.formatOperationString(rawMethod, path, oas.info.title)
+
+          let httpMethod: Oas3Tools.HTTP_METHODS
+          try {
+            httpMethod = methodToHttpMethod(rawMethod)
+          } catch (e) {
+            throw new Error(
+              `Invalid HTTP method '${rawMethod}' in operation '${operationString}'`
+            )
+          }
+
+          const operation = pathItem[httpMethod] as OperationObject
 
           let operationType =
-            method.toLowerCase() === 'get'
+            httpMethod === Oas3Tools.HTTP_METHODS.get
               ? GraphQLOperationType.Query
               : GraphQLOperationType.Mutation
 
@@ -273,12 +283,12 @@ export function preprocessOas<TSource, TContext, TArgs>(
             typeof options.selectQueryOrMutationField[oas.info.title][path] ===
               'object' &&
             typeof options.selectQueryOrMutationField[oas.info.title][path][
-              method
+              httpMethod
             ] === 'number' // This is an TS enum, which is translated to have a integer value
           ) {
             operationType =
               options.selectQueryOrMutationField[oas.info.title][path][
-                method
+                httpMethod
               ] === GraphQLOperationType.Mutation
                 ? GraphQLOperationType.Mutation
                 : GraphQLOperationType.Query
@@ -286,7 +296,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
 
           const operationData = processOperation(
             path,
-            method,
+            httpMethod,
             operationString,
             operationType,
             operation,
@@ -347,7 +357,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
                        *
                        * Can also contain other fields such as summary or description
                        */
-                      return Oas3Tools.isOperation(objectKey)
+                      return Oas3Tools.isHttpMethod(objectKey)
                     })
 
                     if (callbackOperationObjectMethods.length > 0) {
@@ -363,19 +373,39 @@ export function preprocessOas<TSource, TContext, TArgs>(
                       }
 
                       // Select only one of the operation object methods
-                      const callbackMethod = callbackOperationObjectMethods[0]
+                      const callbackRawMethod =
+                        callbackOperationObjectMethods[0]
 
-                      const callbackOperationString = Oas3Tools.formatOperationString(
-                        method,
-                        callbackName
-                      )
+                      const callbackOperationString =
+                        oass.length === 1
+                          ? Oas3Tools.formatOperationString(
+                              httpMethod,
+                              callbackName
+                            )
+                          : Oas3Tools.formatOperationString(
+                              httpMethod,
+                              callbackName,
+                              oas.info.title
+                            )
+
+                      let callbackHttpMethod: Oas3Tools.HTTP_METHODS
+
+                      try {
+                        callbackHttpMethod = methodToHttpMethod(
+                          callbackRawMethod
+                        )
+                      } catch (e) {
+                        throw new Error(
+                          `Invalid HTTP method '${rawMethod}' in callback '${callbackOperationString}' in operation '${operationString}'`
+                        )
+                      }
 
                       const callbackOperation = processOperation(
                         callbackExpression,
-                        callbackMethod,
+                        callbackHttpMethod,
                         callbackOperationString,
                         GraphQLOperationType.Subscription,
-                        resolvedCallbackPathItem[callbackMethod],
+                        resolvedCallbackPathItem[callbackHttpMethod],
                         callbackPathItem,
                         oas,
                         data,

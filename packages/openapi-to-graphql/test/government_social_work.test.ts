@@ -40,7 +40,7 @@ test('All mutation endpoints present', () => {
   let oasMutCount = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
-      if (Oas3Tools.isOperation(method) && method !== 'get') oasMutCount++
+      if (Oas3Tools.isHttpMethod(method) && method !== 'get') oasMutCount++
     }
   }
   const gqlTypes = Object.keys(createdSchema._typeMap.Mutation.getFields())

@@ -10,6 +10,7 @@ const deepEqual = require("deep-equal");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const graphql_1 = require("./types/graphql");
+const oas_3_tools_1 = require("./oas_3_tools");
 const preprocessingLog = debug_1.default('preprocessing');
 /**
  * Given an operation object from the OAS, create an Operation, which contains
@@ -80,7 +81,7 @@ function processOperation(path, method, operationString, operationType, operatio
         operationType,
         description,
         path,
-        method: method.toLowerCase(),
+        method,
         payloadContentType,
         payloadDefinition,
         payloadRequired,
@@ -151,14 +152,21 @@ function preprocessOas(oass, options) {
                  *
                  * Can also contain other fields such as summary or description
                  */
-                return Oas3Tools.isOperation(objectKey);
+                return Oas3Tools.isHttpMethod(objectKey);
             })
-                .forEach(method => {
-                const operation = pathItem[method];
+                .forEach(rawMethod => {
                 const operationString = oass.length === 1
-                    ? Oas3Tools.formatOperationString(method, path)
-                    : Oas3Tools.formatOperationString(method, path, oas.info.title);
-                let operationType = method.toLowerCase() === 'get'
+                    ? Oas3Tools.formatOperationString(rawMethod, path)
+                    : Oas3Tools.formatOperationString(rawMethod, path, oas.info.title);
+                let httpMethod;
+                try {
+                    httpMethod = oas_3_tools_1.methodToHttpMethod(rawMethod);
+                }
+                catch (e) {
+                    throw new Error(`Invalid HTTP method '${rawMethod}' in operation '${operationString}'`);
+                }
+                const operation = pathItem[httpMethod];
+                let operationType = httpMethod === Oas3Tools.HTTP_METHODS.get
                     ? graphql_1.GraphQLOperationType.Query
                     : graphql_1.GraphQLOperationType.Mutation;
                 // Option selectQueryOrMutationField can override operation type
@@ -167,14 +175,14 @@ function preprocessOas(oass, options) {
                         'object' &&
                     typeof options.selectQueryOrMutationField[oas.info.title][path] ===
                         'object' &&
-                    typeof options.selectQueryOrMutationField[oas.info.title][path][method] === 'number' // This is an TS enum, which is translated to have a integer value
+                    typeof options.selectQueryOrMutationField[oas.info.title][path][httpMethod] === 'number' // This is an TS enum, which is translated to have a integer value
                 ) {
                     operationType =
-                        options.selectQueryOrMutationField[oas.info.title][path][method] === graphql_1.GraphQLOperationType.Mutation
+                        options.selectQueryOrMutationField[oas.info.title][path][httpMethod] === graphql_1.GraphQLOperationType.Mutation
                             ? graphql_1.GraphQLOperationType.Mutation
                             : graphql_1.GraphQLOperationType.Query;
                 }
-                const operationData = processOperation(path, method, operationString, operationType, operation, pathItem, oas, data, options);
+                const operationData = processOperation(path, httpMethod, operationString, operationType, operation, pathItem, oas, data, options);
                 if (operationData) {
                     /**
                      * Handle operationId property name collision
@@ -211,7 +219,7 @@ function preprocessOas(oass, options) {
                                  *
                                  * Can also contain other fields such as summary or description
                                  */
-                                return Oas3Tools.isOperation(objectKey);
+                                return Oas3Tools.isHttpMethod(objectKey);
                             });
                             if (callbackOperationObjectMethods.length > 0) {
                                 if (callbackOperationObjectMethods.length > 1) {
@@ -224,9 +232,18 @@ function preprocessOas(oass, options) {
                                     });
                                 }
                                 // Select only one of the operation object methods
-                                const callbackMethod = callbackOperationObjectMethods[0];
-                                const callbackOperationString = Oas3Tools.formatOperationString(method, callbackName);
-                                const callbackOperation = processOperation(callbackExpression, callbackMethod, callbackOperationString, graphql_1.GraphQLOperationType.Subscription, resolvedCallbackPathItem[callbackMethod], callbackPathItem, oas, data, options);
+                                const callbackRawMethod = callbackOperationObjectMethods[0];
+                                const callbackOperationString = oass.length === 1
+                                    ? Oas3Tools.formatOperationString(httpMethod, callbackName)
+                                    : Oas3Tools.formatOperationString(httpMethod, callbackName, oas.info.title);
+                                let callbackHttpMethod;
+                                try {
+                                    callbackHttpMethod = oas_3_tools_1.methodToHttpMethod(callbackRawMethod);
+                                }
+                                catch (e) {
+                                    throw new Error(`Invalid HTTP method '${rawMethod}' in callback '${callbackOperationString}' in operation '${operationString}'`);
+                                }
+                                const callbackOperation = processOperation(callbackExpression, callbackHttpMethod, callbackOperationString, graphql_1.GraphQLOperationType.Subscription, resolvedCallbackPathItem[callbackHttpMethod], callbackPathItem, oas, data, options);
                                 if (callbackOperation) {
                                     /**
                                      * Handle operationId property name collision

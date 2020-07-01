@@ -77,16 +77,48 @@ const preprocessingLog = debug('preprocessing')
 const translationLog = debug('translation')
 
 // OAS constants
-export const OAS_OPERATIONS = [
-  'get',
-  'put',
-  'post',
-  'patch',
-  'delete',
-  'options',
-  'head'
-]
+export enum HTTP_METHODS {
+  'get' = 'get',
+  'put' = 'put',
+  'post' = 'post',
+  'patch' = 'patch',
+  'delete' = 'delete',
+  'options' = 'options',
+  'head' = 'head'
+}
+
 export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
+
+/**
+ * Given an HTTP method, convert it to the HTTP_METHODS enum
+ */
+export function methodToHttpMethod(method: string): HTTP_METHODS {
+  switch (method.toLowerCase()) {
+    case 'get':
+      return HTTP_METHODS.get
+
+    case 'put':
+      return HTTP_METHODS.put
+
+    case 'post':
+      return HTTP_METHODS.post
+
+    case 'patch':
+      return HTTP_METHODS.patch
+
+    case 'delete':
+      return HTTP_METHODS.delete
+
+    case 'options':
+      return HTTP_METHODS.options
+
+    case 'head':
+      return HTTP_METHODS.head
+
+    default:
+      throw new Error(`Invalid HTTP method '${method}'`)
+  }
+}
 
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
@@ -142,7 +174,7 @@ export function countOperations(oas: Oas3): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
-      if (isOperation(method)) {
+      if (isHttpMethod(method)) {
         numOps++
         if (oas.paths[path][method].callbacks) {
           for (let cbName in oas.paths[path][method].callbacks) {
@@ -154,6 +186,7 @@ export function countOperations(oas: Oas3): number {
       }
     }
   }
+
   return numOps
 }
 
@@ -164,7 +197,7 @@ export function countOperationsQuery(oas: Oas3): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
-      if (isOperation(method) && method.toLowerCase() === 'get') {
+      if (isHttpMethod(method) && method.toLowerCase() === HTTP_METHODS.get) {
         numOps++
       }
     }
@@ -179,7 +212,7 @@ export function countOperationsMutation(oas: Oas3): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
-      if (isOperation(method) && method.toLowerCase() !== 'get') {
+      if (isHttpMethod(method) && method.toLowerCase() !== HTTP_METHODS.get) {
         numOps++
       }
     }
@@ -195,8 +228,8 @@ export function countOperationsSubscription(oas: Oas3): number {
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
       if (
-        isOperation(method) &&
-        method.toLowerCase() !== 'get' &&
+        isHttpMethod(method) &&
+        method.toLowerCase() !== HTTP_METHODS.get &&
         oas.paths[path][method].callbacks
       ) {
         for (let cbName in oas.paths[path][method].callbacks) {
@@ -218,7 +251,7 @@ export function countOperationsWithPayload(oas: Oas3): number {
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
       if (
-        isOperation(method) &&
+        isHttpMethod(method) &&
         typeof oas.paths[path][method].requestBody === 'object'
       ) {
         numOps++
@@ -573,7 +606,7 @@ export function getRequestBodyObject(
  */
 export function getRequestSchemaAndNames(
   path: string,
-  method: string,
+  method: HTTP_METHODS,
   operation: OperationObject,
   oas: Oas3
 ): RequestSchemaAndNames {
@@ -710,7 +743,7 @@ export function getResponseObject(
  */
 export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
   path: string,
-  method: string,
+  method: HTTP_METHODS,
   operation: OperationObject,
   oas: Oas3,
   data: PreprocessingData<TSource, TContext, TArgs>,
@@ -838,7 +871,7 @@ export function getResponseStatusCode<TSource, TContext, TArgs>(
  */
 export function getLinks<TSource, TContext, TArgs>(
   path: string,
-  method: string,
+  method: HTTP_METHODS,
   operation: OperationObject,
   oas: Oas3,
   data: PreprocessingData<TSource, TContext, TArgs>
@@ -887,14 +920,14 @@ export function getLinks<TSource, TContext, TArgs>(
  */
 export function getParameters(
   path: string,
-  method: string,
+  method: HTTP_METHODS,
   operation: OperationObject,
   pathItem: PathItemObject,
   oas: Oas3
 ): ParameterObject[] {
   let parameters = []
 
-  if (!isOperation(method)) {
+  if (!isHttpMethod(method)) {
     translationLog(
       `Warning: attempted to get parameters for ${method} ${path}, ` +
         `which is not an operation.`
@@ -1150,8 +1183,8 @@ export function trim(str: string, length: number): string {
  * Determines if the given "method" is indeed an operation. Alternatively, the
  * method could point to other types of information (e.g., parameters, servers).
  */
-export function isOperation(method: string): boolean {
-  return OAS_OPERATIONS.includes(method.toLowerCase())
+export function isHttpMethod(method: string): boolean {
+  return Object.keys(HTTP_METHODS).includes(method.toLowerCase())
 }
 
 /**
@@ -1189,6 +1222,9 @@ export function uncapitalize(str: string): string {
 /**
  * For operations that do not have an operationId, generate one
  */
-export function generateOperationId(method: string, path: string): string {
+export function generateOperationId(
+  method: HTTP_METHODS,
+  path: string
+): string {
   return sanitize(`${method} ${path}`, CaseStyle.camelCase)
 }
