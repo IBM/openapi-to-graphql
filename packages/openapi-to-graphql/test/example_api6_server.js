@@ -5,8 +5,6 @@
 
 'use strict'
 
-const { send } = require('process')
-
 let server // holds server object for shutdown
 
 /**

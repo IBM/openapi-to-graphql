@@ -21,6 +21,7 @@ export enum MitigationTypes {
   COMBINE_SCHEMAS = 'COMBINE_SCHEMAS',
   DUPLICATE_FIELD_NAME = 'DUPLICATE_FIELD_NAME',
   DUPLICATE_LINK_KEY = 'DUPLICATE_LINK_KEY',
+  INVALID_HTTP_METHOD = 'INVALID_HTTP_METHOD',
   INPUT_UNION = 'INPUT_UNION',
   MISSING_RESPONSE_SCHEMA = 'MISSING_RESPONSE_SCHEMA',
   MISSING_SCHEMA = 'MISSING_SCHEMA',
@@ -68,6 +69,7 @@ export const mitigations: { [mitigationType in MitigationTypes]: string } = {
   DUPLICATE_FIELD_NAME: 'Ignore field and maintain preexisting field.',
   DUPLICATE_LINK_KEY: 'Ignore link and maintain preexisting link.',
   INPUT_UNION: 'The data will be stored in an arbitrary JSON type.',
+  INVALID_HTTP_METHOD: 'Ignore operation and continue.',
   MISSING_RESPONSE_SCHEMA: 'Ignore operation.',
   MISSING_SCHEMA: 'Use arbitrary JSON type.',
   MULTIPLE_RESPONSES:

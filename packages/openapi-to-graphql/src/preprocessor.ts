@@ -263,9 +263,14 @@ export function preprocessOas<TSource, TContext, TArgs>(
           try {
             httpMethod = methodToHttpMethod(rawMethod)
           } catch (e) {
-            throw new Error(
-              `Invalid HTTP method '${rawMethod}' in operation '${operationString}'`
-            )
+            handleWarning({
+              mitigationType: MitigationTypes.INVALID_HTTP_METHOD,
+              message: `Invalid HTTP method '${rawMethod}' in operation '${operationString}'`,
+              data,
+              log: preprocessingLog
+            })
+
+            return
           }
 
           const operation = pathItem[httpMethod] as OperationObject
@@ -395,9 +400,14 @@ export function preprocessOas<TSource, TContext, TArgs>(
                           callbackRawMethod
                         )
                       } catch (e) {
-                        throw new Error(
-                          `Invalid HTTP method '${rawMethod}' in callback '${callbackOperationString}' in operation '${operationString}'`
-                        )
+                        handleWarning({
+                          mitigationType: MitigationTypes.INVALID_HTTP_METHOD,
+                          message: `Invalid HTTP method '${rawMethod}' in callback '${callbackOperationString}' in operation '${operationString}'`,
+                          data,
+                          log: preprocessingLog
+                        })
+
+                        return
                       }
 
                       const callbackOperation = processOperation(

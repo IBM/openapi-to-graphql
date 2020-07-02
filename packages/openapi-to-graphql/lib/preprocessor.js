@@ -163,7 +163,13 @@ function preprocessOas(oass, options) {
                     httpMethod = oas_3_tools_1.methodToHttpMethod(rawMethod);
                 }
                 catch (e) {
-                    throw new Error(`Invalid HTTP method '${rawMethod}' in operation '${operationString}'`);
+                    utils_1.handleWarning({
+                        mitigationType: utils_1.MitigationTypes.INVALID_HTTP_METHOD,
+                        message: `Invalid HTTP method '${rawMethod}' in operation '${operationString}'`,
+                        data,
+                        log: preprocessingLog
+                    });
+                    return;
                 }
                 const operation = pathItem[httpMethod];
                 let operationType = httpMethod === Oas3Tools.HTTP_METHODS.get
@@ -241,7 +247,13 @@ function preprocessOas(oass, options) {
                                     callbackHttpMethod = oas_3_tools_1.methodToHttpMethod(callbackRawMethod);
                                 }
                                 catch (e) {
-                                    throw new Error(`Invalid HTTP method '${rawMethod}' in callback '${callbackOperationString}' in operation '${operationString}'`);
+                                    utils_1.handleWarning({
+                                        mitigationType: utils_1.MitigationTypes.INVALID_HTTP_METHOD,
+                                        message: `Invalid HTTP method '${rawMethod}' in callback '${callbackOperationString}' in operation '${operationString}'`,
+                                        data,
+                                        log: preprocessingLog
+                                    });
+                                    return;
                                 }
                                 const callbackOperation = processOperation(callbackExpression, callbackHttpMethod, callbackOperationString, graphql_1.GraphQLOperationType.Subscription, resolvedCallbackPathItem[callbackHttpMethod], callbackPathItem, oas, data, options);
                                 if (callbackOperation) {
