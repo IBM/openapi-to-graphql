@@ -265,7 +265,7 @@ export function countOperationsWithPayload(oas: Oas3): number {
  * Resolves the given reference in the given object.
  */
 export function resolveRef(ref: string, oas: Oas3): any {
-  return jsonptr.get(oas, ref)
+  return jsonptr.JsonPointer.get(oas, ref)
 }
 
 /**
