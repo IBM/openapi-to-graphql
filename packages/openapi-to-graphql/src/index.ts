@@ -105,12 +105,17 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
       typeof options.addLimitArgument === 'boolean'
         ? options.addLimitArgument
         : false
-    options.genericPayloadArgName =
-      typeof options.genericPayloadArgName === 'boolean'
-        ? options.genericPayloadArgName
-        : false
+    options.genericPayloadArgName = ['boolean', 'string'].includes(
+      typeof options.genericPayloadArgName
+    )
+      ? options.genericPayloadArgName
+      : false
     options.simpleNames =
-      typeof options.simpleNames === 'boolean' ? options.simpleNames : false
+      options.simpleNames === 'input'
+        ? 'input'
+        : typeof options.simpleNames === 'boolean'
+        ? options.simpleNames
+        : false
     options.singularNames =
       typeof options.singularNames === 'boolean' ? options.singularNames : false
     options.createSubscriptionsFromCallbacks =

@@ -100,9 +100,9 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      */
     selectQueryOrMutationField?: OasTitlePathMethodObject<GraphQLOperationType>;
     /**
-     * Sets argument name for the payload of a mutation to 'requestBody'
+     * Sets argument name for the payload of a mutation to the string provided or, if true, to 'requestBody'.
      */
-    genericPayloadArgName: boolean;
+    genericPayloadArgName: string | boolean;
     /**
      * By default, field names are sanitized to conform with GraphQL conventions,
      * i.e. types should be in PascalCase, fields should be in camelCase, and
@@ -112,7 +112,7 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * PascalCase type names, only removing illegal characters and staying as true
      * to the provided names in the OAS as possible.
      */
-    simpleNames: boolean;
+    simpleNames: boolean | "input";
     /**
      * Experimental feature that will try to create more meaningful names from
      * the operation path than the response object by leveraging common

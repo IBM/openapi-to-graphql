@@ -53,9 +53,12 @@ function getSubscribe({ operation, payloadName, data, baseUrl, connectOptions })
         let resolveData = {};
         if (payloadName && typeof payloadName === 'string') {
             // The option genericPayloadArgName will change the payload name to "requestBody"
-            const sanePayloadName = data.options.genericPayloadArgName
-                ? 'requestBody'
-                : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
+            const sanePayloadName = typeof data.options.genericPayloadArgName === 'string' &&
+                data.options.genericPayloadArgName
+                ? data.options.genericPayloadArgName
+                : data.options.genericPayloadArgName
+                    ? 'requestBody'
+                    : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
             if (sanePayloadName in args) {
                 if (typeof args[sanePayloadName] === 'object') {
                     const rawPayload = Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap);

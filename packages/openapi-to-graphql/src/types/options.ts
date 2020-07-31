@@ -66,8 +66,10 @@ export type RequestOptions<TSource, TContext, TArgs> = Omit<
 > & {
   headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>
 }
-      
-export type Options<TSource, TContext, TArgs> = Partial<InternalOptions<TSource, TContext, TArgs>>
+
+export type Options<TSource, TContext, TArgs> = Partial<
+  InternalOptions<TSource, TContext, TArgs>
+>
 
 export type InternalOptions<TSource, TContext, TArgs> = {
   /*
@@ -135,9 +137,9 @@ export type InternalOptions<TSource, TContext, TArgs> = {
   selectQueryOrMutationField?: OasTitlePathMethodObject<GraphQLOperationType>
 
   /**
-   * Sets argument name for the payload of a mutation to 'requestBody'
+   * Sets argument name for the payload of a mutation to the string provided or, if true, to 'requestBody'.
    */
-  genericPayloadArgName: boolean
+  genericPayloadArgName: string | boolean
 
   /**
    * By default, field names are sanitized to conform with GraphQL conventions,
@@ -148,7 +150,7 @@ export type InternalOptions<TSource, TContext, TArgs> = {
    * PascalCase type names, only removing illegal characters and staying as true
    * to the provided names in the OAS as possible.
    */
-  simpleNames: boolean
+  simpleNames: boolean | 'input'
 
   /**
    * Experimental feature that will try to create more meaningful names from
@@ -220,7 +222,9 @@ export type InternalOptions<TSource, TContext, TArgs> = {
    * implementing performance improvements like caching, or dealing with
    * non-standard authentication requirements.
    */
-  customResolvers?: OasTitlePathMethodObject<GraphQLFieldResolver<TSource, TContext, TArgs>>
+  customResolvers?: OasTitlePathMethodObject<
+    GraphQLFieldResolver<TSource, TContext, TArgs>
+  >
 
   /**
    * Allows to define custom resolvers and subscribe functions for fields on the

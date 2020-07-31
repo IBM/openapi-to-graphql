@@ -745,7 +745,11 @@ export function createDataDef<TSource, TContext, TArgs>(
       return existingDataDef
     } else {
       // Else, define a new name, store the def, and return it
-      const name = getSchemaName(names, data.usedTypeNames)
+      const name = getSchemaName(
+        names,
+        data.usedTypeNames,
+        data.options.simpleNames === 'input'
+      )
 
       // Store and sanitize the name
       const saneName = !data.options.simpleNames
@@ -753,7 +757,10 @@ export function createDataDef<TSource, TContext, TArgs>(
         : Oas3Tools.capitalize(
             Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple)
           )
-      const saneInputName = Oas3Tools.capitalize(saneName + 'Input')
+      const saneInputName =
+        data.options.simpleNames === 'input' && /Input$/.test(saneName)
+          ? Oas3Tools.capitalize(saneName)
+          : Oas3Tools.capitalize(saneName + 'Input')
 
       Oas3Tools.storeSaneName(saneName, name, data.saneMap)
 
@@ -997,7 +1004,8 @@ function getPreferredName(names: Oas3Tools.SchemaNames): string {
  */
 function getSchemaName(
   names: Oas3Tools.SchemaNames,
-  usedNames: string[]
+  usedNames: string[],
+  input?: boolean
 ): string {
   if (Object.keys(names).length === 1 && typeof names.preferred === 'string') {
     throw new Error(
@@ -1065,7 +1073,10 @@ function getSchemaName(
     while (usedNames.includes(`${schemaName}${appendix}`)) {
       appendix++
     }
-    schemaName = `${schemaName}${appendix}`
+
+    if (!input || appendix !== 2) {
+      schemaName = `${schemaName}${appendix}`
+    }
   }
 
   return schemaName

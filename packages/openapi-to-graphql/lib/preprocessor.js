@@ -511,12 +511,14 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
         }
         else {
             // Else, define a new name, store the def, and return it
-            const name = getSchemaName(names, data.usedTypeNames);
+            const name = getSchemaName(names, data.usedTypeNames, data.options.simpleNames === "input");
             // Store and sanitize the name
             const saneName = !data.options.simpleNames
                 ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
                 : Oas3Tools.capitalize(Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple));
-            const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
+            const saneInputName = data.options.simpleNames === 'input' && /Input$/.test(saneName)
+                ? Oas3Tools.capitalize(saneName)
+                : Oas3Tools.capitalize(saneName + 'Input');
             Oas3Tools.storeSaneName(saneName, name, data.saneMap);
             /**
              * TODO: is there a better way of copying the schema object?
@@ -694,7 +696,7 @@ function getPreferredName(names) {
  * Determines name to use for schema from previously determined schemaNames and
  * considering not reusing existing names.
  */
-function getSchemaName(names, usedNames) {
+function getSchemaName(names, usedNames, input) {
     if (Object.keys(names).length === 1 && typeof names.preferred === 'string') {
         throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`);
     }
@@ -740,7 +742,9 @@ function getSchemaName(names, usedNames) {
         while (usedNames.includes(`${schemaName}${appendix}`)) {
             appendix++;
         }
-        schemaName = `${schemaName}${appendix}`;
+        if (!input || appendix !== 2) {
+            schemaName = `${schemaName}${appendix}`;
+        }
     }
     return schemaName;
 }
