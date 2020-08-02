@@ -123,8 +123,7 @@ export function getSubscribe<TSource, TContext, TArgs>({
     if (payloadName && typeof payloadName === 'string') {
       // The option genericPayloadArgName will change the payload name to "requestBody"
       const sanePayloadName =
-        typeof data.options.genericPayloadArgName === 'string' &&
-        data.options.genericPayloadArgName
+        typeof data.options.genericPayloadArgName === 'string'
           ? data.options.genericPayloadArgName
           : data.options.genericPayloadArgName
           ? 'requestBody'
@@ -529,9 +528,12 @@ export function getResolver<TSource, TContext, TArgs>({
     resolveData.usedPayload = undefined
     if (typeof payloadName === 'string') {
       // The option genericPayloadArgName will change the payload name to "requestBody"
-      const sanePayloadName = data.options.genericPayloadArgName
-        ? 'requestBody'
-        : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase)
+      const sanePayloadName =
+        typeof data.options.genericPayloadArgName === 'string'
+          ? data.options.genericPayloadArgName
+          : data.options.genericPayloadArgName
+          ? 'requestBody'
+          : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase)
 
       let rawPayload
       if (operation.payloadContentType === 'application/json') {

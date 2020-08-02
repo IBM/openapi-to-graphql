@@ -153,6 +153,11 @@ export type InternalOptions<TSource, TContext, TArgs> = {
   simpleNames: boolean | 'input'
 
   /**
+   * Switches on the `format` field of a `string` value and gives extended GraphQL types
+   */
+  extendedTypes: boolean
+
+  /**
    * Experimental feature that will try to create more meaningful names from
    * the operation path than the response object by leveraging common
    * conventions.

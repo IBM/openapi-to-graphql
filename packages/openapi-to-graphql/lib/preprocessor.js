@@ -511,7 +511,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
         }
         else {
             // Else, define a new name, store the def, and return it
-            const name = getSchemaName(names, data.usedTypeNames, data.options.simpleNames === "input");
+            const name = getSchemaName(names, data.usedTypeNames, data.options.simpleNames === 'input');
             // Store and sanitize the name
             const saneName = !data.options.simpleNames
                 ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)

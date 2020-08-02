@@ -38,12 +38,12 @@ import {
 } from 'graphql'
 
 // Imports:
-import * as GraphQLJSON from 'graphql-type-json'
 import * as Oas3Tools from './oas_3_tools'
 import { getResolver } from './resolver_builder'
 import { createDataDef } from './preprocessor'
 import debug from 'debug'
 import { handleWarning, sortObject, MitigationTypes } from './utils'
+import { GraphQLDateTime, GraphQLJSON } from 'graphql-scalars'
 
 type GetArgsParams<TSource, TContext, TArgs> = {
   requestPayloadDef?: DataDefinition
@@ -174,7 +174,7 @@ function createOrReuseOt<TSource, TContext, TArgs>({
 }: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>):
   | GraphQLObjectType
   | GraphQLInputObjectType
-  | GraphQLJSON {
+  | GraphQLScalarType {
   // Try to reuse a preexisting (input) object type
 
   // CASE: query - reuse object type
@@ -539,11 +539,14 @@ function getScalarType<TSource, TContext, TArgs>({
     case 'json':
       def.graphQLType = GraphQLJSON
       break
+    case 'datetime':
+      def.graphQLType = GraphQLDateTime
+      break
     default:
       throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`)
   }
 
-  return def.graphQLType as GraphQLScalarType
+  return def.graphQLType
 }
 
 /**
@@ -706,7 +709,7 @@ function createFields<TSource, TContext, TArgs>({
           // Finally, add the object type to the fields (using sanitized field name)
           // TODO: check if fields already has this field name
           fields[saneLinkKey] = {
-            type: resObjectType,
+            type: resObjectType as any,
             resolve: linkResolver,
             args,
             description
@@ -1230,9 +1233,12 @@ export function getArgs<TSource, TContext, TArgs>({
     })
 
     // Sanitize the argument name
-    const saneName = data.options.genericPayloadArgName
-      ? 'requestBody'
-      : Oas3Tools.uncapitalize(requestPayloadDef.graphQLInputObjectTypeName) // Already sanitized
+    const saneName =
+      typeof data.options.genericPayloadArgName === 'string'
+        ? data.options.genericPayloadArgName
+        : data.options.genericPayloadArgName
+        ? 'requestBody'
+        : Oas3Tools.uncapitalize(requestPayloadDef.graphQLInputObjectTypeName) // Already sanitized
 
     const reqRequired =
       typeof operation === 'object' &&

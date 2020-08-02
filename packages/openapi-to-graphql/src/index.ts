@@ -105,6 +105,8 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
       typeof options.addLimitArgument === 'boolean'
         ? options.addLimitArgument
         : false
+    options.extendedTypes =
+      typeof options.extendedTypes === 'boolean' ? options.extendedTypes : false
     options.genericPayloadArgName = ['boolean', 'string'].includes(
       typeof options.genericPayloadArgName
     )
@@ -200,6 +202,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     idFormats,
     selectQueryOrMutationField,
     genericPayloadArgName,
+    extendedTypes,
     simpleNames,
     singularNames,
     createSubscriptionsFromCallbacks,
@@ -234,6 +237,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     idFormats,
     selectQueryOrMutationField,
     genericPayloadArgName,
+    extendedTypes,
     simpleNames,
     singularNames,
     createSubscriptionsFromCallbacks,

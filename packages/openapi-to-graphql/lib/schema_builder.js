@@ -6,12 +6,12 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const graphql_1 = require("graphql");
 // Imports:
-const GraphQLJSON = require("graphql-type-json");
 const Oas3Tools = require("./oas_3_tools");
 const resolver_builder_1 = require("./resolver_builder");
 const preprocessor_1 = require("./preprocessor");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const graphql_scalars_1 = require("graphql-scalars");
 const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
@@ -364,7 +364,10 @@ function getScalarType({ def, data }) {
             def.graphQLType = graphql_1.GraphQLBoolean;
             break;
         case 'json':
-            def.graphQLType = GraphQLJSON;
+            def.graphQLType = graphql_scalars_1.GraphQLJSON;
+            break;
+        case 'datetime':
+            def.graphQLType = graphql_scalars_1.GraphQLDateTime;
             break;
         default:
             throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`);
@@ -912,9 +915,11 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             isInputObjectType: true // Request payloads will always be an input object type
         });
         // Sanitize the argument name
-        const saneName = data.options.genericPayloadArgName
-            ? 'requestBody'
-            : Oas3Tools.uncapitalize(requestPayloadDef.graphQLInputObjectTypeName); // Already sanitized
+        const saneName = typeof data.options.genericPayloadArgName === 'string'
+            ? data.options.genericPayloadArgName
+            : data.options.genericPayloadArgName
+                ? 'requestBody'
+                : Oas3Tools.uncapitalize(requestPayloadDef.graphQLInputObjectTypeName); // Already sanitized
         const reqRequired = typeof operation === 'object' &&
             typeof operation.payloadRequired === 'boolean'
             ? operation.payloadRequired

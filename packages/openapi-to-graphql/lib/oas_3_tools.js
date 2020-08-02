@@ -321,12 +321,24 @@ function getSchemaTargetGraphQLType(schema, data) {
                 return 'number';
                 // CASE: id
             }
-            else if (schema.type === 'string' &&
-                (schema.format === 'uuid' ||
-                    // Custom ID format
-                    (Array.isArray(data.options.idFormats) &&
-                        data.options.idFormats.includes(schema.format)))) {
-                return 'id';
+            else if (schema.type === 'string') {
+                if (schema.format === 'uuid') {
+                    return 'id';
+                }
+                else {
+                    if (
+                    // Custom ID types
+                    Array.isArray(data.options.idFormats) &&
+                        data.options.idFormats.includes(schema.format)) {
+                        return 'id';
+                    }
+                    else if (data.options.extendedTypes) {
+                        switch (schema.format) {
+                            case 'date-time':
+                                return 'datetime';
+                        }
+                    }
+                }
             }
         }
         return schema.type;

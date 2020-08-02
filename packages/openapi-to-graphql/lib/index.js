@@ -40,6 +40,10 @@ function createGraphQLSchema(spec, options) {
             typeof options.addLimitArgument === 'boolean'
                 ? options.addLimitArgument
                 : false;
+        options.extendedTypes =
+            typeof options.extendedTypes === 'boolean'
+                ? options.extendedTypes
+                : false;
         options.genericPayloadArgName = ['boolean', 'string'].includes(typeof options.genericPayloadArgName)
             ? options.genericPayloadArgName
             : false;
@@ -106,7 +110,7 @@ exports.createGraphQLSchema = createGraphQLSchema;
  */
 function translateOpenAPIToGraphQL(oass, { strict, report, 
 // Schema options
-operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, simpleNames, singularNames, createSubscriptionsFromCallbacks, 
+operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, extendedTypes, simpleNames, singularNames, createSubscriptionsFromCallbacks, 
 // Resolver options
 headers, qs, requestOptions, connectOptions, baseUrl, customResolvers, customSubscriptionResolvers, 
 // Authentication options
@@ -123,6 +127,7 @@ provideErrorExtensions, equivalentToMessages }) {
         idFormats,
         selectQueryOrMutationField,
         genericPayloadArgName,
+        extendedTypes,
         simpleNames,
         singularNames,
         createSubscriptionsFromCallbacks,
