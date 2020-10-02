@@ -27,6 +27,8 @@ jobs:
         # You may pin to the exact commit or the version.
         # uses: peter-evans/link-checker@41c97244bb50a4a1b273d60abf5b5862b09f0c2d
         uses: peter-evans/link-checker@v1.2.2
+        with:
+          args: -r -v *.md packages/openapi-to-graphql/*.md packages/openapi-to-graphql/test/*.md packages/openapi-to-graphql-cli/*.md
 
       - name: Create issue from file
         uses: peter-evans/create-issue-from-file@v2
