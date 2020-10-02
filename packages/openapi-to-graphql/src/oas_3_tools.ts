@@ -136,8 +136,8 @@ export function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
       )
 
       Swagger2OpenAPI.convertObj(spec, {})
-        .then(options => resolve(options.openapi))
-        .catch(error =>
+        .then((options) => resolve(options.openapi))
+        .catch((error) =>
           reject(
             `Could not convert Swagger '${
               (spec as Oas2).info.title
@@ -152,9 +152,9 @@ export function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
     ) {
       preprocessingLog(`Received OpenAPI Specification - going to validate...`)
 
-      OASValidator.validateSync(spec, {})
+      OASValidator.validate(spec, {})
         .then(() => resolve(spec as Oas3))
-        .catch(error =>
+        .catch((error) =>
           reject(
             `Could not validate OpenAPI Specification '${
               (spec as Oas3).info.title
@@ -376,7 +376,7 @@ export function desanitizeObjectKeys(
   obj: object | Array<any>,
   mapping: object = {}
 ): object | Array<any> {
-  const replaceKeys = obj => {
+  const replaceKeys = (obj) => {
     if (obj === null) {
       return null
     } else if (Array.isArray(obj)) {
@@ -496,11 +496,8 @@ function extractBasePath(
     }
   }
 
-  const updatedPaths = paths.map(path =>
-    path
-      .split('/')
-      .slice(basePathComponents.length)
-      .join('/')
+  const updatedPaths = paths.map((path) =>
+    path.split('/').slice(basePathComponents.length).join('/')
   )
 
   let basePath =
@@ -838,7 +835,7 @@ export function getResponseStatusCode<TSource, TContext, TArgs>(
 ): string | void {
   if (typeof operation.responses === 'object') {
     const codes = Object.keys(operation.responses)
-    const successCodes = codes.filter(code => {
+    const successCodes = codes.filter((code) => {
       return SUCCESS_STATUS_RX.test(code)
     })
     if (successCodes.length === 1) {
@@ -938,7 +935,7 @@ export function getParameters(
   // First, consider parameters in Path Item Object:
   const pathParams = pathItem.parameters
   if (Array.isArray(pathParams)) {
-    const pathItemParameters: ParameterObject[] = pathParams.map(p => {
+    const pathItemParameters: ParameterObject[] = pathParams.map((p) => {
       if (typeof (p as ReferenceObject).$ref === 'string') {
         // Here we know we have a parameter object:
         return resolveRef(p['$ref'], oas) as ParameterObject
@@ -953,15 +950,17 @@ export function getParameters(
   // Second, consider parameters in Operation Object:
   const opObjectParameters = operation.parameters
   if (Array.isArray(opObjectParameters)) {
-    const operationParameters: ParameterObject[] = opObjectParameters.map(p => {
-      if (typeof (p as ReferenceObject).$ref === 'string') {
-        // Here we know we have a parameter object:
-        return resolveRef(p['$ref'], oas) as ParameterObject
-      } else {
-        // Here we know we have a parameter object:
-        return p as ParameterObject
+    const operationParameters: ParameterObject[] = opObjectParameters.map(
+      (p) => {
+        if (typeof (p as ReferenceObject).$ref === 'string') {
+          // Here we know we have a parameter object:
+          return resolveRef(p['$ref'], oas) as ParameterObject
+        } else {
+          // Here we know we have a parameter object:
+          return p as ParameterObject
+        }
       }
-    })
+    )
     parameters = parameters.concat(operationParameters)
   }
 

@@ -78,23 +78,33 @@ beforeAll(() => {
           }
         )
       })
-      .catch(e => {
+      .catch((e) => {
         console.log('error', e)
       }),
     startServers(HTTP_PORT, MQTT_PORT)
   ])
 })
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
 /**
  * Shut down API servers
  */
-afterAll(() => {
-  return Promise.all([
+afterAll(async () => {
+  /**
+   * TODO: There seems to be some trouble closing the servers and connections.
+   * The timeout allows these to close properly but is there a better way?
+   */
+  await sleep(500)
+  Promise.all([
     subscriptionServer.close(),
     wsServer.close(),
     mqttClient.end(),
     stopServers()
   ])
+  await sleep(500)
 })
 
 test('Receive data from the subscription after creating a new instance', () => {
@@ -122,7 +132,7 @@ test('Receive data from the subscription after creating a new instance', () => {
       `ws://localhost:${TEST_PORT}/subscriptions`
     )
 
-    client.onError(e => reject(e))
+    client.onError((e) => reject(e))
 
     client
       .request({
@@ -136,7 +146,7 @@ test('Receive data from the subscription after creating a new instance', () => {
         }
       })
       .subscribe({
-        next: result => {
+        next: (result) => {
           if (result.errors) {
             reject(result.errors)
           }
@@ -152,7 +162,7 @@ test('Receive data from the subscription after creating a new instance', () => {
             resolve()
           }
         },
-        error: e => reject(e)
+        error: (e) => reject(e)
       })
 
     setTimeout(() => {
@@ -163,7 +173,7 @@ test('Receive data from the subscription after creating a new instance', () => {
           status: false
         }
       })
-        .then(res => {
+        .then((res) => {
           if (!res.data) {
             reject(new Error('Failed mutation'))
           }

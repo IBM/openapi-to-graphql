@@ -14,7 +14,7 @@ The following code shows all that's needed to create and run a GraphQL wrapper a
 
 ```javascript
 const express = require('express')
-const graphqlHTTP = require('express-graphql')
+const { graphqlHTTP } = require('express-graphql')
 const OtG = require('openapi-to-graphql')
 const bodyParser = require('body-parser')
 

@@ -4,9 +4,10 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getArgs = exports.getGraphQLType = void 0;
 const graphql_1 = require("graphql");
 // Imports:
-const GraphQLJSON = require("graphql-type-json");
+const graphql_type_json_1 = require("graphql-type-json");
 const Oas3Tools = require("./oas_3_tools");
 const resolver_builder_1 = require("./resolver_builder");
 const preprocessor_1 = require("./preprocessor");
@@ -364,7 +365,7 @@ function getScalarType({ def, data }) {
             def.graphQLType = graphql_1.GraphQLBoolean;
             break;
         case 'json':
-            def.graphQLType = GraphQLJSON;
+            def.graphQLType = graphql_type_json_1.default;
             break;
         default:
             throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`);

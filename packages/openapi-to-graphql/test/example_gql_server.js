@@ -7,7 +7,7 @@
 
 const express = require('express')
 const graphql = require('graphql')
-const graphqlHTTP = require('express-graphql')
+const { graphqlHTTP } = require('express-graphql')
 const app = express()
 const openAPIToGraphQL = require('../lib/index')
 
@@ -47,6 +47,6 @@ openAPIToGraphQL
       console.log('GraphQL accessible at: http://localhost:3000/graphql')
     })
   })
-  .catch(err => {
+  .catch((err) => {
     console.log(err)
   })

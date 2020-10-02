@@ -5,6 +5,13 @@
 
 'use strict'
 
+const express = require('express')
+const aedes = require('aedes')
+const net = require('net')
+const bodyParser = require('body-parser')
+
+const app = express()
+
 let httpServer
 let mqttBroker
 let tcpServer
@@ -24,11 +31,6 @@ const Devices = {
  * Starts the server at the given port
  */
 function startServers(HTTP_PORT, MQTT_PORT) {
-  const express = require('express')
-  const app = express()
-
-  const aedes = require('aedes')
-
   mqttBroker = aedes({
     published: (packet, client, cb) => {
       if (packet.topic.startsWith('$SYS')) {
@@ -43,9 +45,8 @@ function startServers(HTTP_PORT, MQTT_PORT) {
     }
   })
 
-  tcpServer = require('net').createServer(mqttBroker.handle)
+  tcpServer = net.createServer(mqttBroker.handle)
 
-  const bodyParser = require('body-parser')
   app.use(bodyParser.json())
 
   app.get('/api/user', (req, res) => {
@@ -148,8 +149,8 @@ function startServers(HTTP_PORT, MQTT_PORT) {
 function stopServers() {
   return Promise.all([
     httpServer.close(),
-    mqttBroker.close(),
-    tcpServer.close()
+    tcpServer.close(),
+    mqttBroker.close()
   ]).then(() => {
     console.log(`Stopped HTTP API server`)
     console.log(`Stopped MQTT API server`)

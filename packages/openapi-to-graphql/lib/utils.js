@@ -4,6 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getCommonPropertyNames = exports.sortObject = exports.handleWarning = exports.mitigations = exports.MitigationTypes = void 0;
 var MitigationTypes;
 (function (MitigationTypes) {
     /**

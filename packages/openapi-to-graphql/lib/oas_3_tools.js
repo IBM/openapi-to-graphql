@@ -4,6 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getResponseObject = exports.getRequestSchemaAndNames = exports.getRequestBodyObject = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
@@ -68,7 +69,7 @@ function getValidOAS3(spec) {
         else if (typeof spec.openapi === 'string' &&
             /^3/.test(spec.openapi)) {
             preprocessingLog(`Received OpenAPI Specification - going to validate...`);
-            OASValidator.validateSync(spec, {})
+            OASValidator.validate(spec, {})
                 .then(() => resolve(spec))
                 .catch(error => reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${error.message}`));
         }

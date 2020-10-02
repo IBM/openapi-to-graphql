@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import * as express from 'express'
-import * as graphqlHTTP from 'express-graphql'
+import { graphqlHTTP } from 'express-graphql'
 import * as cors from 'cors'
 import * as path from 'path'
 import * as request from 'request'
@@ -142,7 +142,7 @@ if (typeof filePaths === 'undefined' || filePaths.length === 0) {
 
 // Load the OASs based off of the provided paths
 Promise.all(
-  filePaths.map(filePath => {
+  filePaths.map((filePath) => {
     return new Promise<Oas3>((resolve, reject) => {
       // Check if the file exists
       if (fs.existsSync(path.resolve(filePath))) {
@@ -155,10 +155,10 @@ Promise.all(
         // Check if file is in a remote location
       } else if (filePath.match(/^https?/g)) {
         getRemoteFileSpec(filePath)
-          .then(remoteContent => {
+          .then((remoteContent) => {
             resolve(remoteContent)
           })
-          .catch(error => {
+          .catch((error) => {
             reject(error)
           })
 
@@ -169,10 +169,10 @@ Promise.all(
     })
   })
 )
-  .then(oass => {
+  .then((oass) => {
     startGraphQLServer(oass, options, portNumber)
   })
-  .catch(error => {
+  .catch((error) => {
     console.error(error)
     process.exit(1)
   })
@@ -284,7 +284,7 @@ function startGraphQLServer<TSource, TContext, TArgs>(
         })
       }
     })
-    .catch(err => {
+    .catch((err) => {
       console.log('OpenAPI-to-GraphQL creation event error:', err.message)
     })
 }
@@ -294,7 +294,7 @@ function startGraphQLServer<TSource, TContext, TArgs>(
  * @param {createGraphQLSchema} schema
  */
 function writeSchema(schema): void {
-  fs.writeFile(program.save, printSchema(schema), err => {
+  fs.writeFile(program.save, printSchema(schema), (err) => {
     if (err) throw err
     console.log(
       `OpenAPI-to-GraphQL successfully saved your schema at ${program.save}`
@@ -311,7 +311,7 @@ function parseKeyValuePairs(keyValues: string[]): { [key: string]: string } {
   const parsedKeyValues: { [key: string]: string } = {}
 
   if (Array.isArray(keyValues)) {
-    ;(keyValues as string[]).forEach(keyValue => {
+    ;(keyValues as string[]).forEach((keyValue) => {
       const separator = keyValue.indexOf(':')
 
       if (separator === -1) {
