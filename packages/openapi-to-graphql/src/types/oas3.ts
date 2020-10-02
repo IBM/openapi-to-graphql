@@ -26,7 +26,7 @@ export type SchemaObject = {
   }
   required?: string[]
   default?: any
-  additionalProperties?: SchemaObject | ReferenceObject
+  additionalProperties?: SchemaObject | ReferenceObject | boolean
   items?: SchemaObject | ReferenceObject // MUST be a single schema object in OAS, see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#properties
   additionalItems?: boolean | string[]
   enum?: string[]
@@ -165,7 +165,7 @@ export type OperationObject = {
 export type PathItemObject = {
   $ref?: string
   summary?: string
-  description: string
+  description?: string
   get: OperationObject
   put: OperationObject
   post: OperationObject

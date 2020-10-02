@@ -17,7 +17,7 @@ export declare type SchemaObject = {
     };
     required?: string[];
     default?: any;
-    additionalProperties?: SchemaObject | ReferenceObject;
+    additionalProperties?: SchemaObject | ReferenceObject | boolean;
     items?: SchemaObject | ReferenceObject;
     additionalItems?: boolean | string[];
     enum?: string[];
@@ -140,7 +140,7 @@ export declare type OperationObject = {
 export declare type PathItemObject = {
     $ref?: string;
     summary?: string;
-    description: string;
+    description?: string;
     get: OperationObject;
     put: OperationObject;
     post: OperationObject;
