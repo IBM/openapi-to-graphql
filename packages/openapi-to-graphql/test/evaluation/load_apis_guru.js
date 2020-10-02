@@ -6,10 +6,11 @@
 'use strict'
 
 const git = require('isomorphic-git')
+const http = require('isomorphic-git/http/node')
 const fs = require('fs')
 const rimraf = require('rimraf')
 
-const REPO_URL = 'https://github.com/APIs-guru/openapi-directory'
+const REPO_URL = 'https://github.com/APIs-guru/openapi-directory.git'
 const FOLDER_PATH = 'tmp'
 
 /**
@@ -20,6 +21,7 @@ const FOLDER_PATH = 'tmp'
 const downloadOas = () => {
   return git.clone({
     fs: fs,
+    http,
     dir: FOLDER_PATH,
     url: REPO_URL,
     singleBranch: true,

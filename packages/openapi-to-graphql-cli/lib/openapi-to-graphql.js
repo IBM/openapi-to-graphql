@@ -2,7 +2,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = require("express");
-const graphqlHTTP = require("express-graphql");
+const express_graphql_1 = require("express-graphql");
 const cors = require("cors");
 const path = require("path");
 const request = require("request");
@@ -189,7 +189,7 @@ function startGraphQLServer(oas, options, port) {
                 app.use(cors());
             }
             // Mounting graphql endpoint using the middleware express-graphql
-            app.use('/graphql', graphqlHTTP({
+            app.use('/graphql', express_graphql_1.graphqlHTTP({
                 schema: schema,
                 graphiql: true
             }));

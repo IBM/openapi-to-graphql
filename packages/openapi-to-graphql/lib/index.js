@@ -4,6 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.GraphQLOperationType = exports.CaseStyle = exports.sanitize = exports.createGraphQLSchema = void 0;
 const graphql_1 = require("./types/graphql");
 const graphql_2 = require("graphql");
 // Imports:
@@ -540,8 +541,8 @@ function preliminaryChecks(options, data) {
     checkCustomResolversStructure(options.customSubscriptionResolvers, data);
 }
 var oas_3_tools_1 = require("./oas_3_tools");
-exports.sanitize = oas_3_tools_1.sanitize;
-exports.CaseStyle = oas_3_tools_1.CaseStyle;
+Object.defineProperty(exports, "sanitize", { enumerable: true, get: function () { return oas_3_tools_1.sanitize; } });
+Object.defineProperty(exports, "CaseStyle", { enumerable: true, get: function () { return oas_3_tools_1.CaseStyle; } });
 var graphql_3 = require("./types/graphql");
-exports.GraphQLOperationType = graphql_3.GraphQLOperationType;
+Object.defineProperty(exports, "GraphQLOperationType", { enumerable: true, get: function () { return graphql_3.GraphQLOperationType; } });
 //# sourceMappingURL=index.js.map

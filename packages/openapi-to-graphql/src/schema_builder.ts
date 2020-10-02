@@ -38,7 +38,7 @@ import {
 } from 'graphql'
 
 // Imports:
-import * as GraphQLJSON from 'graphql-type-json'
+import GraphQLJSON from 'graphql-type-json'
 import * as Oas3Tools from './oas_3_tools'
 import { getResolver } from './resolver_builder'
 import { createDataDef } from './preprocessor'
@@ -173,8 +173,7 @@ function createOrReuseOt<TSource, TContext, TArgs>({
   isInputObjectType
 }: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>):
   | GraphQLObjectType
-  | GraphQLInputObjectType
-  | GraphQLJSON {
+  | GraphQLInputObjectType {
   // Try to reuse a preexisting (input) object type
 
   // CASE: query - reuse object type
@@ -187,10 +186,7 @@ function createOrReuseOt<TSource, TContext, TArgs>({
             : '')
       )
 
-      return def.graphQLType as
-        | GraphQLObjectType
-        | GraphQLInputObjectType
-        | GraphQLScalarType
+      return def.graphQLType as GraphQLObjectType | GraphQLInputObjectType
     }
 
     // CASE: mutation - reuse input object type
@@ -234,7 +230,7 @@ function createOrReuseOt<TSource, TContext, TArgs>({
           data,
           iteration,
           isInputObjectType: false
-        }) as GraphQLFieldConfigMap<TSource, TContext, TArgs>
+        }) as GraphQLFieldConfigMap<TSource, TContext>
       }
     })
 
@@ -304,7 +300,7 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
     const memberTypeDefinitions = def.subDefinitions as DataDefinition[]
 
     const types = Object.values(memberTypeDefinitions).map(
-      memberTypeDefinition => {
+      (memberTypeDefinition) => {
         return getGraphQLType({
           def: memberTypeDefinition,
           operation,
@@ -329,7 +325,7 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
       resolveType: (source, context, info) => {
         const properties = Object.keys(source)
           // Remove custom _openAPIToGraphQL property used to pass data
-          .filter(property => property !== '_openAPIToGraphQL')
+          .filter((property) => property !== '_openAPIToGraphQL')
 
         /**
          * Find appropriate member type
@@ -342,12 +338,12 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
          * identified if, for whatever reason, the return data is a superset
          * of the fields specified in the OAS
          */
-        return types.find(type => {
+        return types.find((type) => {
           const typeFields = Object.keys(type.getFields())
 
           // The type should be a superset of the properties
           if (properties.length <= typeFields.length) {
-            return properties.every(property => typeFields.includes(property))
+            return properties.every((property) => typeFields.includes(property))
           }
 
           return false
@@ -390,7 +386,7 @@ function checkAmbiguousMemberTypes<TSource, TContext, TArgs>(
 
       // TODO: Check the value, not just the field name
       if (
-        Object.keys(currentType.getFields()).every(field => {
+        Object.keys(currentType.getFields()).every((field) => {
           return Object.keys(otherType.getFields()).includes(field)
         })
       ) {
@@ -496,7 +492,7 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
     translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`)
 
     const values = {}
-    def.schema.enum.forEach(e => {
+    def.schema.enum.forEach((e) => {
       // Force enum values to string and value should be in ALL_CAPS
       values[Oas3Tools.sanitize(e.toString(), Oas3Tools.CaseStyle.ALL_CAPS)] = {
         value: e
@@ -664,7 +660,7 @@ function createFields<TSource, TContext, TArgs>({
           // Get arguments that are not provided by the linked operation
           let dynamicParams = linkedOp.parameters
           if (typeof argsFromLink === 'object') {
-            dynamicParams = dynamicParams.filter(param => {
+            dynamicParams = dynamicParams.filter((param) => {
               return typeof argsFromLink[param.name] === 'undefined'
             })
           }
@@ -689,13 +685,13 @@ function createFields<TSource, TContext, TArgs>({
           const resObjectType =
             linkedOp.responseDefinition.graphQLType !== undefined
               ? linkedOp.responseDefinition.graphQLType
-              : getGraphQLType({
+              : (getGraphQLType({
                   def: linkedOp.responseDefinition,
                   operation,
                   data,
                   iteration: iteration + 1,
                   isInputObjectType: false
-                })
+                }) as GraphQLOutputType)
 
           let description = link.description
 
@@ -1070,7 +1066,7 @@ export function getArgs<TSource, TContext, TArgs>({
   let args = {}
 
   // Handle params:
-  parameters.forEach(parameter => {
+  parameters.forEach((parameter) => {
     // We need at least a name
     if (typeof parameter.name !== 'string') {
       handleWarning({
@@ -1275,7 +1271,7 @@ function getOasFromLinkLocation<TSource, TContext, TArgs>(
   switch (getLinkLocationType(linkLocation)) {
     case 'title':
       // Get the possible
-      const possibleOass = data.oass.filter(oas => {
+      const possibleOass = data.oass.filter((oas) => {
         return oas.info.title === linkLocation
       })
 

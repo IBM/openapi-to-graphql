@@ -1,5 +1,5 @@
 const express = require('express')
-const graphqlHTTP = require('express-graphql')
+const { graphqlHTTP } = require('express-graphql')
 const { execute, printSchema, subscribe } = require('graphql')
 const { createServer } = require('http')
 const { SubscriptionServer } = require('subscriptions-transport-ws')
@@ -70,6 +70,6 @@ openAPIToGraphQL
       )
     })
   })
-  .catch(err => {
+  .catch((err) => {
     console.log(err)
   })

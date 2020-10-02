@@ -6,7 +6,6 @@ import { Oas3, LinkObject, ParameterObject, ServerObject, SchemaObject } from '.
 import { GraphQLOperationType } from './graphql';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
 import { HTTP_METHODS } from '../oas_3_tools';
-import * as GraphQLJSON from 'graphql-type-json';
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
@@ -37,7 +36,7 @@ export declare type DataDefinition = {
     } | DataDefinition[];
     graphQLTypeName: string;
     graphQLInputObjectTypeName: string;
-    graphQLType?: GraphQLObjectType | GraphQLList<any> | GraphQLUnionType | GraphQLEnumType | GraphQLScalarType | GraphQLJSON;
+    graphQLType?: GraphQLObjectType | GraphQLList<any> | GraphQLUnionType | GraphQLEnumType | GraphQLScalarType;
     graphQLInputObjectType?: GraphQLInputObjectType | GraphQLList<any>;
 };
 export declare type Operation = {

@@ -4,6 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createDataDef = exports.preprocessOas = void 0;
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
 const deepEqual = require("deep-equal");
