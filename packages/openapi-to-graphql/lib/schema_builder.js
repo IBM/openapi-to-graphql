@@ -175,7 +175,7 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
             ? schema.description
             : 'No description available.';
         const memberTypeDefinitions = def.subDefinitions;
-        const types = Object.values(memberTypeDefinitions).map(memberTypeDefinition => {
+        const types = Object.values(memberTypeDefinitions).map((memberTypeDefinition) => {
             return getGraphQLType({
                 def: memberTypeDefinition,
                 operation,
@@ -197,7 +197,7 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
             resolveType: (source, context, info) => {
                 const properties = Object.keys(source)
                     // Remove custom _openAPIToGraphQL property used to pass data
-                    .filter(property => property !== '_openAPIToGraphQL');
+                    .filter((property) => property !== '_openAPIToGraphQL');
                 /**
                  * Find appropriate member type
                  *
@@ -209,11 +209,11 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
                  * identified if, for whatever reason, the return data is a superset
                  * of the fields specified in the OAS
                  */
-                return types.find(type => {
+                return types.find((type) => {
                     const typeFields = Object.keys(type.getFields());
                     // The type should be a superset of the properties
                     if (properties.length <= typeFields.length) {
-                        return properties.every(property => typeFields.includes(property));
+                        return properties.every((property) => typeFields.includes(property));
                     }
                     return false;
                 });
@@ -246,7 +246,7 @@ function checkAmbiguousMemberTypes(def, types, data) {
         for (let j = i + 1; j < types.length; j++) {
             const otherType = types[j];
             // TODO: Check the value, not just the field name
-            if (Object.keys(currentType.getFields()).every(field => {
+            if (Object.keys(currentType.getFields()).every((field) => {
                 return Object.keys(otherType.getFields()).includes(field);
             })) {
                 utils_1.handleWarning({
@@ -330,7 +330,7 @@ function createOrReuseEnum({ def, data }) {
     else {
         translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`);
         const values = {};
-        def.schema.enum.forEach(e => {
+        def.schema.enum.forEach((e) => {
             // Force enum values to string and value should be in ALL_CAPS
             values[Oas3Tools.sanitize(e.toString(), Oas3Tools.CaseStyle.ALL_CAPS)] = {
                 value: e
@@ -456,7 +456,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                     // Get arguments that are not provided by the linked operation
                     let dynamicParams = linkedOp.parameters;
                     if (typeof argsFromLink === 'object') {
-                        dynamicParams = dynamicParams.filter(param => {
+                        dynamicParams = dynamicParams.filter((param) => {
                             return typeof argsFromLink[param.name] === 'undefined';
                         });
                     }
@@ -778,7 +778,7 @@ function skipArg(parameter, operation, data) {
 function getArgs({ requestPayloadDef, parameters, operation, data }) {
     let args = {};
     // Handle params:
-    parameters.forEach(parameter => {
+    parameters.forEach((parameter) => {
         // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
@@ -949,7 +949,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
     switch (getLinkLocationType(linkLocation)) {
         case 'title':
             // Get the possible
-            const possibleOass = data.oass.filter(oas => {
+            const possibleOass = data.oass.filter((oas) => {
                 return oas.info.title === linkLocation;
             });
             // Check if there are an ambiguous OASs

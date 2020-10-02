@@ -62,8 +62,8 @@ function getValidOAS3(spec) {
             spec.swagger === '2.0') {
             preprocessingLog(`Received Swagger - going to translate to OpenAPI Specification...`);
             Swagger2OpenAPI.convertObj(spec, {})
-                .then(options => resolve(options.openapi))
-                .catch(error => reject(`Could not convert Swagger '${spec.info.title}' to OpenAPI Specification. ${error.message}`));
+                .then((options) => resolve(options.openapi))
+                .catch((error) => reject(`Could not convert Swagger '${spec.info.title}' to OpenAPI Specification. ${error.message}`));
             // CASE: validate
         }
         else if (typeof spec.openapi === 'string' &&
@@ -71,7 +71,7 @@ function getValidOAS3(spec) {
             preprocessingLog(`Received OpenAPI Specification - going to validate...`);
             OASValidator.validate(spec, {})
                 .then(() => resolve(spec))
-                .catch(error => reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${error.message}`));
+                .catch((error) => reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${error.message}`));
         }
         else {
             reject(`Invalid specification provided`);
@@ -256,7 +256,7 @@ exports.sanitizeObjectKeys = sanitizeObjectKeys;
  * the given mapping.
  */
 function desanitizeObjectKeys(obj, mapping = {}) {
-    const replaceKeys = obj => {
+    const replaceKeys = (obj) => {
         if (obj === null) {
             return null;
         }
@@ -364,10 +364,7 @@ function extractBasePath(paths) {
             }
         }
     }
-    const updatedPaths = paths.map(path => path
-        .split('/')
-        .slice(basePathComponents.length)
-        .join('/'));
+    const updatedPaths = paths.map((path) => path.split('/').slice(basePathComponents.length).join('/'));
     let basePath = basePathComponents.length === 0 ||
         (basePathComponents.length === 1 && basePathComponents[0] === '')
         ? '/'
@@ -623,7 +620,7 @@ exports.getResponseSchemaAndNames = getResponseSchemaAndNames;
 function getResponseStatusCode(path, method, operation, oas, data) {
     if (typeof operation.responses === 'object') {
         const codes = Object.keys(operation.responses);
-        const successCodes = codes.filter(code => {
+        const successCodes = codes.filter((code) => {
             return exports.SUCCESS_STATUS_RX.test(code);
         });
         if (successCodes.length === 1) {
@@ -696,7 +693,7 @@ function getParameters(path, method, operation, pathItem, oas) {
     // First, consider parameters in Path Item Object:
     const pathParams = pathItem.parameters;
     if (Array.isArray(pathParams)) {
-        const pathItemParameters = pathParams.map(p => {
+        const pathItemParameters = pathParams.map((p) => {
             if (typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
@@ -711,7 +708,7 @@ function getParameters(path, method, operation, pathItem, oas) {
     // Second, consider parameters in Operation Object:
     const opObjectParameters = operation.parameters;
     if (Array.isArray(opObjectParameters)) {
-        const operationParameters = opObjectParameters.map(p => {
+        const operationParameters = opObjectParameters.map((p) => {
             if (typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
