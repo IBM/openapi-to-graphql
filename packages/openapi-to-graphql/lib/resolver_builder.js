@@ -4,7 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractRequestDataFromArgs = exports.getResolver = exports.getPublishResolver = exports.getSubscribe = void 0;
+exports.extractRequestDataFromArgs = exports.getResolver = exports.getPublishResolver = exports.getSubscribe = exports.OPENAPI_TO_GRAPHQL = void 0;
 const NodeRequest = require("request");
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
@@ -20,10 +20,11 @@ const httpLog = debug_1.debug('http');
 const pubsubLog = debug_1.debug('pubsub');
 // OAS runtime expression reference locations
 const RUNTIME_REFERENCES = ['header.', 'query.', 'path.', 'body'];
+exports.OPENAPI_TO_GRAPHQL = '_openAPIToGraphQL';
 /*
- * If operationType is Subscription, creates and returns a resolver object that
- * contains subscribe to perform subscription and resolve to execute payload
- * transformation
+ * If the operation type is Subscription, create and return a resolver object
+ * that contains subscribe to perform subscription and resolve to execute
+ * payload transformation
  */
 function getSubscribe({ operation, payloadName, data, baseUrl, connectOptions }) {
     // Determine the appropriate URL:
@@ -108,7 +109,7 @@ function getSubscribe({ operation, payloadName, data, baseUrl, connectOptions })
 }
 exports.getSubscribe = getSubscribe;
 /*
- * If operationType is Subscription, creates and returns a resolver function
+ * If the operation type is Subscription, create and return a resolver function
  * triggered after a message has been published to the corresponding subscribe
  * topic(s) to execute payload transformation
  */
@@ -180,8 +181,8 @@ function getPublishResolver({ operation, responseName, data }) {
 }
 exports.getPublishResolver = getPublishResolver;
 /**
- * If operationType is Query/Mutation, creates and returns a resolver function
- * that performs API requests for the given GraphQL query
+ * If the operation type is Query or Mutation, create and return a resolver
+ * function that performs API requests for the given GraphQL query
  */
 function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl, requestOptions }) {
     // Determine the appropriate URL:
@@ -211,17 +212,17 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         let resolveData = {};
         if (source &&
             typeof source === 'object' &&
-            typeof source['_openAPIToGraphQL'] === 'object' &&
-            typeof source['_openAPIToGraphQL'].data === 'object') {
+            typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object' &&
+            typeof source[exports.OPENAPI_TO_GRAPHQL].data === 'object') {
             const parentIdentifier = getParentIdentifier(info);
             if (!(parentIdentifier.length === 0) &&
-                parentIdentifier in source['_openAPIToGraphQL'].data) {
+                parentIdentifier in source[exports.OPENAPI_TO_GRAPHQL].data) {
                 /**
                  * Resolving link params may change the usedParams, but these changes
                  * should not be present in the parent _openAPIToGraphQL, therefore copy
                  * the object
                  */
-                resolveData = JSON.parse(JSON.stringify(source['_openAPIToGraphQL'].data[parentIdentifier]));
+                resolveData = JSON.parse(JSON.stringify(source[exports.OPENAPI_TO_GRAPHQL].data[parentIdentifier]));
             }
         }
         if (typeof resolveData.usedParams === 'undefined') {
@@ -394,8 +395,8 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         // Get authentication headers and query parameters
         if (source &&
             typeof source === 'object' &&
-            typeof source['_openAPIToGraphQL'] === 'object') {
-            const { authHeaders, authQs, authCookie } = getAuthOptions(operation, source['_openAPIToGraphQL'], data);
+            typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
+            const { authHeaders, authQs, authCookie } = getAuthOptions(operation, source[exports.OPENAPI_TO_GRAPHQL], data);
             // ...and pass them to the options
             Object.assign(options.headers, authHeaders);
             Object.assign(options.qs, authQs);
@@ -450,7 +451,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                     else {
                         reject(new Error(errorString));
                     }
-                    // Successful response 200-299
+                    // Successful response code 200-299
                 }
                 else {
                     httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
@@ -500,31 +501,31 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                                 if (saneData && typeof saneData === 'object') {
                                     if (Array.isArray(saneData)) {
                                         saneData.forEach(element => {
-                                            if (typeof element['_openAPIToGraphQL'] === 'undefined') {
-                                                element['_openAPIToGraphQL'] = {
+                                            if (typeof element[exports.OPENAPI_TO_GRAPHQL] === 'undefined') {
+                                                element[exports.OPENAPI_TO_GRAPHQL] = {
                                                     data: {}
                                                 };
                                             }
                                             if (source &&
                                                 typeof source === 'object' &&
-                                                typeof source['_openAPIToGraphQL'] === 'object') {
-                                                Object.assign(element['_openAPIToGraphQL'], source['_openAPIToGraphQL']);
+                                                typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
+                                                Object.assign(element[exports.OPENAPI_TO_GRAPHQL], source[exports.OPENAPI_TO_GRAPHQL]);
                                             }
-                                            element['_openAPIToGraphQL'].data[getIdentifier(info)] = resolveData;
+                                            element[exports.OPENAPI_TO_GRAPHQL].data[getIdentifier(info)] = resolveData;
                                         });
                                     }
                                     else {
-                                        if (typeof saneData['_openAPIToGraphQL'] === 'undefined') {
-                                            saneData['_openAPIToGraphQL'] = {
+                                        if (typeof saneData[exports.OPENAPI_TO_GRAPHQL] === 'undefined') {
+                                            saneData[exports.OPENAPI_TO_GRAPHQL] = {
                                                 data: {}
                                             };
                                         }
                                         if (source &&
                                             typeof source === 'object' &&
-                                            typeof source['_openAPIToGraphQL'] === 'object') {
-                                            Object.assign(saneData['_openAPIToGraphQL'], source['_openAPIToGraphQL']);
+                                            typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
+                                            Object.assign(saneData[exports.OPENAPI_TO_GRAPHQL], source[exports.OPENAPI_TO_GRAPHQL]);
                                         }
-                                        saneData['_openAPIToGraphQL'].data[getIdentifier(info)] = resolveData;
+                                        saneData[exports.OPENAPI_TO_GRAPHQL].data[getIdentifier(info)] = resolveData;
                                     }
                                 }
                                 // Apply limit argument
@@ -643,10 +644,9 @@ function createOAuthHeader(data, context) {
     }
 }
 /**
- * Returns the headers and query strings to authenticate a request (if any).
- * Object containing authHeader and authQs object,
- * which hold headers and query parameters respectively to authentication a
- * request.
+ * Return the headers and query strings to authenticate a request (if any).
+ * Return authHeader and authQs, which hold headers and query parameters
+ * respectively to authentication a request.
  */
 function getAuthOptions(operation, _openAPIToGraphQL, data) {
     const authHeaders = {};
@@ -656,8 +656,7 @@ function getAuthOptions(operation, _openAPIToGraphQL, data) {
      * Determine if authentication is required, and which protocol (if any) we can
      * use
      */
-    const { authRequired, sanitizedSecurityRequirement } = getAuthReqAndProtcolName(operation, _openAPIToGraphQL);
-    const securityRequirement = data.saneMap[sanitizedSecurityRequirement];
+    const { authRequired, securityRequirement, sanitizedSecurityRequirement } = getAuthReqAndProtcolName(operation, _openAPIToGraphQL);
     // Possibly, we don't need to do anything:
     if (!authRequired) {
         return { authHeaders, authQs, authCookie };
@@ -712,9 +711,9 @@ function getAuthOptions(operation, _openAPIToGraphQL, data) {
     return { authHeaders, authQs, authCookie };
 }
 /**
- * Determines whether given operation requires authentication, and which of the
- * (possibly multiple) authentication protocols can be used based on the data
- * present in the given context.
+ * Determines whether a given operation requires authentication, and which of
+ * the (possibly multiple) authentication protocols can be used based on the
+ * data present in the given context.
  */
 function getAuthReqAndProtcolName(operation, _openAPIToGraphQL) {
     let authRequired = false;
@@ -727,6 +726,7 @@ function getAuthReqAndProtcolName(operation, _openAPIToGraphQL) {
                 'object') {
                 return {
                     authRequired,
+                    securityRequirement,
                     sanitizedSecurityRequirement
                 };
             }

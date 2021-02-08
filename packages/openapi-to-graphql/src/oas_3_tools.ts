@@ -1006,31 +1006,31 @@ export function getServers(
 }
 
 /**
- * Returns a map of Security Scheme definitions, identified by keys. Resolves
+ * Returns a map of security scheme definitions, identified by keys. Resolves
  * possible references.
  */
 export function getSecuritySchemes(
   oas: Oas3
-): { [key: string]: SecuritySchemeObject } {
+): { [schemeKey: string]: SecuritySchemeObject } {
   // Collect all security schemes:
-  const securitySchemes: { [key: string]: SecuritySchemeObject } = {}
+  const securitySchemes: { [schemeKey: string]: SecuritySchemeObject } = {}
   if (
     typeof oas.components === 'object' &&
     typeof oas.components.securitySchemes === 'object'
   ) {
     for (let schemeKey in oas.components.securitySchemes) {
-      const obj = oas.components.securitySchemes[schemeKey]
+      const securityScheme = oas.components.securitySchemes[schemeKey]
 
       // Ensure we have actual SecuritySchemeObject:
-      if (typeof (obj as ReferenceObject).$ref === 'string') {
+      if (typeof (securityScheme as ReferenceObject).$ref === 'string') {
         // Result of resolution will be SecuritySchemeObject:
         securitySchemes[schemeKey] = resolveRef(
-          (obj as ReferenceObject).$ref,
+          (securityScheme as ReferenceObject).$ref,
           oas
         ) as SecuritySchemeObject
       } else {
         // We already have a SecuritySchemeObject:
-        securitySchemes[schemeKey] = obj as SecuritySchemeObject
+        securitySchemes[schemeKey] = securityScheme as SecuritySchemeObject
       }
     }
   }
@@ -1092,7 +1092,7 @@ export enum CaseStyle {
 }
 
 /**
- * First sanitizes given string and then also camel-cases it.
+ * First sanitizes given string and then also camelCases it.
  */
 export function sanitize(str: string, caseStyle: CaseStyle): string {
   /**

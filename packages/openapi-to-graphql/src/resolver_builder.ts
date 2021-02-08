@@ -24,6 +24,7 @@ import { debug } from 'debug'
 import { GraphQLError, GraphQLFieldResolver } from 'graphql'
 import formurlencoded from 'form-urlencoded'
 import { PubSub } from 'graphql-subscriptions'
+import { IncomingHttpHeaders } from 'http'
 
 const pubsub = new PubSub()
 
@@ -34,9 +35,12 @@ const pubsubLog = debug('pubsub')
 // OAS runtime expression reference locations
 const RUNTIME_REFERENCES = ['header.', 'query.', 'path.', 'body']
 
+export const OPENAPI_TO_GRAPHQL = '_openAPIToGraphQL'
+
 // Type definitions & exports:
 type AuthReqAndProtcolName = {
   authRequired: boolean
+  securityRequirement?: string
   sanitizedSecurityRequirement?: string
 }
 
@@ -65,10 +69,43 @@ type GetSubscribeParams<TSource, TContext, TArgs> = {
   connectOptions?: ConnectOptions
 }
 
+type ResolveData<TSource, TContext, TArgs> = {
+  /**
+   * TODO: Determine type
+   *
+   * Is it related to TArgs?
+   */
+  usedParams: any
+
+  usedPayload: any
+  usedRequestOptions: RequestOptions<TSource, TContext, TArgs>
+  usedStatusCode: string
+  responseHeaders: IncomingHttpHeaders
+}
+
+// TODO: Determine better name
+type OpenAPIToGraphQLRoot<TSource, TContext, TArgs> = {
+  data?: {
+    [identifier: string]: ResolveData<TSource, TContext, TArgs>
+  }
+
+  /**
+   * TODO: We can define more specific types. See getProcessedSecuritySchemes().
+   *
+   * Is it related TArgs?
+   */
+  security: { [saneProtocolName: string]: any }
+}
+
+// TODO: Determine better name
+type OpenAPIToGraphQLSource<TSource, TContext, TArgs> = {
+  _openAPIToGraphQL: OpenAPIToGraphQLRoot<TSource, TContext, TArgs>
+}
+
 /*
- * If operationType is Subscription, creates and returns a resolver object that
- * contains subscribe to perform subscription and resolve to execute payload
- * transformation
+ * If the operation type is Subscription, create and return a resolver object
+ * that contains subscribe to perform subscription and resolve to execute
+ * payload transformation
  */
 export function getSubscribe<TSource, TContext, TArgs>({
   operation,
@@ -168,7 +205,7 @@ export function getSubscribe<TSource, TContext, TArgs>({
       const cbParams = value.match(/{([^}]*)}/g)
       pubsubLog(`Analyzing subscription path: ${cbParams.toString()}`)
 
-      cbParams.forEach(cbParam => {
+      cbParams.forEach((cbParam) => {
         value = value.replace(
           cbParam,
           resolveRuntimeExpression(
@@ -192,7 +229,7 @@ export function getSubscribe<TSource, TContext, TArgs>({
 }
 
 /*
- * If operationType is Subscription, creates and returns a resolver function
+ * If the operation type is Subscription, create and return a resolver function
  * triggered after a message has been published to the corresponding subscribe
  * topic(s) to execute payload transformation
  */
@@ -288,8 +325,8 @@ export function getPublishResolver<TSource, TContext, TArgs>({
 }
 
 /**
- * If operationType is Query/Mutation, creates and returns a resolver function
- * that performs API requests for the given GraphQL query
+ * If the operation type is Query or Mutation, create and return a resolver
+ * function that performs API requests for the given GraphQL query
  */
 export function getResolver<TSource, TContext, TArgs>({
   operation,
@@ -299,7 +336,7 @@ export function getResolver<TSource, TContext, TArgs>({
   baseUrl,
   requestOptions
 }: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<
-  TSource,
+  TSource & OpenAPIToGraphQLSource<TSource, TContext, TArgs>,
   TContext,
   TArgs
 > {
@@ -333,17 +370,17 @@ export function getResolver<TSource, TContext, TArgs>({
      * NOTE: _openAPIToGraphQL is an object used to pass security info and data
      * from previous resolvers
      */
-    let resolveData: any = {}
+    let resolveData: Partial<ResolveData<TSource, TContext, TArgs>> = {}
     if (
       source &&
       typeof source === 'object' &&
-      typeof source['_openAPIToGraphQL'] === 'object' &&
-      typeof source['_openAPIToGraphQL'].data === 'object'
+      typeof source[OPENAPI_TO_GRAPHQL] === 'object' &&
+      typeof source[OPENAPI_TO_GRAPHQL].data === 'object'
     ) {
       const parentIdentifier = getParentIdentifier(info)
       if (
         !(parentIdentifier.length === 0) &&
-        parentIdentifier in source['_openAPIToGraphQL'].data
+        parentIdentifier in source[OPENAPI_TO_GRAPHQL].data
       ) {
         /**
          * Resolving link params may change the usedParams, but these changes
@@ -351,7 +388,7 @@ export function getResolver<TSource, TContext, TArgs>({
          * the object
          */
         resolveData = JSON.parse(
-          JSON.stringify(source['_openAPIToGraphQL'].data[parentIdentifier])
+          JSON.stringify(source[OPENAPI_TO_GRAPHQL].data[parentIdentifier])
         )
       }
     }
@@ -364,7 +401,7 @@ export function getResolver<TSource, TContext, TArgs>({
      * Handle default values of parameters, if they have not yet been defined by
      * the user.
      */
-    operation.parameters.forEach(param => {
+    operation.parameters.forEach((param) => {
       const paramName = Oas3Tools.sanitize(
         param.name,
         !data.options.simpleNames
@@ -423,7 +460,7 @@ export function getResolver<TSource, TContext, TArgs>({
       } else {
         // Replace link parameters with appropriate values
         const linkParams = value.match(/{([^}]*)}/g)
-        linkParams.forEach(linkParam => {
+        linkParams.forEach((linkParam) => {
           value = value.replace(
             linkParam,
             resolveRuntimeExpression(
@@ -578,11 +615,11 @@ export function getResolver<TSource, TContext, TArgs>({
     if (
       source &&
       typeof source === 'object' &&
-      typeof source['_openAPIToGraphQL'] === 'object'
+      typeof source[OPENAPI_TO_GRAPHQL] === 'object'
     ) {
       const { authHeaders, authQs, authCookie } = getAuthOptions(
         operation,
-        source['_openAPIToGraphQL'],
+        source[OPENAPI_TO_GRAPHQL],
         data
       )
 
@@ -650,7 +687,7 @@ export function getResolver<TSource, TContext, TArgs>({
             reject(new Error(errorString))
           }
 
-          // Successful response 200-299
+          // Successful response code 200-299
         } else {
           httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`)
 
@@ -717,9 +754,9 @@ export function getResolver<TSource, TContext, TArgs>({
                 // Pass on _openAPIToGraphQL to subsequent resolvers
                 if (saneData && typeof saneData === 'object') {
                   if (Array.isArray(saneData)) {
-                    saneData.forEach(element => {
-                      if (typeof element['_openAPIToGraphQL'] === 'undefined') {
-                        element['_openAPIToGraphQL'] = {
+                    saneData.forEach((element) => {
+                      if (typeof element[OPENAPI_TO_GRAPHQL] === 'undefined') {
+                        element[OPENAPI_TO_GRAPHQL] = {
                           data: {}
                         }
                       }
@@ -727,21 +764,21 @@ export function getResolver<TSource, TContext, TArgs>({
                       if (
                         source &&
                         typeof source === 'object' &&
-                        typeof source['_openAPIToGraphQL'] === 'object'
+                        typeof source[OPENAPI_TO_GRAPHQL] === 'object'
                       ) {
                         Object.assign(
-                          element['_openAPIToGraphQL'],
-                          source['_openAPIToGraphQL']
+                          element[OPENAPI_TO_GRAPHQL],
+                          source[OPENAPI_TO_GRAPHQL]
                         )
                       }
 
-                      element['_openAPIToGraphQL'].data[
+                      element[OPENAPI_TO_GRAPHQL].data[
                         getIdentifier(info)
                       ] = resolveData
                     })
                   } else {
-                    if (typeof saneData['_openAPIToGraphQL'] === 'undefined') {
-                      saneData['_openAPIToGraphQL'] = {
+                    if (typeof saneData[OPENAPI_TO_GRAPHQL] === 'undefined') {
+                      saneData[OPENAPI_TO_GRAPHQL] = {
                         data: {}
                       }
                     }
@@ -749,15 +786,15 @@ export function getResolver<TSource, TContext, TArgs>({
                     if (
                       source &&
                       typeof source === 'object' &&
-                      typeof source['_openAPIToGraphQL'] === 'object'
+                      typeof source[OPENAPI_TO_GRAPHQL] === 'object'
                     ) {
                       Object.assign(
-                        saneData['_openAPIToGraphQL'],
-                        source['_openAPIToGraphQL']
+                        saneData[OPENAPI_TO_GRAPHQL],
+                        source[OPENAPI_TO_GRAPHQL]
                       )
                     }
 
-                    saneData['_openAPIToGraphQL'].data[
+                    saneData[OPENAPI_TO_GRAPHQL].data[
                       getIdentifier(info)
                     ] = resolveData
                   }
@@ -772,13 +809,13 @@ export function getResolver<TSource, TContext, TArgs>({
                    *
                    * Ensure that there is not preexisting 'limit' argument
                    */
-                  !operation.parameters.find(parameter => {
+                  !operation.parameters.find((parameter) => {
                     return parameter.name === 'limit'
                   }) &&
                   // Only array data
                   Array.isArray(saneData) &&
                   // Only array of objects/arrays
-                  saneData.some(data => {
+                  saneData.some((data) => {
                     return typeof data === 'object'
                   })
                 ) {
@@ -910,14 +947,13 @@ function createOAuthHeader<TSource, TContext, TArgs>(
 }
 
 /**
- * Returns the headers and query strings to authenticate a request (if any).
- * Object containing authHeader and authQs object,
- * which hold headers and query parameters respectively to authentication a
- * request.
+ * Return the headers and query strings to authenticate a request (if any).
+ * Return authHeader and authQs, which hold headers and query parameters
+ * respectively to authentication a request.
  */
 function getAuthOptions<TSource, TContext, TArgs>(
   operation: Operation,
-  _openAPIToGraphQL: any,
+  _openAPIToGraphQL: OpenAPIToGraphQLRoot<TSource, TContext, TArgs>,
   data: PreprocessingData<TSource, TContext, TArgs>
 ): AuthOptions {
   const authHeaders = {}
@@ -930,9 +966,9 @@ function getAuthOptions<TSource, TContext, TArgs>(
    */
   const {
     authRequired,
+    securityRequirement,
     sanitizedSecurityRequirement
   } = getAuthReqAndProtcolName(operation, _openAPIToGraphQL)
-  const securityRequirement = data.saneMap[sanitizedSecurityRequirement]
 
   // Possibly, we don't need to do anything:
   if (!authRequired) {
@@ -1001,13 +1037,13 @@ function getAuthOptions<TSource, TContext, TArgs>(
 }
 
 /**
- * Determines whether given operation requires authentication, and which of the
- * (possibly multiple) authentication protocols can be used based on the data
- * present in the given context.
+ * Determines whether a given operation requires authentication, and which of
+ * the (possibly multiple) authentication protocols can be used based on the
+ * data present in the given context.
  */
-function getAuthReqAndProtcolName(
+function getAuthReqAndProtcolName<TSource, TContext, TArgs>(
   operation: Operation,
-  _openAPIToGraphQL
+  _openAPIToGraphQL: OpenAPIToGraphQLRoot<TSource, TContext, TArgs>
 ): AuthReqAndProtcolName {
   let authRequired = false
   if (
@@ -1027,6 +1063,7 @@ function getAuthReqAndProtcolName(
       ) {
         return {
           authRequired,
+          securityRequirement,
           sanitizedSecurityRequirement
         }
       }

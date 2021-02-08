@@ -40,7 +40,7 @@ import {
 // Imports:
 import GraphQLJSON from 'graphql-type-json'
 import * as Oas3Tools from './oas_3_tools'
-import { getResolver } from './resolver_builder'
+import { getResolver, OPENAPI_TO_GRAPHQL } from './resolver_builder'
 import { createDataDef } from './preprocessor'
 import debug from 'debug'
 import { handleWarning, sortObject, MitigationTypes } from './utils'
@@ -80,6 +80,50 @@ type LinkOpRefToOpIdParams<TSource, TContext, TArgs> = {
   operation: Operation
   data: PreprocessingData<TSource, TContext, TArgs>
 }
+
+/**
+ * We need to slightly modify the GraphQLJSON type.
+ *
+ * We need to remove the _openAPIToGraphQL or else we will leak data about
+ * the API requests. Therefore, we need to change the serialize() function
+ * in the GraphQLJSON type.
+ */
+const CleanGraphQLJSON = new GraphQLScalarType({
+  ...GraphQLJSON.toConfig(),
+  serialize: (value) => {
+    let cleanValue
+
+    /**
+     * If the value is an object and contains the _openAPIToGraphQL,
+     * make a copy of the object without said field.
+     *
+     * NOTE: The value will only contain the _openAPIToGraphQL field if
+     * an OAS operation is determined to return an arbitrary JSON type.
+     * Not if a property of the return type contains an arbitrary JSON
+     * type.
+     */
+    if (
+      value &&
+      typeof value === 'object' &&
+      typeof value[OPENAPI_TO_GRAPHQL] === 'object'
+    ) {
+      cleanValue = { ...value }
+
+      delete cleanValue[OPENAPI_TO_GRAPHQL]
+
+      /**
+       * As a GraphQLJSON type, the value can also be a scalar or array or
+       * an object without the _openAPIToGraphQL field. In that case,
+       * just use the original value.
+       */
+    } else {
+      cleanValue = value
+    }
+
+    // Use original serialize() function but with clean value
+    return GraphQLJSON.serialize(cleanValue)
+  }
+})
 
 const translationLog = debug('translation')
 
@@ -533,13 +577,13 @@ function getScalarType<TSource, TContext, TArgs>({
       def.graphQLType = GraphQLBoolean
       break
     case 'json':
-      def.graphQLType = GraphQLJSON
+      def.graphQLType = CleanGraphQLJSON
       break
     default:
       throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`)
   }
 
-  return def.graphQLType as GraphQLScalarType
+  return def.graphQLType
 }
 
 /**
