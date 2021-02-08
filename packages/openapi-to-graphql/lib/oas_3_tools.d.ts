@@ -146,11 +146,11 @@ export declare function getParameters(path: string, method: HTTP_METHODS, operat
  */
 export declare function getServers(operation: OperationObject, pathItem: PathItemObject, oas: Oas3): ServerObject[];
 /**
- * Returns a map of Security Scheme definitions, identified by keys. Resolves
+ * Returns a map of security scheme definitions, identified by keys. Resolves
  * possible references.
  */
 export declare function getSecuritySchemes(oas: Oas3): {
-    [key: string]: SecuritySchemeObject;
+    [schemeKey: string]: SecuritySchemeObject;
 };
 /**
  * Returns the list of sanitized keys of non-OAuth2 security schemes
@@ -166,7 +166,7 @@ export declare enum CaseStyle {
     ALL_CAPS = 3
 }
 /**
- * First sanitizes given string and then also camel-cases it.
+ * First sanitizes given string and then also camelCases it.
  */
 export declare function sanitize(str: string, caseStyle: CaseStyle): string;
 /**

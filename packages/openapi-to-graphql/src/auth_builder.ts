@@ -14,7 +14,8 @@ import {
   GraphQLObjectType,
   GraphQLNonNull,
   GraphQLFieldConfigMap,
-  GraphQLFieldResolver
+  GraphQLFieldResolver,
+  GraphQLFieldConfig
 } from 'graphql'
 import { Args, GraphQLOperationType } from './types/graphql'
 import {
@@ -29,14 +30,6 @@ import debug from 'debug'
 import { handleWarning, sortObject, MitigationTypes } from './utils'
 import { createDataDef } from './preprocessor'
 
-// Type definitions & exports:
-type Viewer<TSource, TContext, TArgs> = {
-  type: GraphQLObjectType
-  resolve: GraphQLFieldResolver<TSource, TContext, TArgs>
-  args: Args
-  description: string
-}
-
 const translationLog = debug('translation')
 
 /**
@@ -49,7 +42,7 @@ export function createAndLoadViewer<TSource, TContext, TArgs>(
   queryFields: object,
   operationType: GraphQLOperationType,
   data: PreprocessingData<TSource, TContext, TArgs>
-): { [key: string]: Viewer<TSource, TContext, TArgs> } {
+): { [key: string]: GraphQLFieldConfig<TSource, TContext, TArgs> } {
   const results = {}
   /**
    * To ensure that viewers have unique names, we add a numerical postfix.
@@ -160,7 +153,7 @@ export function createAndLoadViewer<TSource, TContext, TArgs>(
 }
 
 /**
- * Gets the viewer Object, resolve function, and arguments
+ * Get the viewer object, resolve function, and arguments
  */
 function getViewerOT<TSource, TContext, TArgs>(
   name: string,
@@ -168,11 +161,16 @@ function getViewerOT<TSource, TContext, TArgs>(
   securityType: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
   data: PreprocessingData<TSource, TContext, TArgs>
-): Viewer<TSource, TContext, TArgs> {
+): GraphQLFieldConfig<TSource, TContext, TArgs> {
   const scheme: ProcessedSecurityScheme = data.security[protocolName]
 
   // Resolve function:
-  const resolve = (root, args, context) => {
+  const resolve: GraphQLFieldResolver<TSource, TContext, TArgs> = (
+    source,
+    args,
+    context,
+    info
+  ) => {
     const security = {}
     const saneProtocolName = Oas3Tools.sanitize(
       protocolName,
@@ -201,7 +199,12 @@ function getViewerOT<TSource, TContext, TArgs>(
   const args = {}
   if (typeof scheme === 'object') {
     for (let parameterName in scheme.parameters) {
-      args[parameterName] = { type: new GraphQLNonNull(GraphQLString) }
+      // The parameter name should be already sane as it is provided by OpenAPI-to-GraphQL
+      const saneParameterName = Oas3Tools.sanitize(
+        parameterName,
+        Oas3Tools.CaseStyle.camelCase
+      )
+      args[saneParameterName] = { type: new GraphQLNonNull(GraphQLString) }
     }
   }
 
@@ -242,7 +245,22 @@ function getViewerAnyAuthOT<TSource, TContext, TArgs>(
   name: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
   data: PreprocessingData<TSource, TContext, TArgs>
-): Viewer<TSource, TContext, TArgs> {
+): GraphQLFieldConfig<TSource, TContext, TArgs> {
+  // Resolve function:
+  const resolve: GraphQLFieldResolver<TSource, TContext, TArgs> = (
+    source,
+    args,
+    context,
+    info
+  ) => {
+    return {
+      _openAPIToGraphQL: {
+        security: args
+      }
+    }
+  }
+
+  // Arguments:
   let args = {}
   for (let protocolName in data.security) {
     // Create input object types for the viewer arguments
@@ -269,15 +287,6 @@ function getViewerAnyAuthOT<TSource, TContext, TArgs>(
     ] = { type }
   }
   args = sortObject(args)
-
-  // Pass object containing security information to fields
-  const resolve = (root, args, context) => {
-    return {
-      _openAPIToGraphQL: {
-        security: args
-      }
-    }
-  }
 
   return {
     type: new GraphQLObjectType({

@@ -13,6 +13,41 @@ const resolver_builder_1 = require("./resolver_builder");
 const preprocessor_1 = require("./preprocessor");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+/**
+ * We need to slightly modify the GraphQLJSON type.
+ *
+ * We need to remove the _openAPIToGraphQL or else we will leak data about
+ * the API requests. Therefore, we need to change the serialize() function
+ * in the GraphQLJSON type.
+ */
+const CleanGraphQLJSON = new graphql_1.GraphQLScalarType(Object.assign(Object.assign({}, graphql_type_json_1.default.toConfig()), { serialize: (value) => {
+        let cleanValue;
+        /**
+         * If the value is an object and contains the _openAPIToGraphQL,
+         * make a copy of the object without said field.
+         *
+         * NOTE: The value will only contain the _openAPIToGraphQL field if
+         * an OAS operation is determined to return an arbitrary JSON type.
+         * Not if a property of the return type contains an arbitrary JSON
+         * type.
+         */
+        if (value &&
+            typeof value === 'object' &&
+            typeof value[resolver_builder_1.OPENAPI_TO_GRAPHQL] === 'object') {
+            cleanValue = Object.assign({}, value);
+            delete cleanValue[resolver_builder_1.OPENAPI_TO_GRAPHQL];
+            /**
+             * As a GraphQLJSON type, the value can also be a scalar or array or
+             * an object without the _openAPIToGraphQL field. In that case,
+             * just use the original value.
+             */
+        }
+        else {
+            cleanValue = value;
+        }
+        // Use original serialize() function but with clean value
+        return graphql_type_json_1.default.serialize(cleanValue);
+    } }));
 const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
@@ -365,7 +400,7 @@ function getScalarType({ def, data }) {
             def.graphQLType = graphql_1.GraphQLBoolean;
             break;
         case 'json':
-            def.graphQLType = graphql_type_json_1.default;
+            def.graphQLType = CleanGraphQLJSON;
             break;
         default:
             throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`);

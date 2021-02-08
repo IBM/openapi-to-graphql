@@ -329,20 +329,20 @@ function getProcessedSecuritySchemes(oas, data) {
     const result = {};
     const security = Oas3Tools.getSecuritySchemes(oas);
     // Loop through all the security protocols
-    for (let key in security) {
-        const protocol = security[key];
+    for (let schemeKey in security) {
+        const securityScheme = security[schemeKey];
         // Determine the schema and the parameters for the security protocol
         let schema;
         let parameters = {};
         let description;
-        switch (protocol.type) {
+        switch (securityScheme.type) {
             case 'apiKey':
-                description = `API key credentials for the security protocol '${key}'`;
+                description = `API key credentials for the security protocol '${schemeKey}'`;
                 if (data.oass.length > 1) {
                     description += ` in ${oas.info.title}`;
                 }
                 parameters = {
-                    apiKey: Oas3Tools.sanitize(`${key}_apiKey`, Oas3Tools.CaseStyle.camelCase)
+                    apiKey: Oas3Tools.sanitize(`${schemeKey}_apiKey`, Oas3Tools.CaseStyle.camelCase)
                 };
                 schema = {
                     type: 'object',
@@ -355,17 +355,17 @@ function getProcessedSecuritySchemes(oas, data) {
                 };
                 break;
             case 'http':
-                switch (protocol.scheme) {
+                switch (securityScheme.scheme) {
                     /**
                      * TODO: HTTP has a number of authentication types
                      *
                      * See http://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml
                      */
                     case 'basic':
-                        description = `Basic auth credentials for security protocol '${key}'`;
+                        description = `Basic auth credentials for security protocol '${schemeKey}'`;
                         parameters = {
-                            username: Oas3Tools.sanitize(`${key}_username`, Oas3Tools.CaseStyle.camelCase),
-                            password: Oas3Tools.sanitize(`${key}_password`, Oas3Tools.CaseStyle.camelCase)
+                            username: Oas3Tools.sanitize(`${schemeKey}_username`, Oas3Tools.CaseStyle.camelCase),
+                            password: Oas3Tools.sanitize(`${schemeKey}_password`, Oas3Tools.CaseStyle.camelCase)
                         };
                         schema = {
                             type: 'object',
@@ -384,7 +384,7 @@ function getProcessedSecuritySchemes(oas, data) {
                         utils_1.handleWarning({
                             mitigationType: utils_1.MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
                             message: `Currently unsupported HTTP authentication protocol ` +
-                                `type 'http' and scheme '${protocol.scheme}' in OAS ` +
+                                `type 'http' and scheme '${securityScheme.scheme}' in OAS ` +
                                 `'${oas.info.title}'`,
                             data,
                             log: preprocessingLog
@@ -415,15 +415,15 @@ function getProcessedSecuritySchemes(oas, data) {
                 utils_1.handleWarning({
                     mitigationType: utils_1.MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
                     message: `Unsupported HTTP authentication protocol` +
-                        `type '${protocol.type}' in OAS '${oas.info.title}'`,
+                        `type '${securityScheme.type}' in OAS '${oas.info.title}'`,
                     data,
                     log: preprocessingLog
                 });
         }
         // Add protocol data to the output
-        result[key] = {
-            rawName: key,
-            def: protocol,
+        result[schemeKey] = {
+            rawName: schemeKey,
+            def: securityScheme,
             parameters,
             schema,
             oas

@@ -11,6 +11,7 @@ export declare type ProcessedSecurityScheme = {
      * Stores the names of the authentication credentials
      * NOTE: Structure depends on the type of the protocol (basic, API key...)
      * NOTE: Mainly used for the AnyAuth viewers
+     * NOTE: Values are sanitized (see getProcessedSecuritySchemes() in preprocessor.ts)
      */
     parameters: {
         [key: string]: string;

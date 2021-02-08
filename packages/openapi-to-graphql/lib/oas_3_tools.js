@@ -754,7 +754,7 @@ function getServers(operation, pathItem, oas) {
 }
 exports.getServers = getServers;
 /**
- * Returns a map of Security Scheme definitions, identified by keys. Resolves
+ * Returns a map of security scheme definitions, identified by keys. Resolves
  * possible references.
  */
 function getSecuritySchemes(oas) {
@@ -763,15 +763,15 @@ function getSecuritySchemes(oas) {
     if (typeof oas.components === 'object' &&
         typeof oas.components.securitySchemes === 'object') {
         for (let schemeKey in oas.components.securitySchemes) {
-            const obj = oas.components.securitySchemes[schemeKey];
+            const securityScheme = oas.components.securitySchemes[schemeKey];
             // Ensure we have actual SecuritySchemeObject:
-            if (typeof obj.$ref === 'string') {
+            if (typeof securityScheme.$ref === 'string') {
                 // Result of resolution will be SecuritySchemeObject:
-                securitySchemes[schemeKey] = resolveRef(obj.$ref, oas);
+                securitySchemes[schemeKey] = resolveRef(securityScheme.$ref, oas);
             }
             else {
                 // We already have a SecuritySchemeObject:
-                securitySchemes[schemeKey] = obj;
+                securitySchemes[schemeKey] = securityScheme;
             }
         }
     }
@@ -823,7 +823,7 @@ var CaseStyle;
     CaseStyle[CaseStyle["ALL_CAPS"] = 3] = "ALL_CAPS"; // Used for enum values
 })(CaseStyle = exports.CaseStyle || (exports.CaseStyle = {}));
 /**
- * First sanitizes given string and then also camel-cases it.
+ * First sanitizes given string and then also camelCases it.
  */
 function sanitize(str, caseStyle) {
     /**

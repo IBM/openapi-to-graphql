@@ -104,12 +104,12 @@ function createAndLoadViewer(queryFields, operationType, data) {
 }
 exports.createAndLoadViewer = createAndLoadViewer;
 /**
- * Gets the viewer Object, resolve function, and arguments
+ * Get the viewer object, resolve function, and arguments
  */
 function getViewerOT(name, protocolName, securityType, queryFields, data) {
     const scheme = data.security[protocolName];
     // Resolve function:
-    const resolve = (root, args, context) => {
+    const resolve = (source, args, context, info) => {
         const security = {};
         const saneProtocolName = Oas3Tools.sanitize(protocolName, Oas3Tools.CaseStyle.camelCase);
         security[Oas3Tools.storeSaneName(saneProtocolName, protocolName, data.saneMap)] = args;
@@ -131,7 +131,9 @@ function getViewerOT(name, protocolName, securityType, queryFields, data) {
     const args = {};
     if (typeof scheme === 'object') {
         for (let parameterName in scheme.parameters) {
-            args[parameterName] = { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) };
+            // The parameter name should be already sane as it is provided by OpenAPI-to-GraphQL
+            const saneParameterName = Oas3Tools.sanitize(parameterName, Oas3Tools.CaseStyle.camelCase);
+            args[saneParameterName] = { type: new graphql_1.GraphQLNonNull(graphql_1.GraphQLString) };
         }
     }
     let typeDescription = `A viewer for security scheme '${protocolName}'`;
@@ -164,6 +166,15 @@ function getViewerOT(name, protocolName, securityType, queryFields, data) {
  * and its args.
  */
 function getViewerAnyAuthOT(name, queryFields, data) {
+    // Resolve function:
+    const resolve = (source, args, context, info) => {
+        return {
+            _openAPIToGraphQL: {
+                security: args
+            }
+        };
+    };
+    // Arguments:
     let args = {};
     for (let protocolName in data.security) {
         // Create input object types for the viewer arguments
@@ -177,14 +188,6 @@ function getViewerAnyAuthOT(name, queryFields, data) {
         args[Oas3Tools.storeSaneName(saneProtocolName, protocolName, data.saneMap)] = { type };
     }
     args = utils_1.sortObject(args);
-    // Pass object containing security information to fields
-    const resolve = (root, args, context) => {
-        return {
-            _openAPIToGraphQL: {
-                security: args
-            }
-        };
-    };
     return {
         type: new graphql_1.GraphQLObjectType({
             name: Oas3Tools.capitalize(name),
