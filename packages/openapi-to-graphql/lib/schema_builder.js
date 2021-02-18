@@ -425,7 +425,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             iteration: iteration + 1,
             isInputObjectType
         });
-        const nullableProperty = typeof def.schema.nullable;
+        const nullableProperty = def.schema.nullable;
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const saneFieldTypeKey = Oas3Tools.sanitize(fieldTypeKey, !data.options.simpleNames
