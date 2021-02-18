@@ -38,13 +38,6 @@ export type DataDefinition = {
   // The schema of the data type, why may have gone through some resolution, and is used with preferredName to identify a specific GraphQL type
   schema: SchemaObject
 
-  /**
-   * Similar to the required property in object schemas but because of certain
-   * keywords to combine schemas, e.g. "allOf", this resolves the required
-   * property in all member schemas
-   */
-  required: string[]
-
   // The type GraphQL type this dataDefintion will be created into
   targetGraphQLType: string
 

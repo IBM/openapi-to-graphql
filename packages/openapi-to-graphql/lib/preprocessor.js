@@ -115,7 +115,7 @@ function preprocessOas(oass, options) {
         options,
         oass
     };
-    oass.forEach(oas => {
+    oass.forEach((oas) => {
         // Store stats on OAS:
         data.options.report.numOps += Oas3Tools.countOperations(oas);
         data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas);
@@ -129,7 +129,7 @@ function preprocessOas(oass, options) {
         // Get security schemes
         const currentSecurity = getProcessedSecuritySchemes(oas, data);
         const commonSecurityPropertyName = utils_1.getCommonPropertyNames(data.security, currentSecurity);
-        commonSecurityPropertyName.forEach(propertyName => {
+        commonSecurityPropertyName.forEach((propertyName) => {
             utils_1.handleWarning({
                 mitigationType: utils_1.MitigationTypes.DUPLICATE_SECURITY_SCHEME,
                 message: `Multiple OASs share security schemes with the same name '${propertyName}'`,
@@ -147,7 +147,7 @@ function preprocessOas(oass, options) {
                 ? oas.paths[path]
                 : Oas3Tools.resolveRef(oas.paths[path]['$ref'], oas);
             Object.keys(pathItem)
-                .filter(objectKey => {
+                .filter((objectKey) => {
                 /**
                  * Get only fields that contain operation objects
                  *
@@ -155,7 +155,7 @@ function preprocessOas(oass, options) {
                  */
                 return Oas3Tools.isHttpMethod(objectKey);
             })
-                .forEach(rawMethod => {
+                .forEach((rawMethod) => {
                 const operationString = oass.length === 1
                     ? Oas3Tools.formatOperationString(rawMethod, path)
                     : Oas3Tools.formatOperationString(rawMethod, path, oas.info.title);
@@ -220,7 +220,7 @@ function preprocessOas(oass, options) {
                             const resolvedCallbackPathItem = !('$ref' in callbackPathItem)
                                 ? callbackPathItem
                                 : Oas3Tools.resolveRef(callbackPathItem['$ref'], oas);
-                            const callbackOperationObjectMethods = Object.keys(resolvedCallbackPathItem).filter(objectKey => {
+                            const callbackOperationObjectMethods = Object.keys(resolvedCallbackPathItem).filter((objectKey) => {
                                 /**
                                  * Get only fields that contain operation objects
                                  *
@@ -450,7 +450,6 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
         return {
             preferredName,
             schema: null,
-            required: [],
             links: null,
             subDefinitions: null,
             graphQLTypeName: null,
@@ -464,7 +463,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
         }
         const saneLinks = {};
         if (typeof links === 'object') {
-            Object.keys(links).forEach(linkKey => {
+            Object.keys(links).forEach((linkKey) => {
                 saneLinks[Oas3Tools.sanitize(linkKey, !data.options.simpleNames
                     ? Oas3Tools.CaseStyle.camelCase
                     : Oas3Tools.CaseStyle.simple)] = links[linkKey];
@@ -482,7 +481,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
             if (typeof saneLinks !== 'undefined') {
                 if (typeof existingDataDef.links !== 'undefined') {
                     // Check if there are any overlapping links
-                    Object.keys(existingDataDef.links).forEach(saneLinkKey => {
+                    Object.keys(existingDataDef.links).forEach((saneLinkKey) => {
                         if (typeof saneLinks[saneLinkKey] !== 'undefined' &&
                             !deepEqual(existingDataDef.links[saneLinkKey], saneLinks[saneLinkKey])) {
                             utils_1.handleWarning({
@@ -537,7 +536,6 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
                  * currently, it does not.
                  */
                 schema,
-                required: [],
                 targetGraphQLType,
                 subDefinitions: undefined,
                 links: saneLinks,
@@ -613,7 +611,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
                         def.subDefinitions = {};
                         if (typeof collapsedSchema.properties === 'object' &&
                             Object.keys(collapsedSchema.properties).length > 0) {
-                            addObjectPropertiesToDataDef(def, collapsedSchema, def.required, isInputObjectType, data, oas);
+                            addObjectPropertiesToDataDef(def, collapsedSchema, isInputObjectType, data, oas);
                         }
                         else {
                             utils_1.handleWarning({
@@ -748,17 +746,7 @@ function getSchemaName(names, usedNames) {
 /**
  * Recursively add all of the properties of an object to the data definition
  */
-function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, data, oas) {
-    /**
-     * Resolve all required properties
-     *
-     * TODO: required may contain duplicates, which is not necessarily a problem
-     */
-    if (Array.isArray(schema.required)) {
-        schema.required.forEach(requiredProperty => {
-            required.push(requiredProperty);
-        });
-    }
+function addObjectPropertiesToDataDef(def, schema, isInputObjectType, data, oas) {
     for (let propertyKey in schema.properties) {
         let propSchemaName = propertyKey;
         let propSchema = schema.properties[propertyKey];
@@ -807,7 +795,7 @@ function resolveAllOf(schema, references, data, oas) {
     const collapsedSchema = JSON.parse(JSON.stringify(schema));
     // Resolve allOf
     if (Array.isArray(collapsedSchema.allOf)) {
-        collapsedSchema.allOf.forEach(memberSchema => {
+        collapsedSchema.allOf.forEach((memberSchema) => {
             // Collapse type if applicable
             const resolvedSchema = resolveAllOf(memberSchema, references, data, oas);
             if (resolvedSchema.type) {
@@ -852,7 +840,7 @@ function resolveAllOf(schema, references, data, oas) {
                 if (!('oneOf' in collapsedSchema)) {
                     collapsedSchema.oneOf = [];
                 }
-                resolvedSchema.oneOf.forEach(oneOfProperty => {
+                resolvedSchema.oneOf.forEach((oneOfProperty) => {
                     collapsedSchema.oneOf.push(oneOfProperty);
                 });
             }
@@ -861,19 +849,8 @@ function resolveAllOf(schema, references, data, oas) {
                 if (!('anyOf' in collapsedSchema)) {
                     collapsedSchema.anyOf = [];
                 }
-                resolvedSchema.anyOf.forEach(anyOfProperty => {
+                resolvedSchema.anyOf.forEach((anyOfProperty) => {
                     collapsedSchema.anyOf.push(anyOfProperty);
-                });
-            }
-            // Collapse required if applicable
-            if ('required' in resolvedSchema) {
-                if (!('required' in collapsedSchema)) {
-                    collapsedSchema.required = [];
-                }
-                resolvedSchema.required.forEach(requiredProperty => {
-                    if (!collapsedSchema.required.includes(requiredProperty)) {
-                        collapsedSchema.required.push(requiredProperty);
-                    }
                 });
             }
         });
@@ -890,7 +867,7 @@ function getMemberSchemaData(schemas, data, oas) {
         allProperties: [],
         allRequired: []
     };
-    schemas.forEach(schema => {
+    schemas.forEach((schema) => {
         // Dereference schemas
         if ('$ref' in schema) {
             schema = Oas3Tools.resolveRef(schema['$ref'], oas);
@@ -904,10 +881,6 @@ function getMemberSchemaData(schemas, data, oas) {
         if (schema.properties) {
             result.allProperties.push(schema.properties);
         }
-        // Consolidate required
-        if (schema.required) {
-            result.allRequired = result.allRequired.concat(schema.required);
-        }
     });
     return result;
 }
@@ -919,7 +892,7 @@ function getMemberSchemaData(schemas, data, oas) {
 function hasNestedOneOfUsage(collapsedSchema, oas) {
     // TODO: Should also consider if the member schema contains type data
     return (Array.isArray(collapsedSchema.oneOf) &&
-        collapsedSchema.oneOf.some(memberSchema => {
+        collapsedSchema.oneOf.some((memberSchema) => {
             // anyOf and oneOf are nested
             if ('$ref' in memberSchema) {
                 memberSchema = Oas3Tools.resolveRef(memberSchema['$ref'], oas);
@@ -936,7 +909,7 @@ function hasNestedOneOfUsage(collapsedSchema, oas) {
 function hasNestedAnyOfUsage(collapsedSchema, oas) {
     // TODO: Should also consider if the member schema contains type data
     return (Array.isArray(collapsedSchema.anyOf) &&
-        collapsedSchema.anyOf.some(memberSchema => {
+        collapsedSchema.anyOf.some((memberSchema) => {
             // anyOf and oneOf are nested
             if ('$ref' in memberSchema) {
                 memberSchema = Oas3Tools.resolveRef(memberSchema['$ref'], oas);
@@ -952,11 +925,11 @@ function hasNestedAnyOfUsage(collapsedSchema, oas) {
  */
 function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInputObjectType, def, data, oas) {
     const anyOfData = getMemberSchemaData(collapsedSchema.anyOf, data, oas);
-    if (anyOfData.allTargetGraphQLTypes.some(memberTargetGraphQLType => {
+    if (anyOfData.allTargetGraphQLTypes.some((memberTargetGraphQLType) => {
         return memberTargetGraphQLType === 'object';
     })) {
         // Every member type should be an object
-        if (anyOfData.allTargetGraphQLTypes.every(memberTargetGraphQLType => {
+        if (anyOfData.allTargetGraphQLTypes.every((memberTargetGraphQLType) => {
             return memberTargetGraphQLType === 'object';
         }) &&
             anyOfData.allProperties.length > 0 // Redundant check
@@ -972,18 +945,18 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                  * required field
                  */
                 if (typeof collapsedSchema.properties === 'object') {
-                    Object.keys(collapsedSchema.properties).forEach(propertyName => {
+                    Object.keys(collapsedSchema.properties).forEach((propertyName) => {
                         allProperties[propertyName] = [
                             collapsedSchema.properties[propertyName]
                         ];
                     });
                 }
                 // Check if any member schema has conflicting properties
-                anyOfData.allProperties.forEach(properties => {
-                    Object.keys(properties).forEach(propertyName => {
+                anyOfData.allProperties.forEach((properties) => {
+                    Object.keys(properties).forEach((propertyName) => {
                         if (!incompatibleProperties.has(propertyName) && // Has not been already identified as a problematic property
                             typeof allProperties[propertyName] === 'object' &&
-                            allProperties[propertyName].some(property => {
+                            allProperties[propertyName].some((property) => {
                                 // Property does not match a recorded one
                                 return !deepEqual(property, properties[propertyName]);
                             })) {
@@ -999,10 +972,10 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                 def.subDefinitions = {};
                 if (typeof collapsedSchema.properties === 'object' &&
                     Object.keys(collapsedSchema.properties).length > 0) {
-                    addObjectPropertiesToDataDef(def, collapsedSchema, def.required, isInputObjectType, data, oas);
+                    addObjectPropertiesToDataDef(def, collapsedSchema, isInputObjectType, data, oas);
                 }
-                anyOfData.allProperties.forEach(properties => {
-                    Object.keys(properties).forEach(propertyName => {
+                anyOfData.allProperties.forEach((properties) => {
+                    Object.keys(properties).forEach((propertyName) => {
                         if (!incompatibleProperties.has(propertyName)) {
                             // Dereferenced by processing anyOfData
                             const propertySchema = properties[propertyName];
@@ -1019,7 +992,7 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                     });
                 });
                 // Add in incompatible properties
-                incompatibleProperties.forEach(propertyName => {
+                incompatibleProperties.forEach((propertyName) => {
                     // TODO: add description
                     def.subDefinitions[propertyName] = {
                         targetGraphQLType: 'json'
@@ -1065,11 +1038,11 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
 }
 function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInputObjectType, def, data, oas) {
     const oneOfData = getMemberSchemaData(collapsedSchema.oneOf, data, oas);
-    if (oneOfData.allTargetGraphQLTypes.some(memberTargetGraphQLType => {
+    if (oneOfData.allTargetGraphQLTypes.some((memberTargetGraphQLType) => {
         return memberTargetGraphQLType === 'object';
     })) {
         // unions must be created from object types
-        if (oneOfData.allTargetGraphQLTypes.every(memberTargetGraphQLType => {
+        if (oneOfData.allTargetGraphQLTypes.every((memberTargetGraphQLType) => {
             return memberTargetGraphQLType === 'object';
         }) &&
             oneOfData.allProperties.length > 0 // Redundant check
@@ -1089,7 +1062,7 @@ function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInpu
             if (def.targetGraphQLType === null ||
                 def.targetGraphQLType === 'object') {
                 def.subDefinitions = [];
-                collapsedSchema.oneOf.forEach(memberSchema => {
+                collapsedSchema.oneOf.forEach((memberSchema) => {
                     // Dereference member schema
                     let fromRef;
                     if ('$ref' in memberSchema) {
@@ -1120,7 +1093,7 @@ function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInpu
                 });
                 // Not all member schemas may have been turned into GraphQL member types
                 if (def.subDefinitions.length > 0 &&
-                    def.subDefinitions.every(subDefinition => {
+                    def.subDefinitions.every((subDefinition) => {
                         return subDefinition.targetGraphQLType === 'object';
                     })) {
                     // Ensure all member schemas have been verified as object types

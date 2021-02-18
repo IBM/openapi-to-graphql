@@ -667,7 +667,6 @@ export function createDataDef<TSource, TContext, TArgs>(
     return {
       preferredName,
       schema: null,
-      required: [],
       links: null,
       subDefinitions: null,
       graphQLTypeName: null,
@@ -781,7 +780,6 @@ export function createDataDef<TSource, TContext, TArgs>(
          * currently, it does not.
          */
         schema,
-        required: [],
         targetGraphQLType,
         subDefinitions: undefined,
         links: saneLinks,
@@ -899,7 +897,6 @@ export function createDataDef<TSource, TContext, TArgs>(
               addObjectPropertiesToDataDef(
                 def,
                 collapsedSchema,
-                def.required,
                 isInputObjectType,
                 data,
                 oas
@@ -1077,22 +1074,10 @@ function getSchemaName(
 function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
   def: DataDefinition,
   schema: SchemaObject,
-  required: string[],
   isInputObjectType: boolean,
   data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3
 ) {
-  /**
-   * Resolve all required properties
-   *
-   * TODO: required may contain duplicates, which is not necessarily a problem
-   */
-  if (Array.isArray(schema.required)) {
-    schema.required.forEach((requiredProperty) => {
-      required.push(requiredProperty)
-    })
-  }
-
   for (let propertyKey in schema.properties) {
     let propSchemaName = propertyKey
     let propSchema = schema.properties[propertyKey]
@@ -1230,19 +1215,6 @@ function resolveAllOf<TSource, TContext, TArgs>(
           collapsedSchema.anyOf.push(anyOfProperty)
         })
       }
-
-      // Collapse required if applicable
-      if ('required' in resolvedSchema) {
-        if (!('required' in collapsedSchema)) {
-          collapsedSchema.required = []
-        }
-
-        resolvedSchema.required.forEach((requiredProperty) => {
-          if (!collapsedSchema.required.includes(requiredProperty)) {
-            collapsedSchema.required.push(requiredProperty)
-          }
-        })
-      }
     })
   }
 
@@ -1288,11 +1260,6 @@ function getMemberSchemaData<TSource, TContext, TArgs>(
     // Consolidate properties
     if (schema.properties) {
       result.allProperties.push(schema.properties)
-    }
-
-    // Consolidate required
-    if (schema.required) {
-      result.allRequired = result.allRequired.concat(schema.required)
     }
   })
 
@@ -1439,7 +1406,6 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
           addObjectPropertiesToDataDef(
             def,
             collapsedSchema,
-            def.required,
             isInputObjectType,
             data,
             oas
