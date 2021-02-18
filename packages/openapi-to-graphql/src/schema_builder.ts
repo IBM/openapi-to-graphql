@@ -619,7 +619,7 @@ function createFields<TSource, TContext, TArgs>({
       isInputObjectType
     })
 
-    const nullableProperty = typeof def.schema.nullable
+    const nullableProperty = def.schema.nullable
 
     // Finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
