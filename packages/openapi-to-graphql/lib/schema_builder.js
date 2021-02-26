@@ -425,7 +425,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             iteration: iteration + 1,
             isInputObjectType
         });
-        const requiredProperty = typeof def.required === 'object' && def.required.includes(fieldTypeKey);
+        const nullableProperty = fieldTypeDefinition.schema.nullable;
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const saneFieldTypeKey = Oas3Tools.sanitize(fieldTypeKey, !data.options.simpleNames
@@ -433,9 +433,9 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                 : Oas3Tools.CaseStyle.simple);
             const sanePropName = Oas3Tools.storeSaneName(saneFieldTypeKey, fieldTypeKey, data.saneMap);
             fields[sanePropName] = {
-                type: requiredProperty
-                    ? new graphql_1.GraphQLNonNull(objectType)
-                    : objectType,
+                type: nullableProperty
+                    ? objectType
+                    : new graphql_1.GraphQLNonNull(objectType),
                 description: typeof fieldSchema === 'object' ? fieldSchema.description : null
             };
         }

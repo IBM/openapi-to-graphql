@@ -9,12 +9,6 @@ import { HTTP_METHODS } from '../oas_3_tools';
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
-    /**
-     * Similar to the required property in object schemas but because of certain
-     * keywords to combine schemas, e.g. "allOf", this resolves the required
-     * property in all member schemas
-     */
-    required: string[];
     targetGraphQLType: string;
     links: {
         [key: string]: LinkObject;
