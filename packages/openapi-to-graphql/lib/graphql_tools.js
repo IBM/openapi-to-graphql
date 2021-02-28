@@ -4,6 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getEmptyObjectType = void 0;
 /**
  * Utilities related to GraphQL.
  */

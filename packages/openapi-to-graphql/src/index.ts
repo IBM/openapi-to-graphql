@@ -37,12 +37,21 @@ import {
   Report,
   ConnectOptions
 } from './types/options'
-import { Oas3, CallbackObject } from './types/oas3'
+import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
-import { Args, Field, GraphQLOperationType } from './types/graphql'
+import {
+  Args,
+  GraphQLOperationType,
+  SubscriptionContext
+} from './types/graphql'
 import { Operation } from './types/operation'
 import { PreprocessingData } from './types/preprocessing_data'
-import { GraphQLSchema, GraphQLObjectType } from 'graphql'
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLFieldConfig
+} from 'graphql'
 import * as NodeRequest from 'request'
 
 // Imports:
@@ -58,7 +67,7 @@ import * as Oas3Tools from './oas_3_tools'
 import { createAndLoadViewer } from './auth_builder'
 import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
-import { sortObject, handleWarning } from './utils'
+import { sortObject, handleWarning, MitigationTypes } from './utils'
 
 type Result = {
   schema: GraphQLSchema
@@ -70,103 +79,110 @@ const translationLog = debug('translation')
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export async function createGraphQLSchema(
+export function createGraphQLSchema<TSource, TContext, TArgs>(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
-  options?: Options
+  options?: Options<TSource, TContext, TArgs>
 ): Promise<Result> {
-  if (typeof options === 'undefined') {
-    options = {}
-  }
+  return new Promise((resolve, reject) => {
+    if (typeof options === 'undefined') {
+      options = {}
+    }
 
-  // Setting default options
-  options.strict = typeof options.strict === 'boolean' ? options.strict : false
+    // Setting default options
+    options.strict =
+      typeof options.strict === 'boolean' ? options.strict : false
 
-  // Schema options
-  options.operationIdFieldNames =
-    typeof options.operationIdFieldNames === 'boolean'
-      ? options.operationIdFieldNames
-      : false
-  options.fillEmptyResponses =
-    typeof options.fillEmptyResponses === 'boolean'
-      ? options.fillEmptyResponses
-      : false
-  options.addLimitArgument =
-    typeof options.addLimitArgument === 'boolean'
-      ? options.addLimitArgument
-      : false
-  options.genericPayloadArgName =
-    typeof options.genericPayloadArgName === 'boolean'
-      ? options.genericPayloadArgName
-      : false
-  options.simpleNames =
-    typeof options.simpleNames === 'boolean' ? options.simpleNames : false
-  options.singularNames =
-    typeof options.singularNames === 'boolean' ? options.singularNames : false
-  options.createSubscriptionsFromCallbacks =
-    typeof options.createSubscriptionsFromCallbacks === 'boolean'
-      ? options.createSubscriptionsFromCallbacks
-      : false
+    // Schema options
+    options.operationIdFieldNames =
+      typeof options.operationIdFieldNames === 'boolean'
+        ? options.operationIdFieldNames
+        : false
+    options.fillEmptyResponses =
+      typeof options.fillEmptyResponses === 'boolean'
+        ? options.fillEmptyResponses
+        : false
+    options.addLimitArgument =
+      typeof options.addLimitArgument === 'boolean'
+        ? options.addLimitArgument
+        : false
+    options.genericPayloadArgName =
+      typeof options.genericPayloadArgName === 'boolean'
+        ? options.genericPayloadArgName
+        : false
+    options.simpleNames =
+      typeof options.simpleNames === 'boolean' ? options.simpleNames : false
+    options.singularNames =
+      typeof options.singularNames === 'boolean' ? options.singularNames : false
+    options.createSubscriptionsFromCallbacks =
+      typeof options.createSubscriptionsFromCallbacks === 'boolean'
+        ? options.createSubscriptionsFromCallbacks
+        : false
 
-  // Authentication options
-  options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
-  options.sendOAuthTokenInQuery =
-    typeof options.sendOAuthTokenInQuery === 'boolean'
-      ? options.sendOAuthTokenInQuery
-      : false
+    // Authentication options
+    options.viewer = typeof options.viewer === 'boolean' ? options.viewer : true
+    options.sendOAuthTokenInQuery =
+      typeof options.sendOAuthTokenInQuery === 'boolean'
+        ? options.sendOAuthTokenInQuery
+        : false
 
-  // Logging options
-  options.provideErrorExtensions =
-    typeof options.provideErrorExtensions === 'boolean'
-      ? options.provideErrorExtensions
-      : true
-  options.equivalentToMessages =
-    typeof options.equivalentToMessages === 'boolean'
-      ? options.equivalentToMessages
-      : true
+    // Logging options
+    options.provideErrorExtensions =
+      typeof options.provideErrorExtensions === 'boolean'
+        ? options.provideErrorExtensions
+        : true
+    options.equivalentToMessages =
+      typeof options.equivalentToMessages === 'boolean'
+        ? options.equivalentToMessages
+        : true
 
-  options['report'] = {
-    warnings: [],
-    numOps: 0,
-    numOpsQuery: 0,
-    numOpsMutation: 0,
-    numOpsSubscription: 0,
-    numQueriesCreated: 0,
-    numMutationsCreated: 0,
-    numSubscriptionsCreated: 0
-  }
+    options['report'] = {
+      warnings: [],
+      numOps: 0,
+      numOpsQuery: 0,
+      numOpsMutation: 0,
+      numOpsSubscription: 0,
+      numQueriesCreated: 0,
+      numMutationsCreated: 0,
+      numSubscriptionsCreated: 0
+    }
 
-  let oass: Oas3[]
-
-  if (Array.isArray(spec)) {
-    // Convert all non-OAS 3.0.x into OAS 3.0.x
-    oass = await Promise.all(
-      spec.map(ele => {
-        return Oas3Tools.getValidOAS3(ele)
+    if (Array.isArray(spec)) {
+      // Convert all non-OAS 3 into OAS 3
+      Promise.all(
+        spec.map(ele => {
+          return Oas3Tools.getValidOAS3(ele)
+        })
+      ).then(oass => {
+        resolve(
+          translateOpenAPIToGraphQL(
+            oass,
+            options as InternalOptions<TSource, TContext, TArgs>
+          )
+        )
       })
-    )
-  } else {
-    /**
-     * Check if the spec is a valid OAS 3.0.x
-     * If the spec is OAS 2.0, attempt to translate it into 3.0.x, then try to
-     * translate the spec into a GraphQL schema
-     */
-    oass = [await Oas3Tools.getValidOAS3(spec)]
-  }
+    } else {
+      /**
+       * Check if the spec is a valid OAS 3
+       * If the spec is OAS 2.0, attempt to translate it into 3, then try to
+       * translate the spec into a GraphQL schema
+       */
 
-  const { schema, report } = await translateOpenAPIToGraphQL(
-    oass,
-    options as InternalOptions
-  )
-  return {
-    schema,
-    report
-  }
+      Oas3Tools.getValidOAS3(spec).then(oas => {
+        resolve(
+          translateOpenAPIToGraphQL(
+            [oas],
+            options as InternalOptions<TSource, TContext, TArgs>
+          )
+        )
+      })
+    }
+  })
 }
 
 /**
- * Creates a GraphQL interface from the given OpenAPI Specification 3.0.x
+ * Creates a GraphQL interface from the given OpenAPI Specification 3
  */
-async function translateOpenAPIToGraphQL(
+function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
   oass: Oas3[],
   {
     strict,
@@ -200,8 +216,8 @@ async function translateOpenAPIToGraphQL(
     // Logging options
     provideErrorExtensions,
     equivalentToMessages
-  }: InternalOptions
-): Promise<{ schema: GraphQLSchema; report: Report }> {
+  }: InternalOptions<TSource, TContext, TArgs>
+): { schema: GraphQLSchema; report: Report } {
   const options = {
     strict,
     report,
@@ -241,25 +257,42 @@ async function translateOpenAPIToGraphQL(
    * Extract information from the OASs and put it inside a data structure that
    * is easier for OpenAPI-to-GraphQL to use
    */
-  const data: PreprocessingData = preprocessOas(oass, options)
+  const data: PreprocessingData<TSource, TContext, TArgs> = preprocessOas(
+    oass,
+    options
+  )
 
   preliminaryChecks(options, data)
 
   // Query, Mutation, and Subscription fields
-  let queryFields = {}
-  let mutationFields = {}
-  let subscriptionFields = {}
+  let queryFields: { [fieldName: string]: GraphQLFieldConfig<any, any> } = {}
+  let mutationFields: { [fieldName: string]: GraphQLFieldConfig<any, any> } = {}
+  let subscriptionFields: {
+    [fieldName: string]: GraphQLFieldConfig<any, any>
+  } = {}
 
   // Authenticated Query, Mutation, and Subscription fields
-  let authQueryFields = {}
-  let authMutationFields = {}
-  let authSubscriptionFields = {}
+  let authQueryFields: {
+    [fieldName: string]: {
+      [securityRequirement: string]: GraphQLFieldConfig<any, any>
+    }
+  } = {}
+  let authMutationFields: {
+    [fieldName: string]: {
+      [securityRequirement: string]: GraphQLFieldConfig<any, any>
+    }
+  } = {}
+  let authSubscriptionFields: {
+    [fieldName: string]: {
+      [securityRequirement: string]: GraphQLFieldConfig<any, any>
+    }
+  } = {}
 
   // Add Query and Mutation fields
   Object.entries(data.operations).forEach(([operationId, operation]) => {
     translationLog(`Process operation '${operation.operationString}'...`)
 
-    let field = getFieldForOperation(
+    const field = getFieldForOperation(
       operation,
       options.baseUrl,
       data,
@@ -304,7 +337,7 @@ async function translateOpenAPIToGraphQL(
 
           if (fieldName in authQueryFields[securityRequirement]) {
             handleWarning({
-              typeKey: 'DUPLICATE_FIELD_NAME',
+              mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
               message:
                 `Multiple operations have the same name ` +
                 `'${fieldName}' and security requirement ` +
@@ -337,7 +370,7 @@ async function translateOpenAPIToGraphQL(
 
         if (fieldName in queryFields) {
           handleWarning({
-            typeKey: 'DUPLICATE_FIELD_NAME',
+            mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
             message:
               `Multiple operations have the same name ` +
               `'${fieldName}'. GraphQL field names must be ` +
@@ -383,7 +416,7 @@ async function translateOpenAPIToGraphQL(
 
           if (saneFieldName in authMutationFields[securityRequirement]) {
             handleWarning({
-              typeKey: 'DUPLICATE_FIELD_NAME',
+              mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
               message:
                 `Multiple operations have the same name ` +
                 `'${saneFieldName}' and security requirement ` +
@@ -400,7 +433,7 @@ async function translateOpenAPIToGraphQL(
       } else {
         if (saneFieldName in mutationFields) {
           handleWarning({
-            typeKey: 'DUPLICATE_FIELD_NAME',
+            mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
             message:
               `Multiple operations have the same name ` +
               `'${saneFieldName}'. GraphQL field names must be ` +
@@ -447,7 +480,7 @@ async function translateOpenAPIToGraphQL(
 
           if (saneFieldName in authSubscriptionFields[securityRequirement]) {
             handleWarning({
-              typeKey: 'DUPLICATE_FIELD_NAME',
+              mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
               message:
                 `Multiple operations have the same name ` +
                 `'${saneFieldName}' and security requirement ` +
@@ -464,7 +497,7 @@ async function translateOpenAPIToGraphQL(
       } else {
         if (saneFieldName in subscriptionFields) {
           handleWarning({
-            typeKey: 'DUPLICATE_FIELD_NAME',
+            mitigationType: MitigationTypes.DUPLICATE_FIELD_NAME,
             message:
               `Multiple operations have the same name ` +
               `'${saneFieldName}'. GraphQL field names must be ` +
@@ -596,19 +629,19 @@ async function translateOpenAPIToGraphQL(
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation(
+function getFieldForOperation<TSource, TContext, TArgs>(
   operation: Operation,
   baseUrl: string,
-  data: PreprocessingData,
+  data: PreprocessingData<TSource, TContext, TArgs>,
   requestOptions: NodeRequest.OptionsWithUrl,
   connectOptions: ConnectOptions
-): Field {
+): GraphQLFieldConfig<TSource, TContext | SubscriptionContext, TArgs> {
   // Create GraphQL Type for response:
   const type = getGraphQLType({
     def: operation.responseDefinition,
     data,
     operation
-  })
+  }) as GraphQLOutputType
 
   const payloadSchemaName = operation.payloadDefinition
     ? operation.payloadDefinition.graphQLInputObjectTypeName
@@ -679,9 +712,9 @@ function getFieldForOperation(
  * triply nested object using the name of the OAS, the path, and the method
  * as keys.
  */
-function checkCustomResolversStructure(
+function checkCustomResolversStructure<TSource, TContext, TArgs>(
   customResolvers: any,
-  data: PreprocessingData
+  data: PreprocessingData<TSource, TContext, TArgs>
 ) {
   if (typeof customResolvers === 'object') {
     // Check that all OASs that are referenced in the customResolvers are provided
@@ -694,7 +727,7 @@ function checkCustomResolversStructure(
       })
       .forEach(title => {
         handleWarning({
-          typeKey: 'CUSTOM_RESOLVER_UNKNOWN_OAS',
+          mitigationType: MitigationTypes.CUSTOM_RESOLVER_UNKNOWN_OAS,
           message:
             `Custom resolvers reference OAS '${title}' but no such ` +
             `OAS was provided`,
@@ -718,7 +751,8 @@ function checkCustomResolversStructure(
             })
           ) {
             handleWarning({
-              typeKey: 'CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD',
+              mitigationType:
+                MitigationTypes.CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD,
               message:
                 `A custom resolver references an operation with ` +
                 `path '${path}' and method '${method}' but no such operation ` +
@@ -736,9 +770,9 @@ function checkCustomResolversStructure(
 /**
  * Ensures that the options are valid
  */
-function preliminaryChecks(
-  options: InternalOptions,
-  data: PreprocessingData
+function preliminaryChecks<TSource, TContext, TArgs>(
+  options: InternalOptions<TSource, TContext, TArgs>,
+  data: PreprocessingData<TSource, TContext, TArgs>
 ): void {
   // Check if OASs have unique titles
   const titles = data.oass.map(oas => {
@@ -752,7 +786,7 @@ function preliminaryChecks(
     })
   ).forEach(title => {
     handleWarning({
-      typeKey: 'MULTIPLE_OAS_SAME_TITLE',
+      mitigationType: MitigationTypes.MULTIPLE_OAS_SAME_TITLE,
       message: `Multiple OAS share the same title '${title}'`,
       data,
       log: translationLog

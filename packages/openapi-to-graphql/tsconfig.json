@@ -6,7 +6,8 @@
     "sourceMap": true,
     "skipLibCheck": true,
     "lib": ["es2017", "esnext.asynciterable"],
-    "declaration": true
+    "declaration": true,
+    "types": ["jest"]
   },
   "files": ["./node_modules/@types/node/index.d.ts"],
   "include": ["src/**/*.ts"],

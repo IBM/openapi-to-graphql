@@ -19,6 +19,7 @@ export type ProcessedSecurityScheme = {
    * Stores the names of the authentication credentials
    * NOTE: Structure depends on the type of the protocol (basic, API key...)
    * NOTE: Mainly used for the AnyAuth viewers
+   * NOTE: Values are sanitized (see getProcessedSecuritySchemes() in preprocessor.ts)
    */
   parameters: { [key: string]: string }
 
@@ -33,7 +34,7 @@ export type ProcessedSecurityScheme = {
   oas: Oas3
 }
 
-export type PreprocessingData = {
+export type PreprocessingData<TSource, TContext, TArgs> = {
   /**
    * List of operation objects
    */
@@ -70,7 +71,7 @@ export type PreprocessingData = {
   /**
    * Options passed to OpenAPI-to-GraphQL by the user
    */
-  options: InternalOptions
+  options: InternalOptions<TSource, TContext, TArgs>
 
   /**
    * All of the provided OASs

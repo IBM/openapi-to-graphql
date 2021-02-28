@@ -3,62 +3,78 @@
 // Node module: openapi-to-graphql
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getResponseObject = exports.getRequestSchemaAndNames = exports.getRequestBodyObject = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const jsonptr = require("json-ptr");
 const pluralize = require("pluralize");
 const httpLog = debug_1.default('http');
 const preprocessingLog = debug_1.default('preprocessing');
 const translationLog = debug_1.default('translation');
 // OAS constants
-exports.OAS_OPERATIONS = [
-    'get',
-    'put',
-    'post',
-    'patch',
-    'delete',
-    'options',
-    'head'
-];
+var HTTP_METHODS;
+(function (HTTP_METHODS) {
+    HTTP_METHODS["get"] = "get";
+    HTTP_METHODS["put"] = "put";
+    HTTP_METHODS["post"] = "post";
+    HTTP_METHODS["patch"] = "patch";
+    HTTP_METHODS["delete"] = "delete";
+    HTTP_METHODS["options"] = "options";
+    HTTP_METHODS["head"] = "head";
+})(HTTP_METHODS = exports.HTTP_METHODS || (exports.HTTP_METHODS = {}));
 exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
+/**
+ * Given an HTTP method, convert it to the HTTP_METHODS enum
+ */
+function methodToHttpMethod(method) {
+    switch (method.toLowerCase()) {
+        case 'get':
+            return HTTP_METHODS.get;
+        case 'put':
+            return HTTP_METHODS.put;
+        case 'post':
+            return HTTP_METHODS.post;
+        case 'patch':
+            return HTTP_METHODS.patch;
+        case 'delete':
+            return HTTP_METHODS.delete;
+        case 'options':
+            return HTTP_METHODS.options;
+        case 'head':
+            return HTTP_METHODS.head;
+        default:
+            throw new Error(`Invalid HTTP method '${method}'`);
+    }
+}
+exports.methodToHttpMethod = methodToHttpMethod;
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
 function getValidOAS3(spec) {
-    return __awaiter(this, void 0, void 0, function* () {
+    return new Promise((resolve, reject) => {
         // CASE: translate
         if (typeof spec.swagger === 'string' &&
             spec.swagger === '2.0') {
-            preprocessingLog(`Received OpenAPI Specification 2.0 - going to translate...`);
-            const result = yield Swagger2OpenAPI.convertObj(spec, {});
-            return result.openapi;
+            preprocessingLog(`Received Swagger - going to translate to OpenAPI Specification...`);
+            Swagger2OpenAPI.convertObj(spec, {})
+                .then((options) => resolve(options.openapi))
+                .catch((error) => reject(`Could not convert Swagger '${spec.info.title}' to OpenAPI Specification. ${error.message}`));
             // CASE: validate
         }
         else if (typeof spec.openapi === 'string' &&
             /^3/.test(spec.openapi)) {
-            preprocessingLog(`Received OpenAPI Specification 3.0.x - going to validate...`);
-            const valid = OASValidator.validateSync(spec, {});
-            if (!valid) {
-                throw new Error(`Validation of OpenAPI Specification failed.`);
-            }
-            preprocessingLog(`OpenAPI Specification is validated`);
-            return spec;
+            preprocessingLog(`Received OpenAPI Specification - going to validate...`);
+            OASValidator.validate(spec, {})
+                .then(() => resolve(spec))
+                .catch((error) => reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${error.message}`));
         }
         else {
-            throw new Error(`Invalid specification provided`);
+            reject(`Invalid specification provided`);
         }
     });
 }
@@ -70,7 +86,7 @@ function countOperations(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method)) {
+            if (isHttpMethod(method)) {
                 numOps++;
                 if (oas.paths[path][method].callbacks) {
                     for (let cbName in oas.paths[path][method].callbacks) {
@@ -92,7 +108,7 @@ function countOperationsQuery(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method) && method.toLowerCase() === 'get') {
+            if (isHttpMethod(method) && method.toLowerCase() === HTTP_METHODS.get) {
                 numOps++;
             }
         }
@@ -107,7 +123,7 @@ function countOperationsMutation(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method) && method.toLowerCase() !== 'get') {
+            if (isHttpMethod(method) && method.toLowerCase() !== HTTP_METHODS.get) {
                 numOps++;
             }
         }
@@ -122,8 +138,8 @@ function countOperationsSubscription(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method) &&
-                method.toLowerCase() !== 'get' &&
+            if (isHttpMethod(method) &&
+                method.toLowerCase() !== HTTP_METHODS.get &&
                 oas.paths[path][method].callbacks) {
                 for (let cbName in oas.paths[path][method].callbacks) {
                     for (let cbPath in oas.paths[path][method].callbacks[cbName]) {
@@ -143,7 +159,7 @@ function countOperationsWithPayload(oas) {
     let numOps = 0;
     for (let path in oas.paths) {
         for (let method in oas.paths[path]) {
-            if (isOperation(method) &&
+            if (isHttpMethod(method) &&
                 typeof oas.paths[path][method].requestBody === 'object') {
                 numOps++;
             }
@@ -156,37 +172,9 @@ exports.countOperationsWithPayload = countOperationsWithPayload;
  * Resolves the given reference in the given object.
  */
 function resolveRef(ref, oas) {
-    // Break path into individual tokens
-    const parts = ref.split('/');
-    const resolvedObject = resolveRefHelper(oas, parts);
-    if (resolvedObject !== null) {
-        return resolvedObject;
-    }
-    else {
-        throw new Error(`Could not resolve reference '${ref}' in OAS '${oas.info.title}'`);
-    }
+    return jsonptr.JsonPointer.get(oas, ref);
 }
 exports.resolveRef = resolveRef;
-/**
- * Helper for resolveRef
- *
- * @param parts The path to be resolved, but broken into tokens
- */
-function resolveRefHelper(obj, parts) {
-    if (parts.length === 0) {
-        return obj;
-    }
-    const firstElement = parts.splice(0, 1)[0];
-    if (firstElement in obj) {
-        return resolveRefHelper(obj[firstElement], parts);
-    }
-    else if (firstElement === '#') {
-        return resolveRefHelper(obj, parts);
-    }
-    else {
-        return null;
-    }
-}
 /**
  * Returns the base URL to use for the given operation.
  */
@@ -268,7 +256,7 @@ exports.sanitizeObjectKeys = sanitizeObjectKeys;
  * the given mapping.
  */
 function desanitizeObjectKeys(obj, mapping = {}) {
-    const replaceKeys = obj => {
+    const replaceKeys = (obj) => {
         if (obj === null) {
             return null;
         }
@@ -297,55 +285,6 @@ function desanitizeObjectKeys(obj, mapping = {}) {
     return replaceKeys(obj);
 }
 exports.desanitizeObjectKeys = desanitizeObjectKeys;
-/**
- * Replaces the path parameter in the given path with values in the given args.
- * Furthermore adds the query parameters for a request.
- */
-function instantiatePathAndGetQuery(path, parameters, args, // NOTE: argument keys are sanitized!
-data) {
-    const query = {};
-    const headers = {};
-    // Case: nothing to do
-    if (Array.isArray(parameters)) {
-        // Iterate parameters:
-        for (const param of parameters) {
-            const sanitizedParamName = sanitize(param.name, !data.options.simpleNames ? CaseStyle.camelCase : CaseStyle.simple);
-            if (sanitizedParamName && sanitizedParamName in args) {
-                switch (param.in) {
-                    // Path parameters
-                    case 'path':
-                        path = path.replace(`{${param.name}}`, args[sanitizedParamName]);
-                        break;
-                    // Query parameters
-                    case 'query':
-                        query[param.name] = args[sanitizedParamName];
-                        break;
-                    // Header parameters
-                    case 'header':
-                        headers[param.name] = args[sanitizedParamName];
-                        break;
-                    // Cookie parameters
-                    case 'cookie':
-                        if (!('cookie' in headers)) {
-                            headers['cookie'] = '';
-                        }
-                        headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `;
-                        break;
-                    default:
-                        httpLog(`Warning: The parameter location '${param.in}' in the ` +
-                            `parameter '${param.name}' of operation '${path}' is not ` +
-                            `supported`);
-                }
-            }
-            else {
-                httpLog(`Warning: The parameter '${param.name}' of operation '${path}' ` +
-                    `could not be found`);
-            }
-        }
-    }
-    return { path, query, headers };
-}
-exports.instantiatePathAndGetQuery = instantiatePathAndGetQuery;
 /**
  * Returns the GraphQL type that the provided schema should be made into
  *
@@ -425,10 +364,7 @@ function extractBasePath(paths) {
             }
         }
     }
-    const updatedPaths = paths.map(path => path
-        .split('/')
-        .slice(basePathComponents.length)
-        .join('/'));
+    const updatedPaths = paths.map((path) => path.split('/').slice(basePathComponents.length).join('/'));
     let basePath = basePathComponents.length === 0 ||
         (basePathComponents.length === 1 && basePathComponents[0] === '')
         ? '/'
@@ -550,7 +486,7 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
             };
             let description = `String represents payload of content type '${payloadContentType}'`;
             if ('description' in payloadSchema &&
-                typeof payloadSchema['description'] === 'string') {
+                typeof payloadSchema.description === 'string') {
                 description += `\n\nOriginal top level description: '${payloadSchema['description']}'`;
             }
             payloadSchema = {
@@ -670,7 +606,7 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
                 responseContentType: 'application/json',
                 responseSchema: {
                     description: 'Placeholder to support operations with no response schema',
-                    type: 'string'
+                    type: 'object'
                 }
             };
         }
@@ -684,7 +620,7 @@ exports.getResponseSchemaAndNames = getResponseSchemaAndNames;
 function getResponseStatusCode(path, method, operation, oas, data) {
     if (typeof operation.responses === 'object') {
         const codes = Object.keys(operation.responses);
-        const successCodes = codes.filter(code => {
+        const successCodes = codes.filter((code) => {
             return exports.SUCCESS_STATUS_RX.test(code);
         });
         if (successCodes.length === 1) {
@@ -692,7 +628,7 @@ function getResponseStatusCode(path, method, operation, oas, data) {
         }
         else if (successCodes.length > 1) {
             utils_1.handleWarning({
-                typeKey: 'MULTIPLE_RESPONSES',
+                mitigationType: utils_1.MitigationTypes.MULTIPLE_RESPONSES,
                 message: `Operation '${formatOperationString(method, path, oas.info.title)}' ` +
                     `contains multiple possible successful response object ` +
                     `(HTTP code 200-299 or 2XX). Only one can be chosen.`,
@@ -749,7 +685,7 @@ exports.getLinks = getLinks;
  */
 function getParameters(path, method, operation, pathItem, oas) {
     let parameters = [];
-    if (!isOperation(method)) {
+    if (!isHttpMethod(method)) {
         translationLog(`Warning: attempted to get parameters for ${method} ${path}, ` +
             `which is not an operation.`);
         return parameters;
@@ -757,7 +693,7 @@ function getParameters(path, method, operation, pathItem, oas) {
     // First, consider parameters in Path Item Object:
     const pathParams = pathItem.parameters;
     if (Array.isArray(pathParams)) {
-        const pathItemParameters = pathParams.map(p => {
+        const pathItemParameters = pathParams.map((p) => {
             if (typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
@@ -772,7 +708,7 @@ function getParameters(path, method, operation, pathItem, oas) {
     // Second, consider parameters in Operation Object:
     const opObjectParameters = operation.parameters;
     if (Array.isArray(opObjectParameters)) {
-        const operationParameters = opObjectParameters.map(p => {
+        const operationParameters = opObjectParameters.map((p) => {
             if (typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
                 return resolveRef(p['$ref'], oas);
@@ -818,7 +754,7 @@ function getServers(operation, pathItem, oas) {
 }
 exports.getServers = getServers;
 /**
- * Returns a map of Security Scheme definitions, identified by keys. Resolves
+ * Returns a map of security scheme definitions, identified by keys. Resolves
  * possible references.
  */
 function getSecuritySchemes(oas) {
@@ -827,15 +763,15 @@ function getSecuritySchemes(oas) {
     if (typeof oas.components === 'object' &&
         typeof oas.components.securitySchemes === 'object') {
         for (let schemeKey in oas.components.securitySchemes) {
-            const obj = oas.components.securitySchemes[schemeKey];
+            const securityScheme = oas.components.securitySchemes[schemeKey];
             // Ensure we have actual SecuritySchemeObject:
-            if (typeof obj.$ref === 'string') {
+            if (typeof securityScheme.$ref === 'string') {
                 // Result of resolution will be SecuritySchemeObject:
-                securitySchemes[schemeKey] = resolveRef(obj.$ref, oas);
+                securitySchemes[schemeKey] = resolveRef(securityScheme.$ref, oas);
             }
             else {
                 // We already have a SecuritySchemeObject:
-                securitySchemes[schemeKey] = obj;
+                securitySchemes[schemeKey] = securityScheme;
             }
         }
     }
@@ -887,7 +823,7 @@ var CaseStyle;
     CaseStyle[CaseStyle["ALL_CAPS"] = 3] = "ALL_CAPS"; // Used for enum values
 })(CaseStyle = exports.CaseStyle || (exports.CaseStyle = {}));
 /**
- * First sanitizes given string and then also camel-cases it.
+ * First sanitizes given string and then also camelCases it.
  */
 function sanitize(str, caseStyle) {
     /**
@@ -962,10 +898,10 @@ exports.trim = trim;
  * Determines if the given "method" is indeed an operation. Alternatively, the
  * method could point to other types of information (e.g., parameters, servers).
  */
-function isOperation(method) {
-    return exports.OAS_OPERATIONS.includes(method.toLowerCase());
+function isHttpMethod(method) {
+    return Object.keys(HTTP_METHODS).includes(method.toLowerCase());
 }
-exports.isOperation = isOperation;
+exports.isHttpMethod = isHttpMethod;
 /**
  * Formats a string that describes an operation in the form:
  * {name of OAS} {HTTP method in ALL_CAPS} {operation path}

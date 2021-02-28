@@ -1,7 +1,7 @@
 {
   "openapi": "3.0.0",
   "info": {
-    "title": "Example API 5",
+    "title": "Example API 7",
     "description": "An API to test converting Open API Specs 3.0 to GraphQL",
     "version": "1.0.0",
     "termsOfService": "http://example.com/terms/",

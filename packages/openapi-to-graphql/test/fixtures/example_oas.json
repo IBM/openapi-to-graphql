@@ -737,6 +737,47 @@
         ]
       }
     },
+    "/projects": {
+      "post": {
+        "operationId": "post-project-with-id",
+        "description": "An endpoint to test authenticated POST requests.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/project-with-id"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "A product.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/project-with-id"
+                }
+              }
+            },
+            "links": {
+              "ProjectLead": {
+                "$ref": "#/components/links/ProjectLead"
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "example_api_key_protocol": []
+          },
+          {
+            "example_api_key_protocol_2": []
+          }
+        ]
+      }
+    },
     "/projects/{project-id}": {
       "get": {
         "operationId": "get-project-with-id",
@@ -780,47 +821,6 @@
           },
           {
             "example_api_key_protocol_3": []
-          }
-        ]
-      }
-    },
-    "/projects": {
-      "post": {
-        "operationId": "post-project-with-id",
-        "description": "An endpoint to test authenticated POST requests.",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/project-with-id"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "A product.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/project-with-id"
-                }
-              }
-            },
-            "links": {
-              "ProjectLead": {
-                "$ref": "#/components/links/ProjectLead"
-              }
-            }
-          }
-        },
-        "security": [
-          {
-            "example_api_key_protocol": []
-          },
-          {
-            "example_api_key_protocol_2": []
           }
         ]
       }
@@ -1171,6 +1171,23 @@
                       }
                     }
                   ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/random": {
+      "get": {
+        "description": "Returns an arbitrary JSON object",
+        "responses": {
+          "200": {
+            "description": "Random object",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
                 }
               }
             }

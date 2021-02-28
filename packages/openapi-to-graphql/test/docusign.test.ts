@@ -13,7 +13,7 @@ import { Options } from '../lib/types/options'
 const oas = require('./fixtures/docusign.json')
 
 test('Generate schema without problems', () => {
-  const options: Options = {
+  const options: Options<any, any, any> = {
     strict: false
   }
   return openAPIToGraphQL

@@ -28,8 +28,20 @@ export declare type ResponseSchemaAndNames = {
     responseSchemaNames?: SchemaNames;
     statusCode?: string;
 };
-export declare const OAS_OPERATIONS: string[];
+export declare enum HTTP_METHODS {
+    'get' = "get",
+    'put' = "put",
+    'post' = "post",
+    'patch' = "patch",
+    'delete' = "delete",
+    'options' = "options",
+    'head' = "head"
+}
 export declare const SUCCESS_STATUS_RX: RegExp;
+/**
+ * Given an HTTP method, convert it to the HTTP_METHODS enum
+ */
+export declare function methodToHttpMethod(method: string): HTTP_METHODS;
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
@@ -75,25 +87,11 @@ caseStyle?: CaseStyle): any;
  */
 export declare function desanitizeObjectKeys(obj: object | Array<any>, mapping?: object): object | Array<any>;
 /**
- * Replaces the path parameter in the given path with values in the given args.
- * Furthermore adds the query parameters for a request.
- */
-export declare function instantiatePathAndGetQuery(path: string, parameters: ParameterObject[], args: object, // NOTE: argument keys are sanitized!
-data: PreprocessingData): {
-    path: string;
-    query: {
-        [key: string]: string;
-    };
-    headers: {
-        [key: string]: string;
-    };
-};
-/**
  * Returns the GraphQL type that the provided schema should be made into
  *
  * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
-export declare function getSchemaTargetGraphQLType(schema: SchemaObject, data: PreprocessingData): string | null;
+export declare function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(schema: SchemaObject, data: PreprocessingData<TSource, TContext, TArgs>): string | null;
 /**
  * Infers a resource name from the given URL path.
  *
@@ -112,7 +110,7 @@ export declare function getRequestBodyObject(operation: OperationObject, oas: Oa
  * a dictionary of names from different sources (if available), and whether the
  * request schema is required for the operation.
  */
-export declare function getRequestSchemaAndNames(path: string, method: string, operation: OperationObject, oas: Oas3): RequestSchemaAndNames;
+export declare function getRequestSchemaAndNames(path: string, method: HTTP_METHODS, operation: OperationObject, oas: Oas3): RequestSchemaAndNames;
 /**
  * Returns JSON-compatible schema produced by the given operation
  */
@@ -125,21 +123,21 @@ export declare function getResponseObject(operation: OperationObject, statusCode
  * a successful  status code, and a dictionary of names from different sources
  * (if available).
  */
-export declare function getResponseSchemaAndNames(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData, options: InternalOptions): ResponseSchemaAndNames;
+export declare function getResponseSchemaAndNames<TSource, TContext, TArgs>(path: string, method: HTTP_METHODS, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>, options: InternalOptions<TSource, TContext, TArgs>): ResponseSchemaAndNames;
 /**
  * Returns a success status code for the given operation
  */
-export declare function getResponseStatusCode(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData): string | void;
+export declare function getResponseStatusCode<TSource, TContext, TArgs>(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>): string | void;
 /**
  * Returns a hash containing the links in the given operation.
  */
-export declare function getLinks(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData): {
+export declare function getLinks<TSource, TContext, TArgs>(path: string, method: HTTP_METHODS, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>): {
     [key: string]: LinkObject;
 };
 /**
  * Returns the list of parameters in the given operation.
  */
-export declare function getParameters(path: string, method: string, operation: OperationObject, pathItem: PathItemObject, oas: Oas3): ParameterObject[];
+export declare function getParameters(path: string, method: HTTP_METHODS, operation: OperationObject, pathItem: PathItemObject, oas: Oas3): ParameterObject[];
 /**
  * Returns an array of server objects for the operation at the given path and
  * method. Considers in the following order: global server definitions,
@@ -148,11 +146,11 @@ export declare function getParameters(path: string, method: string, operation: O
  */
 export declare function getServers(operation: OperationObject, pathItem: PathItemObject, oas: Oas3): ServerObject[];
 /**
- * Returns a map of Security Scheme definitions, identified by keys. Resolves
+ * Returns a map of security scheme definitions, identified by keys. Resolves
  * possible references.
  */
 export declare function getSecuritySchemes(oas: Oas3): {
-    [key: string]: SecuritySchemeObject;
+    [schemeKey: string]: SecuritySchemeObject;
 };
 /**
  * Returns the list of sanitized keys of non-OAuth2 security schemes
@@ -168,7 +166,7 @@ export declare enum CaseStyle {
     ALL_CAPS = 3
 }
 /**
- * First sanitizes given string and then also camel-cases it.
+ * First sanitizes given string and then also camelCases it.
  */
 export declare function sanitize(str: string, caseStyle: CaseStyle): string;
 /**
@@ -186,7 +184,7 @@ export declare function trim(str: string, length: number): string;
  * Determines if the given "method" is indeed an operation. Alternatively, the
  * method could point to other types of information (e.g., parameters, servers).
  */
-export declare function isOperation(method: string): boolean;
+export declare function isHttpMethod(method: string): boolean;
 /**
  * Formats a string that describes an operation in the form:
  * {name of OAS} {HTTP method in ALL_CAPS} {operation path}
@@ -205,4 +203,4 @@ export declare function uncapitalize(str: string): string;
 /**
  * For operations that do not have an operationId, generate one
  */
-export declare function generateOperationId(method: string, path: string): string;
+export declare function generateOperationId(method: HTTP_METHODS, path: string): string;

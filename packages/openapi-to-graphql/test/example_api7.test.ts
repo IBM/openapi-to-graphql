@@ -67,7 +67,7 @@ beforeAll(() => {
             execute,
             subscribe,
             schema,
-            onConnect: (params, socket, ctx) => {
+            onConnect: (params, socket, context) => {
               // Add pubsub to subscribe context
               return { pubsub }
             }
@@ -85,16 +85,26 @@ beforeAll(() => {
   ])
 })
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 /**
  * Shut down API servers
  */
-afterAll(() => {
-  return Promise.all([
+afterAll(async () => {
+  /**
+   * TODO: There seems to be some trouble closing the servers and connections.
+   * The timeout allows these to close properly but is there a better way?
+   */
+  await sleep(500)
+  Promise.all([
     subscriptionServer.close(),
     wsServer.close(),
     mqttClient.end(),
     stopServers()
   ])
+  await sleep(500)
 })
 
 test('Receive data from the subscription after creating a new instance', () => {

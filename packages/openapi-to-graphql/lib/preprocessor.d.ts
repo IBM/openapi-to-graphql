@@ -7,17 +7,11 @@ import * as Oas3Tools from './oas_3_tools';
  * Extract information from the OAS and put it inside a data structure that
  * is easier for OpenAPI-to-GraphQL to use
  */
-export declare function preprocessOas(oass: Oas3[], options: InternalOptions): PreprocessingData;
+export declare function preprocessOas<TSource, TContext, TArgs>(oass: Oas3[], options: InternalOptions<TSource, TContext, TArgs>): PreprocessingData<TSource, TContext, TArgs>;
 /**
  * Method to either create a new or reuse an existing, centrally stored data
- * definition. Data definitions are objects that hold a schema (= JSON schema),
- * an otName (= String to use as the name for object types), and an iotName
- * (= String to use as the name for input object types). Eventually, data
- * definitions also hold an ot (= the object type for the schema) and an iot
- * (= the input object type for the schema).
- *
- * Either names or preferredName should exist.
+ * definition.
  */
-export declare function createDataDef(names: Oas3Tools.SchemaNames, schema: SchemaObject, isInputObjectType: boolean, data: PreprocessingData, links?: {
+export declare function createDataDef<TSource, TContext, TArgs>(names: Oas3Tools.SchemaNames, schema: SchemaObject, isInputObjectType: boolean, data: PreprocessingData<TSource, TContext, TArgs>, oas: Oas3, links?: {
     [key: string]: LinkObject;
-}, oas?: Oas3): DataDefinition;
+}): DataDefinition;

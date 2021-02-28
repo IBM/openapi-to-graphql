@@ -14,6 +14,7 @@ const {
   graphql
 } = require('graphql')
 import * as Oas3Tools from '../lib/oas_3_tools'
+import { PathItemObject } from '../lib/types/oas3'
 
 test('Applying sanitize multiple times does not change outcome', () => {
   const str = 'this Super*annoying-string()'
@@ -179,4 +180,39 @@ test('Properly treat null values during sanitization', () => {
       }
     })
   })
+})
+
+test('Handle encoded JSON pointer references', () => {
+  const oas = {
+    openapi: '3.0.0',
+    info: {
+      title: 'test',
+      version: '0.0.1'
+    },
+    paths: {
+      '/users': getPathItemObject('all'),
+      '/users/{id}': getPathItemObject('one')
+    }
+  }
+
+  expect(Oas3Tools.resolveRef('/openapi', oas)).toBe('3.0.0')
+  expect(Oas3Tools.resolveRef('/paths/~1users/description', oas)).toBe('all')
+  expect(Oas3Tools.resolveRef('#/paths/~1users/description', oas)).toBe('all')
+  expect(
+    Oas3Tools.resolveRef('#/paths/~1users~1%7bid%7d/description', oas)
+  ).toBe('one')
+
+  function getPathItemObject(description): PathItemObject {
+    return {
+      description,
+      get: {},
+      put: {},
+      post: {},
+      delete: {},
+      options: {},
+      head: {},
+      patch: {},
+      trace: {}
+    }
+  }
 })

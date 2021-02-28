@@ -300,7 +300,7 @@ test('Two APIs with AnyAuth viewer and interrelated links', () => {
 })
 
 test('Option customResolver with two APIs', () => {
-  const options: Options = {
+  const options: Options<any, any, any> = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {
@@ -352,7 +352,7 @@ test('Option customResolver with two APIs', () => {
 })
 
 test('Option customResolver with two APIs and interrelated links', () => {
-  const options: Options = {
+  const options: Options<any, any, any> = {
     customResolvers: {
       'Example API': {
         '/users/{username}': {

@@ -4,6 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.GraphQLOperationType = void 0;
 var GraphQLOperationType;
 (function (GraphQLOperationType) {
     GraphQLOperationType[GraphQLOperationType["Query"] = 0] = "Query";

@@ -13,7 +13,8 @@ import {
   GraphQLInputObjectType,
   GraphQLList,
   GraphQLEnumType,
-  GraphQLUnionType
+  GraphQLUnionType,
+  GraphQLFieldResolver
 } from 'graphql'
 
 export enum GraphQLOperationType {
@@ -39,14 +40,7 @@ export type Args = {
   [key: string]: Arg
 }
 
-export type ResolveFunction = (
-  root: object,
-  args: object,
-  ctx: object,
-  info: object
-) => Promise<any> | any
-
-type SubscriptionContext = {
+export type SubscriptionContext = {
   pubsub: any
   [key: string]: any
 }
@@ -54,19 +48,14 @@ type SubscriptionContext = {
 export type SubscriptionIterator = (
   root: object,
   args: object,
-  ctx: SubscriptionContext,
+  context: SubscriptionContext,
   info?: object
 ) => AsyncIterable<string | string[]>
 
-export type ResolveObject = {
-  subscribe: SubscriptionIterator
-  resolve?: ResolveFunction
-}
-
-export type Field = {
+export type Field<TSource, TContext, TArgs> = {
   type: GraphQLType
-  resolve?: ResolveFunction
-  subscribe?: SubscriptionIterator
+  resolve?: GraphQLFieldResolver<TSource, TContext, TArgs>
+  subscribe?: GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>
   args?: Args
   description: string
 }

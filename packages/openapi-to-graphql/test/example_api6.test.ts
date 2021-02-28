@@ -65,7 +65,7 @@ test('Option requestOptions should work with links', () => {
     })
   })
 
-  const options: Options = {
+  const options: Options<any, any, any> = {
     requestOptions: {
       url: undefined,
       headers: {
@@ -207,7 +207,7 @@ test('Request body using application/x-www-form-urlencoded containing object wit
 })
 
 /**
- * '/cars/{id}' should create a 'car' field
+ * GET '/cars/{id}' should create a 'car' field
  *
  * Also the path parameter just contains the term 'id'
  */
@@ -223,9 +223,8 @@ test('inferResourceNameFromPath() field with simple plural form', () => {
   })
 })
 
-//
 /**
- * '/cacti/{cactusId}' should create an 'cactus' field
+ * GET '/cacti/{cactusId}' should create an 'cactus' field
  *
  * Also the path parameter is the combination of the singular form and 'id'
  */
@@ -242,7 +241,7 @@ test('inferResourceNameFromPath() field with irregular plural form', () => {
 })
 
 /**
- * '/eateries/{eatery}/breads/{breadName}/dishes/{dishKey}/ should create an
+ * GET '/eateries/{eatery}/breads/{breadName}/dishes/{dishKey}/ should create an
  * 'eateryBreadDish' field
  *
  * The path parameters are the singular form, some combination with the term
@@ -250,12 +249,92 @@ test('inferResourceNameFromPath() field with irregular plural form', () => {
  */
 test('inferResourceNameFromPath() field with long path', () => {
   const query = `{
-  eateryBreadDish(eatery: "Mike's", breadName:"challah", dishKey: "bread pudding")
- }`
+    eateryBreadDish(eatery: "Mike's", breadName: "challah", dishKey: "bread pudding")
+  }`
 
   return graphql(createdSchema, query).then(result => {
     expect(result.data).toEqual({
       eateryBreadDish: "Parameters combined: Mike's challah bread pudding"
+    })
+  })
+})
+
+/**
+ * '/nestedReferenceInParameter' contains a query parameter 'russianDoll' that
+ * contains reference to a component schema.
+ */
+test('Nested reference in parameter schema', () => {
+  const query = `{
+    nestedReferenceInParameter(russianDoll: {
+      name: "Gertrude",
+      nestedDoll: {
+        name: "Tatiana",
+        nestedDoll: {
+          name: "Lidia"
+        }
+      }
+    })
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      nestedReferenceInParameter: 'Gertrude, Tatiana, Lidia'
+    })
+  })
+})
+
+/**
+ * 'POST inputUnion' has a request body that contains a oneOf. The request body
+ * will be converted into an input object type while the oneOf will be turned
+ * into a union type. However, according to the spec, input object types cannot
+ * be composed of unions. As a fall back, this pattern should default to the
+ * arbitrary JSON type instead.
+ */
+test('Input object types composed of union types should default to arbitrary JSON type', () => {
+  const query = `{
+    __type(name: "Mutation") {
+      fields {
+        name
+        args {
+          name
+          type {
+            name
+          }
+        }
+      }
+    }
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(
+      result.data['__type'].fields.find(
+        field => field.name === 'postInputUnion'
+      )
+    ).toEqual({
+      name: 'postInputUnion',
+      args: [
+        {
+          name: 'inputUnionInput',
+          type: {
+            name: 'JSON'
+          }
+        }
+      ]
+    })
+  })
+})
+
+/**
+ * GET 'strictGetOperation/' should not receive a Content-Type header
+ */
+test('Get operation should not receive Content-Type', () => {
+  const query = `{
+    strictGetOperation
+  }`
+
+  return graphql(createdSchema, query).then(result => {
+    expect(result.data).toEqual({
+      strictGetOperation: 'Perfect!'
     })
   })
 })

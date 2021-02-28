@@ -19,14 +19,12 @@ function startServer(PORT) {
   app.use(bodyParser.urlencoded({ extended: true }))
 
   app.get('/api/object', (req, res) => {
-    console.log(req.method, req.path)
     res.send({
       data: 'object'
     })
   })
 
   app.get('/api/object2', (req, res) => {
-    console.log(req.method, req.path)
     if (typeof req.headers.specialheader === 'string') {
       res.send({
         data: `object2 with special header: '${req.headers.specialheader}'`
@@ -39,29 +37,54 @@ function startServer(PORT) {
   })
 
   app.post('/api/formUrlEncoded', (req, res) => {
-    console.log(req.method, req.path)
     res.send(req.body)
   })
 
   app.get('/api/cars/:id', (req, res) => {
-    console.log(req.method, req.path)
     res.send(`Car ID: ${req.params.id}`)
   })
 
   app.get('/api/cacti/:cactusId', (req, res) => {
-    console.log(req.method, req.path)
     res.send(`Cactus ID: ${req.params.cactusId}`)
   })
 
   app.get(
     '/api/eateries/:eatery/breads/:breadName/dishes/:dishKey',
     (req, res) => {
-      console.log(req.method, req.path)
       res.send(
         `Parameters combined: ${req.params.eatery} ${req.params.breadName} ${req.params.dishKey}`
       )
     }
   )
+
+  function stringifyRussianDolls(russianDoll) {
+    if (!typeof russianDoll.name === 'string') {
+      return ''
+    }
+
+    if (typeof russianDoll.nestedDoll === 'object') {
+      return `${russianDoll.name}, ${stringifyRussianDolls(
+        russianDoll.nestedDoll
+      )}`
+    } else {
+      return russianDoll.name
+    }
+  }
+
+  app.get('/api/nestedReferenceInParameter', (req, res) => {
+    res.send(stringifyRussianDolls(req.query.russianDoll))
+  })
+
+  app.get('/api/strictGetOperation', (req, res) => {
+    if (req.headers['content-type']) {
+      res
+        .status(400)
+        .set('Content-Type', 'text/plain')
+        .send('Get request should not have Content-Type')
+    } else {
+      res.set('Content-Type', 'text/plain').send('Perfect!')
+    }
+  })
 
   return new Promise(resolve => {
     server = app.listen(PORT, () => {
