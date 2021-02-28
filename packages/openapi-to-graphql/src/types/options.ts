@@ -66,8 +66,10 @@ export type RequestOptions<TSource, TContext, TArgs> = Omit<
 > & {
   headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>
 }
-      
-export type Options<TSource, TContext, TArgs> = Partial<InternalOptions<TSource, TContext, TArgs>>
+
+export type Options<TSource, TContext, TArgs> = Partial<
+  InternalOptions<TSource, TContext, TArgs>
+>
 
 export type InternalOptions<TSource, TContext, TArgs> = {
   /*
@@ -220,7 +222,9 @@ export type InternalOptions<TSource, TContext, TArgs> = {
    * implementing performance improvements like caching, or dealing with
    * non-standard authentication requirements.
    */
-  customResolvers?: OasTitlePathMethodObject<GraphQLFieldResolver<TSource, TContext, TArgs>>
+  customResolvers?: OasTitlePathMethodObject<
+    GraphQLFieldResolver<TSource, TContext, TArgs>
+  >
 
   /**
    * Allows to define custom resolvers and subscribe functions for fields on the

@@ -17,6 +17,11 @@ type ExternalDocumentationObject = {
 export type SchemaObject = {
   $ref?: string
   title?: string
+  minimum?: number
+  maximum?: number
+  maxLength?: number
+  minLength?: number
+  pattern?: string
   type?: 'string' | 'number' | 'object' | 'array' | 'boolean' | 'integer'
   format?: string
   nullable?: boolean
@@ -29,7 +34,7 @@ export type SchemaObject = {
   additionalProperties?: SchemaObject | ReferenceObject | boolean
   items?: SchemaObject | ReferenceObject // MUST be a single schema object in OAS, see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.1.md#properties
   additionalItems?: boolean | string[]
-  enum?: string[]
+  enum?: any[]
   allOf?: (SchemaObject | ReferenceObject)[]
   anyOf?: (SchemaObject | ReferenceObject)[]
   oneOf?: (SchemaObject | ReferenceObject)[]
@@ -79,7 +84,7 @@ export type MediaTypeObject = {
 
 export type ParameterObject = {
   name: string
-  in: 'query' | 'header' | 'path' | 'cookie'
+  in: 'query' | 'header' | 'path' | 'cookie' | 'body'
   description?: string
   required?: boolean
   deprecated?: boolean

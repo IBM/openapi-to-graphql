@@ -78,7 +78,7 @@ beforeAll(() => {
           }
         )
       })
-      .catch((e) => {
+      .catch(e => {
         console.log('error', e)
       }),
     startServers(HTTP_PORT, MQTT_PORT)
@@ -86,7 +86,7 @@ beforeAll(() => {
 })
 
 function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 /**
@@ -132,7 +132,7 @@ test('Receive data from the subscription after creating a new instance', () => {
       `ws://localhost:${TEST_PORT}/subscriptions`
     )
 
-    client.onError((e) => reject(e))
+    client.onError(e => reject(e))
 
     client
       .request({
@@ -146,7 +146,7 @@ test('Receive data from the subscription after creating a new instance', () => {
         }
       })
       .subscribe({
-        next: (result) => {
+        next: result => {
           if (result.errors) {
             reject(result.errors)
           }
@@ -162,7 +162,7 @@ test('Receive data from the subscription after creating a new instance', () => {
             resolve()
           }
         },
-        error: (e) => reject(e)
+        error: e => reject(e)
       })
 
     setTimeout(() => {
@@ -173,7 +173,7 @@ test('Receive data from the subscription after creating a new instance', () => {
           status: false
         }
       })
-        .then((res) => {
+        .then(res => {
           if (!res.data) {
             reject(new Error('Failed mutation'))
           }

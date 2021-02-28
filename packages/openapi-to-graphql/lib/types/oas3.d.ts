@@ -8,6 +8,11 @@ declare type ExternalDocumentationObject = {
 export declare type SchemaObject = {
     $ref?: string;
     title?: string;
+    minimum?: number;
+    maximum?: number;
+    maxLength?: number;
+    minLength?: number;
+    pattern?: string;
     type?: 'string' | 'number' | 'object' | 'array' | 'boolean' | 'integer';
     format?: string;
     nullable?: boolean;
@@ -20,7 +25,7 @@ export declare type SchemaObject = {
     additionalProperties?: SchemaObject | ReferenceObject | boolean;
     items?: SchemaObject | ReferenceObject;
     additionalItems?: boolean | string[];
-    enum?: string[];
+    enum?: any[];
     allOf?: (SchemaObject | ReferenceObject)[];
     anyOf?: (SchemaObject | ReferenceObject)[];
     oneOf?: (SchemaObject | ReferenceObject)[];
@@ -64,7 +69,7 @@ export declare type MediaTypeObject = {
 };
 export declare type ParameterObject = {
     name: string;
-    in: 'query' | 'header' | 'path' | 'cookie';
+    in: 'query' | 'header' | 'path' | 'cookie' | 'body';
     description?: string;
     required?: boolean;
     deprecated?: boolean;

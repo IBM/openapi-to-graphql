@@ -5,6 +5,10 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getArgs = exports.getGraphQLType = void 0;
+//import { Args, GraphQLType, ResolveFunction } from './types/graphql'
+const strict_string_1 = require("./scalar_validators/strict_string");
+const strict_int_1 = require("./scalar_validators/strict_int");
+const strict_float_1 = require("./scalar_validators/strict_float");
 const graphql_1 = require("graphql");
 // Imports:
 const graphql_type_json_1 = require("graphql-type-json");
@@ -20,7 +24,7 @@ const utils_1 = require("./utils");
  * the API requests. Therefore, we need to change the serialize() function
  * in the GraphQLJSON type.
  */
-const CleanGraphQLJSON = new graphql_1.GraphQLScalarType(Object.assign(Object.assign({}, graphql_type_json_1.default.toConfig()), { serialize: (value) => {
+const CleanGraphQLJSON = new graphql_1.GraphQLScalarType(Object.assign(Object.assign({}, graphql_type_json_1.default.toConfig()), { serialize: value => {
         let cleanValue;
         /**
          * If the value is an object and contains the _openAPIToGraphQL,
@@ -52,7 +56,7 @@ const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
  */
-function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType = false }) {
+function getGraphQLType({ def, schema, operation, data, iteration = 0, isInputObjectType = false }) {
     const name = isInputObjectType
         ? def.graphQLInputObjectTypeName
         : def.graphQLTypeName;
@@ -83,6 +87,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
             return createOrReuseList({
                 def,
                 operation,
+                schema,
                 data,
                 iteration,
                 isInputObjectType
@@ -97,6 +102,8 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
         default:
             return getScalarType({
                 def,
+                schema,
+                isInputObjectType,
                 data
             });
     }
@@ -210,7 +217,7 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
             ? schema.description
             : 'No description available.';
         const memberTypeDefinitions = def.subDefinitions;
-        const types = Object.values(memberTypeDefinitions).map((memberTypeDefinition) => {
+        const types = Object.values(memberTypeDefinitions).map(memberTypeDefinition => {
             return getGraphQLType({
                 def: memberTypeDefinition,
                 operation,
@@ -232,7 +239,7 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
             resolveType: (source, context, info) => {
                 const properties = Object.keys(source)
                     // Remove custom _openAPIToGraphQL property used to pass data
-                    .filter((property) => property !== '_openAPIToGraphQL');
+                    .filter(property => property !== '_openAPIToGraphQL');
                 /**
                  * Find appropriate member type
                  *
@@ -244,11 +251,11 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
                  * identified if, for whatever reason, the return data is a superset
                  * of the fields specified in the OAS
                  */
-                return types.find((type) => {
+                return types.find(type => {
                     const typeFields = Object.keys(type.getFields());
                     // The type should be a superset of the properties
                     if (properties.length <= typeFields.length) {
-                        return properties.every((property) => typeFields.includes(property));
+                        return properties.every(property => typeFields.includes(property));
                     }
                     return false;
                 });
@@ -281,7 +288,7 @@ function checkAmbiguousMemberTypes(def, types, data) {
         for (let j = i + 1; j < types.length; j++) {
             const otherType = types[j];
             // TODO: Check the value, not just the field name
-            if (Object.keys(currentType.getFields()).every((field) => {
+            if (Object.keys(currentType.getFields()).every(field => {
                 return Object.keys(otherType.getFields()).includes(field);
             })) {
                 utils_1.handleWarning({
@@ -301,7 +308,7 @@ function checkAmbiguousMemberTypes(def, types, data) {
 /**
  * Creates a list type or returns an existing one, and stores it in data
  */
-function createOrReuseList({ def, operation, iteration, isInputObjectType, data }) {
+function createOrReuseList({ def, operation, schema, iteration, isInputObjectType, data }) {
     const name = isInputObjectType
         ? def.graphQLInputObjectTypeName
         : def.graphQLTypeName;
@@ -329,6 +336,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
     const itemsType = getGraphQLType({
         def: itemDef,
         data,
+        schema,
         operation,
         iteration: iteration + 1,
         isInputObjectType
@@ -365,7 +373,7 @@ function createOrReuseEnum({ def, data }) {
     else {
         translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`);
         const values = {};
-        def.schema.enum.forEach((e) => {
+        def.schema.enum.forEach(e => {
             // Force enum values to string and value should be in ALL_CAPS
             values[Oas3Tools.sanitize(e.toString(), Oas3Tools.CaseStyle.ALL_CAPS)] = {
                 value: e
@@ -382,19 +390,128 @@ function createOrReuseEnum({ def, data }) {
 /**
  * Returns the GraphQL scalar type matching the given JSON schema type
  */
-function getScalarType({ def, data }) {
+function getScalarType({ def, schema, isInputObjectType, data }) {
+    const options = {
+        name: ''
+    };
+    if (isInputObjectType && schema) {
+        const type = schema.type;
+        const title = schema.title || '';
+        options.name =
+            title
+                .split(/\s+/)
+                .map(utils_1.ucFirst)
+                .join('') ||
+                'StrictScalar' +
+                    utils_1.ucFirst(type) +
+                    'Type' +
+                    (Math.random() * Date.now()).toString(16).replace('.', '');
+        if (type === 'string') {
+            options.trim = true;
+            if ('nullable' in schema)
+                options.nonEmpty = !schema.nullable;
+        }
+        switch (true) {
+            case typeof schema.minimum === 'number':
+            case typeof schema.minLength === 'number':
+                if (type === 'string') {
+                    options.minLength = schema.minLength;
+                }
+                if (type === 'number' || type === 'integer') {
+                    options.minimum = schema.minimum;
+                }
+                break;
+            case typeof schema.maximum === 'number':
+            case typeof schema.maxLength === 'number':
+                if (type === 'string') {
+                    options.maxLength = schema.maxLength;
+                }
+                if (type === 'number' || type === 'integer') {
+                    options.maximum = schema.maximum;
+                }
+                break;
+            case typeof schema.pattern === 'string':
+                const $qualifier = schema.pattern.match(/\/(.)$/) || ['', ''];
+                const $pattern = schema.pattern
+                    .replace(/^\//, '')
+                    .replace(/\/(.)?$/, '');
+                if (type === 'string') {
+                    options.pattern = new RegExp($pattern, $qualifier[1]);
+                }
+                break;
+            case typeof schema.description === 'string':
+                options.description = schema.description.replace(/\s/g, '').trim();
+                break;
+            case type !== 'object' && type !== 'array' && type === 'boolean':
+            case typeof schema.format === 'string':
+            case typeof schema.enum !== 'undefined':
+                const $format = schema.format || '-';
+                const $enum = schema.enum || [];
+                options.coerce = (data) => {
+                    if ($format === 'int64' ||
+                        $format === 'long' ||
+                        $format === 'float') {
+                        if (!isFinite(data)) {
+                            throw new graphql_1.GraphQLError('Float cannot represent non numeric value');
+                        }
+                    }
+                    if (type === 'string') {
+                        if (typeof data !== 'string') {
+                            throw new graphql_1.GraphQLError('String cannot represent a non string value');
+                        }
+                    }
+                    return data;
+                };
+                options.serialize = (data) => {
+                    if ($format === 'date' || $format === 'date-time') {
+                        return utils_1.serializeDate(data);
+                    }
+                    return data;
+                };
+                options.sanitize = (data) => {
+                    return type === 'integer' || $format.startsWith('int')
+                        ? utils_1.isSafeInteger(data) && parseInt(data, 10)
+                        : $format === 'long'
+                            ? utils_1.isSafeLong(data) && data
+                            : type === 'number' || $format === 'float'
+                                ? utils_1.isSafeFloat(data) && parseFloat(data)
+                                : $format === 'date' || $format === 'date-time'
+                                    ? utils_1.isSafeDate(data) && data
+                                    : $format === 'uuid'
+                                        ? utils_1.isUUIDOrGUID(data) && data
+                                        : $format === 'email'
+                                            ? utils_1.isEmail(data) && data
+                                            : $format === 'url'
+                                                ? utils_1.isURL(data) && data
+                                                : data;
+                };
+                options.validate = (data) => {
+                    return $enum.includes(data) || utils_1.isTypeOf(data, type);
+                };
+                break;
+        }
+    }
     switch (def.targetGraphQLType) {
         case 'id':
             def.graphQLType = graphql_1.GraphQLID;
             break;
         case 'string':
-            def.graphQLType = graphql_1.GraphQLString;
+            def.graphQLType =
+                isInputObjectType && schema
+                    ? strict_string_1.createStringScalar(options)
+                    : graphql_1.GraphQLString;
             break;
         case 'integer':
-            def.graphQLType = graphql_1.GraphQLInt;
+            def.graphQLType =
+                isInputObjectType && schema
+                    ? strict_int_1.createIntScalar(options)
+                    : graphql_1.GraphQLInt;
             break;
         case 'number':
-            def.graphQLType = graphql_1.GraphQLFloat;
+            def.graphQLType =
+                isInputObjectType && schema
+                    ? strict_float_1.createFloatScalar(options)
+                    : graphql_1.GraphQLFloat;
             break;
         case 'boolean':
             def.graphQLType = graphql_1.GraphQLBoolean;
@@ -421,6 +538,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         const objectType = getGraphQLType({
             def: fieldTypeDefinition,
             operation,
+            schema: fieldSchema,
             data,
             iteration: iteration + 1,
             isInputObjectType
@@ -491,7 +609,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                     // Get arguments that are not provided by the linked operation
                     let dynamicParams = linkedOp.parameters;
                     if (typeof argsFromLink === 'object') {
-                        dynamicParams = dynamicParams.filter((param) => {
+                        dynamicParams = dynamicParams.filter(param => {
                             return typeof argsFromLink[param.name] === 'undefined';
                         });
                     }
@@ -813,7 +931,7 @@ function skipArg(parameter, operation, data) {
 function getArgs({ requestPayloadDef, parameters, operation, data }) {
     let args = {};
     // Handle params:
-    parameters.forEach((parameter) => {
+    parameters.forEach(parameter => {
         // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
@@ -880,6 +998,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         const type = getGraphQLType({
             def: paramDef,
             operation,
+            schema,
             data,
             iteration: 0,
             isInputObjectType: true
@@ -944,6 +1063,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         const reqObjectType = getGraphQLType({
             def: requestPayloadDef,
             data,
+            schema: requestPayloadDef.schema,
             operation,
             isInputObjectType: true // Request payloads will always be an input object type
         });
@@ -956,7 +1076,15 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             ? operation.payloadRequired
             : false;
         args[saneName] = {
-            type: reqRequired ? new graphql_1.GraphQLNonNull(reqObjectType) : reqObjectType,
+            type: reqRequired
+                ? new graphql_1.GraphQLNonNull(reqObjectType)
+                : typeof requestPayloadDef.schema.default !==
+                    'undefined'
+                    ? {
+                        type: reqObjectType,
+                        defaultValue: requestPayloadDef.schema.default
+                    }
+                    : reqObjectType,
             // TODO: addendum to the description explaining this is the request body
             description: requestPayloadDef.schema.description
         };
@@ -984,7 +1112,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
     switch (getLinkLocationType(linkLocation)) {
         case 'title':
             // Get the possible
-            const possibleOass = data.oass.filter((oas) => {
+            const possibleOass = data.oass.filter(oas => {
                 return oas.info.title === linkLocation;
             });
             // Check if there are an ambiguous OASs

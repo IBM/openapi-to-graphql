@@ -47,6 +47,6 @@ openAPIToGraphQL
       console.log('GraphQL accessible at: http://localhost:3000/graphql')
     })
   })
-  .catch((err) => {
+  .catch(err => {
     console.log(err)
   })

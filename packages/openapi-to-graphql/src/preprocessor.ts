@@ -204,7 +204,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
     oass
   }
 
-  oass.forEach((oas) => {
+  oass.forEach(oas => {
     // Store stats on OAS:
     data.options.report.numOps += Oas3Tools.countOperations(oas)
     data.options.report.numOpsMutation += Oas3Tools.countOperationsMutation(oas)
@@ -223,7 +223,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
       data.security,
       currentSecurity
     )
-    commonSecurityPropertyName.forEach((propertyName) => {
+    commonSecurityPropertyName.forEach(propertyName => {
       handleWarning({
         mitigationType: MitigationTypes.DUPLICATE_SECURITY_SCHEME,
         message: `Multiple OASs share security schemes with the same name '${propertyName}'`,
@@ -245,7 +245,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
         : (Oas3Tools.resolveRef(oas.paths[path]['$ref'], oas) as PathItemObject)
 
       Object.keys(pathItem)
-        .filter((objectKey) => {
+        .filter(objectKey => {
           /**
            * Get only fields that contain operation objects
            *
@@ -253,7 +253,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
            */
           return Oas3Tools.isHttpMethod(objectKey)
         })
-        .forEach((rawMethod) => {
+        .forEach(rawMethod => {
           const operationString =
             oass.length === 1
               ? Oas3Tools.formatOperationString(rawMethod, path)
@@ -356,7 +356,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
 
                     const callbackOperationObjectMethods = Object.keys(
                       resolvedCallbackPathItem
-                    ).filter((objectKey) => {
+                    ).filter(objectKey => {
                       /**
                        * Get only fields that contain operation objects
                        *
@@ -681,7 +681,7 @@ export function createDataDef<TSource, TContext, TArgs>(
 
     const saneLinks = {}
     if (typeof links === 'object') {
-      Object.keys(links).forEach((linkKey) => {
+      Object.keys(links).forEach(linkKey => {
         saneLinks[
           Oas3Tools.sanitize(
             linkKey,
@@ -707,7 +707,7 @@ export function createDataDef<TSource, TContext, TArgs>(
       if (typeof saneLinks !== 'undefined') {
         if (typeof existingDataDef.links !== 'undefined') {
           // Check if there are any overlapping links
-          Object.keys(existingDataDef.links).forEach((saneLinkKey) => {
+          Object.keys(existingDataDef.links).forEach(saneLinkKey => {
             if (
               typeof saneLinks[saneLinkKey] !== 'undefined' &&
               !deepEqual(
@@ -1088,7 +1088,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
    * TODO: required may contain duplicates, which is not necessarily a problem
    */
   if (Array.isArray(schema.required)) {
-    schema.required.forEach((requiredProperty) => {
+    schema.required.forEach(requiredProperty => {
       required.push(requiredProperty)
     })
   }
@@ -1160,7 +1160,7 @@ function resolveAllOf<TSource, TContext, TArgs>(
 
   // Resolve allOf
   if (Array.isArray(collapsedSchema.allOf)) {
-    collapsedSchema.allOf.forEach((memberSchema) => {
+    collapsedSchema.allOf.forEach(memberSchema => {
       // Collapse type if applicable
       const resolvedSchema = resolveAllOf(memberSchema, references, data, oas)
 
@@ -1215,7 +1215,7 @@ function resolveAllOf<TSource, TContext, TArgs>(
           collapsedSchema.oneOf = []
         }
 
-        resolvedSchema.oneOf.forEach((oneOfProperty) => {
+        resolvedSchema.oneOf.forEach(oneOfProperty => {
           collapsedSchema.oneOf.push(oneOfProperty)
         })
       }
@@ -1226,7 +1226,7 @@ function resolveAllOf<TSource, TContext, TArgs>(
           collapsedSchema.anyOf = []
         }
 
-        resolvedSchema.anyOf.forEach((anyOfProperty) => {
+        resolvedSchema.anyOf.forEach(anyOfProperty => {
           collapsedSchema.anyOf.push(anyOfProperty)
         })
       }
@@ -1237,7 +1237,7 @@ function resolveAllOf<TSource, TContext, TArgs>(
           collapsedSchema.required = []
         }
 
-        resolvedSchema.required.forEach((requiredProperty) => {
+        resolvedSchema.required.forEach(requiredProperty => {
           if (!collapsedSchema.required.includes(requiredProperty)) {
             collapsedSchema.required.push(requiredProperty)
           }
@@ -1270,7 +1270,7 @@ function getMemberSchemaData<TSource, TContext, TArgs>(
     allRequired: []
   }
 
-  schemas.forEach((schema) => {
+  schemas.forEach(schema => {
     // Dereference schemas
     if ('$ref' in schema) {
       schema = Oas3Tools.resolveRef(schema['$ref'], oas) as SchemaObject
@@ -1311,7 +1311,7 @@ function hasNestedOneOfUsage(
   // TODO: Should also consider if the member schema contains type data
   return (
     Array.isArray(collapsedSchema.oneOf) &&
-    collapsedSchema.oneOf.some((memberSchema) => {
+    collapsedSchema.oneOf.some(memberSchema => {
       // anyOf and oneOf are nested
       if ('$ref' in memberSchema) {
         memberSchema = Oas3Tools.resolveRef(
@@ -1339,7 +1339,7 @@ function hasNestedAnyOfUsage(
   // TODO: Should also consider if the member schema contains type data
   return (
     Array.isArray(collapsedSchema.anyOf) &&
-    collapsedSchema.anyOf.some((memberSchema) => {
+    collapsedSchema.anyOf.some(memberSchema => {
       // anyOf and oneOf are nested
       if ('$ref' in memberSchema) {
         memberSchema = Oas3Tools.resolveRef(
@@ -1373,13 +1373,13 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
   const anyOfData = getMemberSchemaData(collapsedSchema.anyOf, data, oas)
 
   if (
-    anyOfData.allTargetGraphQLTypes.some((memberTargetGraphQLType) => {
+    anyOfData.allTargetGraphQLTypes.some(memberTargetGraphQLType => {
       return memberTargetGraphQLType === 'object'
     })
   ) {
     // Every member type should be an object
     if (
-      anyOfData.allTargetGraphQLTypes.every((memberTargetGraphQLType) => {
+      anyOfData.allTargetGraphQLTypes.every(memberTargetGraphQLType => {
         return memberTargetGraphQLType === 'object'
       }) &&
       anyOfData.allProperties.length > 0 // Redundant check
@@ -1401,7 +1401,7 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
          */
 
         if (typeof collapsedSchema.properties === 'object') {
-          Object.keys(collapsedSchema.properties).forEach((propertyName) => {
+          Object.keys(collapsedSchema.properties).forEach(propertyName => {
             allProperties[propertyName] = [
               collapsedSchema.properties[propertyName]
             ]
@@ -1409,12 +1409,12 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
         }
 
         // Check if any member schema has conflicting properties
-        anyOfData.allProperties.forEach((properties) => {
-          Object.keys(properties).forEach((propertyName) => {
+        anyOfData.allProperties.forEach(properties => {
+          Object.keys(properties).forEach(propertyName => {
             if (
               !incompatibleProperties.has(propertyName) && // Has not been already identified as a problematic property
               typeof allProperties[propertyName] === 'object' &&
-              allProperties[propertyName].some((property) => {
+              allProperties[propertyName].some(property => {
                 // Property does not match a recorded one
                 return !deepEqual(property, properties[propertyName])
               })
@@ -1446,8 +1446,8 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
           )
         }
 
-        anyOfData.allProperties.forEach((properties) => {
-          Object.keys(properties).forEach((propertyName) => {
+        anyOfData.allProperties.forEach(properties => {
+          Object.keys(properties).forEach(propertyName => {
             if (!incompatibleProperties.has(propertyName)) {
               // Dereferenced by processing anyOfData
               const propertySchema = properties[propertyName] as SchemaObject
@@ -1473,7 +1473,7 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
         })
 
         // Add in incompatible properties
-        incompatibleProperties.forEach((propertyName) => {
+        incompatibleProperties.forEach(propertyName => {
           // TODO: add description
           def.subDefinitions[propertyName] = {
             targetGraphQLType: 'json'
@@ -1537,13 +1537,13 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
   const oneOfData = getMemberSchemaData(collapsedSchema.oneOf, data, oas)
 
   if (
-    oneOfData.allTargetGraphQLTypes.some((memberTargetGraphQLType) => {
+    oneOfData.allTargetGraphQLTypes.some(memberTargetGraphQLType => {
       return memberTargetGraphQLType === 'object'
     })
   ) {
     // unions must be created from object types
     if (
-      oneOfData.allTargetGraphQLTypes.every((memberTargetGraphQLType) => {
+      oneOfData.allTargetGraphQLTypes.every(memberTargetGraphQLType => {
         return memberTargetGraphQLType === 'object'
       }) &&
       oneOfData.allProperties.length > 0 // Redundant check
@@ -1568,7 +1568,7 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
       ) {
         def.subDefinitions = []
 
-        collapsedSchema.oneOf.forEach((memberSchema) => {
+        collapsedSchema.oneOf.forEach(memberSchema => {
           // Dereference member schema
           let fromRef: string
           if ('$ref' in memberSchema) {
@@ -1615,7 +1615,7 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
         // Not all member schemas may have been turned into GraphQL member types
         if (
           def.subDefinitions.length > 0 &&
-          def.subDefinitions.every((subDefinition) => {
+          def.subDefinitions.every(subDefinition => {
             return subDefinition.targetGraphQLType === 'object'
           })
         ) {

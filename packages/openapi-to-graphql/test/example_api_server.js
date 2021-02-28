@@ -391,7 +391,7 @@ function startServer(PORT) {
 
   app.get('/api/users/:username/friends', (req, res) => {
     if (req.params.username in Users) {
-      const friends = Users[req.params.username].friends.map((friendName) => {
+      const friends = Users[req.params.username].friends.map(friendName => {
         return Users[friendName]
       })
 
@@ -479,11 +479,17 @@ function startServer(PORT) {
   })
 
   app.get('/api/cleanDesks', (req, res) => {
-    res.set('Content-Type', 'text/plain').status(200).send('5 clean desks')
+    res
+      .set('Content-Type', 'text/plain')
+      .status(200)
+      .send('5 clean desks')
   })
 
   app.get('/api/dirtyDesks', (req, res) => {
-    res.set('Content-Type', 'text/plain').status(200).send('5 dirty desks')
+    res
+      .set('Content-Type', 'text/plain')
+      .status(200)
+      .send('5 dirty desks')
   })
 
   app.get('/api/bonuses', (req, res) => {
@@ -586,7 +592,7 @@ function startServer(PORT) {
 
   app.get('/api/patents/:id', authMiddleware, (req, res) => {
     // Find patent based off of patent ID
-    const patent = Object.values(Patents).find((currentPatent) => {
+    const patent = Object.values(Patents).find(currentPatent => {
       return currentPatent['patent-id'] === req.params.id
     })
 
@@ -611,7 +617,7 @@ function startServer(PORT) {
 
   app.get('/api/projects/:id', authMiddleware, (req, res) => {
     // Find project based off of projectId
-    const project = Object.values(Projects).find((currentProject) => {
+    const project = Object.values(Projects).find(currentProject => {
       return currentProject.projectId === Number(req.params.id)
     })
 
@@ -648,7 +654,10 @@ function startServer(PORT) {
       typeof req.query.limit !== 'undefined' &&
       typeof req.get('exampleHeader') !== 'undefined'
     ) {
-      res.set('Content-Type', 'text/plain').status(200).send('Ok')
+      res
+        .set('Content-Type', 'text/plain')
+        .status(200)
+        .send('Ok')
     } else {
       res.status(400).send({
         message: 'wrong request'
@@ -711,7 +720,7 @@ function startServer(PORT) {
     res.status(200).send({ status: 'success' })
   })
 
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     server = app.listen(PORT, () => {
       console.log(`Example API accessible on port ${PORT}`)
       resolve()
@@ -723,7 +732,7 @@ function startServer(PORT) {
  * Stops server.
  */
 function stopServer() {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     server.close(() => {
       console.log(`Stopped API server`)
       resolve()

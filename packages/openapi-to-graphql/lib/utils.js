@@ -4,7 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getCommonPropertyNames = exports.sortObject = exports.handleWarning = exports.mitigations = exports.MitigationTypes = void 0;
+exports.getCommonPropertyNames = exports.sortObject = exports.handleWarning = exports.isTypeOf = exports.ucFirst = exports.isUUIDOrGUID = exports.isEmail = exports.isURL = exports.isSafeDate = exports.serializeDate = exports.isSafeFloat = exports.isSafeLong = exports.isSafeInteger = exports.mitigations = exports.MitigationTypes = void 0;
 var MitigationTypes;
 (function (MitigationTypes) {
     /**
@@ -88,6 +88,166 @@ exports.mitigations = {
     // Miscellaneous
     OAUTH_SECURITY_SCHEME: `Ignore security scheme`
 };
+const MAX_INT = 2147483647;
+const MIN_INT = -2147483648;
+const MAX_LONG = 9007199254740991;
+const MIN_LONG = -9007199254740992;
+/**
+ * Verify that a variable contains a safe int (2^31)
+ */
+function isSafeInteger(n) {
+    return (typeof n === 'number' &&
+        isFinite(n) &&
+        n <= MAX_INT &&
+        n >= MIN_INT &&
+        n % 1 === 0);
+}
+exports.isSafeInteger = isSafeInteger;
+/**
+ * Verify that a variable contains a safe long (2^53)
+ */
+function isSafeLong(n) {
+    return (typeof n === 'number' &&
+        isFinite(n) &&
+        n <= MAX_LONG &&
+        n >= MIN_LONG &&
+        n % 1 === 0);
+}
+exports.isSafeLong = isSafeLong;
+/**
+ * Check if a number is a safe floating point
+ */
+function isSafeFloat(n) {
+    return typeof n === 'number' && n % 0.5 !== 0;
+}
+exports.isSafeFloat = isSafeFloat;
+/**
+ * Convert a date and/or date-time string into a date object
+ */
+function toDate(n) {
+    const parsed = Date.parse(n);
+    const $ref = new Date();
+    $ref.setTime(parsed);
+    return ((typeof parsed === 'number' &&
+        parsed !== NaN &&
+        parsed > 0 &&
+        String(parsed).length === 13 &&
+        $ref) ||
+        null);
+}
+/**
+ * Serialize a date string into the ISO format
+ */
+function serializeDate(n) {
+    const date = toDate(n);
+    return date && date.toJSON();
+}
+exports.serializeDate = serializeDate;
+/**
+ * Verify that a vriable contains a safe date/date-time string
+ */
+function isSafeDate(n) {
+    const date = toDate(n);
+    return date !== null && date.getTime() !== NaN;
+}
+exports.isSafeDate = isSafeDate;
+/**
+ * Verify is a string is a valid URL
+ */
+function isURL(s) {
+    let res = null;
+    /* See: https://mathiasbynens.be/demo/url-regex for URL Reg Exp source */
+    const urlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z0-9]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g;
+    try {
+        res = s.match(urlRegex);
+    }
+    catch (e) {
+        res = null;
+    }
+    return res !== null;
+}
+exports.isURL = isURL;
+/**
+ * Verify if a string is a valid EMAIL
+ */
+function isEmail(s) {
+    /* See: See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/EmailAddress.ts#L4 for EMAIL Reg Exp source */
+    const emailRegex = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+    return emailRegex.test(s);
+}
+exports.isEmail = isEmail;
+/**
+ * Verify if a string is a valid GUID/UUID
+ */
+function isUUIDOrGUID(s) {
+    /* See: See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/GUID.ts#L4 for UUID Reg Exp source */
+    const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    const guidRegExp = /^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi;
+    if (s.startsWith('{')) {
+        s = s.substring(1, s.length - 1);
+    }
+    return uuidRegExp.test(s) || guidRegExp.test(s);
+}
+exports.isUUIDOrGUID = isUUIDOrGUID;
+/**
+ * Convert the fist letter of a word in a string to upper case
+ */
+function ucFirst(s) {
+    if (typeof s !== 'string') {
+        return '';
+    }
+    return s.replace(/^./, c => c.toUpperCase());
+}
+exports.ucFirst = ucFirst;
+/**
+ * Check if a literal is falsy or not
+ */
+const isLiteralFalsey = (variable) => {
+    return variable === '' || variable === false || variable === 0;
+};
+/**
+ * Check if a variable contains a reference type (not a literal)
+ */
+const isPrimitive = (arg) => {
+    return (typeof arg === 'object' || (Boolean(arg) && typeof arg.apply === 'function'));
+};
+/**
+ * Check that the data type of primitive and/or reference
+ * variable mathes the type provided
+ */
+const checkTypeName = (target, type) => {
+    let typeName = '';
+    // we need to separate checks for literal types and
+    // primitive types so we can speed up performance and
+    // keep things simple
+    if (isLiteralFalsey(target) || !isPrimitive(target)) {
+        // literal
+        typeName = typeof target;
+    }
+    else {
+        // primitive/reference
+        typeName = Object.prototype.toString
+            .call(target)
+            .replace(/^\[object (.+)\]$/, '$1');
+    }
+    // check if the type matches
+    return Boolean(typeName.toLowerCase().indexOf(type) + 1);
+};
+/**
+ * Get the correct type of a variable
+ */
+function isTypeOf(value, type) {
+    // swagger/OpenAPI 'integer' type is converted
+    // a JavaScript 'number' type for compatibility
+    if (type === 'integer') {
+        type = 'number';
+    }
+    type = type || '';
+    // checks that the data type of the variable
+    // matches that that was passed in
+    return checkTypeName(value, type);
+}
+exports.isTypeOf = isTypeOf;
 /**
  * Utilities that are specific to OpenAPI-to-GraphQL
  */
@@ -119,7 +279,7 @@ function handleWarning({ mitigationType, message, mitigationAddendum, path, data
 }
 exports.handleWarning = handleWarning;
 // Code provided by codename- from StackOverflow
-// Link: https://stackoverflow.com/a/29622653
+// See: https://stackoverflow.com/a/29622653
 function sortObject(o) {
     return Object.keys(o)
         .sort()

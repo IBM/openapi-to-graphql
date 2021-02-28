@@ -11,14 +11,25 @@
 import { PreprocessingData } from './types/preprocessing_data'
 import { Operation, DataDefinition } from './types/operation'
 import {
+  StrictScalarNumberConfig,
+  StrictScalarStringConfig
+} from './types/strict_scalars'
+import {
   Oas3,
   SchemaObject,
   ParameterObject,
   ReferenceObject,
   LinkObject
 } from './types/oas3'
-import { Args, GraphQLType } from './types/graphql'
+import { Args } from './types/graphql'
+//import { Args, GraphQLType, ResolveFunction } from './types/graphql'
+
+import { createStringScalar } from './scalar_validators/strict_string'
+import { createIntScalar } from './scalar_validators/strict_int'
+import { createFloatScalar } from './scalar_validators/strict_float'
+
 import {
+  GraphQLError,
   GraphQLScalarType,
   GraphQLObjectType,
   GraphQLString,
@@ -43,7 +54,22 @@ import * as Oas3Tools from './oas_3_tools'
 import { getResolver, OPENAPI_TO_GRAPHQL } from './resolver_builder'
 import { createDataDef } from './preprocessor'
 import debug from 'debug'
-import { handleWarning, sortObject, MitigationTypes } from './utils'
+import {
+  handleWarning,
+  sortObject,
+  MitigationTypes,
+  ucFirst,
+  isSafeInteger,
+  isSafeLong,
+  isSafeFloat,
+  isTypeOf,
+  isSafeDate,
+  serializeDate,
+  isUUIDOrGUID,
+  isEmail,
+  isURL
+} from './utils'
+//import { serialize } from 'v8'
 
 type GetArgsParams<TSource, TContext, TArgs> = {
   requestPayloadDef?: DataDefinition
@@ -54,6 +80,7 @@ type GetArgsParams<TSource, TContext, TArgs> = {
 
 type CreateOrReuseComplexTypeParams<TSource, TContext, TArgs> = {
   def: DataDefinition
+  schema?: SchemaObject
   operation?: Operation
   iteration?: number // Count of recursions used to create type
   isInputObjectType?: boolean // Does not require isInputObjectType because unions must be composed of objects
@@ -62,6 +89,8 @@ type CreateOrReuseComplexTypeParams<TSource, TContext, TArgs> = {
 
 type CreateOrReuseSimpleTypeParams<TSource, TContext, TArgs> = {
   def: DataDefinition
+  schema?: SchemaObject
+  isInputObjectType?: boolean // Does not require isInputObjectType because unions must be composed of objects
   data: PreprocessingData<TSource, TContext, TArgs>
 }
 
@@ -90,7 +119,7 @@ type LinkOpRefToOpIdParams<TSource, TContext, TArgs> = {
  */
 const CleanGraphQLJSON = new GraphQLScalarType({
   ...GraphQLJSON.toConfig(),
-  serialize: (value) => {
+  serialize: value => {
     let cleanValue
 
     /**
@@ -132,6 +161,7 @@ const translationLog = debug('translation')
  */
 export function getGraphQLType<TSource, TContext, TArgs>({
   def,
+  schema,
   operation,
   data,
   iteration = 0,
@@ -173,6 +203,7 @@ export function getGraphQLType<TSource, TContext, TArgs>({
       return createOrReuseList({
         def,
         operation,
+        schema,
         data,
         iteration,
         isInputObjectType
@@ -189,6 +220,8 @@ export function getGraphQLType<TSource, TContext, TArgs>({
     default:
       return getScalarType({
         def,
+        schema,
+        isInputObjectType,
         data
       })
   }
@@ -344,7 +377,7 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
     const memberTypeDefinitions = def.subDefinitions as DataDefinition[]
 
     const types = Object.values(memberTypeDefinitions).map(
-      (memberTypeDefinition) => {
+      memberTypeDefinition => {
         return getGraphQLType({
           def: memberTypeDefinition,
           operation,
@@ -369,7 +402,7 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
       resolveType: (source, context, info) => {
         const properties = Object.keys(source)
           // Remove custom _openAPIToGraphQL property used to pass data
-          .filter((property) => property !== '_openAPIToGraphQL')
+          .filter(property => property !== '_openAPIToGraphQL')
 
         /**
          * Find appropriate member type
@@ -382,12 +415,12 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
          * identified if, for whatever reason, the return data is a superset
          * of the fields specified in the OAS
          */
-        return types.find((type) => {
+        return types.find(type => {
           const typeFields = Object.keys(type.getFields())
 
           // The type should be a superset of the properties
           if (properties.length <= typeFields.length) {
-            return properties.every((property) => typeFields.includes(property))
+            return properties.every(property => typeFields.includes(property))
           }
 
           return false
@@ -430,7 +463,7 @@ function checkAmbiguousMemberTypes<TSource, TContext, TArgs>(
 
       // TODO: Check the value, not just the field name
       if (
-        Object.keys(currentType.getFields()).every((field) => {
+        Object.keys(currentType.getFields()).every(field => {
           return Object.keys(otherType.getFields()).includes(field)
         })
       ) {
@@ -457,6 +490,7 @@ function checkAmbiguousMemberTypes<TSource, TContext, TArgs>(
 function createOrReuseList<TSource, TContext, TArgs>({
   def,
   operation,
+  schema,
   iteration,
   isInputObjectType,
   data
@@ -496,6 +530,7 @@ function createOrReuseList<TSource, TContext, TArgs>({
   const itemsType = getGraphQLType({
     def: itemDef,
     data,
+    schema,
     operation,
     iteration: iteration + 1,
     isInputObjectType
@@ -536,7 +571,7 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
     translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`)
 
     const values = {}
-    def.schema.enum.forEach((e) => {
+    def.schema.enum.forEach(e => {
       // Force enum values to string and value should be in ALL_CAPS
       values[Oas3Tools.sanitize(e.toString(), Oas3Tools.CaseStyle.ALL_CAPS)] = {
         value: e
@@ -558,20 +593,147 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
  */
 function getScalarType<TSource, TContext, TArgs>({
   def,
+  schema,
+  isInputObjectType,
   data
 }: CreateOrReuseSimpleTypeParams<TSource, TContext, TArgs>): GraphQLScalarType {
+  const options: StrictScalarNumberConfig | StrictScalarStringConfig = {
+    name: ''
+  }
+
+  if (isInputObjectType && schema) {
+    const type = schema.type
+    const title = schema.title || ''
+
+    options.name =
+      title
+        .split(/\s+/)
+        .map(ucFirst)
+        .join('') ||
+      'StrictScalar' +
+        ucFirst(type) +
+        'Type' +
+        (Math.random() * Date.now()).toString(16).replace('.', '')
+
+    if (type === 'string') {
+      options.trim = true
+      if ('nullable' in schema) options.nonEmpty = !schema.nullable
+    }
+
+    switch (true) {
+      case typeof schema.minimum === 'number':
+      case typeof schema.minLength === 'number':
+        if (type === 'string') {
+          options.minLength = schema.minLength
+        }
+
+        if (type === 'number' || type === 'integer') {
+          options.minimum = schema.minimum
+        }
+        break
+      case typeof schema.maximum === 'number':
+      case typeof schema.maxLength === 'number':
+        if (type === 'string') {
+          options.maxLength = schema.maxLength
+        }
+
+        if (type === 'number' || type === 'integer') {
+          options.maximum = schema.maximum
+        }
+        break
+      case typeof schema.pattern === 'string':
+        const $qualifier = schema.pattern.match(/\/(.)$/) || ['', '']
+        const $pattern = schema.pattern
+          .replace(/^\//, '')
+          .replace(/\/(.)?$/, '')
+
+        if (type === 'string') {
+          options.pattern = new RegExp($pattern, $qualifier[1])
+        }
+        break
+      case typeof schema.description === 'string':
+        options.description = schema.description.replace(/\s/g, '').trim()
+        break
+      case type !== 'object' && type !== 'array' && type === 'boolean':
+      case typeof schema.format === 'string':
+      case typeof schema.enum !== 'undefined':
+        const $format = schema.format || '-'
+        const $enum = schema.enum || []
+
+        options.coerce = (data: any) => {
+          if (
+            $format === 'int64' ||
+            $format === 'long' ||
+            $format === 'float'
+          ) {
+            if (!isFinite(data)) {
+              throw new GraphQLError('Float cannot represent non numeric value')
+            }
+          }
+
+          if (type === 'string') {
+            if (typeof data !== 'string') {
+              throw new GraphQLError(
+                'String cannot represent a non string value'
+              )
+            }
+          }
+          return data
+        }
+
+        options.serialize = (data: any) => {
+          if ($format === 'date' || $format === 'date-time') {
+            return serializeDate(data)
+          }
+          return data
+        }
+
+        options.sanitize = (data: any) => {
+          return type === 'integer' || $format.startsWith('int')
+            ? isSafeInteger(data) && parseInt(data, 10)
+            : $format === 'long'
+            ? isSafeLong(data) && data
+            : type === 'number' || $format === 'float'
+            ? isSafeFloat(data) && parseFloat(data)
+            : $format === 'date' || $format === 'date-time'
+            ? isSafeDate(data) && data
+            : $format === 'uuid'
+            ? isUUIDOrGUID(data) && data
+            : $format === 'email'
+            ? isEmail(data) && data
+            : $format === 'url'
+            ? isURL(data) && data
+            : data
+        }
+
+        options.validate = (data: any) => {
+          return $enum.includes(data) || isTypeOf(data, type)
+        }
+        break
+    }
+  }
+
   switch (def.targetGraphQLType) {
     case 'id':
       def.graphQLType = GraphQLID
       break
     case 'string':
-      def.graphQLType = GraphQLString
+      def.graphQLType =
+        isInputObjectType && schema
+          ? createStringScalar(options as StrictScalarStringConfig)
+          : GraphQLString
       break
     case 'integer':
-      def.graphQLType = GraphQLInt
+      def.graphQLType =
+        isInputObjectType && schema
+          ? createIntScalar(options as StrictScalarNumberConfig)
+          : GraphQLInt
       break
     case 'number':
-      def.graphQLType = GraphQLFloat
+      def.graphQLType =
+        isInputObjectType && schema
+          ? createFloatScalar(options as StrictScalarNumberConfig)
+          : GraphQLFloat
       break
     case 'boolean':
       def.graphQLType = GraphQLBoolean
@@ -614,6 +776,7 @@ function createFields<TSource, TContext, TArgs>({
     const objectType = getGraphQLType({
       def: fieldTypeDefinition,
       operation,
+      schema: fieldSchema,
       data,
       iteration: iteration + 1,
       isInputObjectType
@@ -704,7 +867,7 @@ function createFields<TSource, TContext, TArgs>({
           // Get arguments that are not provided by the linked operation
           let dynamicParams = linkedOp.parameters
           if (typeof argsFromLink === 'object') {
-            dynamicParams = dynamicParams.filter((param) => {
+            dynamicParams = dynamicParams.filter(param => {
               return typeof argsFromLink[param.name] === 'undefined'
             })
           }
@@ -1110,7 +1273,7 @@ export function getArgs<TSource, TContext, TArgs>({
   let args = {}
 
   // Handle params:
-  parameters.forEach((parameter) => {
+  parameters.forEach(parameter => {
     // We need at least a name
     if (typeof parameter.name !== 'string') {
       handleWarning({
@@ -1190,6 +1353,7 @@ export function getArgs<TSource, TContext, TArgs>({
     const type = getGraphQLType({
       def: paramDef,
       operation,
+      schema,
       data,
       iteration: 0,
       isInputObjectType: true
@@ -1265,6 +1429,7 @@ export function getArgs<TSource, TContext, TArgs>({
     const reqObjectType = getGraphQLType({
       def: requestPayloadDef,
       data,
+      schema: requestPayloadDef.schema,
       operation,
       isInputObjectType: true // Request payloads will always be an input object type
     })
@@ -1281,7 +1446,15 @@ export function getArgs<TSource, TContext, TArgs>({
         : false
 
     args[saneName] = {
-      type: reqRequired ? new GraphQLNonNull(reqObjectType) : reqObjectType,
+      type: reqRequired
+        ? new GraphQLNonNull(reqObjectType)
+        : typeof (requestPayloadDef.schema as SchemaObject).default !==
+          'undefined'
+        ? {
+            type: reqObjectType,
+            defaultValue: (requestPayloadDef.schema as SchemaObject).default
+          }
+        : reqObjectType,
       // TODO: addendum to the description explaining this is the request body
       description: requestPayloadDef.schema.description
     }
@@ -1315,7 +1488,7 @@ function getOasFromLinkLocation<TSource, TContext, TArgs>(
   switch (getLinkLocationType(linkLocation)) {
     case 'title':
       // Get the possible
-      const possibleOass = data.oass.filter((oas) => {
+      const possibleOass = data.oass.filter(oas => {
         return oas.info.title === linkLocation
       })
 

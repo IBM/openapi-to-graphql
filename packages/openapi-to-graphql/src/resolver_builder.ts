@@ -205,7 +205,7 @@ export function getSubscribe<TSource, TContext, TArgs>({
       const cbParams = value.match(/{([^}]*)}/g)
       pubsubLog(`Analyzing subscription path: ${cbParams.toString()}`)
 
-      cbParams.forEach((cbParam) => {
+      cbParams.forEach(cbParam => {
         value = value.replace(
           cbParam,
           resolveRuntimeExpression(
@@ -401,7 +401,7 @@ export function getResolver<TSource, TContext, TArgs>({
      * Handle default values of parameters, if they have not yet been defined by
      * the user.
      */
-    operation.parameters.forEach((param) => {
+    operation.parameters.forEach(param => {
       const paramName = Oas3Tools.sanitize(
         param.name,
         !data.options.simpleNames
@@ -460,7 +460,7 @@ export function getResolver<TSource, TContext, TArgs>({
       } else {
         // Replace link parameters with appropriate values
         const linkParams = value.match(/{([^}]*)}/g)
-        linkParams.forEach((linkParam) => {
+        linkParams.forEach(linkParam => {
           value = value.replace(
             linkParam,
             resolveRuntimeExpression(
@@ -754,7 +754,7 @@ export function getResolver<TSource, TContext, TArgs>({
                 // Pass on _openAPIToGraphQL to subsequent resolvers
                 if (saneData && typeof saneData === 'object') {
                   if (Array.isArray(saneData)) {
-                    saneData.forEach((element) => {
+                    saneData.forEach(element => {
                       if (typeof element[OPENAPI_TO_GRAPHQL] === 'undefined') {
                         element[OPENAPI_TO_GRAPHQL] = {
                           data: {}
@@ -809,13 +809,13 @@ export function getResolver<TSource, TContext, TArgs>({
                    *
                    * Ensure that there is not preexisting 'limit' argument
                    */
-                  !operation.parameters.find((parameter) => {
+                  !operation.parameters.find(parameter => {
                     return parameter.name === 'limit'
                   }) &&
                   // Only array data
                   Array.isArray(saneData) &&
                   // Only array of objects/arrays
-                  saneData.some((data) => {
+                  saneData.some(data => {
                     return typeof data === 'object'
                   })
                 ) {
