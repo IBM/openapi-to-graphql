@@ -58,7 +58,7 @@ const MAX_LONG = 9007199254740991
 const MIN_LONG = -9007199254740992
 
 /**
- * verify that a variable contains a safe int (2^31)
+ * Verify that a variable contains a safe int (2^31)
  */
 export function isSafeInteger(n: unknown): boolean {
   return (
@@ -71,9 +71,8 @@ export function isSafeInteger(n: unknown): boolean {
 }
 
 /**
- * verify that a variable contains a safe long (2^53)
+ * Verify that a variable contains a safe long (2^53)
  */
-
 export function isSafeLong(n: unknown): boolean {
   return (
     typeof n === 'number' &&
@@ -85,17 +84,15 @@ export function isSafeLong(n: unknown): boolean {
 }
 
 /**
- *
+ * Check if a number is a safe floating point
  */
-
 export function isSafeFloat(n: unknown): boolean {
   return typeof n === 'number' && n % 0.5 !== 0
 }
 
 /**
- * convert a date and/or date-time string into a date object
+ * Convert a date and/or date-time string into a date object
  */
-
 function toDate(n: string) {
   const parsed = Date.parse(n)
   const $ref = new Date()
@@ -113,29 +110,27 @@ function toDate(n: string) {
 }
 
 /**
- * serialize a date string into the ISO format
+ * Serialize a date string into the ISO format
  */
-
 export function serializeDate(n: string) {
   const date = toDate(n)
   return date && date.toJSON()
 }
 
 /**
- * verify that a vriable contains a safe date/date-time string
+ * Verify that a vriable contains a safe date/date-time string
  */
-
 export function isSafeDate(n: string): boolean {
   const date = toDate(n)
   return date !== null && date.getTime() !== NaN
 }
 
 /**
- * verify is a string is a valid URL
+ * Verify is a string is a valid URL
  */
-
 export function isURL(s: string): boolean {
   let res = null
+  /* See: https://mathiasbynens.be/demo/url-regex for URL Reg Exp source */
   const urlRegex = /(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z0-9]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g
   try {
     res = s.match(urlRegex)
@@ -146,21 +141,19 @@ export function isURL(s: string): boolean {
 }
 
 /**
- * verify if a string is a valid EMAIL
- * See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/EmailAddress.ts#L4
+ * Verify if a string is a valid EMAIL
  */
-
 export function isEmail(s: string): boolean {
+  /* See: See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/EmailAddress.ts#L4 for EMAIL Reg Exp source */
   const emailRegex = /^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
   return emailRegex.test(s)
 }
 
 /**
- * verify if a string is a valid GUID/UUID
- * See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/GUID.ts#L4
+ * Verify if a string is a valid GUID/UUID
  */
-
 export function isUUIDOrGUID(s: string): boolean {
+  /* See: See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/GUID.ts#L4 for UUID Reg Exp source */
   const uuidRegExp = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
   const guidRegExp = /^(\{){0,1}[0-9a-fA-F]{8}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{4}\-[0-9a-fA-F]{12}(\}){0,1}$/gi
 
@@ -172,9 +165,8 @@ export function isUUIDOrGUID(s: string): boolean {
 }
 
 /**
- * convert the fist letter of a word in a string to upper case
+ * Convert the fist letter of a word in a string to upper case
  */
-
 export function ucFirst(s: string): string {
   if (typeof s !== 'string') {
     return ''
@@ -184,16 +176,15 @@ export function ucFirst(s: string): string {
 }
 
 /**
- * check if a literal is falsy or not
+ * Check if a literal is falsy or not
  */
 const isLiteralFalsey = (variable: unknown): boolean => {
   return variable === '' || variable === false || variable === 0
 }
 
 /**
- * check if a variable contains a reference type (not a literal)
+ * Check if a variable contains a reference type (not a literal)
  */
-
 const isPrimitive = (arg: any): boolean => {
   return (
     typeof arg === 'object' || (Boolean(arg) && typeof arg.apply === 'function')
@@ -201,7 +192,8 @@ const isPrimitive = (arg: any): boolean => {
 }
 
 /**
- * provide the name of primitive and/or reference types
+ * Check that the data type of primitive and/or reference
+ * variable mathes the type provided
  */
 const checkTypeName = (target: unknown, type: string): boolean => {
   let typeName = ''
@@ -224,7 +216,7 @@ const checkTypeName = (target: unknown, type: string): boolean => {
 }
 
 /**
- * get the correct type of a variable
+ * Get the correct type of a variable
  */
 export function strictTypeOf(value: unknown, type: string): boolean {
   // swagger/OpenAPI 'integer' type is converted
@@ -234,6 +226,8 @@ export function strictTypeOf(value: unknown, type: string): boolean {
   }
 
   type = type || ''
+  // checks that the data type of the variable
+  // matches that that was passed in
   return checkTypeName(value, type)
 }
 
@@ -283,7 +277,7 @@ export function handleWarning({
 }
 
 // Code provided by codename- from StackOverflow
-// Link: https://stackoverflow.com/a/29622653
+// See: https://stackoverflow.com/a/29622653
 export function sortObject(o) {
   return Object.keys(o)
     .sort()

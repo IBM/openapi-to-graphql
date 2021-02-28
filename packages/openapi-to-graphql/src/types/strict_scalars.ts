@@ -1,4 +1,4 @@
-import { GraphQLScalarTypeConfig, ValueNode } from 'graphql'
+import { ValueNode } from 'graphql'
 
 export interface IScalarParseError<TConfig, TCode = string> {
   code: TCode
