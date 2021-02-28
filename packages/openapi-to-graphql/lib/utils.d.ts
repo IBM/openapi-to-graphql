@@ -39,47 +39,45 @@ export declare const mitigations: {
     [mitigationType in MitigationTypes]: string;
 };
 /**
- * verify that a variable contains a safe int (2^31)
+ * Verify that a variable contains a safe int (2^31)
  */
 export declare function isSafeInteger(n: unknown): boolean;
 /**
- * verify that a variable contains a safe long (2^53)
+ * Verify that a variable contains a safe long (2^53)
  */
 export declare function isSafeLong(n: unknown): boolean;
 /**
- *
+ * Check if a number is a safe floating point
  */
 export declare function isSafeFloat(n: unknown): boolean;
 /**
- * serialize a date string into the ISO format
+ * Serialize a date string into the ISO format
  */
 export declare function serializeDate(n: string): string;
 /**
- * verify that a vriable contains a safe date/date-time string
+ * Verify that a vriable contains a safe date/date-time string
  */
 export declare function isSafeDate(n: string): boolean;
 /**
- * verify is a string is a valid URL
+ * Verify is a string is a valid URL
  */
 export declare function isURL(s: string): boolean;
 /**
- * verify if a string is a valid EMAIL
- * See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/EmailAddress.ts#L4
+ * Verify if a string is a valid EMAIL
  */
 export declare function isEmail(s: string): boolean;
 /**
- * verify if a string is a valid GUID/UUID
- * See: https://github.com/Urigo/graphql-scalars/blob/master/src/resolvers/GUID.ts#L4
+ * Verify if a string is a valid GUID/UUID
  */
 export declare function isUUIDOrGUID(s: string): boolean;
 /**
- * convert the fist letter of a word in a string to upper case
+ * Convert the fist letter of a word in a string to upper case
  */
 export declare function ucFirst(s: string): string;
 /**
- * get the correct type of a variable
+ * Get the correct type of a variable
  */
-export declare function strictTypeOf(value: unknown, type: string): boolean;
+export declare function isTypeOf(value: unknown, type: string): boolean;
 /**
  * Utilities that are specific to OpenAPI-to-GraphQL
  */

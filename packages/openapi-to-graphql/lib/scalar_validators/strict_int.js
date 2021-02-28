@@ -11,6 +11,7 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createIntScalar = void 0;
 const graphql_1 = require("graphql");
 const common_def_1 = require("./common_def");
 const utils_1 = require("../utils");
@@ -24,7 +25,7 @@ exports.createIntScalar = (config) => {
             return null;
         }
         let value;
-        if (utils_1.strictTypeOf(unknownValue, 'number')) {
+        if (utils_1.isTypeOf(unknownValue, 'number')) {
             value = unknownValue;
         }
         else {

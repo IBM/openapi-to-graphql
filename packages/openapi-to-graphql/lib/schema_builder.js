@@ -4,10 +4,11 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.getArgs = exports.getGraphQLType = void 0;
+//import { Args, GraphQLType, ResolveFunction } from './types/graphql'
 const strict_string_1 = require("./scalar_validators/strict_string");
 const strict_int_1 = require("./scalar_validators/strict_int");
 const strict_float_1 = require("./scalar_validators/strict_float");
-exports.getArgs = exports.getGraphQLType = void 0;
 const graphql_1 = require("graphql");
 // Imports:
 const graphql_type_json_1 = require("graphql-type-json");
@@ -23,7 +24,7 @@ const utils_1 = require("./utils");
  * the API requests. Therefore, we need to change the serialize() function
  * in the GraphQLJSON type.
  */
-const CleanGraphQLJSON = new graphql_1.GraphQLScalarType(Object.assign(Object.assign({}, graphql_type_json_1.default.toConfig()), { serialize: (value) => {
+const CleanGraphQLJSON = new graphql_1.GraphQLScalarType(Object.assign(Object.assign({}, graphql_type_json_1.default.toConfig()), { serialize: value => {
         let cleanValue;
         /**
          * If the value is an object and contains the _openAPIToGraphQL,
@@ -216,7 +217,7 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
             ? schema.description
             : 'No description available.';
         const memberTypeDefinitions = def.subDefinitions;
-        const types = Object.values(memberTypeDefinitions).map((memberTypeDefinition) => {
+        const types = Object.values(memberTypeDefinitions).map(memberTypeDefinition => {
             return getGraphQLType({
                 def: memberTypeDefinition,
                 operation,
@@ -238,7 +239,7 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
             resolveType: (source, context, info) => {
                 const properties = Object.keys(source)
                     // Remove custom _openAPIToGraphQL property used to pass data
-                    .filter((property) => property !== '_openAPIToGraphQL');
+                    .filter(property => property !== '_openAPIToGraphQL');
                 /**
                  * Find appropriate member type
                  *
@@ -250,11 +251,11 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
                  * identified if, for whatever reason, the return data is a superset
                  * of the fields specified in the OAS
                  */
-                return types.find((type) => {
+                return types.find(type => {
                     const typeFields = Object.keys(type.getFields());
                     // The type should be a superset of the properties
                     if (properties.length <= typeFields.length) {
-                        return properties.every((property) => typeFields.includes(property));
+                        return properties.every(property => typeFields.includes(property));
                     }
                     return false;
                 });
@@ -287,7 +288,7 @@ function checkAmbiguousMemberTypes(def, types, data) {
         for (let j = i + 1; j < types.length; j++) {
             const otherType = types[j];
             // TODO: Check the value, not just the field name
-            if (Object.keys(currentType.getFields()).every((field) => {
+            if (Object.keys(currentType.getFields()).every(field => {
                 return Object.keys(otherType.getFields()).includes(field);
             })) {
                 utils_1.handleWarning({
@@ -372,7 +373,7 @@ function createOrReuseEnum({ def, data }) {
     else {
         translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`);
         const values = {};
-        def.schema.enum.forEach((e) => {
+        def.schema.enum.forEach(e => {
             // Force enum values to string and value should be in ALL_CAPS
             values[Oas3Tools.sanitize(e.toString(), Oas3Tools.CaseStyle.ALL_CAPS)] = {
                 value: e
@@ -485,7 +486,7 @@ function getScalarType({ def, schema, isInputObjectType, data }) {
                                                 : data;
                 };
                 options.validate = (data) => {
-                    return $enum.includes(data) || utils_1.strictTypeOf(data, type);
+                    return $enum.includes(data) || utils_1.isTypeOf(data, type);
                 };
                 break;
         }
@@ -608,7 +609,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                     // Get arguments that are not provided by the linked operation
                     let dynamicParams = linkedOp.parameters;
                     if (typeof argsFromLink === 'object') {
-                        dynamicParams = dynamicParams.filter((param) => {
+                        dynamicParams = dynamicParams.filter(param => {
                             return typeof argsFromLink[param.name] === 'undefined';
                         });
                     }
@@ -930,7 +931,7 @@ function skipArg(parameter, operation, data) {
 function getArgs({ requestPayloadDef, parameters, operation, data }) {
     let args = {};
     // Handle params:
-    parameters.forEach((parameter) => {
+    parameters.forEach(parameter => {
         // We need at least a name
         if (typeof parameter.name !== 'string') {
             utils_1.handleWarning({
@@ -1111,7 +1112,7 @@ function getOasFromLinkLocation(linkLocation, link, data) {
     switch (getLinkLocationType(linkLocation)) {
         case 'title':
             // Get the possible
-            const possibleOass = data.oass.filter((oas) => {
+            const possibleOass = data.oass.filter(oas => {
                 return oas.info.title === linkLocation;
             });
             // Check if there are an ambiguous OASs

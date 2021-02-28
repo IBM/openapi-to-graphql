@@ -5,7 +5,7 @@ import {
   getValueFromValueNode
 } from './common_def'
 
-import { strictTypeOf } from '../utils'
+import { isTypeOf } from '../utils'
 
 import {
   StrictScalarNumberConfig,
@@ -42,7 +42,7 @@ export const createIntScalar = <TInternal = string, TExternal = string>(
 
     let value: number
 
-    if (strictTypeOf(unknownValue, 'number')) {
+    if (isTypeOf(unknownValue, 'number')) {
       value = unknownValue as number
     } else {
       if (coerce) {

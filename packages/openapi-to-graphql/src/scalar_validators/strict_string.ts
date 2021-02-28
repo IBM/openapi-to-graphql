@@ -7,7 +7,7 @@ import {
   getValueFromValueNode
 } from './common_def'
 
-import { strictTypeOf } from '../utils'
+import { isTypeOf } from '../utils'
 
 const strToUpperCase = (str: string): string => str.toUpperCase()
 
@@ -87,7 +87,7 @@ export const createStringScalar = <TInternal = string, TExternal = string>(
       if (coerce) {
         const valueOrNull = coerce(unknownValue)
 
-        if (valueOrNull == null) {
+        if (isTypeOf(valueOrNull, 'null')) {
           return null
         }
         value = valueOrNull
@@ -125,10 +125,7 @@ export const createStringScalar = <TInternal = string, TExternal = string>(
               .join('\n')
               .replace(emptyLineRegex!, emptyLineString!)
           } else {
-            value = value
-              .split(newlineWithWSRegex)
-              .map(collapseWS)
-              .join('\n')
+            value = value.split(newlineWithWSRegex).map(collapseWS).join('\n')
           }
         }
 

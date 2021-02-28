@@ -11,8 +11,10 @@ var __rest = (this && this.__rest) || function (s, e) {
     return t;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.createStringScalar = void 0;
 const graphql_1 = require("graphql");
 const common_def_1 = require("./common_def");
+const utils_1 = require("../utils");
 const strToUpperCase = (str) => str.toUpperCase();
 const wordRegex = /(?:^|\s)\S/g;
 const sentenceRegex = /(?:^|\.\s)\S/g;
@@ -45,7 +47,7 @@ exports.createStringScalar = (config) => {
         else {
             if (coerce) {
                 const valueOrNull = coerce(unknownValue);
-                if (valueOrNull == null) {
+                if (utils_1.isTypeOf(valueOrNull, 'null')) {
                     return null;
                 }
                 value = valueOrNull;
