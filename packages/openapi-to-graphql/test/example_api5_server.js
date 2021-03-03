@@ -48,7 +48,13 @@ function startServer(PORT) {
     })
   })
 
-  return new Promise(resolve => {
+  app.get('/api/getEnum', (req, res) => {
+    res.send({
+      data: 'a-m-b-e-r'
+    })
+  })
+
+  return new Promise((resolve) => {
     server = app.listen(PORT, () => {
       console.log(`Example API accessible on port ${PORT}`)
       resolve()
@@ -60,7 +66,7 @@ function startServer(PORT) {
  * Stops server.
  */
 function stopServer() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     server.close(() => {
       console.log(`Stopped API server`)
       resolve()

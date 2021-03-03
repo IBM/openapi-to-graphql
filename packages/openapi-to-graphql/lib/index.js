@@ -47,6 +47,10 @@ function createGraphQLSchema(spec, options) {
                 : false;
         options.simpleNames =
             typeof options.simpleNames === 'boolean' ? options.simpleNames : false;
+        options.simpleEnumValues =
+            typeof options.simpleEnumValues === 'boolean'
+                ? options.simpleEnumValues
+                : false;
         options.singularNames =
             typeof options.singularNames === 'boolean' ? options.singularNames : false;
         options.createSubscriptionsFromCallbacks =
@@ -82,11 +86,9 @@ function createGraphQLSchema(spec, options) {
             // Convert all non-OAS 3 into OAS 3
             Promise.all(spec.map((ele) => {
                 return Oas3Tools.getValidOAS3(ele);
-            }))
-                .then((oass) => {
+            })).then((oass) => {
                 resolve(translateOpenAPIToGraphQL(oass, options));
-            })
-                .catch((error) => {
+            }).catch((error) => {
                 reject(error);
             });
         }
@@ -96,8 +98,7 @@ function createGraphQLSchema(spec, options) {
              * If the spec is OAS 2.0, attempt to translate it into 3, then try to
              * translate the spec into a GraphQL schema
              */
-            Oas3Tools.getValidOAS3(spec)
-                .then((oas) => {
+            Oas3Tools.getValidOAS3(spec).then((oas) => {
                 resolve(translateOpenAPIToGraphQL([oas], options));
             })
                 .catch((error) => {
@@ -112,7 +113,7 @@ exports.createGraphQLSchema = createGraphQLSchema;
  */
 function translateOpenAPIToGraphQL(oass, { strict, report, 
 // Schema options
-operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, simpleNames, singularNames, createSubscriptionsFromCallbacks, 
+operationIdFieldNames, fillEmptyResponses, addLimitArgument, idFormats, selectQueryOrMutationField, genericPayloadArgName, simpleNames, simpleEnumValues, singularNames, createSubscriptionsFromCallbacks, 
 // Resolver options
 headers, qs, requestOptions, connectOptions, baseUrl, customResolvers, customSubscriptionResolvers, 
 // Authentication options
@@ -130,6 +131,7 @@ provideErrorExtensions, equivalentToMessages }) {
         selectQueryOrMutationField,
         genericPayloadArgName,
         simpleNames,
+        simpleEnumValues,
         singularNames,
         createSubscriptionsFromCallbacks,
         // Resolver options

@@ -163,6 +163,29 @@
           }
         }
       }
+    },
+    "/getEnum": {
+      "get": {
+        "description": "Basic simpleEnumValues option test",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string",
+                      "enum": ["r-e-d", "a-m-b-e-r", "g-r-e-e-n"]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
