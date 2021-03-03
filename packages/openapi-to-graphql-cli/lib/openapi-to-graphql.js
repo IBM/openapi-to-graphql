@@ -29,6 +29,7 @@ program
     .option('--addLimitArgument', 'add a limit argument on fields returning lists of objects/lists to control the data size')
     .option('--genericPayloadArgName', "Sets argument name for the payload of a mutation to 'requestBody'")
     .option('--simpleNames', 'Only remove illegal characters from names in the OAS and ignore casing and formatting')
+    .option('--simpleEnumValues', 'Only remove illegal characters from enum values in the OAS and ignore casing and formatting')
     .option('--singularNames', 'Experimental feature that will create more meaningful names from the operation path')
     // Resolver options
     .option('-H, --header <key:value>', 'add headers to every request; repeatable flag; set using key:value notation', collect, [])
@@ -57,6 +58,7 @@ const options = {
     addLimitArgument: program.addLimitArgument,
     genericPayloadArgName: program.genericPayloadArgName,
     simpleNames: program.simpleNames,
+    simpleEnumValues: program.simpleEnumValues,
     singularNames: program.singularNames,
     // Resolver options
     headers,
@@ -74,7 +76,7 @@ if (typeof filePaths === 'undefined' || filePaths.length === 0) {
     process.exit(1);
 }
 // Load the OASs based off of the provided paths
-Promise.all(filePaths.map(filePath => {
+Promise.all(filePaths.map((filePath) => {
     return new Promise((resolve, reject) => {
         // Check if the file exists
         if (fs.existsSync(path.resolve(filePath))) {
@@ -88,10 +90,10 @@ Promise.all(filePaths.map(filePath => {
         }
         else if (filePath.match(/^https?/g)) {
             getRemoteFileSpec(filePath)
-                .then(remoteContent => {
+                .then((remoteContent) => {
                 resolve(remoteContent);
             })
-                .catch(error => {
+                .catch((error) => {
                 reject(error);
             });
             // Cannot determine location of file
@@ -101,10 +103,10 @@ Promise.all(filePaths.map(filePath => {
         }
     });
 }))
-    .then(oass => {
+    .then((oass) => {
     startGraphQLServer(oass, options, portNumber);
 })
-    .catch(error => {
+    .catch((error) => {
     console.error(error);
     process.exit(1);
 });
@@ -199,7 +201,7 @@ function startGraphQLServer(oas, options, port) {
             });
         }
     })
-        .catch(err => {
+        .catch((err) => {
         console.log('OpenAPI-to-GraphQL creation event error:', err.message);
     });
 }
@@ -208,7 +210,7 @@ function startGraphQLServer(oas, options, port) {
  * @param {createGraphQLSchema} schema
  */
 function writeSchema(schema) {
-    fs.writeFile(program.save, graphql_1.printSchema(schema), err => {
+    fs.writeFile(program.save, graphql_1.printSchema(schema), (err) => {
         if (err)
             throw err;
         console.log(`OpenAPI-to-GraphQL successfully saved your schema at ${program.save}`);
@@ -223,7 +225,7 @@ function parseKeyValuePairs(keyValues) {
     const parsedKeyValues = {};
     if (Array.isArray(keyValues)) {
         ;
-        keyValues.forEach(keyValue => {
+        keyValues.forEach((keyValue) => {
             const separator = keyValue.indexOf(':');
             if (separator === -1) {
                 console.warn(`The key value pair '${keyValue}' does not have a ':' separating ` +

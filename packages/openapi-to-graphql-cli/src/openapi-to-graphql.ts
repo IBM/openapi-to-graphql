@@ -59,6 +59,10 @@ program
     'Only remove illegal characters from names in the OAS and ignore casing and formatting'
   )
   .option(
+    '--simpleEnumValues',
+    'Only remove illegal characters from enum values in the OAS and ignore casing and formatting'
+  )
+  .option(
     '--singularNames',
     'Experimental feature that will create more meaningful names from the operation path'
   )
@@ -116,6 +120,7 @@ const options: Options<any, any, any> = {
   addLimitArgument: program.addLimitArgument,
   genericPayloadArgName: program.genericPayloadArgName,
   simpleNames: program.simpleNames,
+  simpleEnumValues: program.simpleEnumValues,
   singularNames: program.singularNames,
 
   // Resolver options
