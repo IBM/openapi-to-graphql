@@ -819,8 +819,8 @@ function resolveAllOf(schema, references, data, oas) {
                     // Incompatible schema type
                     utils_1.handleWarning({
                         mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_SCHEMA,
-                        message: `Resolving 'allOf' field in schema '${collapsedSchema}' ` +
-                            `results in incompatible schema type from partial schema '${resolvedSchema}'.`,
+                        message: `Resolving 'allOf' field in schema '${JSON.stringify(collapsedSchema)}' ` +
+                            `results in incompatible schema type.`,
                         data,
                         log: preprocessingLog
                     });
@@ -836,8 +836,8 @@ function resolveAllOf(schema, references, data, oas) {
                         // Conflicting property
                         utils_1.handleWarning({
                             mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_SCHEMA,
-                            message: `Resolving 'allOf' field in schema '${collapsedSchema}' ` +
-                                `results in incompatible property field from partial schema '${resolvedSchema}'.`,
+                            message: `Resolving 'allOf' field in schema '${JSON.stringify(collapsedSchema)}' ` +
+                                `results in incompatible property field '${propertyName}'.`,
                             data,
                             log: preprocessingLog
                         });
@@ -1051,7 +1051,7 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
             // The member schemas are not all object types
             utils_1.handleWarning({
                 mitigationType: utils_1.MitigationTypes.COMBINE_SCHEMAS,
-                message: `Schema '${def.schema}' contains 'anyOf' and ` +
+                message: `Schema '${JSON.stringify(def.schema)}' contains 'anyOf' and ` +
                     `some member schemas are object types so create a GraphQL ` +
                     `object type but some member schemas are non-object types ` +
                     `so they are not compatible.`,
