@@ -537,13 +537,12 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
 
     const values = {}
     def.schema.enum.forEach((e) => {
-      // Force enum values to string and value should be in ALL_CAPS
       values[
         Oas3Tools.sanitize(
           e.toString(),
-          data.options.simpleNames
-            ? Oas3Tools.CaseStyle.simple
-            : Oas3Tools.CaseStyle.ALL_CAPS
+          !data.options.simpleEnumValues
+            ? Oas3Tools.CaseStyle.ALL_CAPS
+            : Oas3Tools.CaseStyle.simple
         )
       ] = {
         value: e

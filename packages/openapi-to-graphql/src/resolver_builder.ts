@@ -402,14 +402,14 @@ export function getResolver<TSource, TContext, TArgs>({
      * the user.
      */
     operation.parameters.forEach((param) => {
-      const paramName = Oas3Tools.sanitize(
+      const saneParamName = Oas3Tools.sanitize(
         param.name,
         !data.options.simpleNames
           ? Oas3Tools.CaseStyle.camelCase
           : Oas3Tools.CaseStyle.simple
       )
       if (
-        typeof args[paramName] === 'undefined' &&
+        typeof args[saneParamName] === 'undefined' &&
         param.schema &&
         typeof param.schema === 'object'
       ) {
@@ -422,7 +422,7 @@ export function getResolver<TSource, TContext, TArgs>({
           (schema as SchemaObject).default &&
           typeof (schema as SchemaObject).default !== 'undefined'
         ) {
-          args[paramName] = (schema as SchemaObject).default
+          args[saneParamName] = (schema as SchemaObject).default
         }
       }
     })
@@ -1282,28 +1282,28 @@ export function extractRequestDataFromArgs<TSource, TContext, TArgs>(
 
   // Iterate parameters:
   for (const param of parameters) {
-    const sanitizedParamName = Oas3Tools.sanitize(
+    const saneParamName = Oas3Tools.sanitize(
       param.name,
       !data.options.simpleNames
         ? Oas3Tools.CaseStyle.camelCase
         : Oas3Tools.CaseStyle.simple
     )
 
-    if (sanitizedParamName && sanitizedParamName in args) {
+    if (saneParamName && saneParamName in args) {
       switch (param.in) {
         // Path parameters
         case 'path':
-          path = path.replace(`{${param.name}}`, args[sanitizedParamName])
+          path = path.replace(`{${param.name}}`, args[saneParamName])
           break
 
         // Query parameters
         case 'query':
-          qs[param.name] = args[sanitizedParamName]
+          qs[param.name] = args[saneParamName]
           break
 
         // Header parameters
         case 'header':
-          headers[param.name] = args[sanitizedParamName]
+          headers[param.name] = args[saneParamName]
           break
 
         // Cookie parameters
@@ -1312,7 +1312,7 @@ export function extractRequestDataFromArgs<TSource, TContext, TArgs>(
             headers['cookie'] = ''
           }
 
-          headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `
+          headers['cookie'] += `${param.name}=${args[saneParamName]}; `
           break
 
         default:

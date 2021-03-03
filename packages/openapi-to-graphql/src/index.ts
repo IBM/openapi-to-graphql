@@ -112,6 +112,10 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
         : false
     options.simpleNames =
       typeof options.simpleNames === 'boolean' ? options.simpleNames : false
+    options.simpleEnumValues =
+      typeof options.simpleEnumValues === 'boolean'
+        ? options.simpleEnumValues
+        : false
     options.singularNames =
       typeof options.singularNames === 'boolean' ? options.singularNames : false
     options.createSubscriptionsFromCallbacks =
@@ -153,36 +157,33 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
         spec.map((ele) => {
           return Oas3Tools.getValidOAS3(ele)
         })
-      )
-        .then((oass) => {
-          resolve(
-            translateOpenAPIToGraphQL(
-              oass,
-              options as InternalOptions<TSource, TContext, TArgs>
-            )
+      ).then((oass) => {
+        resolve(
+          translateOpenAPIToGraphQL(
+            oass,
+            options as InternalOptions<TSource, TContext, TArgs>
           )
-        })
-        .catch((error) => {
-          reject(error)
-        })
+        )
+      }).catch((error) => {
+        reject(error)
+      })
     } else {
       /**
        * Check if the spec is a valid OAS 3
        * If the spec is OAS 2.0, attempt to translate it into 3, then try to
        * translate the spec into a GraphQL schema
        */
-      Oas3Tools.getValidOAS3(spec)
-        .then((oas) => {
-          resolve(
-            translateOpenAPIToGraphQL(
-              [oas],
-              options as InternalOptions<TSource, TContext, TArgs>
-            )
+      Oas3Tools.getValidOAS3(spec).then((oas) => {
+        resolve(
+          translateOpenAPIToGraphQL(
+            [oas],
+            options as InternalOptions<TSource, TContext, TArgs>
           )
-        })
-        .catch((error) => {
-          reject(error)
-        })
+        )
+      })
+      .catch((error) => {
+        reject(error)
+      })
     }
   })
 }
@@ -204,6 +205,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     selectQueryOrMutationField,
     genericPayloadArgName,
     simpleNames,
+    simpleEnumValues,
     singularNames,
     createSubscriptionsFromCallbacks,
 
@@ -238,6 +240,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     selectQueryOrMutationField,
     genericPayloadArgName,
     simpleNames,
+    simpleEnumValues,
     singularNames,
     createSubscriptionsFromCallbacks,
 

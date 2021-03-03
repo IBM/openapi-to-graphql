@@ -66,8 +66,10 @@ export type RequestOptions<TSource, TContext, TArgs> = Omit<
 > & {
   headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>
 }
-      
-export type Options<TSource, TContext, TArgs> = Partial<InternalOptions<TSource, TContext, TArgs>>
+
+export type Options<TSource, TContext, TArgs> = Partial<
+  InternalOptions<TSource, TContext, TArgs>
+>
 
 export type InternalOptions<TSource, TContext, TArgs> = {
   /*
@@ -151,6 +153,17 @@ export type InternalOptions<TSource, TContext, TArgs> = {
   simpleNames: boolean
 
   /**
+   * By default, field names are sanitized to conform with GraphQL conventions,
+   * i.e. types should be in PascalCase, fields should be in camelCase, and
+   * enum values should be in ALL_CAPS.
+   *
+   * This option will prevent OpenAPI-to-GraphQL from enforcing ALL_CAPS enum
+   * values, only removing illegal characters and staying as true to the
+   * provided enum values in the OAS as possible.
+   */
+  simpleEnumValues: boolean
+
+  /**
    * Experimental feature that will try to create more meaningful names from
    * the operation path than the response object by leveraging common
    * conventions.
@@ -220,7 +233,9 @@ export type InternalOptions<TSource, TContext, TArgs> = {
    * implementing performance improvements like caching, or dealing with
    * non-standard authentication requirements.
    */
-  customResolvers?: OasTitlePathMethodObject<GraphQLFieldResolver<TSource, TContext, TArgs>>
+  customResolvers?: OasTitlePathMethodObject<
+    GraphQLFieldResolver<TSource, TContext, TArgs>
+  >
 
   /**
    * Allows to define custom resolvers and subscribe functions for fields on the

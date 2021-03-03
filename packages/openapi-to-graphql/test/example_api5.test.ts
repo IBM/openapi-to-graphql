@@ -55,7 +55,7 @@ test('Basic simpleNames option test', () => {
     }
   }`
 
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         o_d_d___n_a_m_e: {
@@ -79,7 +79,7 @@ test('Basic simpleNames option test with GraphQL unsafe values', () => {
     }
   }`
 
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         weird___name: {
@@ -103,7 +103,7 @@ test('Basic simpleNames option test with GraphQL unsafe values and a parameter',
     }
   }`
 
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         weird___name2: {
@@ -127,7 +127,7 @@ test('Basic simpleNames option test with a link', () => {
     }
   }`
 
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         o_d_d___n_a_m_e: {
@@ -153,7 +153,7 @@ test('Basic simpleNames option test with a link that has parameters', () => {
     }
   }`
 
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         o_d_d___n_a_m_e: {
@@ -179,7 +179,7 @@ test('Basic simpleNames option test with a link that has exposed parameters', ()
     }
   }`
 
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         o_d_d___n_a_m_e: {
@@ -190,4 +190,45 @@ test('Basic simpleNames option test with a link that has exposed parameters', ()
       }
     })
   })
+})
+
+/**
+ * Because of the simpleEnumValues option, 'a-m-b-e-r' will be sanitized to
+ * ALL_CAPS 'A_M_B_E_R' when it is not used and sanitized to amber (only
+ * removing GraphQL illegal characters) when it is used
+ */
+test('Basic simpleEnumValues option test', () => {
+  const query = `{
+    getEnum {
+      data
+    }
+  }`
+
+  const promise = graphql(createdSchema, query).then((result) => {
+    expect(result).toEqual({
+      data: {
+        getEnum: {
+          data: 'A_M_B_E_R'
+        }
+      }
+    })
+  })
+
+  const promise2 = openAPIToGraphQL
+    .createGraphQLSchema(oas, {
+      simpleEnumValues: true
+    })
+    .then(({ schema, report }) => {
+      return graphql(schema, query).then((result) => {
+        expect(result).toEqual({
+          data: {
+            getEnum: {
+              data: 'amber'
+            }
+          }
+        })
+      })
+    })
+
+  return Promise.all([promise, promise2])
 })
