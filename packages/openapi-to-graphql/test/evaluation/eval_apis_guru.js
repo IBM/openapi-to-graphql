@@ -17,14 +17,14 @@ const ss = require('simple-statistics')
  * @return {Promise} Resolves on array of OAS
  */
 async function readOas(limit) {
-  let OASList = []
-  let paths = Glob.sync('tmp/**/@(*.yaml|*.json)')
+  const OASList = []
+  const paths = Glob.sync('tmp/APIs/**/@(*.yaml|*.json)')
   let index = -1
 
   while (OASList.length < limit && index < paths.length) {
     index++
-    let path = paths[index]
-    let oas = readFile(path)
+    const path = paths[index]
+    const oas = readFile(path)
     if (!oas) continue
     if (!isValidOAS(oas)) continue
 
@@ -41,16 +41,16 @@ async function readOas(limit) {
  * Attempts to build schema for every OAS in given list.
  */
 async function checkOas(OASList) {
-  let results = {
+  const results = {
     overall: OASList.length,
     successes: [],
     errors: []
   }
   for (let oas of OASList) {
-    let name = oas.info.title
+    const name = oas.info.title
     console.log(`Process "${name}" (${oas['x-file-path']})...`)
     try {
-      let { report } = await openapiToGraphql.createGraphQLSchema(oas, {
+      const { report } = await openapiToGraphql.createGraphQLSchema(oas, {
         strict: false
       })
       results.successes.push({ name, report })
@@ -74,8 +74,9 @@ async function checkOas(OASList) {
 }
 
 function printOverallResults(results) {
-  let noWarnings = results.successes.filter(s => s.report.warnings.length === 0)
-    .length
+  const noWarnings = results.successes.filter(
+    (s) => s.report.warnings.length === 0
+  ).length
   console.log('----------------------')
   console.log('Overall results:')
   console.log(
@@ -88,10 +89,10 @@ function printOverallResults(results) {
 
 function printWarningsBreakdown(results) {
   let allWarnings = []
-  results.successes.forEach(suc => {
+  results.successes.forEach((suc) => {
     allWarnings = allWarnings.concat(suc.report.warnings)
   })
-  let warningDict = groupBy(allWarnings, 'type')
+  const warningDict = groupBy(allWarnings, 'type')
   for (let key in warningDict) {
     warningDict[key] = warningDict[key].length
   }
@@ -101,7 +102,7 @@ function printWarningsBreakdown(results) {
 }
 
 function printErrorBreakdown(results) {
-  let errors = {
+  const errors = {
     validationFails: 0, // thrown by: Swagger2Openapi
     invalidEnumValue: 0, // thrown by: GraphQL
     invalidFields: 0, // thrown by: GraphQL
@@ -112,7 +113,7 @@ function printErrorBreakdown(results) {
     invalidReference: 0, // thrown by: OpenAPI-to-GraphQL
     other: 0
   }
-  results.errors.forEach(err => {
+  results.errors.forEach((err) => {
     if (/can not be used as an Enum value/.test(err.error)) {
       errors.invalidEnumValue++
     } else if (/^Cannot sanitize /.test(err.error)) {
@@ -140,7 +141,7 @@ function printErrorBreakdown(results) {
 }
 
 function getWarningsDistribution(results) {
-  let dist = {
+  const dist = {
     overall: {},
     MissingResponseSchema: {},
     InvalidSchemaType: {},
@@ -148,13 +149,13 @@ function getWarningsDistribution(results) {
     InvalidSchemaTypeScalar: {}
   }
 
-  results.successes.forEach(suc => {
-    let overall = suc.report.warnings.length
+  results.successes.forEach((suc) => {
+    const overall = suc.report.warnings.length
     if (typeof dist.overall[overall] === 'undefined') dist.overall[overall] = 0
     dist.overall[overall]++
 
-    let missingResponseSchema = suc.report.warnings.filter(
-      w => w.type === 'MissingResponseSchema'
+    const missingResponseSchema = suc.report.warnings.filter(
+      (w) => w.type === 'MissingResponseSchema'
     ).length
     if (
       typeof dist.MissingResponseSchema[missingResponseSchema] === 'undefined'
@@ -162,22 +163,22 @@ function getWarningsDistribution(results) {
       dist.MissingResponseSchema[missingResponseSchema] = 0
     dist.MissingResponseSchema[missingResponseSchema]++
 
-    let invalidSchemaType = suc.report.warnings.filter(
-      w => w.type === 'InvalidSchemaType'
+    const invalidSchemaType = suc.report.warnings.filter(
+      (w) => w.type === 'InvalidSchemaType'
     ).length
     if (typeof dist.InvalidSchemaType[invalidSchemaType] === 'undefined')
       dist.InvalidSchemaType[invalidSchemaType] = 0
     dist.InvalidSchemaType[invalidSchemaType]++
 
-    let multipleResponses = suc.report.warnings.filter(
-      w => w.type === 'MultipleResponses'
+    const multipleResponses = suc.report.warnings.filter(
+      (w) => w.type === 'MultipleResponses'
     ).length
     if (typeof dist.MultipleResponses[multipleResponses] === 'undefined')
       dist.MultipleResponses[multipleResponses] = 0
     dist.MultipleResponses[multipleResponses]++
 
-    let invalidSchemaTypeScalar = suc.report.warnings.filter(
-      w => w.type === 'InvalidSchemaTypeScalar'
+    const invalidSchemaTypeScalar = suc.report.warnings.filter(
+      (w) => w.type === 'InvalidSchemaTypeScalar'
     ).length
     if (
       typeof dist.InvalidSchemaTypeScalar[invalidSchemaTypeScalar] ===
@@ -204,36 +205,40 @@ function getWarningsDistribution(results) {
 }
 
 function printStats(results) {
-  let numOps = results.successes.map(succ => succ.report.numOps)
+  const numOps = results.successes.map((succ) => succ.report.numOps)
   console.log(`Number of operations:`)
   console.log(printSummary(numOps) + '\n')
 
-  let numOpsQuery = results.successes.map(succ => succ.report.numOpsQuery)
+  const numOpsQuery = results.successes.map((succ) => succ.report.numOpsQuery)
   console.log(`Number of query operations:`)
   console.log(printSummary(numOpsQuery) + '\n')
 
-  let numOpsMutation = results.successes.map(succ => succ.report.numOpsMutation)
+  const numOpsMutation = results.successes.map(
+    (succ) => succ.report.numOpsMutation
+  )
   console.log(`Number of mutation operations:`)
   console.log(printSummary(numOpsMutation) + '\n')
 
-  let numQueries = results.successes.map(succ => succ.report.numQueriesCreated)
+  const numQueries = results.successes.map(
+    (succ) => succ.report.numQueriesCreated
+  )
   console.log(`Number of queries created:`)
   console.log(printSummary(numQueries) + '\n')
 
-  let numMutations = results.successes.map(
-    succ => succ.report.numMutationsCreated
+  const numMutations = results.successes.map(
+    (succ) => succ.report.numMutationsCreated
   )
   console.log(`Number of mutations created:`)
   console.log(printSummary(numMutations) + '\n')
 
-  let numQueriesSkipped = []
+  const numQueriesSkipped = []
   numOpsQuery.forEach((numOps, index) => {
     numQueriesSkipped.push(numOps - numQueries[index])
   })
   console.log(`Number of queries skipped:`)
   console.log(printSummary(numQueriesSkipped) + '\n')
 
-  let numMutationsSkipped = []
+  const numMutationsSkipped = []
   numOpsMutation.forEach((numOps, index) => {
     numMutationsSkipped.push(numOps - numMutations[index])
   })
@@ -253,8 +258,8 @@ function printSummary(arr) {
 }
 
 function warningsPerApi(results) {
-  let apiDict = {}
-  results.successes.forEach(suc => {
+  const apiDict = {}
+  results.successes.forEach((suc) => {
     let name = suc.name
     while (typeof apiDict[name] !== 'undefined') {
       name += '_1'
@@ -262,16 +267,16 @@ function warningsPerApi(results) {
     apiDict[name] = {
       overall: suc.report.warnings.length,
       MissingResponseSchema: suc.report.warnings.filter(
-        w => w.type === 'MissingResponseSchema'
+        (w) => w.type === 'MissingResponseSchema'
       ).length,
       InvalidSchemaType: suc.report.warnings.filter(
-        w => w.type === 'InvalidSchemaType'
+        (w) => w.type === 'InvalidSchemaType'
       ).length,
       MultipleResponses: suc.report.warnings.filter(
-        w => w.type === 'MultipleResponses'
+        (w) => w.type === 'MultipleResponses'
       ).length,
       InvalidSchemaTypeScalar: suc.report.warnings.filter(
-        w => w.type === 'InvalidSchemaTypeScalar'
+        (w) => w.type === 'InvalidSchemaTypeScalar'
       ).length,
       numOps: suc.report.numOps,
       numOpsCreated:
@@ -289,9 +294,9 @@ function warningsPerApi(results) {
  * @return {Object}
  */
 function groupBy(list, prop) {
-  var groups = {}
-  list.forEach(function(item) {
-    var list = groups[item[prop]]
+  const groups = {}
+  list.forEach(function (item) {
+    const list = groups[item[prop]]
 
     if (list) {
       list.push(item)
@@ -329,7 +334,7 @@ function readFile(path) {
  * @param  {Object}  oas
  * @return {Boolean}
  */
-const isValidOAS = oas => {
+const isValidOAS = (oas) => {
   return (
     typeof oas === 'object' &&
     typeof oas.info === 'object' &&
@@ -354,6 +359,4 @@ try {
 }
 
 // go go go:
-readOas(limit)
-  .then(checkOas)
-  .catch(console.error)
+readOas(limit).then(checkOas).catch(console.error)

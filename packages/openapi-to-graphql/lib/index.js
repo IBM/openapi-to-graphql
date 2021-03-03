@@ -80,10 +80,14 @@ function createGraphQLSchema(spec, options) {
         };
         if (Array.isArray(spec)) {
             // Convert all non-OAS 3 into OAS 3
-            Promise.all(spec.map(ele => {
+            Promise.all(spec.map((ele) => {
                 return Oas3Tools.getValidOAS3(ele);
-            })).then(oass => {
+            }))
+                .then((oass) => {
                 resolve(translateOpenAPIToGraphQL(oass, options));
+            })
+                .catch((error) => {
+                reject(error);
             });
         }
         else {
@@ -92,8 +96,12 @@ function createGraphQLSchema(spec, options) {
              * If the spec is OAS 2.0, attempt to translate it into 3, then try to
              * translate the spec into a GraphQL schema
              */
-            Oas3Tools.getValidOAS3(spec).then(oas => {
+            Oas3Tools.getValidOAS3(spec)
+                .then((oas) => {
                 resolve(translateOpenAPIToGraphQL([oas], options));
+            })
+                .catch((error) => {
+                reject(error);
             });
         }
     });
@@ -325,15 +333,15 @@ provideErrorExtensions, equivalentToMessages }) {
     mutationFields = utils_1.sortObject(mutationFields);
     subscriptionFields = utils_1.sortObject(subscriptionFields);
     authQueryFields = utils_1.sortObject(authQueryFields);
-    Object.keys(authQueryFields).forEach(key => {
+    Object.keys(authQueryFields).forEach((key) => {
         authQueryFields[key] = utils_1.sortObject(authQueryFields[key]);
     });
     authMutationFields = utils_1.sortObject(authMutationFields);
-    Object.keys(authMutationFields).forEach(key => {
+    Object.keys(authMutationFields).forEach((key) => {
         authMutationFields[key] = utils_1.sortObject(authMutationFields[key]);
     });
     authSubscriptionFields = utils_1.sortObject(authSubscriptionFields);
-    Object.keys(authSubscriptionFields).forEach(key => {
+    Object.keys(authSubscriptionFields).forEach((key) => {
         authSubscriptionFields[key] = utils_1.sortObject(authSubscriptionFields[key]);
     });
     // Count created Query, Mutation, and Subscription fields
@@ -476,13 +484,13 @@ function checkCustomResolversStructure(customResolvers, data) {
     if (typeof customResolvers === 'object') {
         // Check that all OASs that are referenced in the customResolvers are provided
         Object.keys(customResolvers)
-            .filter(title => {
+            .filter((title) => {
             // If no OAS contains this title
-            return !data.oass.some(oas => {
+            return !data.oass.some((oas) => {
                 return title === oas.info.title;
             });
         })
-            .forEach(title => {
+            .forEach((title) => {
             utils_1.handleWarning({
                 mitigationType: utils_1.MitigationTypes.CUSTOM_RESOLVER_UNKNOWN_OAS,
                 message: `Custom resolvers reference OAS '${title}' but no such ` +
@@ -492,14 +500,14 @@ function checkCustomResolversStructure(customResolvers, data) {
             });
         });
         // TODO: Only run the following test on OASs that exist. See previous check.
-        Object.keys(customResolvers).forEach(title => {
+        Object.keys(customResolvers).forEach((title) => {
             // Get all operations from a particular OAS
-            const operations = Object.values(data.operations).filter(operation => {
+            const operations = Object.values(data.operations).filter((operation) => {
                 return title === operation.oas.info.title;
             });
-            Object.keys(customResolvers[title]).forEach(path => {
-                Object.keys(customResolvers[title][path]).forEach(method => {
-                    if (!operations.some(operation => {
+            Object.keys(customResolvers[title]).forEach((path) => {
+                Object.keys(customResolvers[title][path]).forEach((method) => {
+                    if (!operations.some((operation) => {
                         return path === operation.path && method === operation.method;
                     })) {
                         utils_1.handleWarning({
@@ -521,13 +529,13 @@ function checkCustomResolversStructure(customResolvers, data) {
  */
 function preliminaryChecks(options, data) {
     // Check if OASs have unique titles
-    const titles = data.oass.map(oas => {
+    const titles = data.oass.map((oas) => {
         return oas.info.title;
     });
     // Find duplicates among titles
     new Set(titles.filter((title, index) => {
         return titles.indexOf(title) !== index;
-    })).forEach(title => {
+    })).forEach((title) => {
         utils_1.handleWarning({
             mitigationType: utils_1.MitigationTypes.MULTIPLE_OAS_SAME_TITLE,
             message: `Multiple OAS share the same title '${title}'`,
