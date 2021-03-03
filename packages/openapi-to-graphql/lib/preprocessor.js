@@ -819,8 +819,7 @@ function resolveAllOf(schema, references, data, oas) {
                     // Incompatible schema type
                     utils_1.handleWarning({
                         mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_SCHEMA,
-                        message: `Resolving 'allOf' field in schema '${JSON.stringify(collapsedSchema)}' ` +
-                            `results in incompatible schema type.`,
+                        message: `Resolving 'allOf' field in schema '${JSON.stringify(collapsedSchema)}' ` + `results in incompatible schema type.`,
                         data,
                         log: preprocessingLog
                     });
