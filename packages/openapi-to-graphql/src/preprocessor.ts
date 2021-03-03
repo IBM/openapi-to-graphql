@@ -1175,8 +1175,9 @@ function resolveAllOf<TSource, TContext, TArgs>(
           handleWarning({
             mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
             message:
-              `Resolving 'allOf' field in schema '${collapsedSchema}' ` +
-              `results in incompatible schema type from partial schema '${resolvedSchema}'.`,
+              `Resolving 'allOf' field in schema '${JSON.stringify(
+                collapsedSchema
+              )}' ` + `results in incompatible schema type.`,
             data,
             log: preprocessingLog
           })
@@ -1197,8 +1198,10 @@ function resolveAllOf<TSource, TContext, TArgs>(
               handleWarning({
                 mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
                 message:
-                  `Resolving 'allOf' field in schema '${collapsedSchema}' ` +
-                  `results in incompatible property field from partial schema '${resolvedSchema}'.`,
+                  `Resolving 'allOf' field in schema '${JSON.stringify(
+                    collapsedSchema
+                  )}' ` +
+                  `results in incompatible property field '${propertyName}'.`,
                 data,
                 log: preprocessingLog
               })
@@ -1511,7 +1514,7 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
       handleWarning({
         mitigationType: MitigationTypes.COMBINE_SCHEMAS,
         message:
-          `Schema '${def.schema}' contains 'anyOf' and ` +
+          `Schema '${JSON.stringify(def.schema)}' contains 'anyOf' and ` +
           `some member schemas are object types so create a GraphQL ` +
           `object type but some member schemas are non-object types ` +
           `so they are not compatible.`,
