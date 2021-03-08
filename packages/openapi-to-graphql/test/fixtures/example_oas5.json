@@ -186,6 +186,59 @@
           }
         }
       }
+    },
+    "/getNumericalEnum": {
+      "get": {
+        "description": "Basic simpleEnumValues option test on numerical enum",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "number",
+                      "enum": [1, 2, 3, 4, 5]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/getObjectEnum": {
+      "get": {
+        "description": "Basic simpleEnumValues option test on object enum",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "object",
+                      "enum": [
+                        {
+                          "hello": "world"
+                        },
+                        {
+                          "goodbye": "world"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

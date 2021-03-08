@@ -5,9 +5,8 @@
 
 'use strict'
 
-/* globals beforeAll, test, expect */
-
 import { graphql } from 'graphql'
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../lib/index'
 import { startServer, stopServer } from './example_api5_server'
@@ -194,7 +193,7 @@ test('Basic simpleNames option test with a link that has exposed parameters', ()
 
 /**
  * Because of the simpleEnumValues option, 'a-m-b-e-r' will be sanitized to
- * ALL_CAPS 'A_M_B_E_R' when it is not used and sanitized to amber (only
+ * ALL_CAPS 'A_M_B_E_R' when it is not used and sanitized to 'amber' (only
  * removing GraphQL illegal characters) when it is used
  */
 test('Basic simpleEnumValues option test', () => {
@@ -224,6 +223,89 @@ test('Basic simpleEnumValues option test', () => {
           data: {
             getEnum: {
               data: 'amber'
+            }
+          }
+        })
+      })
+    })
+
+  return Promise.all([promise, promise2])
+})
+
+/**
+ * Regardless of simpleEnumValues, a GraphQL name cannot begin with a number,
+ * therefore 3 will be sanitized to '_3'
+ */
+test('Basic simpleEnumValues option test on numerical enum', () => {
+  const query = `{
+    getNumericalEnum {
+      data
+    }
+  }`
+
+  const promise = graphql(createdSchema, query).then((result) => {
+    expect(result).toEqual({
+      data: {
+        getNumericalEnum: {
+          data: '_3'
+        }
+      }
+    })
+  })
+
+  const promise2 = openAPIToGraphQL
+    .createGraphQLSchema(oas, {
+      simpleEnumValues: true
+    })
+    .then(({ schema, report }) => {
+      return graphql(schema, query).then((result) => {
+        expect(result).toEqual({
+          data: {
+            getNumericalEnum: {
+              data: '_3'
+            }
+          }
+        })
+      })
+    })
+
+  return Promise.all([promise, promise2])
+})
+
+/**
+ * Regardless of simpleEnumValues, OtG will translate an object enum to an
+ * arbitrary JSON type
+ */
+test('Basic simpleEnumValues option test on object enum', () => {
+  const query = `{
+    __type(name: "GetObjectEnum") {
+      name
+      kind
+    } 
+  }`
+
+  const promise = graphql(createdSchema, query).then((result) => {
+    expect(result).toEqual({
+      data: {
+        __type: {
+          name: 'GetObjectEnum',
+          kind: 'OBJECT'
+        }
+      }
+    })
+  })
+
+  const promise2 = openAPIToGraphQL
+    .createGraphQLSchema(oas, {
+      simpleEnumValues: true
+    })
+    .then(({ schema, report }) => {
+      return graphql(schema, query).then((result) => {
+        expect(result).toEqual({
+          data: {
+            __type: {
+              name: 'GetObjectEnum',
+              kind: 'OBJECT'
             }
           }
         })

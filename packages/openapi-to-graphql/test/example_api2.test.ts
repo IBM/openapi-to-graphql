@@ -5,9 +5,8 @@
 
 'use strict'
 
-/* globals beforeAll, test, expect */
-
 import { graphql } from 'graphql'
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../lib/index'
 import { startServer, stopServer } from './example_api2_server'
@@ -76,7 +75,7 @@ test('Querying the two operations', () => {
       name
     }
   }`
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         getUser: {

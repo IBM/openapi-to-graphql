@@ -5,11 +5,11 @@
 
 'use strict'
 
-/* globals beforeAll, test, expect */
+import { graphql, parse, validate } from 'graphql'
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 const openAPIToGraphQL = require('../lib/index')
 const Oas3Tools = require('../lib/oas_3_tools')
-const { parse, validate } = require('graphql')
 
 /**
  * Set up the schema first

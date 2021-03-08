@@ -54,6 +54,20 @@ function startServer(PORT) {
     })
   })
 
+  app.get('/api/getNumericalEnum', (req, res) => {
+    res.send({
+      data: 3
+    })
+  })
+
+  app.get('/api/getObjectEnum', (req, res) => {
+    res.send({
+      data: {
+        hello: 'world'
+      }
+    })
+  })
+
   return new Promise((resolve) => {
     server = app.listen(PORT, () => {
       console.log(`Example API accessible on port ${PORT}`)

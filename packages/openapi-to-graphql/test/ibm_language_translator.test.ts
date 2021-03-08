@@ -5,7 +5,7 @@
 
 'use strict'
 
-/* globals beforeAll, test, expect */
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../lib/index'
 

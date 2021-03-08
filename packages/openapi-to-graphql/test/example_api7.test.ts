@@ -1,8 +1,8 @@
 'use strict'
 
-/* globals beforeAll, test, expect */
-
 import { graphql, parse, validate, execute, subscribe } from 'graphql'
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
+
 import { createServer } from 'http'
 import {
   SubscriptionServer,
@@ -127,7 +127,7 @@ test('Receive data from the subscription after creating a new instance', () => {
     }
   }`
 
-  return new Promise((resolve, reject) => {
+  return new Promise<void>((resolve, reject) => {
     const client = new SubscriptionClient(
       `ws://localhost:${TEST_PORT}/subscriptions`
     )
