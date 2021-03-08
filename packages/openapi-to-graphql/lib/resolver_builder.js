@@ -233,10 +233,10 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          * the user.
          */
         operation.parameters.forEach((param) => {
-            const paramName = Oas3Tools.sanitize(param.name, !data.options.simpleNames
+            const saneParamName = Oas3Tools.sanitize(param.name, !data.options.simpleNames
                 ? Oas3Tools.CaseStyle.camelCase
                 : Oas3Tools.CaseStyle.simple);
-            if (typeof args[paramName] === 'undefined' &&
+            if (typeof args[saneParamName] === 'undefined' &&
                 param.schema &&
                 typeof param.schema === 'object') {
                 let schema = param.schema;
@@ -246,7 +246,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 if (schema &&
                     schema.default &&
                     typeof schema.default !== 'undefined') {
-                    args[paramName] = schema.default;
+                    args[saneParamName] = schema.default;
                 }
             }
         });
@@ -904,29 +904,29 @@ data) {
     const headers = {};
     // Iterate parameters:
     for (const param of parameters) {
-        const sanitizedParamName = Oas3Tools.sanitize(param.name, !data.options.simpleNames
+        const saneParamName = Oas3Tools.sanitize(param.name, !data.options.simpleNames
             ? Oas3Tools.CaseStyle.camelCase
             : Oas3Tools.CaseStyle.simple);
-        if (sanitizedParamName && sanitizedParamName in args) {
+        if (saneParamName && saneParamName in args) {
             switch (param.in) {
                 // Path parameters
                 case 'path':
-                    path = path.replace(`{${param.name}}`, args[sanitizedParamName]);
+                    path = path.replace(`{${param.name}}`, args[saneParamName]);
                     break;
                 // Query parameters
                 case 'query':
-                    qs[param.name] = args[sanitizedParamName];
+                    qs[param.name] = args[saneParamName];
                     break;
                 // Header parameters
                 case 'header':
-                    headers[param.name] = args[sanitizedParamName];
+                    headers[param.name] = args[saneParamName];
                     break;
                 // Cookie parameters
                 case 'cookie':
                     if (!('cookie' in headers)) {
                         headers['cookie'] = '';
                     }
-                    headers['cookie'] += `${param.name}=${args[sanitizedParamName]}; `;
+                    headers['cookie'] += `${param.name}=${args[saneParamName]}; `;
                     break;
                 default:
                     httpLog(`Warning: The parameter location '${param.in}' in the ` +
