@@ -55,7 +55,7 @@ exports.methodToHttpMethod = methodToHttpMethod;
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-function getValidOAS3(spec) {
+function getValidOAS3(spec, strict) {
     return new Promise((resolve, reject) => {
         // CASE: translate
         if (typeof spec.swagger === 'string' &&
@@ -69,7 +69,7 @@ function getValidOAS3(spec) {
         else if (typeof spec.openapi === 'string' &&
             /^3/.test(spec.openapi)) {
             preprocessingLog(`Received OpenAPI Specification - going to validate...`);
-            OASValidator.validate(spec, {})
+            OASValidator.validate(spec, { laxDefaults: !strict })
                 .then(() => resolve(spec))
                 .catch((error) => reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${error.message}`));
         }

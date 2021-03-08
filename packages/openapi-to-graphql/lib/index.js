@@ -81,7 +81,7 @@ function createGraphQLSchema(spec, options) {
         if (Array.isArray(spec)) {
             // Convert all non-OAS 3 into OAS 3
             Promise.all(spec.map((ele) => {
-                return Oas3Tools.getValidOAS3(ele);
+                return Oas3Tools.getValidOAS3(ele, options.strict);
             }))
                 .then((oass) => {
                 resolve(translateOpenAPIToGraphQL(oass, options));
@@ -96,7 +96,7 @@ function createGraphQLSchema(spec, options) {
              * If the spec is OAS 2.0, attempt to translate it into 3, then try to
              * translate the spec into a GraphQL schema
              */
-            Oas3Tools.getValidOAS3(spec)
+            Oas3Tools.getValidOAS3(spec, options.strict)
                 .then((oas) => {
                 resolve(translateOpenAPIToGraphQL([oas], options));
             })
