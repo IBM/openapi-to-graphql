@@ -831,7 +831,12 @@ function sanitize(str, caseStyle) {
      * characters and preserves casing
      */
     if (caseStyle === CaseStyle.simple) {
-        return str.replace(/[^a-zA-Z0-9_]/gi, '');
+        let sanitized = str.replace(/[^a-zA-Z0-9_]/gi, '');
+        // Special case: we cannot start with number, and cannot be empty:
+        if (/^[0-9]/.test(sanitized) || sanitized === '') {
+            sanitized = '_' + sanitized;
+        }
+        return sanitized;
     }
     /**
      * Remove all GraphQL unsafe characters

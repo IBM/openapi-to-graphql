@@ -5,11 +5,11 @@
 
 'use strict'
 
-/* globals beforeAll, test, expect */
+import { graphql, parse, validate } from 'graphql'
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../lib/index'
 import { Options } from '../lib/types/options'
-import { graphql, parse, validate } from 'graphql'
 
 const api = require('./example_api_server')
 const api2 = require('./example_api3_server')
@@ -63,7 +63,7 @@ test('Basic query on two APIs', () => {
       name
     }
   }`
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         author: {
@@ -108,7 +108,7 @@ test('Two APIs with independent links', () => {
       }
     }
   }`
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         author: {
@@ -165,7 +165,7 @@ test('Two APIs with interrelated links', () => {
       }
     }
   }`
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         author: {
@@ -210,7 +210,7 @@ test('Two APIs with viewers', () => {
       }
     }
   }`
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         viewerApiKey: {
@@ -244,7 +244,7 @@ test('Two APIs with AnyAuth viewer', () => {
       }
     }
   }`
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
@@ -278,7 +278,7 @@ test('Two APIs with AnyAuth viewer and interrelated links', () => {
       }
     }
   }`
-  return graphql(createdSchema, query).then(result => {
+  return graphql(createdSchema, query).then((result) => {
     expect(result).toEqual({
       data: {
         viewerAnyAuth: {
@@ -336,7 +336,7 @@ test('Option customResolver with two APIs', () => {
       const ast = parse(query)
       const errors = validate(schema, ast)
       expect(errors).toEqual([])
-      return graphql(schema, query).then(result => {
+      return graphql(schema, query).then((result) => {
         expect(result).toEqual({
           data: {
             user: {
@@ -413,7 +413,7 @@ test('Option customResolver with two APIs and interrelated links', () => {
       const ast = parse(query)
       const errors = validate(schema, ast)
       expect(errors).toEqual([])
-      return graphql(schema, query).then(result => {
+      return graphql(schema, query).then((result) => {
         expect(result).toEqual({
           data: {
             author: {

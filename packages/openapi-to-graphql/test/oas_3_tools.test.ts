@@ -5,14 +5,14 @@
 
 'use strict'
 
-/* globals test, expect */
-
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
 const {
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLString,
   graphql
 } = require('graphql')
+
 import * as Oas3Tools from '../lib/oas_3_tools'
 import { PathItemObject } from '../lib/types/oas3'
 
@@ -171,7 +171,7 @@ test('Properly treat null values during sanitization', () => {
     }
   }`
 
-  graphql(schema, query).then(result => {
+  graphql(schema, query).then((result) => {
     expect(result).toEqual({
       data: {
         User: {

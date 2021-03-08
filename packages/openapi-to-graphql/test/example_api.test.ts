@@ -5,9 +5,8 @@
 
 'use strict'
 
-/* globals beforeAll, test, expect */
-
 import { graphql, parse, validate } from 'graphql'
+import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../lib/index'
 import { Options } from '../lib/types/options'
