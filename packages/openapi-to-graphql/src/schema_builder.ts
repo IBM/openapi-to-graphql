@@ -81,7 +81,7 @@ type LinkOpRefToOpIdParams<TSource, TContext, TArgs> = {
   data: PreprocessingData<TSource, TContext, TArgs>
 }
 
-const translationLog = debug('translation')
+const translationLog = console.log
 
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
@@ -316,7 +316,7 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
      *
      * i.e. member types that can be confused with each other.
      */
-    checkAmbiguousMemberTypes(def, types, data)
+    // checkAmbiguousMemberTypes(def, types, data)
 
     def.graphQLType = new GraphQLUnionType({
       name: def.graphQLTypeName,
@@ -468,7 +468,7 @@ function createOrReuseList<TSource, TContext, TArgs>({
     }
     return listObjectType
   } else {
-    throw new Error(`Cannot create list item object type '${itemsName}' in list 
+    throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`)
   }
 }
@@ -563,6 +563,9 @@ function createFields<TSource, TContext, TArgs>({
 
   // Create fields for properties
   for (let fieldTypeKey in fieldTypeDefinitions) {
+    if (fieldTypeKey == 'board') {
+      console.log('board!')
+    }
     const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey]
     const fieldSchema = fieldTypeDefinition.schema
 

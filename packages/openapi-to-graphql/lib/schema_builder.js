@@ -11,9 +11,8 @@ const graphql_type_json_1 = require("graphql-type-json");
 const Oas3Tools = require("./oas_3_tools");
 const resolver_builder_1 = require("./resolver_builder");
 const preprocessor_1 = require("./preprocessor");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const translationLog = debug_1.default('translation');
+const translationLog = console.log;
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
  */
@@ -189,7 +188,7 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
          *
          * i.e. member types that can be confused with each other.
          */
-        checkAmbiguousMemberTypes(def, types, data);
+        // checkAmbiguousMemberTypes(def, types, data)
         def.graphQLType = new graphql_1.GraphQLUnionType({
             name: def.graphQLTypeName,
             description,
@@ -310,7 +309,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
         return listObjectType;
     }
     else {
-        throw new Error(`Cannot create list item object type '${itemsName}' in list 
+        throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`);
     }
 }
@@ -380,6 +379,9 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
     const fieldTypeDefinitions = def.subDefinitions;
     // Create fields for properties
     for (let fieldTypeKey in fieldTypeDefinitions) {
+        if (fieldTypeKey == "board") {
+            console.log("board!");
+        }
         const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey];
         const fieldSchema = fieldTypeDefinition.schema;
         // Get object type describing the property

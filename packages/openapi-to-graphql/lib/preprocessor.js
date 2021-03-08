@@ -8,11 +8,10 @@ exports.createDataDef = exports.preprocessOas = void 0;
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
 const deepEqual = require("deep-equal");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const graphql_1 = require("./types/graphql");
 const oas_3_tools_1 = require("./oas_3_tools");
-const preprocessingLog = debug_1.default('preprocessing');
+const preprocessingLog = console.log;
 /**
  * Given an operation object from the OAS, create an Operation, which contains
  * the necessary data to create a GraphQL wrapper for said operation object.
@@ -284,6 +283,7 @@ function preprocessOas(oass, options) {
             });
         }
     });
+    console.log(data);
     return data;
 }
 exports.preprocessOas = preprocessOas;

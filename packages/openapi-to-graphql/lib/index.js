@@ -336,6 +336,14 @@ provideErrorExtensions, equivalentToMessages }) {
     Object.keys(authSubscriptionFields).forEach(key => {
         authSubscriptionFields[key] = utils_1.sortObject(authSubscriptionFields[key]);
     });
+    Object.entries(queryFields).forEach(([fieldName, fieldConfig]) => {
+        console.log("fieldName = ", fieldName);
+        console.log("fieldConfig = ", fieldConfig);
+    });
+    Object.entries(mutationFields).forEach(([fieldName, fieldConfig]) => {
+        console.log("fieldName = ", fieldName);
+        console.log("fieldConfig = ", fieldConfig);
+    });
     // Count created Query, Mutation, and Subscription fields
     options.report.numQueriesCreated =
         Object.keys(queryFields).length +
@@ -397,6 +405,7 @@ provideErrorExtensions, equivalentToMessages }) {
             operation.responseDefinition.graphQLType = GraphQLTools.getEmptyObjectType(operation.responseDefinition.graphQLTypeName);
         }
     });
+    console.log(schemaConfig.types);
     const schema = new graphql_2.GraphQLSchema(schemaConfig);
     return { schema, report: options.report };
 }

@@ -1,0 +1,151 @@
+{
+  "openapi": "3.0.0",
+  "servers": [
+    {
+      "url": "https://api.random.com/"
+    }
+  ],
+  "info": {
+    "description": "The Random REST API. Please see https://random.com/docs/api for more details.",
+    "termsOfService": "https://random.com/us/terms/",
+    "title": "Random API",
+    "version": "2020-08-27"
+  },
+  "paths": {
+    "/v1/random/person/{id}": {
+      "get": {
+        "description": "Retrieves random person",
+        "operationId": "GetRandomPersonId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/person"
+                }
+              }
+            },
+            "description": "Successful response."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            },
+            "description": "Error response."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "person": {
+        "description": "This is an object representing a person",
+        "properties": {
+          "first_name": {
+            "description": "First name",
+            "nullable": true,
+            "type": "string"
+          },
+          "last_name": {
+            "description": "Last name",
+            "nullable": true,
+            "type": "string"
+          },
+          "siblings": {
+            "description": "A list of siblings of this person",
+            "items": {
+              "$ref": "#/components/schemas/person"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "employer": {
+            "description": "The employer of this person",
+            "$ref": "#/components/schemas/employer"
+          },
+          "parent": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/employer"
+              },
+              {
+                "$ref": "#/components/schemas/person"
+              }
+            ]
+          },
+          "grandParents": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/employer"
+                },
+                {
+                  "$ref": "#/components/schemas/person"
+                }
+              ]
+            }
+          }
+        },
+        "required": ["employer", "siblings"]
+      },
+      "employer": {
+        "description": "This is an object representing an employer",
+        "properties": {
+          "name": {
+            "description": "Employer name",
+            "nullable": true,
+            "type": "string"
+          },
+          "year_founded": {
+            "description": "Founding year",
+            "nullable": true,
+            "type": "integer"
+          },
+          "employees": {
+            "description": "The employees of this employer",
+            "items": {
+              "$ref": "#/components/schemas/person"
+            },
+            "type": "array"
+          },
+          "employer": {
+            "description": "Parent company",
+            "$ref": "#/components/schemas/employer"
+          }
+        },
+        "required": ["employees", "parent_company"]
+      },
+      "error": {
+        "description": "An error response from the Stripe API",
+        "properties": {
+          "code": {
+            "description": "For some errors that could be handled programmatically, a short string indicating the [error code](https://stripe.com/docs/error-codes) reported.",
+            "maxLength": 5000,
+            "type": "string"
+          }
+        },
+        "required": ["error"],
+        "type": "object"
+      }
+    }
+  }
+}

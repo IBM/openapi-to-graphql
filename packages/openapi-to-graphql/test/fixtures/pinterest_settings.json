@@ -1,0 +1,1805 @@
+{
+  "components": {
+    "parameters": {
+      "Accept_Language": {
+        "description": "which languages the client is able to understand",
+        "in": "header",
+        "name": "Accept-Language",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/Accept_Language"
+        }
+      },
+      "Authorization": {
+        "description": "request header contains the credentials to authenticate a user",
+        "in": "header",
+        "name": "Authorization",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/Authorization"
+        }
+      },
+      "Origin": {
+        "description": "The Origin request header indicates where a fetch originates from",
+        "in": "header",
+        "name": "Origin",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/Origin"
+        }
+      },
+      "User_Agent": {
+        "description": "characteristic string that lets servers and network peers identify\nthe application, operating system, vendor, and/or version of the requesting\nuser agent.",
+        "in": "header",
+        "name": "User-Agent",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/User_Agent"
+        }
+      },
+      "X_Pinterest_AppState": {
+        "description": "This request header is set to background if the request is being\nmade in the \"background\" state of the app",
+        "in": "header",
+        "name": "X-Pinterest-AppState",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Pinterest_AppState"
+        }
+      },
+      "X_Pinterest_App_Type": {
+        "description": "characteristic string that lets servers and network peers identify\nthe application, operating system, vendor, and/or version of the requesting\nuser agent.",
+        "in": "header",
+        "name": "X-Pinterest-App-Type",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Pinterest_App_Type"
+        }
+      },
+      "X_Pinterest_Force_User_Country": {
+        "description": "Override user country for the request",
+        "in": "header",
+        "name": "X-Pinterest-Force-User-Country",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Pinterest_Force_User_Country"
+        }
+      },
+      "X_Pinterest_Force_User_Gender": {
+        "description": "Override the gender of the user making the request",
+        "in": "header",
+        "name": "X-Pinterest-Force-User-Gender",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Pinterest_Force_User_Gender"
+        }
+      },
+      "X_Pinterest_Force_User_Locale": {
+        "description": "Override user locale for the request",
+        "in": "header",
+        "name": "X-Pinterest-Force-User-Locale",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Pinterest_Force_User_Locale"
+        }
+      },
+      "X_Pinterest_InstallId": {
+        "description": "Unique ID assigned to pinterest client",
+        "in": "header",
+        "name": "X-Pinterest-InstallId",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Pinterest_InstallId"
+        }
+      },
+      "X_Pinterest_Integration_Test_Mode": {
+        "description": "Enable test mode",
+        "in": "header",
+        "name": "X-Pinterest-Integration-Test-Mode",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Pinterest_Integration_Test_Mode"
+        }
+      },
+      "X_Pinterest_Rid": {
+        "description": "Unique ID assigned to request",
+        "in": "header",
+        "name": "X-Pinterest-Rid",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Pinterest_Rid"
+        }
+      },
+      "X_Real_Ip": {
+        "description": "Ip address of the client making the request",
+        "in": "header",
+        "name": "X-Real-Ip",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/X_Real_Ip"
+        }
+      },
+      "add_fields": {
+        "allowReserved": true,
+        "description": "A list of attributes of objects to be added to the response ex.\npin.id and \"Joins\" which is a way to specify additional data fetches ex. add_fields=pin.pinner(),pin.recommendation_reason,pin.place_summary(),interest.images[150x150(ir.24),150x150(ir.48),1200x,236x].\nIf left empty summary fields will be returned by default.",
+        "explode": false,
+        "in": "query",
+        "name": "add_fields",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/add_fields"
+        },
+        "style": "form"
+      },
+      "base_scheme": {
+        "description": "URL scheme to use when building media URLs. (http or https)",
+        "in": "query",
+        "name": "base_scheme",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/base_scheme"
+        },
+        "style": "form"
+      },
+      "fields": {
+        "allowReserved": true,
+        "description": "A list of attributes of objects to be returned in the response\nex. pin.id and \"Joins\" which is a way to specify additional data fetches ex.pin.buyable_product().\nexample query param: ?fields= pin.id, pin.buyable_product(), pin.link, user.full_name,\npin.board(). If left empty summary fields will be returned by default.",
+        "explode": false,
+        "in": "query",
+        "name": "fields",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/fields"
+        },
+        "style": "form"
+      },
+      "render_style": {
+        "description": "Set of fields to be returned to the client. ex. ?render_style=detailed\nwill return the detailed field set for the endpoint.",
+        "in": "query",
+        "name": "render_style",
+        "required": false,
+        "schema": {
+          "$ref": "#/components/schemas/render_style"
+        },
+        "style": "form"
+      }
+    },
+    "schemas": {
+      "Accept_Language": {
+        "type": "string"
+      },
+      "ApiBookmarkedEnvelope": {
+        "properties": {
+          "bookmark": {
+            "title": "Bookmark",
+            "type": "string"
+          },
+          "code": {
+            "title": "Code",
+            "type": "integer"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "items": {},
+                "type": "array"
+              }
+            ],
+            "title": "Data"
+          },
+          "debug_logs": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Debug Logs",
+            "type": "array"
+          },
+          "endpoint_name": {
+            "title": "Endpoint Name",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "message_detail": {
+            "title": "Message Detail",
+            "type": "string"
+          },
+          "sensitivity": {
+            "title": "Sensitivity",
+            "type": "object"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResponseStatus"
+          }
+        },
+        "required": ["status", "code", "data", "message", "endpoint_name"],
+        "title": "ApiBookmarkedEnvelope",
+        "type": "object"
+      },
+      "ApiEnvelope": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "integer"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "items": {},
+                "type": "array"
+              }
+            ],
+            "title": "Data"
+          },
+          "debug_logs": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Debug Logs",
+            "type": "array"
+          },
+          "endpoint_name": {
+            "title": "Endpoint Name",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "message_detail": {
+            "title": "Message Detail",
+            "type": "string"
+          },
+          "sensitivity": {
+            "title": "Sensitivity",
+            "type": "object"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResponseStatus"
+          }
+        },
+        "required": ["status", "code", "data", "message", "endpoint_name"],
+        "title": "ApiEnvelope",
+        "type": "object"
+      },
+      "ApiErrorEnvelope": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "integer"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "items": {},
+                "type": "array"
+              }
+            ],
+            "title": "Data"
+          },
+          "debug_logs": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Debug Logs",
+            "type": "array"
+          },
+          "endpoint_name": {
+            "title": "Endpoint Name",
+            "type": "string"
+          },
+          "error": {
+            "title": "Error",
+            "type": "object"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "message_detail": {
+            "title": "Message Detail",
+            "type": "string"
+          },
+          "sensitivity": {
+            "title": "Sensitivity",
+            "type": "object"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResponseStatus"
+          }
+        },
+        "required": ["status", "code", "data", "message", "endpoint_name"],
+        "title": "ApiErrorEnvelope",
+        "type": "object"
+      },
+      "Authorization": {
+        "$ref": "#/components/schemas/Enum_AppType"
+      },
+      "Enum_AppType": {
+        "enum": [
+          "ANDROID_LITE",
+          "ANDROID_MOBILE",
+          "ANDROID_TABLET",
+          "BROWSER_EXTENSION",
+          "IPAD",
+          "IPHONE",
+          "SHOPIFY",
+          "WEB",
+          "WEB_DENZEL",
+          "WEB_MOBILE",
+          "WINDOWS_DESKTOP"
+        ],
+        "type": "string"
+      },
+      "Origin": {
+        "type": "string"
+      },
+      "ResponseStatus": {
+        "description": "An enumeration.",
+        "enum": ["success", "failure"],
+        "title": "ResponseStatus",
+        "type": "string"
+      },
+      "SubModel_user_settings": {
+        "additionalProperties": false,
+        "properties": {
+          "first_name": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "User_Agent": {
+        "type": "string"
+      },
+      "X_Pinterest_AppState": {
+        "type": "string"
+      },
+      "X_Pinterest_App_Type": {
+        "$ref": "#/components/schemas/Enum_AppType"
+      },
+      "X_Pinterest_Force_User_Country": {
+        "type": "string"
+      },
+      "X_Pinterest_Force_User_Gender": {
+        "type": "string"
+      },
+      "X_Pinterest_Force_User_Locale": {
+        "type": "string"
+      },
+      "X_Pinterest_InstallId": {
+        "$ref": "#/components/schemas/Enum_AppType"
+      },
+      "X_Pinterest_Integration_Test_Mode": {
+        "type": "string"
+      },
+      "X_Pinterest_Rid": {
+        "$ref": "#/components/schemas/Enum_AppType"
+      },
+      "X_Real_Ip": {
+        "type": "string"
+      },
+      "add_fields": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "api_error_1": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [1],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["Invalid parameters."],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Invalid parameters."
+          }
+        ]
+      },
+      "api_error_101": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [101],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": [
+                  "The account is already linked to another Pinterest user."
+                ],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "The account is already linked to another Pinterest user."
+          }
+        ]
+      },
+      "api_error_104": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [104],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["Failure communicating with Facebook."],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Failure communicating with Facebook."
+          }
+        ]
+      },
+      "api_error_2830": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [2830],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": [
+                  "Account with linked business account can not be converted to a business\naccount."
+                ],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Account with linked business account can not be converted to a business\naccount."
+          }
+        ]
+      },
+      "api_error_3": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [3],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["Authorization failed."],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Authorization failed."
+          }
+        ]
+      },
+      "api_error_31": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [31],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["User already exists."],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "User already exists."
+          }
+        ]
+      },
+      "api_error_90": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [90],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["Invalid username."],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Invalid username."
+          }
+        ]
+      },
+      "api_error_91": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [91],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["Email already taken."],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Email already taken."
+          }
+        ]
+      },
+      "api_error_92": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [92],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["Username already taken"],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Username already taken"
+          }
+        ]
+      },
+      "api_error_93": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [93],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["Uh oh! You're not old enough to use Pinterest yet."],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Uh oh! You're not old enough to use Pinterest yet."
+          }
+        ]
+      },
+      "api_error_95": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiErrorEnvelope"
+          },
+          {
+            "properties": {
+              "code": {
+                "enum": [95],
+                "nullable": false,
+                "readOnly": true,
+                "type": "integer"
+              },
+              "message": {
+                "enum": ["Invalid email."],
+                "nullable": false,
+                "readOnly": true,
+                "type": "string"
+              }
+            },
+            "required": ["code", "message"],
+            "title": "Invalid email."
+          }
+        ]
+      },
+      "base_scheme": {
+        "enum": ["http", "https"],
+        "type": "string"
+      },
+      "fields": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "render_style": {
+        "enum": ["detailed", "summary", "all_fields"],
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "pinterest-oauth2": {
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://www.pinterest.com/oauth/",
+            "scopes": {
+              "all_write": "all_write",
+              "manage_ads": "Manage your ad campaigns and see data including spend, budget,\nand performance",
+              "manage_merchants": "See and manage your Catalog (aka your shopping feed)",
+              "manage_organic": "See, update, and add to your public data (including boards,\nPins, comments, following, followers, and your profile)",
+              "read": "See all data on pinterest",
+              "read_ads": "See data on your ad campaigns, including spend, budget, and\nperformance",
+              "read_advertisers": "See your advertising profile and settings",
+              "read_assets": "read_assets",
+              "read_boards": "See all your boards (including secret boards and group boards\nyou join)",
+              "read_campaigns": "See data on your ad campaigns, including spend, budget,\nand performance",
+              "read_domains": "Get your website's most clicked Pins, see the top Pins people\nare saving and more",
+              "read_internal": "Pinterest internal data access permission",
+              "read_merchants": "See your Catalog (aka your shopping feed)",
+              "read_organic": "See your public data (including boards, Pins, comments,\nfollowing, followers, and your profile)",
+              "read_pin_promotions": "See your ads and ad creative",
+              "read_pin_templates": "read_pin_templates",
+              "read_pins": "See all your public Pins and comments",
+              "read_private": "read_private",
+              "read_public": "See all the public data on Pinterest",
+              "read_secret": "See your secret boards and secret Pins",
+              "read_secret_boards": "See your secret boards",
+              "read_secret_pins": "See your secret Pins",
+              "read_user_followers": "Access your follows and followers",
+              "read_user_messages": "See your messages",
+              "read_user_notifications": "See your notifications",
+              "read_user_settings": "See your account settings",
+              "read_users": "See your public data (including boards, following, profile\netc.)",
+              "read_write": "See and change any data on Pinterest",
+              "search_domain": "Search for Pins from your website",
+              "search_global": "Search all public Pins for you",
+              "write_ads": "Create and manage your ad campaigns",
+              "write_advertisers": "Create and manage your advertising profile",
+              "write_assets": "write_assets",
+              "write_boards": "Create new boards for you, and change your board settings",
+              "write_campaigns": "Create and manage your ad campaigns",
+              "write_conversion_event_data": "write_conversion_event_data",
+              "write_merchants": "Manage your Catalog (aka your shopping feed)",
+              "write_organic": "Create new Pins and boards for you and update your public\ndata (including boards, Pins, following, followers, and your profile)",
+              "write_pin_promotions": "Create and manage ads and ad creative",
+              "write_pin_templates": "write_pin_templates",
+              "write_pins": "Create new Pins for you",
+              "write_user_followees": "Follow things for you",
+              "write_user_messages": "Send messages on behalf of you",
+              "write_user_settings": "Change your account settings",
+              "write_users": "Change your following boards, Pins and users",
+              "x_read": "x_read",
+              "x_read_write": "x_read_write"
+            },
+            "tokenUrl": "oauth/access_token/"
+          }
+        },
+        "type": "oauth2"
+      }
+    }
+  },
+  "info": {
+    "title": "Pin API",
+    "version": "0.0.1"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/v3/users/settings/": {
+      "description": "Update a user's settings\n\n    Right now, we can only update publish_facebook and publish_timeline\n\n    Returns:\n        A dict representing all of the user's settings.",
+      "post": {
+        "operationId": "v3_edit_settings_handler",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/Accept_Language"
+          },
+          {
+            "$ref": "#/components/parameters/Authorization"
+          },
+          {
+            "$ref": "#/components/parameters/Origin"
+          },
+          {
+            "$ref": "#/components/parameters/User_Agent"
+          },
+          {
+            "$ref": "#/components/parameters/X_Pinterest_App_Type"
+          },
+          {
+            "$ref": "#/components/parameters/X_Pinterest_AppState"
+          },
+          {
+            "$ref": "#/components/parameters/X_Pinterest_Force_User_Country"
+          },
+          {
+            "$ref": "#/components/parameters/X_Pinterest_Force_User_Gender"
+          },
+          {
+            "$ref": "#/components/parameters/X_Pinterest_Force_User_Locale"
+          },
+          {
+            "$ref": "#/components/parameters/X_Pinterest_InstallId"
+          },
+          {
+            "$ref": "#/components/parameters/X_Pinterest_Integration_Test_Mode"
+          },
+          {
+            "$ref": "#/components/parameters/X_Pinterest_Rid"
+          },
+          {
+            "$ref": "#/components/parameters/X_Real_Ip"
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "about": {
+                    "type": "string"
+                  },
+                  "account_type": {
+                    "enum": [
+                      "media",
+                      "brand",
+                      "online_marketplace",
+                      "consumer_good_product_or_service",
+                      "local_retail_store",
+                      "local_business",
+                      "publisher_or_media",
+                      "institution_or_non_prof",
+                      "local_service",
+                      "online_retail_or_marketplace",
+                      "professional",
+                      "other",
+                      "blogger",
+                      "contractor_or_service_provider",
+                      "retailer",
+                      "public_figure",
+                      "influencer_public_figure_or_celebrity",
+                      "default_null",
+                      "not_sure"
+                    ],
+                    "type": "string"
+                  },
+                  "additional_website_urls": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "ads_customize_from_conversion": {
+                    "type": "boolean"
+                  },
+                  "advertising_intent": {
+                    "enum": [0, 1, 2, 3],
+                    "type": "integer"
+                  },
+                  "age": {
+                    "type": "integer"
+                  },
+                  "allow_analytic_cookies": {
+                    "type": "boolean"
+                  },
+                  "allow_marketing_cookies": {
+                    "type": "boolean"
+                  },
+                  "allow_mentions": {
+                    "enum": [0, 1, 2],
+                    "type": "integer"
+                  },
+                  "allow_personalization_cookies": {
+                    "type": "boolean"
+                  },
+                  "birthdate": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "business_diversity_category": {
+                    "type": "string"
+                  },
+                  "business_goals": {
+                    "enum": [
+                      "SELL_PRODUCTS",
+                      "GENERATE_LEADS",
+                      "DRIVE_TRAFFIC",
+                      "CREATE_CONTENT",
+                      "BRAND_AWARENESS",
+                      "NOT_SURE"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "business_name": {
+                    "type": "string"
+                  },
+                  "business_vertical": {
+                    "enum": [
+                      "BEAUTY",
+                      "FASHION",
+                      "HOME",
+                      "TRAVEL",
+                      "FOOD_AND_DRINK",
+                      "DIY_AND_CRAFT",
+                      "HEALTH_AND_FITNESS",
+                      "EDUCATION",
+                      "DESIGN_AND_ART",
+                      "EVENTS",
+                      "OTHER",
+                      "WOMENS_FASHION",
+                      "MENS_FASHION",
+                      "CHILDRENS_FASHION",
+                      "SPORTS",
+                      "ELECTRONICS",
+                      "HOME_DECOR"
+                    ],
+                    "type": "string"
+                  },
+                  "business_vertical_other": {
+                    "type": "string"
+                  },
+                  "ccpa_opted_out": {
+                    "type": "boolean"
+                  },
+                  "contact_name": {
+                    "type": "string"
+                  },
+                  "country": {
+                    "enum": [
+                      "AD",
+                      "AE",
+                      "AF",
+                      "AG",
+                      "AI",
+                      "AL",
+                      "AM",
+                      "AO",
+                      "AQ",
+                      "AR",
+                      "AS",
+                      "AT",
+                      "AU",
+                      "AW",
+                      "AX",
+                      "AZ",
+                      "BA",
+                      "BB",
+                      "BD",
+                      "BE",
+                      "BF",
+                      "BG",
+                      "BH",
+                      "BI",
+                      "BJ",
+                      "BL",
+                      "BM",
+                      "BN",
+                      "BO",
+                      "BQ",
+                      "BR",
+                      "BS",
+                      "BT",
+                      "BV",
+                      "BW",
+                      "BY",
+                      "BZ",
+                      "CA",
+                      "CC",
+                      "CD",
+                      "CF",
+                      "CG",
+                      "CH",
+                      "CI",
+                      "CK",
+                      "CL",
+                      "CM",
+                      "CO",
+                      "CR",
+                      "CU",
+                      "CV",
+                      "CW",
+                      "CX",
+                      "CY",
+                      "CZ",
+                      "DE",
+                      "DJ",
+                      "DK",
+                      "DM",
+                      "DO",
+                      "DZ",
+                      "EC",
+                      "EE",
+                      "EG",
+                      "EH",
+                      "ER",
+                      "ES",
+                      "ET",
+                      "FI",
+                      "FJ",
+                      "FK",
+                      "FM",
+                      "FO",
+                      "FR",
+                      "GA",
+                      "GB",
+                      "GD",
+                      "GE",
+                      "GF",
+                      "GG",
+                      "GH",
+                      "GI",
+                      "GL",
+                      "GM",
+                      "GN",
+                      "GP",
+                      "GQ",
+                      "GR",
+                      "GS",
+                      "GT",
+                      "GU",
+                      "GW",
+                      "GY",
+                      "HK",
+                      "HM",
+                      "HN",
+                      "HR",
+                      "HT",
+                      "HU",
+                      "ID",
+                      "IE",
+                      "IL",
+                      "IM",
+                      "IN",
+                      "IO",
+                      "IQ",
+                      "IR",
+                      "IS",
+                      "IT",
+                      "JE",
+                      "JM",
+                      "JO",
+                      "JP",
+                      "KE",
+                      "KG",
+                      "KH",
+                      "KI",
+                      "KM",
+                      "KN",
+                      "KR",
+                      "KW",
+                      "KY",
+                      "KZ",
+                      "LA",
+                      "LB",
+                      "LC",
+                      "LI",
+                      "LK",
+                      "LR",
+                      "LS",
+                      "LT",
+                      "LU",
+                      "LV",
+                      "LY",
+                      "MA",
+                      "MC",
+                      "MD",
+                      "ME",
+                      "MF",
+                      "MG",
+                      "MH",
+                      "MK",
+                      "ML",
+                      "MM",
+                      "MN",
+                      "MO",
+                      "MP",
+                      "MQ",
+                      "MR",
+                      "MS",
+                      "MT",
+                      "MU",
+                      "MV",
+                      "MW",
+                      "MX",
+                      "MY",
+                      "MZ",
+                      "NA",
+                      "NC",
+                      "NE",
+                      "NF",
+                      "NG",
+                      "NI",
+                      "NL",
+                      "NO",
+                      "NP",
+                      "NR",
+                      "NU",
+                      "NZ",
+                      "OM",
+                      "PA",
+                      "PE",
+                      "PF",
+                      "PG",
+                      "PH",
+                      "PK",
+                      "PL",
+                      "PM",
+                      "PN",
+                      "PR",
+                      "PS",
+                      "PT",
+                      "PW",
+                      "PY",
+                      "QA",
+                      "RE",
+                      "RO",
+                      "RS",
+                      "RU",
+                      "RW",
+                      "SA",
+                      "SB",
+                      "SC",
+                      "SD",
+                      "SE",
+                      "SG",
+                      "SH",
+                      "SI",
+                      "SJ",
+                      "SK",
+                      "SL",
+                      "SM",
+                      "SN",
+                      "SO",
+                      "SR",
+                      "SS",
+                      "ST",
+                      "SV",
+                      "SX",
+                      "SY",
+                      "SZ",
+                      "TC",
+                      "TD",
+                      "TF",
+                      "TG",
+                      "TH",
+                      "TJ",
+                      "TK",
+                      "TL",
+                      "TM",
+                      "TN",
+                      "TO",
+                      "TR",
+                      "TT",
+                      "TV",
+                      "TW",
+                      "TZ",
+                      "UA",
+                      "UG",
+                      "UM",
+                      "US",
+                      "UY",
+                      "UZ",
+                      "VA",
+                      "VC",
+                      "VE",
+                      "VG",
+                      "VI",
+                      "VN",
+                      "VU",
+                      "WF",
+                      "WS",
+                      "YE",
+                      "YT",
+                      "ZA",
+                      "ZM",
+                      "ZW"
+                    ],
+                    "type": "string"
+                  },
+                  "custom_gender": {
+                    "type": "string"
+                  },
+                  "delete_business_diversity_category": {
+                    "type": "boolean"
+                  },
+                  "email": {
+                    "type": "string"
+                  },
+                  "email_bounced": {
+                    "type": "boolean"
+                  },
+                  "enable_profile_address": {
+                    "type": "boolean"
+                  },
+                  "enable_profile_message": {
+                    "type": "boolean"
+                  },
+                  "exclude_from_search": {
+                    "type": "boolean"
+                  },
+                  "facebook_publish_stream_enabled": {
+                    "type": "boolean"
+                  },
+                  "facebook_timeline_enabled": {
+                    "type": "boolean"
+                  },
+                  "first_name": {
+                    "type": "string"
+                  },
+                  "gender": {
+                    "enum": ["male", "female", "unspecified"],
+                    "type": "string"
+                  },
+                  "hide_from_news": {
+                    "type": "boolean"
+                  },
+                  "impressum_url": {
+                    "type": "string"
+                  },
+                  "is_known_facebook_user": {
+                    "type": "boolean"
+                  },
+                  "last_name": {
+                    "type": "string"
+                  },
+                  "listed_website_url": {
+                    "type": "string"
+                  },
+                  "locale": {
+                    "enum": [
+                      "ar-SA",
+                      "es-AR",
+                      "en-AU",
+                      "en-GB",
+                      "es-ES",
+                      "en-IN",
+                      "pt-PT",
+                      "es-MX",
+                      "es-419",
+                      "sv-SE",
+                      "cs-CZ",
+                      "tr",
+                      "sk-SK",
+                      "ms-MY",
+                      "zh-CN",
+                      "th-TH",
+                      "el-GR",
+                      "nl",
+                      "pl-PL",
+                      "bn-IN",
+                      "da-DK",
+                      "te-IN",
+                      "ru-RU",
+                      "hi-IN",
+                      "ro-RO",
+                      "fi-FI",
+                      "zh-TW",
+                      "nb-NO",
+                      "pt-BR",
+                      "de",
+                      "it",
+                      "en-US",
+                      "uk-UA",
+                      "tl-PH",
+                      "ko-KR",
+                      "id-ID",
+                      "hu-HU",
+                      "ja",
+                      "fr",
+                      "vi-VN"
+                    ],
+                    "type": "string"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "number_employees": {
+                    "enum": [
+                      "JUST_ME",
+                      "1-10",
+                      "11-50",
+                      "51-250",
+                      "251-1000",
+                      "1001-5000",
+                      "5000+"
+                    ],
+                    "type": "string"
+                  },
+                  "parent_email": {
+                    "type": "string"
+                  },
+                  "partner_contact_email": {
+                    "type": "string"
+                  },
+                  "partner_contact_phone": {
+                    "type": "string"
+                  },
+                  "partner_contact_phone_country": {
+                    "enum": [
+                      "AD",
+                      "AE",
+                      "AF",
+                      "AG",
+                      "AI",
+                      "AL",
+                      "AM",
+                      "AO",
+                      "AQ",
+                      "AR",
+                      "AS",
+                      "AT",
+                      "AU",
+                      "AW",
+                      "AX",
+                      "AZ",
+                      "BA",
+                      "BB",
+                      "BD",
+                      "BE",
+                      "BF",
+                      "BG",
+                      "BH",
+                      "BI",
+                      "BJ",
+                      "BL",
+                      "BM",
+                      "BN",
+                      "BO",
+                      "BQ",
+                      "BR",
+                      "BS",
+                      "BT",
+                      "BV",
+                      "BW",
+                      "BY",
+                      "BZ",
+                      "CA",
+                      "CC",
+                      "CD",
+                      "CF",
+                      "CG",
+                      "CH",
+                      "CI",
+                      "CK",
+                      "CL",
+                      "CM",
+                      "CO",
+                      "CR",
+                      "CU",
+                      "CV",
+                      "CW",
+                      "CX",
+                      "CY",
+                      "CZ",
+                      "DE",
+                      "DJ",
+                      "DK",
+                      "DM",
+                      "DO",
+                      "DZ",
+                      "EC",
+                      "EE",
+                      "EG",
+                      "EH",
+                      "ER",
+                      "ES",
+                      "ET",
+                      "FI",
+                      "FJ",
+                      "FK",
+                      "FM",
+                      "FO",
+                      "FR",
+                      "GA",
+                      "GB",
+                      "GD",
+                      "GE",
+                      "GF",
+                      "GG",
+                      "GH",
+                      "GI",
+                      "GL",
+                      "GM",
+                      "GN",
+                      "GP",
+                      "GQ",
+                      "GR",
+                      "GS",
+                      "GT",
+                      "GU",
+                      "GW",
+                      "GY",
+                      "HK",
+                      "HM",
+                      "HN",
+                      "HR",
+                      "HT",
+                      "HU",
+                      "ID",
+                      "IE",
+                      "IL",
+                      "IM",
+                      "IN",
+                      "IO",
+                      "IQ",
+                      "IR",
+                      "IS",
+                      "IT",
+                      "JE",
+                      "JM",
+                      "JO",
+                      "JP",
+                      "KE",
+                      "KG",
+                      "KH",
+                      "KI",
+                      "KM",
+                      "KN",
+                      "KR",
+                      "KW",
+                      "KY",
+                      "KZ",
+                      "LA",
+                      "LB",
+                      "LC",
+                      "LI",
+                      "LK",
+                      "LR",
+                      "LS",
+                      "LT",
+                      "LU",
+                      "LV",
+                      "LY",
+                      "MA",
+                      "MC",
+                      "MD",
+                      "ME",
+                      "MF",
+                      "MG",
+                      "MH",
+                      "MK",
+                      "ML",
+                      "MM",
+                      "MN",
+                      "MO",
+                      "MP",
+                      "MQ",
+                      "MR",
+                      "MS",
+                      "MT",
+                      "MU",
+                      "MV",
+                      "MW",
+                      "MX",
+                      "MY",
+                      "MZ",
+                      "NA",
+                      "NC",
+                      "NE",
+                      "NF",
+                      "NG",
+                      "NI",
+                      "NL",
+                      "NO",
+                      "NP",
+                      "NR",
+                      "NU",
+                      "NZ",
+                      "OM",
+                      "PA",
+                      "PE",
+                      "PF",
+                      "PG",
+                      "PH",
+                      "PK",
+                      "PL",
+                      "PM",
+                      "PN",
+                      "PR",
+                      "PS",
+                      "PT",
+                      "PW",
+                      "PY",
+                      "QA",
+                      "RE",
+                      "RO",
+                      "RS",
+                      "RU",
+                      "RW",
+                      "SA",
+                      "SB",
+                      "SC",
+                      "SD",
+                      "SE",
+                      "SG",
+                      "SH",
+                      "SI",
+                      "SJ",
+                      "SK",
+                      "SL",
+                      "SM",
+                      "SN",
+                      "SO",
+                      "SR",
+                      "SS",
+                      "ST",
+                      "SV",
+                      "SX",
+                      "SY",
+                      "SZ",
+                      "TC",
+                      "TD",
+                      "TF",
+                      "TG",
+                      "TH",
+                      "TJ",
+                      "TK",
+                      "TL",
+                      "TM",
+                      "TN",
+                      "TO",
+                      "TR",
+                      "TT",
+                      "TV",
+                      "TW",
+                      "TZ",
+                      "UA",
+                      "UG",
+                      "UM",
+                      "US",
+                      "UY",
+                      "UZ",
+                      "VA",
+                      "VC",
+                      "VE",
+                      "VG",
+                      "VI",
+                      "VN",
+                      "VU",
+                      "WF",
+                      "WS",
+                      "YE",
+                      "YT",
+                      "ZA",
+                      "ZM",
+                      "ZW"
+                    ],
+                    "type": "string"
+                  },
+                  "partner_place_dict": {
+                    "type": "string"
+                  },
+                  "personalize_from_offsite_browsing": {
+                    "type": "boolean"
+                  },
+                  "personalize_nux_from_offsite_browsing": {
+                    "type": "boolean"
+                  },
+                  "pfy_preference": {
+                    "type": "boolean"
+                  },
+                  "profile_image": {
+                    "format": "binary",
+                    "type": "string"
+                  },
+                  "profile_image_url": {
+                    "type": "string"
+                  },
+                  "selected_ecommerce_platforms": {
+                    "enum": [
+                      "SHOPIFY",
+                      "ETSY",
+                      "WOO_COMMERCE",
+                      "OPEN_CART",
+                      "SQUARESPACE_COMMERCE",
+                      "PRESTA_SHOP",
+                      "MAGENTO",
+                      "ZEN_CART",
+                      "WIX_STORES"
+                    ],
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  },
+                  "third_party_marketing_tracking_enabled": {
+                    "type": "boolean"
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "website_url": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/SubModel_user_settings",
+                          "nullable": false,
+                          "readOnly": true
+                        },
+                        "endpoint_name": {
+                          "enum": ["v3_edit_settings_handler"],
+                          "type": "string"
+                        }
+                      },
+                      "title": "v3_edit_settings_handler response",
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "v3_edit_settings_handler response",
+            "headers": {
+              "Pinterest-Version": {
+                "description": "The X-Content-Type-Options response HTTP header is a marker\nused by the server to indicate that the MIME types advertised in the\nContent-Type headers should not be changed and be followed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "The X-Content-Type-Options response HTTP header is a marker\nused by the server to indicate that the MIME types advertised in the\nContent-Type headers should not be changed and be followed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-pinterest-sli-endpoint-name": {
+                "description": "Name of api handler that was called",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-pinterest-sli-response-type": {
+                "description": "response type to be used for service mesh",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "discriminator": {
+                    "mapping": {
+                      "1": "#/components/schemas/api_error_1",
+                      "90": "#/components/schemas/api_error_90",
+                      "95": "#/components/schemas/api_error_95",
+                      "101": "#/components/schemas/api_error_101",
+                      "104": "#/components/schemas/api_error_104"
+                    },
+                    "propertyName": "code"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/api_error_1"
+                    },
+                    {
+                      "$ref": "#/components/schemas/api_error_101"
+                    },
+                    {
+                      "$ref": "#/components/schemas/api_error_104"
+                    },
+                    {
+                      "$ref": "#/components/schemas/api_error_90"
+                    },
+                    {
+                      "$ref": "#/components/schemas/api_error_95"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "400"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/api_error_3"
+                }
+              }
+            },
+            "description": "401"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/api_error_2830"
+                }
+              }
+            },
+            "description": "403"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "discriminator": {
+                    "mapping": {
+                      "31": "#/components/schemas/api_error_31",
+                      "91": "#/components/schemas/api_error_91",
+                      "92": "#/components/schemas/api_error_92",
+                      "93": "#/components/schemas/api_error_93"
+                    },
+                    "propertyName": "code"
+                  },
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/api_error_31"
+                    },
+                    {
+                      "$ref": "#/components/schemas/api_error_91"
+                    },
+                    {
+                      "$ref": "#/components/schemas/api_error_92"
+                    },
+                    {
+                      "$ref": "#/components/schemas/api_error_93"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "409"
+          }
+        },
+        "security": [
+          {
+            "pinterest-oauth2": ["read_write"]
+          }
+        ],
+        "x-pinterest-internal-owned-by": "curation"
+      },
+      "summary": "Update a user's settings\n\n    Right now, we can only update publish_facebook and publish_timeline\n\n    Returns:\n        A dict representing all of the user's settings."
+    }
+  },
+  "servers": [
+    {
+      "description": "Development server",
+      "url": "https://api.pinterdev.com"
+    },
+    {
+      "description": "Staging server",
+      "url": "https://api-staging.pinterest.com"
+    },
+    {
+      "description": "Latest server (prod environment)",
+      "url": "https://api-latest.pinterest.com"
+    },
+    {
+      "description": "Production server",
+      "url": "https://api.pinterest.com"
+    }
+  ]
+}

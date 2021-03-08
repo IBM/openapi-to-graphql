@@ -15,7 +15,7 @@ const graphql_1 = require("graphql");
 const form_urlencoded_1 = require("form-urlencoded");
 const graphql_subscriptions_1 = require("graphql-subscriptions");
 const pubsub = new graphql_subscriptions_1.PubSub();
-const translationLog = debug_1.debug('translation');
+const translationLog = console.log;
 const httpLog = debug_1.debug('http');
 const pubsubLog = debug_1.debug('pubsub');
 // OAS runtime expression reference locations

@@ -15,10 +15,9 @@ const graphql_2 = require("./types/graphql");
 // Imports:
 const schema_builder_1 = require("./schema_builder");
 const Oas3Tools = require("./oas_3_tools");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const preprocessor_1 = require("./preprocessor");
-const translationLog = debug_1.default('translation');
+const translationLog = console.log;
 /**
  * Load the field object in the appropriate root object
  *

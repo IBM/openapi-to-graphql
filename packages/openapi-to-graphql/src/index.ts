@@ -149,10 +149,10 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
     if (Array.isArray(spec)) {
       // Convert all non-OAS 3 into OAS 3
       Promise.all(
-        spec.map(ele => {
+        spec.map((ele) => {
           return Oas3Tools.getValidOAS3(ele)
         })
-      ).then(oass => {
+      ).then((oass) => {
         resolve(
           translateOpenAPIToGraphQL(
             oass,
@@ -167,7 +167,7 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
        * translate the spec into a GraphQL schema
        */
 
-      Oas3Tools.getValidOAS3(spec).then(oas => {
+      Oas3Tools.getValidOAS3(spec).then((oas) => {
         resolve(
           translateOpenAPIToGraphQL(
             [oas],
@@ -518,16 +518,26 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
   mutationFields = sortObject(mutationFields)
   subscriptionFields = sortObject(subscriptionFields)
   authQueryFields = sortObject(authQueryFields)
-  Object.keys(authQueryFields).forEach(key => {
+  Object.keys(authQueryFields).forEach((key) => {
     authQueryFields[key] = sortObject(authQueryFields[key])
   })
   authMutationFields = sortObject(authMutationFields)
-  Object.keys(authMutationFields).forEach(key => {
+  Object.keys(authMutationFields).forEach((key) => {
     authMutationFields[key] = sortObject(authMutationFields[key])
   })
   authSubscriptionFields = sortObject(authSubscriptionFields)
-  Object.keys(authSubscriptionFields).forEach(key => {
+  Object.keys(authSubscriptionFields).forEach((key) => {
     authSubscriptionFields[key] = sortObject(authSubscriptionFields[key])
+  })
+
+  Object.entries(queryFields).forEach(([fieldName, fieldConfig]) => {
+    console.log('fieldName = ', fieldName)
+    console.log('fieldConfig = ', fieldConfig)
+  })
+
+  Object.entries(mutationFields).forEach(([fieldName, fieldConfig]) => {
+    console.log('fieldName = ', fieldName)
+    console.log('fieldConfig = ', fieldConfig)
   })
 
   // Count created Query, Mutation, and Subscription fields
@@ -620,7 +630,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
       )
     }
   })
-
+  console.log(schemaConfig.types)
   const schema = new GraphQLSchema(schemaConfig)
 
   return { schema, report: options.report }
@@ -719,13 +729,13 @@ function checkCustomResolversStructure<TSource, TContext, TArgs>(
   if (typeof customResolvers === 'object') {
     // Check that all OASs that are referenced in the customResolvers are provided
     Object.keys(customResolvers)
-      .filter(title => {
+      .filter((title) => {
         // If no OAS contains this title
-        return !data.oass.some(oas => {
+        return !data.oass.some((oas) => {
           return title === oas.info.title
         })
       })
-      .forEach(title => {
+      .forEach((title) => {
         handleWarning({
           mitigationType: MitigationTypes.CUSTOM_RESOLVER_UNKNOWN_OAS,
           message:
@@ -737,16 +747,16 @@ function checkCustomResolversStructure<TSource, TContext, TArgs>(
       })
 
     // TODO: Only run the following test on OASs that exist. See previous check.
-    Object.keys(customResolvers).forEach(title => {
+    Object.keys(customResolvers).forEach((title) => {
       // Get all operations from a particular OAS
-      const operations = Object.values(data.operations).filter(operation => {
+      const operations = Object.values(data.operations).filter((operation) => {
         return title === operation.oas.info.title
       })
 
-      Object.keys(customResolvers[title]).forEach(path => {
-        Object.keys(customResolvers[title][path]).forEach(method => {
+      Object.keys(customResolvers[title]).forEach((path) => {
+        Object.keys(customResolvers[title][path]).forEach((method) => {
           if (
-            !operations.some(operation => {
+            !operations.some((operation) => {
               return path === operation.path && method === operation.method
             })
           ) {
@@ -775,7 +785,7 @@ function preliminaryChecks<TSource, TContext, TArgs>(
   data: PreprocessingData<TSource, TContext, TArgs>
 ): void {
   // Check if OASs have unique titles
-  const titles = data.oass.map(oas => {
+  const titles = data.oass.map((oas) => {
     return oas.info.title
   })
 
@@ -784,7 +794,7 @@ function preliminaryChecks<TSource, TContext, TArgs>(
     titles.filter((title, index) => {
       return titles.indexOf(title) !== index
     })
-  ).forEach(title => {
+  ).forEach((title) => {
     handleWarning({
       mitigationType: MitigationTypes.MULTIPLE_OAS_SAME_TITLE,
       message: `Multiple OAS share the same title '${title}'`,

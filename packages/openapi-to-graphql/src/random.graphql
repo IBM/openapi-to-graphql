@@ -1,0 +1,978 @@
+type Query {
+  """
+  Equivalent to GET /v3/users/me/viewer/
+  """
+  v3UsersMeViewer: V3UsersMeViewer
+}
+
+type V3UsersMeViewer {
+  code: Int!
+  data: Data!
+  debugLogs: [JSON]
+  endpointName: EndpointName!
+  message: String!
+  messageDetail: String
+  sensitivity: JSON
+
+  """
+  An enumeration.
+  """
+  status: ResponseStatus!
+}
+
+"""
+No description available.
+"""
+union Data = UserCustom | UserDetailed | UserSummary
+
+"""
+Pinterest User.
+"""
+type UserCustom {
+  about: String
+  active: Boolean
+  adsCustomizeFromConversion: Boolean
+  ageInYears: Int
+  allowAnalyticCookies: Boolean
+  allowMarketingCookies: Boolean
+  allowPersonalizationCookies: Boolean
+  archivedBoardCount: Int
+  blockedByMe: Boolean
+  boardCount: Int
+  businesses: [BusinessesListItem]
+  canEnableMfa: Boolean
+  canUploadCover: Boolean
+  canonicalMerchantDomain: String
+  ccpaOptedOut: Boolean
+  commerceModuleData: JSON
+  communityDisplayName: String
+  connectedToDropbox: Boolean
+  connectedToEtsy: Boolean
+  connectedToFacebook: Boolean
+  connectedToGoogle: Boolean
+  connectedToGplus: Boolean
+  connectedToInstagram: Boolean
+  connectedToMicrosoft: Boolean
+  connectedToOldInstagramAuth: Boolean
+  connectedToRakuten: Boolean
+  connectedToTwitter: Boolean
+  connectedToYahoo: Boolean
+  connectedToYoutube: Boolean
+  contentClaimingAccess: Boolean
+  country: String
+  createdAt: String
+  customGender: String
+  debug: JSON
+  defaultPayment: JSON
+  defaultShipping: JSON
+  domainUrl: String
+  domainVerified: Boolean
+  email: String
+  excludeFromSearch: Boolean
+  explicitBoardFollowingCount: Int
+  explicitUserFollowingCount: Int
+  explicitlyFollowedByMe: Boolean
+  facebookId: String
+  facebookPublishStreamEnabled: Boolean
+  facebookTimelineEnabled: Boolean
+  facebookUrl: String
+  fastAdvertiserInfoHasAnyManagedAdvertisers: Boolean
+  firstName: String
+  followedByMe: Boolean
+  followerCount: Int
+  followingCount: Int
+  fullName: String
+  gender: String
+  gplusUrl: String
+  groupBoardCount: Int
+  hasCatalog: Boolean
+  hasCompletedQuiz: Boolean
+  hasCustomBoardSortingOrder: Boolean
+  hasDoneAppInstall: Boolean
+  hasDoneClickthrough: Boolean
+  hasDoneCloseup: Boolean
+  hasMfaEnabled: Boolean
+  hasPassword: Boolean
+  hasSeenNotifications: Boolean
+  hasShoppingShowcase: Boolean
+  hasShowcase: Boolean
+  id: String
+  imageLargeUrl: String
+  imageMediumUrl: String
+  imageSmallUrl: String
+  imageXlargeUrl: String
+  implicitlyFollowedByMe: Boolean
+  impressumUrl: String
+  indexed: Boolean
+  interestFollowingCount: Int
+  ipCountry: String
+  isAnyWebsiteVerified: Boolean
+  isDefaultImage: Boolean
+  isEligibleForShopTab: Boolean
+  isEmployee: Boolean
+  isGeoEligibleForCreatorMessaging: Boolean
+  isHighRisk: Boolean
+  isKnownFacebookUser: Boolean
+  isPartner: Boolean
+  isPrimaryWebsiteVerified: Boolean
+  isStoryPinCreator: Boolean
+  isTastemaker: Boolean
+  isThirdPartyAdsEnabled: Boolean
+  isVerifiedMerchant: Boolean
+  isWriteBanned: Boolean
+  joinedCommunitiesCount: Int
+  lastLoginCountry: String
+  lastName: String
+  lastPinDoneTime: String
+  lastPinLikeTime: String
+  lastPinSaveTime: String
+  likeCount: Int
+  listedWebsiteUrl: String
+  locale: String
+  location: String
+  merchantId: String
+  nativePinCount: Int
+  obfuscatedEmail: String
+  owner: Owner
+  partner: Partner
+  personalizeFromOffsiteBrowsing: Boolean
+  phoneCountry: String
+  phoneNumber: String
+  phoneNumberEnd: String
+  phoneNumberWithoutCountry: String
+  pinCount: Int
+  pinThumbnailUrls: [String]
+  pins: [PinsListItem]
+  pinsDoneCount: Int
+  ppaMerchantId: String
+  profileCoverSource: String
+  profileDiscoveredPublic: Boolean
+  profileReach: Int
+  profileUrl: String
+  profileViews: Int
+  pushPackageUserId: String
+  recommendationReason: String
+  repinsFrom: [RepinsFromListItem]
+  scheduledPinCount: Int
+  secretBoardCount: Int
+  secretBoardsRemaining: Int
+  shouldShowCreatorBubbles: Boolean
+  shouldShowHomefeedAds: Boolean
+  showCreatorProfile: Boolean
+  showDiscoveredFeed: Boolean
+  showEngagementTab: Boolean
+  showFollowingTab: Boolean
+  showImpressum: Boolean
+  storefrontManagementEnabled: Boolean
+  storefrontSearchEnabled: Boolean
+  storyPinCount: Int
+  subscribedToNotifications: Boolean
+  tag: String
+  thirdPartyAdUnitId: String
+  thirdPartyAdsConfig: JSON
+  thirdPartyAppId: String
+  thirdPartyMarketingTrackingEnabled: Boolean
+  triggerableExperiments: JSON
+  twitterPublishEnabled: Boolean
+  twitterUrl: String
+  type: String
+  unverifiedPhoneCountry: String
+  unverifiedPhoneNumber: String
+  unverifiedPhoneNumberWithoutCountry: String
+  userFollowingCount: Int
+  username: String
+  usmstate: String
+  verifiedDomains: [String]
+  verifiedUserWebsites: [String]
+  videoPinCount: Int
+  videoUploadAllowed: Boolean
+  videoViews: Int
+  websiteUrl: String
+}
+
+"""
+No description available.
+"""
+union BusinessesListItem = UserCustom | UserDetailed | UserSummary
+
+"""
+Pinterest User.
+"""
+type UserDetailed {
+  about: String!
+  active: Boolean
+  blockedByMe: Boolean
+  boardCount: Int
+  businesses: [BusinessesListItem]
+  canonicalMerchantDomain: String
+  commerceModuleData: JSON
+  createdAt: String
+  debug: JSON
+  domainUrl: String!
+  domainVerified: Boolean!
+  explicitlyFollowedByMe: Boolean
+  firstName: String
+  followedByMe: Boolean
+  followerCount: Int
+  followingCount: Int
+  fullName: String
+  gender: String
+  groupBoardCount: Int
+  hasCustomBoardSortingOrder: Boolean
+  id: String
+  imageLargeUrl: String
+  imageMediumUrl: String
+  imageSmallUrl: String
+  imageXlargeUrl: String
+  implicitlyFollowedByMe: Boolean
+  impressumUrl: String!
+  indexed: Boolean
+  isAnyWebsiteVerified: Boolean
+  isDefaultImage: Boolean!
+  isEmployee: Boolean
+  isGeoEligibleForCreatorMessaging: Boolean
+  isPartner: Boolean
+  isPrimaryWebsiteVerified: Boolean
+  isStoryPinCreator: Boolean
+  isVerifiedMerchant: Boolean
+  lastLoginCountry: String
+  lastName: String
+  lastPinLikeTime: String
+  lastPinSaveTime: String
+  likeCount: Int
+  listedWebsiteUrl: String
+  location: String!
+  merchantId: String
+  nativePinCount: Int
+  obfuscatedEmail: String
+  partner: Partner!
+  pinCount: Int
+  pinThumbnailUrls: [String]
+  pinsDoneCount: Int
+  profileCoverSource: String
+  profileDiscoveredPublic: Boolean
+  profileReach: Int
+  profileViews: Int
+  recommendationReason: String
+  repinsFrom: [RepinsFromListItem]!
+  shouldShowCreatorBubbles: Boolean
+  showCreatorProfile: Boolean
+  showDiscoveredFeed: Boolean
+  showImpressum: Boolean!
+  subscribedToNotifications: Boolean
+  tag: String
+  type: String
+  userFollowingCount: Int
+  username: String!
+  verifiedDomains: [String]
+  verifiedUserWebsites: [String]
+  websiteUrl: String
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON
+  @specifiedBy(
+    url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf"
+  )
+
+"""
+No description available.
+"""
+union Partner = PartnerCustom | PartnerDetailed | PartnerSummary
+
+"""
+A Pinterest Partner. A partner is an 'upgraded' user that uses Pinterest
+    for commercial purposes. The partner model is linked to the user managing
+    the partner account and contains additional business-related fields.
+"""
+type PartnerCustom {
+  advertisingIntent: Int
+  autoFollowAllowed: Boolean
+  bizOwnershipEmail: String
+  bizOwnershipStatus: String
+  businessName: String
+  contactEmail: String
+  contactName: String
+  contactPhone: String
+  createdAt: String
+  enableProfileAddress: Boolean
+  enableProfileMessage: Boolean
+  id: String
+  isBusinessAgency: Boolean
+  isConvert: Boolean
+  isCreate: Boolean
+  isLinkedBusiness: Boolean
+  isShopifyInstalled: Boolean
+  profilePlaceId: Int
+  type: String
+}
+
+"""
+A Pinterest Partner. A partner is an 'upgraded' user that uses Pinterest
+    for commercial purposes. The partner model is linked to the user managing
+    the partner account and contains additional business-related fields.
+"""
+type PartnerDetailed {
+  advertisingIntent: Int
+  autoFollowAllowed: Boolean!
+  bizOwnershipEmail: String
+  bizOwnershipStatus: String
+  businessName: String!
+  contactEmail: String!
+  contactName: String!
+  contactPhone: String!
+  createdAt: String!
+  enableProfileAddress: Boolean!
+  enableProfileMessage: Boolean!
+  id: String
+  isBusinessAgency: Boolean!
+  isConvert: Boolean
+  isCreate: Boolean!
+  isLinkedBusiness: Boolean!
+  isShopifyInstalled: Boolean
+  profilePlaceId: Int!
+  type: String
+}
+
+"""
+A Pinterest Partner. A partner is an 'upgraded' user that uses Pinterest
+    for commercial purposes. The partner model is linked to the user managing
+    the partner account and contains additional business-related fields.
+"""
+type PartnerSummary {
+  advertisingIntent: Int
+  autoFollowAllowed: Boolean!
+  businessName: String!
+  contactName: String!
+  createdAt: String!
+  enableProfileAddress: Boolean!
+  enableProfileMessage: Boolean!
+  id: String
+  isBusinessAgency: Boolean!
+  isConvert: Boolean
+  isCreate: Boolean!
+  isLinkedBusiness: Boolean!
+  type: String
+}
+
+"""
+No description available.
+"""
+union RepinsFromListItem = UserCustom | UserDetailed | UserSummary
+
+"""
+Pinterest User.
+"""
+type UserSummary {
+  firstName: String
+  fullName: String
+  gender: String
+  id: String
+  imageLargeUrl: String
+  imageMediumUrl: String
+  imageSmallUrl: String
+  imageXlargeUrl: String
+  lastName: String
+  type: String
+  username: String!
+}
+
+"""
+No description available.
+"""
+union Owner = UserCustom | UserDetailed | UserSummary
+
+"""
+No description available.
+"""
+union PinsListItem = PinCustom | PinDetailed | PinSummary
+
+"""
+Pin object
+"""
+type PinCustom {
+  activityTimestamp: Int
+  adDestinationUrl: String
+  aggregatedPinData: AggregatedPinData
+  altText: String
+  analytics: JSON
+  autoAltText: String
+  board: Board
+  buyableProduct: String
+  cacheableId: String
+  canDeleteDidItAndComments: Boolean
+  canonicalMerchantDomain: String
+  canonicalMerchantName: String
+  canonicalPin: String
+  categoryP2i: Int
+  clientId: String
+  closeupAttribution: JSON
+  closeupDescription: String
+  closeupUnifiedDescription: String
+  closeupUnifiedTitle: String
+  closeupUserNote: String
+  collagePinId: String
+  collectionDataId: String
+  commentCount: Int
+  commentsDisabled: Boolean
+  complementaryPins: [ComplementaryPinsListItem]
+  contentSensitivity: JSON
+  createdAt: String
+  creatorAnalytics: JSON
+  ctaText: String
+  darkProfileLink: String
+  debAds: [String]
+  debAllSignals: [String]
+  debContentQuality: [String]
+  debInclusiveProduct: [String]
+  debShopping: [String]
+  debTrustAndSafety: [String]
+  debug: JSON
+  debugInfoHtml: String
+  description: String
+  descriptionHtml: String
+  didItDisabled: Boolean
+  domain: String
+  dominantColor: String
+  doneByBoardContributors: Boolean
+  doneByMe: Boolean
+  editedFields: [String]
+  favoriteUserCount: Int
+  favoritedByMe: Boolean
+  filteredVisualObjects: [String]
+  gridDescription: String
+  gridTitle: String
+  gridTitleAdsExperiment: String
+  hasBadCategory: Boolean
+  hasBeenPromoted: Boolean
+  hasMaleCategory: Boolean
+  hasRequiredAttributionProvider: Boolean
+  hashtags: [String]
+  headlineText: String
+  id: String
+  influencerPinStats: JSON
+  isBestTriedIt: Boolean
+  isBlocked: Boolean
+  isCinematic: Boolean
+  isCpcAd: Boolean
+  isDownstreamPromotion: Boolean
+  isEligibleForAggregatedComments: Boolean
+  isEligibleForBrandCatalog: Boolean
+  isEligibleForCta: Boolean
+  isEligibleForFlashlightShopping: Boolean
+  isEligibleForPdp: Boolean
+  isEligibleForRelatedProducts: Boolean
+  isEligibleForResponses: Boolean
+  isEligibleForReverseStela: Boolean
+  isEligibleForStelaCategories: Boolean
+  isEligibleForWebCloseup: Boolean
+  isFullWidth: Boolean
+  isGhost: Boolean
+  isHidden: Boolean
+  isNative: Boolean
+  isNativeVideo: Boolean
+  isOosProduct: Boolean
+  isPlayable: Boolean
+  isPornDomain: Boolean
+  isPostReranked: Boolean
+  isPrefetchEnabled: Boolean
+  isPromotable: Boolean
+  isPromoted: Boolean
+  isQuickPromotable: Boolean
+  isQuickPromotableByPinner: Boolean
+  isRepin: Boolean
+  isScene: Boolean
+  isShoppingAd: Boolean
+  isSpamDomain: Boolean
+  isStaleProduct: Boolean
+  isUploaded: Boolean
+  isVideo: Boolean
+  isVirtualTryOn: Boolean
+  isWhitelistedForTriedIt: Boolean
+  lastRepinDate: String
+  likeCount: Int
+  likedByMe: Boolean
+  link: String
+  linkUserWebsite: JSON
+  manualInterestTags: JSON
+  matchedUserInterest: String
+  mobileLink: String
+  multipleLinks: [String]
+  nativeCreator: NativeCreator
+  nativePinStats: String
+  originPin: OriginPin
+  originPinner: OriginPinner
+  parentPin: ParentPin
+  pinStats: JSON
+  pinnedToBoard: JSON
+  pinner: Pinner
+  place: String
+  placeSummary: String
+  prefetchAssetUrls: [String]
+  priceCurrency: String
+  priceValue: Float
+  promotedAndroidDeepLink: String
+  promotedIosDeepLink: String
+  promotedIsCongruencyEnabled: Boolean
+  promotedIsMaxVideo: Boolean
+  promotedIsOpaqueOnetapEnabled: Boolean
+  promotedIsRemovable: Boolean
+  promotedPosition: Int
+  promoter: Promoter
+  reactionCounts: JSON
+  repinCount: Int
+  requiresAdvertiserAttribution: Boolean
+  richMerchantName: String
+  rootPinId: String
+  sceneData: JSON
+  searchQuery: String
+  shareableUrl: String
+  shoppingFlags: [Int]
+  shouldAutoplay: Boolean
+  shouldPrefetch: Boolean
+  shouldPreload: Boolean
+  sourceType: String
+  storyPinDataId: String
+  subscribedToNotifications: Boolean
+  thirdPartyPinOwner: JSON
+  title: String
+  totalReactionCount: Int
+  trackedLink: String
+  trackingParams: String
+  type: String
+  unifiedUserNote: String
+  urlWithText: String
+  viaPinner: ViaPinner
+  videoSignature: String
+  videos: JSON
+  visualSearchAttrs: JSON
+}
+
+"""
+No description available.
+"""
+union AggregatedPinData =
+    AggregatedPinDataCustom
+  | AggregatedPinDataDetailed
+  | AggregatedPinDataSummary
+
+"""
+A model that represents aggregated data of Pins with the same link
+and image signature.
+"""
+type AggregatedPinDataCustom {
+  isDynamicCollections: Boolean
+  isShopTheLook: Boolean
+  isStela: Boolean
+}
+
+"""
+A model that represents aggregated data of Pins with the same link
+and image signature.
+"""
+type AggregatedPinDataDetailed {
+  isDynamicCollections: Boolean
+  isShopTheLook: Boolean
+  isStela: Boolean
+}
+
+"""
+A model that represents aggregated data of Pins with the same link
+and image signature.
+"""
+type AggregatedPinDataSummary {
+  isShopTheLook: Boolean
+}
+
+"""
+No description available.
+"""
+union Board = BoardCustom | BoardDetailed | BoardSummary
+
+"""
+Represents an instance of a Board.
+"""
+type BoardCustom {
+  allowHomefeedRecommendations: Boolean
+  annotations: [String]
+  archivedByMeAt: String
+  boardActivityCount: Int
+  boardNoteCount: Int
+  boardOrderModifiedAt: String
+  boardOwnerHasActiveAds: Boolean
+  collabBoardEmail: Boolean
+  collaboratedByMe: Boolean
+  collaboratingUsers: [CollaboratingUsersListItem]
+  collaboratorCount: Int
+  collaboratorInvitesEnabled: Boolean
+  collaboratorPermissions: [Int]
+  collaboratorPermissionsSetting: Int
+  collaboratorRequestsEnabled: Boolean
+  conversation: String
+  cover: Cover
+  createdAt: String
+  debug: String
+  description: String
+  eventDate: String
+  eventStartDate: String
+  followedByMe: Boolean
+  followerCount: Int
+  hasActiveAds: Boolean
+  hasCustomCover: Boolean
+  hasFreshMoreIdeasTab: Boolean
+  hasNewActivity: Boolean
+  hasPendingInvite: Boolean
+  id: String
+  ideasDeepLinkUrl: String
+  ideasUrl: String
+  imageCoverHdUrl: String
+  imageCoverUrl: String
+  imageThumbnailUrl: String
+  isCollaborative: Boolean
+  isEligibleForHomefeedTabs: Boolean
+  isEligibleForSeasonalShareTreatment: Boolean
+  mapId: String
+  name: String
+  owner: JSON
+  pinCount: Int
+  pins: [PinsListItem]
+  placeRecsCount: Int
+  placeSavesCount: Int
+  placesEnabled: Boolean
+  promoter: Promoter
+  protected: Boolean
+  recommendationReason: String
+  sectionCount: Int
+  sectionlessPinCount: Int
+  sensitivity: String
+  shouldShowBoardActivity: Boolean
+  shouldShowMoreIdeas: Boolean
+  shouldShowShopFeed: Boolean
+  subscribedToNotifications: Boolean
+  topic: String
+  type: String
+  url: String
+  viewerCollaboratorJoinRequested: Boolean
+}
+
+"""
+No description available.
+"""
+union CollaboratingUsersListItem = UserCustom | UserDetailed | UserSummary
+
+"""
+No description available.
+"""
+union Cover = UserCustom | UserDetailed | UserSummary
+
+"""
+No description available.
+"""
+union Promoter = UserCustom | UserDetailed | UserSummary
+
+"""
+Represents an instance of a Board.
+"""
+type BoardDetailed {
+  allowHomefeedRecommendations: Boolean
+  boardActivityCount: Int
+  boardNoteCount: Int
+  boardOrderModifiedAt: String!
+  collabBoardEmail: Boolean
+  collaboratedByMe: Boolean
+  collaboratingUsers: [CollaboratingUsersListItem]!
+  collaboratorCount: Int
+  collaboratorInvitesEnabled: Boolean!
+  collaboratorPermissions: [Int]
+  collaboratorPermissionsSetting: Int
+  collaboratorRequestsEnabled: Boolean!
+  conversation: String
+  cover: Cover
+  createdAt: String
+  debug: String
+  description: String!
+  eventDate: String!
+  eventStartDate: String!
+  followedByMe: Boolean
+  followerCount: Int
+  hasPendingInvite: Boolean
+  id: String
+  ideasUrl: String
+  imageCoverHdUrl: String
+  imageCoverUrl: String
+  imageThumbnailUrl: String
+  isCollaborative: Boolean
+  isEligibleForSeasonalShareTreatment: Boolean
+  mapId: String
+  name: String!
+  owner: Owner!
+  pinCount: Int
+  pins: [PinsListItem]!
+  promoter: Promoter!
+  recommendationReason: String
+  sensitivity: String
+  shouldShowBoardActivity: Boolean
+  shouldShowShopFeed: Boolean
+  topic: String
+  type: String
+  url: String
+  viewerCollaboratorJoinRequested: Boolean
+}
+
+"""
+Represents an instance of a Board.
+"""
+type BoardSummary {
+  boardOrderModifiedAt: String!
+  collaboratedByMe: Boolean
+  createdAt: String
+  followedByMe: Boolean
+  id: String
+  imageThumbnailUrl: String
+  isCollaborative: Boolean
+  name: String!
+  type: String
+  url: String
+}
+
+"""
+No description available.
+"""
+union ComplementaryPinsListItem = PinCustom | PinDetailed | PinSummary
+
+"""
+Pin object
+"""
+type PinDetailed {
+  activityTimestamp: Int
+  adDestinationUrl: String
+  altText: String!
+  analytics: JSON
+  autoAltText: String
+  board: Board
+  cacheableId: String
+  canDeleteDidItAndComments: Boolean
+  canonicalMerchantName: String
+  clientId: String
+  closeupAttribution: JSON
+  closeupDescription: String
+  closeupUnifiedDescription: String
+  closeupUnifiedTitle: String
+  closeupUserNote: String
+  collagePinId: String
+  collectionDataId: String
+  commentCount: Int
+  commentsDisabled: Boolean
+  contentSensitivity: JSON
+  createdAt: String!
+  ctaText: String
+  darkProfileLink: String
+  debAds: [String]
+  debAllSignals: [String]
+  debContentQuality: [String]
+  debInclusiveProduct: [String]
+  debShopping: [String]
+  debTrustAndSafety: [String]
+  debug: JSON
+  debugInfoHtml: String!
+  description: String
+  didItDisabled: Boolean
+  didIts: [DidItsListItem]!
+  domain: String
+  dominantColor: String
+  doneByBoardContributors: Boolean
+  editedFields: [String]
+  filteredVisualObjects: [String]
+  gridDescription: String
+  gridTitle: String
+  gridTitleAdsExperiment: String
+  hasBeenPromoted: Boolean!
+  hasRequiredAttributionProvider: Boolean
+  hashtags: [String]
+  headlineText: String
+  id: String
+  imageDidItCount: Int
+  imageLargeUrl: String
+  imageMediumUrl: String
+  imageSignature: String!
+  imageSquareUrl: String
+  influencerPinStats: JSON
+  isBestTriedIt: Boolean
+  isBlocked: Boolean
+  isCpcAd: Boolean
+  isDownstreamPromotion: Boolean!
+  isEligibleForBrandCatalog: Boolean
+  isEligibleForCta: Boolean
+  isEligibleForWebCloseup: Boolean
+  isFullWidth: Boolean
+  isGhost: Boolean
+  isHidden: Boolean!
+  isNative: Boolean!
+  isOosProduct: Boolean
+  isPlayable: Boolean!
+  isPornDomain: Boolean
+  isPrefetchEnabled: Boolean
+  isPromotable: Boolean
+  isPromoted: Boolean
+  isQuickPromotable: Boolean
+  isQuickPromotableByPinner: Boolean
+  isRepin: Boolean!
+  isScene: Boolean!
+  isShoppingAd: Boolean!
+  isSpamDomain: Boolean
+  isStaleProduct: Boolean
+  isUploaded: Boolean!
+  isVideo: Boolean!
+  isWhitelistedForTriedIt: Boolean
+  lastRepinDate: String
+  likeCount: Int
+  likedByMe: Boolean
+  link: String
+  linkUserWebsite: JSON!
+  manualInterestTags: JSON
+  matchedUserInterest: String!
+  multipleLinks: [String]
+  nativeCreator: NativeCreator!
+  nativePinStats: String
+  originPin: OriginPin
+  originPinner: OriginPinner!
+  parentPin: ParentPin
+  pinStats: JSON
+  pinner: Pinner
+  prefetchAssetUrls: [String]
+  priceCurrency: String
+  priceValue: Float!
+  promotedAndroidDeepLink: String
+  promotedIosDeepLink: String
+  promotedIsCongruencyEnabled: Boolean
+  promotedIsMaxVideo: Boolean
+  promotedIsOpaqueOnetapEnabled: Boolean
+  promotedIsRemovable: Boolean!
+  promotedPosition: Int
+  promoter: Promoter
+  repinCount: Int!
+  requiresAdvertiserAttribution: Boolean
+  sceneData: JSON
+  searchQuery: String
+  shareableUrl: String
+  shoppingFlags: [Int]
+  shouldAutoplay: Boolean!
+  shouldPrefetch: Boolean
+  shouldPreload: Boolean
+  sourceType: String
+  storyPinDataId: String
+  thirdPartyPinOwner: JSON
+  title: String!
+  trackedLink: String
+  trackingParams: String
+  type: String
+  unifiedUserNote: String
+  viaPinner: ViaPinner!
+  videos: JSON
+  visualSearchAttrs: JSON
+}
+
+"""
+No description available.
+"""
+union DidItsListItem =
+    UserDidItDataCustom
+  | UserDidItDataDetailed
+  | UserDidItDataSummary
+
+"""
+A model that represents the "did it" actions recorded by a User
+for a particular AggregatedPinData model.
+"""
+type UserDidItDataCustom {
+  helpfulCount: Int
+  markedHelpfulByMe: Boolean
+}
+
+"""
+A model that represents the "did it" actions recorded by a User
+for a particular AggregatedPinData model.
+"""
+type UserDidItDataDetailed {
+  helpfulCount: Int!
+  markedHelpfulByMe: Boolean
+}
+
+"""
+A model that represents the "did it" actions recorded by a User
+for a particular AggregatedPinData model.
+"""
+type UserDidItDataSummary {
+  helpfulCount: Int!
+  markedHelpfulByMe: Boolean
+}
+
+"""
+No description available.
+"""
+union NativeCreator = UserCustom | UserDetailed | UserSummary
+
+"""
+No description available.
+"""
+union OriginPin = PinCustom | PinDetailed | PinSummary
+
+"""
+Pin object
+"""
+type PinSummary {
+  cacheableId: String
+  commentCount: Int
+  createdAt: String!
+  description: String
+  domain: String
+  id: String
+  imageLargeUrl: String
+  imageMediumUrl: String
+  imageSquareUrl: String
+  isDownstreamPromotion: Boolean!
+  isPlayable: Boolean!
+  isRepin: Boolean!
+  isUploaded: Boolean!
+  isVideo: Boolean!
+  link: String
+  priceCurrency: String
+  priceValue: Float!
+  promoter: Promoter
+  repinCount: Int!
+  title: String!
+  trackedLink: String
+  trackingParams: String
+  type: String
+}
+
+"""
+No description available.
+"""
+union OriginPinner = UserCustom | UserDetailed | UserSummary
+
+"""
+No description available.
+"""
+union ParentPin = PinCustom | PinDetailed | PinSummary
+
+"""
+No description available.
+"""
+union Pinner = UserCustom | UserDetailed | UserSummary
+
+"""
+No description available.
+"""
+union ViaPinner = UserCustom | UserDetailed | UserSummary
+
+enum EndpointName {
+  V3_GET_CURRENT_USER_HANDLER
+}
+
+enum ResponseStatus {
+  SUCCESS
+  FAILURE
+}

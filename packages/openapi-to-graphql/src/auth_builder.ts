@@ -37,7 +37,7 @@ type Viewer<TSource, TContext, TArgs> = {
   description: string
 }
 
-const translationLog = debug('translation')
+const translationLog = console.log
 
 /**
  * Load the field object in the appropriate root object

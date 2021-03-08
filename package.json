@@ -2,7 +2,8 @@
   "name": "openapi-to-graphql-root",
   "private": true,
   "scripts": {
-    "test": "cd packages/openapi-to-graphql/ && npm test"
+    "test": "cd packages/openapi-to-graphql/ && npm test",
+    "test_person": "cd packages/openapi-to-graphql/ && npm test -- test/person.test.ts"
   },
   "devDependencies": {
     "lerna": "^3.22.1"

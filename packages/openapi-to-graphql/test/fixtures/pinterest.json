@@ -1,0 +1,4198 @@
+{
+  "components": {
+    "schemas": {
+      "Accept_Language": {
+        "type": "string"
+      },
+      "User": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/ResponseStatus"
+          },
+          {
+            "$ref": "#/components/schemas/Accept_Language"
+          }
+        ]
+      },
+      "ApiEnvelope": {
+        "properties": {
+          "code": {
+            "title": "Code",
+            "type": "integer"
+          },
+          "data": {
+            "oneOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "items": {},
+                "type": "array"
+              }
+            ],
+            "title": "Data"
+          },
+          "debug_logs": {
+            "items": {
+              "type": "object"
+            },
+            "title": "Debug Logs",
+            "type": "array"
+          },
+          "endpoint_name": {
+            "title": "Endpoint Name",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "message_detail": {
+            "title": "Message Detail",
+            "type": "string"
+          },
+          "sensitivity": {
+            "title": "Sensitivity",
+            "type": "object"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResponseStatus"
+          }
+        },
+        "required": ["status", "code", "data", "message", "endpoint_name"],
+        "title": "ApiEnvelope",
+        "type": "object"
+      },
+      "BoardCustom": {
+        "description": "Represents an instance of a Board.",
+        "properties": {
+          "allow_homefeed_recommendations": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "annotations": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "archived_by_me_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "board_activity_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "board_note_count": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "board_order_modified_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "board_owner_has_active_ads": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "collab_board_email": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "collaborated_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "collaborating_users": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            }
+          },
+          "collaborator_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "collaborator_invites_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "collaborator_permissions": {
+            "items": {
+              "type": "integer"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "collaborator_permissions_setting": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "collaborator_requests_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "conversation": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "cover": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "created_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "debug": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "event_date": {
+            "nullable": true,
+            "type": "string"
+          },
+          "event_start_date": {
+            "nullable": true,
+            "type": "string"
+          },
+          "followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "follower_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "has_active_ads": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "has_custom_cover": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_fresh_more_ideas_tab": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_new_activity": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_pending_invite": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "ideas_deep_link_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "ideas_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_cover_hd_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image_cover_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image_thumbnail_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "is_collaborative": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_homefeed_tabs": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_eligible_for_seasonal_share_treatment": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "map_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "owner": {
+            "nullable": true,
+            "$ref": "#/components/schemas/User"
+          },
+          "pin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "pins": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PinCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/PinDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/PinSummary"
+                }
+              ]
+            }
+          },
+          "place_recs_count": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "place_saves_count": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "places_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoter": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "protected": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "recommendation_reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "section_count": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "sectionless_pin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "sensitivity": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "should_show_board_activity": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "should_show_more_ideas": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "should_show_shop_feed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "subscribed_to_notifications": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "topic": {
+            "nullable": true,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          },
+          "url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "viewer_collaborator_join_requested": {
+            "nullable": false,
+            "type": "boolean"
+          }
+        },
+        "title": "Board with custom keys",
+        "type": "object"
+      },
+      "BoardDetailed": {
+        "description": "Represents an instance of a Board.",
+        "properties": {
+          "allow_homefeed_recommendations": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "board_activity_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "board_note_count": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "board_order_modified_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "collab_board_email": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "collaborated_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "collaborating_users": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            }
+          },
+          "collaborator_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "collaborator_invites_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "collaborator_permissions": {
+            "items": {
+              "type": "integer"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "collaborator_permissions_setting": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "collaborator_requests_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "conversation": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "cover": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "created_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "debug": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "event_date": {
+            "nullable": true,
+            "type": "string"
+          },
+          "event_start_date": {
+            "nullable": true,
+            "type": "string"
+          },
+          "followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "follower_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "has_pending_invite": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "ideas_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_cover_hd_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image_cover_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image_thumbnail_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "is_collaborative": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_seasonal_share_treatment": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "map_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "owner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "pin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "pins": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PinCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/PinDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/PinSummary"
+                }
+              ]
+            }
+          },
+          "promoter": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "recommendation_reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "sensitivity": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "should_show_board_activity": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "should_show_shop_feed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "topic": {
+            "nullable": true,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          },
+          "url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "viewer_collaborator_join_requested": {
+            "nullable": false,
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "board_order_modified_at",
+          "category",
+          "collaborating_users",
+          "collaborator_invites_enabled",
+          "collaborator_requests_enabled",
+          "description",
+          "event_date",
+          "event_start_date",
+          "interests",
+          "name",
+          "owner",
+          "pins",
+          "promoter"
+        ],
+        "title": "Board with detailed keys",
+        "type": "object"
+      },
+      "BoardSummary": {
+        "description": "Represents an instance of a Board.",
+        "properties": {
+          "board_order_modified_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "collaborated_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "created_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_thumbnail_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "is_collaborative": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          },
+          "url": {
+            "nullable": false,
+            "type": "string"
+          }
+        },
+        "required": ["board_order_modified_at", "category", "name"],
+        "title": "Board with summary keys",
+        "type": "object"
+      },
+      "PartnerCustom": {
+        "description": "A Pinterest Partner. A partner is an 'upgraded' user that uses Pinterest\n    for commercial purposes. The partner model is linked to the user managing\n    the partner account and contains additional business-related fields.",
+        "properties": {
+          "advertising_intent": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "auto_follow_allowed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "biz_ownership_email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "biz_ownership_status": {
+            "nullable": true,
+            "type": "string"
+          },
+          "business_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "contact_email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "contact_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "contact_phone": {
+            "nullable": false,
+            "type": "string"
+          },
+          "created_at": {
+            "nullable": false,
+            "type": "string"
+          },
+          "enable_profile_address": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "enable_profile_message": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "is_business_agency": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_convert": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_create": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_linked_business": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_shopify_installed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "profile_place_id": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          }
+        },
+        "title": "Partner with custom keys",
+        "type": "object"
+      },
+      "PartnerDetailed": {
+        "description": "A Pinterest Partner. A partner is an 'upgraded' user that uses Pinterest\n    for commercial purposes. The partner model is linked to the user managing\n    the partner account and contains additional business-related fields.",
+        "properties": {
+          "advertising_intent": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "auto_follow_allowed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "biz_ownership_email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "biz_ownership_status": {
+            "nullable": true,
+            "type": "string"
+          },
+          "business_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "contact_email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "contact_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "contact_phone": {
+            "nullable": false,
+            "type": "string"
+          },
+          "created_at": {
+            "nullable": false,
+            "type": "string"
+          },
+          "enable_profile_address": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "enable_profile_message": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "is_business_agency": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_convert": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_create": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_linked_business": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_shopify_installed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "profile_place_id": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_type",
+          "auto_follow_allowed",
+          "business_goals",
+          "business_name",
+          "contact_email",
+          "contact_name",
+          "contact_phone",
+          "created_at",
+          "enable_profile_address",
+          "enable_profile_message",
+          "is_business_agency",
+          "is_create",
+          "is_linked_business",
+          "profile_place",
+          "profile_place_id",
+          "selected_ecommerce_platforms",
+          "third_party_apps"
+        ],
+        "title": "Partner with detailed keys",
+        "type": "object"
+      },
+      "PartnerSummary": {
+        "description": "A Pinterest Partner. A partner is an 'upgraded' user that uses Pinterest\n    for commercial purposes. The partner model is linked to the user managing\n    the partner account and contains additional business-related fields.",
+        "properties": {
+          "advertising_intent": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "auto_follow_allowed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "business_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "contact_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "created_at": {
+            "nullable": false,
+            "type": "string"
+          },
+          "enable_profile_address": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "enable_profile_message": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "is_business_agency": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_convert": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_create": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_linked_business": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          }
+        },
+        "required": [
+          "account_type",
+          "auto_follow_allowed",
+          "business_goals",
+          "business_name",
+          "contact_name",
+          "created_at",
+          "enable_profile_address",
+          "enable_profile_message",
+          "is_business_agency",
+          "is_create",
+          "is_linked_business",
+          "selected_ecommerce_platforms",
+          "third_party_apps"
+        ],
+        "title": "Partner with summary keys",
+        "type": "object"
+      },
+      "PinCustom": {
+        "description": "Pin object",
+        "properties": {
+          "activity_timestamp": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "ad_destination_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "aggregated_pin_data": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/AggregatedPinDataCustom"
+              },
+              {
+                "$ref": "#/components/schemas/AggregatedPinDataDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/AggregatedPinDataSummary"
+              }
+            ]
+          },
+          "alt_text": {
+            "nullable": true,
+            "type": "string"
+          },
+          "analytics": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "auto_alt_text": {
+            "nullable": true,
+            "type": "string"
+          },
+          "board": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BoardCustom"
+              },
+              {
+                "$ref": "#/components/schemas/BoardDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/BoardSummary"
+              }
+            ]
+          },
+          "buyable_product": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "cacheable_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "can_delete_did_it_and_comments": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "canonical_merchant_domain": {
+            "nullable": true,
+            "type": "string"
+          },
+          "canonical_merchant_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "canonical_pin": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "category_p2i": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "client_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeup_attribution": {
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "closeup_description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeup_unified_description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeup_unified_title": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeup_user_note": {
+            "nullable": true,
+            "type": "string"
+          },
+          "collage_pin_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "collection_data_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "comment_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "comments_disabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "complementary_pins": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PinCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/PinDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/PinSummary"
+                }
+              ]
+            }
+          },
+          "content_sensitivity": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "created_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "creator_analytics": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "cta_text": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dark_profile_link": {
+            "nullable": false,
+            "type": "string"
+          },
+          "deb_ads": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_all_signals": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_content_quality": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_inclusive_product": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_shopping": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_trust_and_safety": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "debug": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "debug_info_html": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description_html": {
+            "nullable": false,
+            "type": "string"
+          },
+          "did_it_disabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "domain": {
+            "nullable": false,
+            "type": "string"
+          },
+          "dominant_color": {
+            "nullable": true,
+            "type": "string"
+          },
+          "done_by_board_contributors": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "done_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "edited_fields": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "favorite_user_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "favorited_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "filtered_visual_objects": {
+            "deprecated": true,
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "grid_description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "grid_title": {
+            "nullable": false,
+            "type": "string"
+          },
+          "grid_title_ads_experiment": {
+            "nullable": false,
+            "type": "string"
+          },
+          "has_bad_category": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "has_been_promoted": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_male_category": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "has_required_attribution_provider": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "hashtags": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "headline_text": {
+            "nullable": false,
+            "type": "string"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "influencer_pin_stats": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "is_best_tried_it": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_blocked": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_cinematic": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_cpc_ad": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_downstream_promotion": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_aggregated_comments": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_brand_catalog": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_cta": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_flashlight_shopping": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_pdp": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_related_products": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_responses": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_reverse_stela": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_stela_categories": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_web_closeup": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_full_width": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_ghost": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_hidden": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_native": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_native_video": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_oos_product": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_playable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_porn_domain": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_post_reranked": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_prefetch_enabled": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_promotable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_promoted": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_quick_promotable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_quick_promotable_by_pinner": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_repin": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_scene": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_shopping_ad": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_spam_domain": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_stale_product": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_uploaded": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_video": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_virtual_try_on": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_whitelisted_for_tried_it": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "last_repin_date": {
+            "nullable": true,
+            "type": "string"
+          },
+          "like_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "liked_by_me": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "link_user_website": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserWebsiteCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserWebsiteDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserWebsiteSummary"
+              }
+            ]
+          },
+          "manual_interest_tags": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "matched_user_interest": {
+            "nullable": true,
+            "type": "string"
+          },
+          "mobile_link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "multiple_links": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "native_creator": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "native_pin_stats": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "origin_pin": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PinCustom"
+              },
+              {
+                "$ref": "#/components/schemas/PinDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/PinSummary"
+              }
+            ]
+          },
+          "origin_pinner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "parent_pin": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PinCustom"
+              },
+              {
+                "$ref": "#/components/schemas/PinDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/PinSummary"
+              }
+            ]
+          },
+          "pin_stats": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "pinned_to_board": {
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/BoardCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/BoardDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/BoardSummary"
+                }
+              ]
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "pinner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "place": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "place_summary": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "prefetch_asset_urls": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "price_currency": {
+            "nullable": false,
+            "type": "string"
+          },
+          "price_value": {
+            "nullable": false,
+            "type": "number"
+          },
+          "promoted_android_deep_link": {
+            "nullable": false,
+            "type": "string"
+          },
+          "promoted_ios_deep_link": {
+            "nullable": false,
+            "type": "string"
+          },
+          "promoted_is_congruency_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoted_is_max_video": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoted_is_opaque_onetap_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoted_is_removable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoted_position": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "promoter": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "reaction_counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "repin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "requires_advertiser_attribution": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "rich_merchant_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "root_pin_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "scene_data": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "search_query": {
+            "nullable": true,
+            "type": "string"
+          },
+          "shareable_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "shopping_flags": {
+            "items": {
+              "type": "integer"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "should_autoplay": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "should_prefetch": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "should_preload": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "source_type": {
+            "nullable": true,
+            "type": "string"
+          },
+          "story_pin_data_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "subscribed_to_notifications": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "third_party_pin_owner": {
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "title": {
+            "nullable": true,
+            "type": "string"
+          },
+          "total_reaction_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "tracked_link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "tracking_params": {
+            "nullable": true,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          },
+          "unified_user_note": {
+            "nullable": true,
+            "type": "string"
+          },
+          "url_with_text": {
+            "nullable": false,
+            "type": "string"
+          },
+          "via_pinner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "video_signature": {
+            "nullable": true,
+            "type": "string"
+          },
+          "videos": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/VideoCustom"
+              },
+              {
+                "$ref": "#/components/schemas/VideoDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/VideoSummary"
+              }
+            ]
+          },
+          "visual_search_attrs": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "object"
+          }
+        },
+        "title": "Pin with custom keys",
+        "type": "object"
+      },
+      "PinDetailed": {
+        "description": "Pin object",
+        "properties": {
+          "activity_timestamp": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "ad_destination_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "alt_text": {
+            "nullable": true,
+            "type": "string"
+          },
+          "analytics": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "auto_alt_text": {
+            "nullable": true,
+            "type": "string"
+          },
+          "board": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/BoardCustom"
+              },
+              {
+                "$ref": "#/components/schemas/BoardDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/BoardSummary"
+              }
+            ]
+          },
+          "cacheable_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "can_delete_did_it_and_comments": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "canonical_merchant_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "client_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeup_attribution": {
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "closeup_description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeup_unified_description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeup_unified_title": {
+            "nullable": true,
+            "type": "string"
+          },
+          "closeup_user_note": {
+            "nullable": true,
+            "type": "string"
+          },
+          "collage_pin_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "collection_data_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "comment_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "comments_disabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "content_sensitivity": {
+            "additionalProperties": {
+              "type": "boolean"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "created_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "cta_text": {
+            "nullable": true,
+            "type": "string"
+          },
+          "dark_profile_link": {
+            "nullable": false,
+            "type": "string"
+          },
+          "deb_ads": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_all_signals": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_content_quality": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_inclusive_product": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_shopping": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "deb_trust_and_safety": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "debug": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "debug_info_html": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "did_it_disabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "did_its": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserDidItDataCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDidItDataDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDidItDataSummary"
+                }
+              ]
+            }
+          },
+          "domain": {
+            "nullable": false,
+            "type": "string"
+          },
+          "dominant_color": {
+            "nullable": true,
+            "type": "string"
+          },
+          "done_by_board_contributors": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "edited_fields": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "filtered_visual_objects": {
+            "deprecated": true,
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "grid_description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "grid_title": {
+            "nullable": false,
+            "type": "string"
+          },
+          "grid_title_ads_experiment": {
+            "nullable": false,
+            "type": "string"
+          },
+          "has_been_promoted": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_required_attribution_provider": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "hashtags": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "headline_text": {
+            "nullable": false,
+            "type": "string"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_did_it_count": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "image_large_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image_medium_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image_signature": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_square_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "influencer_pin_stats": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "is_best_tried_it": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_blocked": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_cpc_ad": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_downstream_promotion": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_brand_catalog": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_cta": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_web_closeup": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_full_width": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_ghost": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_hidden": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_native": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_oos_product": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_playable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_porn_domain": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_prefetch_enabled": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_promotable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_promoted": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_quick_promotable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_quick_promotable_by_pinner": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_repin": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_scene": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_shopping_ad": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_spam_domain": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_stale_product": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_uploaded": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_video": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_whitelisted_for_tried_it": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "last_repin_date": {
+            "nullable": true,
+            "type": "string"
+          },
+          "like_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "liked_by_me": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "link_user_website": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserWebsiteCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserWebsiteDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserWebsiteSummary"
+              }
+            ]
+          },
+          "manual_interest_tags": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "matched_user_interest": {
+            "nullable": true,
+            "type": "string"
+          },
+          "multiple_links": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "array"
+          },
+          "native_creator": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "native_pin_stats": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "origin_pin": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PinCustom"
+              },
+              {
+                "$ref": "#/components/schemas/PinDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/PinSummary"
+              }
+            ]
+          },
+          "origin_pinner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "parent_pin": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PinCustom"
+              },
+              {
+                "$ref": "#/components/schemas/PinDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/PinSummary"
+              }
+            ]
+          },
+          "pin_stats": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "pinner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "prefetch_asset_urls": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "price_currency": {
+            "nullable": false,
+            "type": "string"
+          },
+          "price_value": {
+            "nullable": false,
+            "type": "number"
+          },
+          "promoted_android_deep_link": {
+            "nullable": false,
+            "type": "string"
+          },
+          "promoted_ios_deep_link": {
+            "nullable": false,
+            "type": "string"
+          },
+          "promoted_is_congruency_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoted_is_max_video": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoted_is_opaque_onetap_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoted_is_removable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "promoted_position": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "promoter": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "repin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "requires_advertiser_attribution": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "scene_data": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "search_query": {
+            "nullable": true,
+            "type": "string"
+          },
+          "shareable_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "shopping_flags": {
+            "items": {
+              "type": "integer"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "should_autoplay": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "should_prefetch": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "should_preload": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "source_type": {
+            "nullable": true,
+            "type": "string"
+          },
+          "story_pin_data_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "third_party_pin_owner": {
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            },
+            "nullable": true,
+            "type": "object"
+          },
+          "title": {
+            "nullable": true,
+            "type": "string"
+          },
+          "tracked_link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "tracking_params": {
+            "nullable": true,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          },
+          "unified_user_note": {
+            "nullable": true,
+            "type": "string"
+          },
+          "via_pinner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "videos": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/VideoCustom"
+              },
+              {
+                "$ref": "#/components/schemas/VideoDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/VideoSummary"
+              }
+            ]
+          },
+          "visual_search_attrs": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": true,
+            "type": "object"
+          }
+        },
+        "required": [
+          "ad_match_reason",
+          "additional_hide_reasons",
+          "alt_text",
+          "app_domain",
+          "board_activity",
+          "buyable_product_availability",
+          "comments",
+          "created_at",
+          "debug_info_html",
+          "did_its",
+          "flex_grid_style",
+          "has_been_promoted",
+          "image_signature",
+          "is_downstream_promotion",
+          "is_hidden",
+          "is_native",
+          "is_playable",
+          "is_repin",
+          "is_scene",
+          "is_shopping_ad",
+          "is_uploaded",
+          "is_video",
+          "link_domain",
+          "link_user_website",
+          "matched_user_interest",
+          "native_creator",
+          "origin_pinner",
+          "price_value",
+          "promoted_is_removable",
+          "repin_count",
+          "rich_metadata",
+          "rich_summary",
+          "should_autoplay",
+          "title",
+          "via_pinner",
+          "view_tags"
+        ],
+        "title": "Pin with detailed keys",
+        "type": "object"
+      },
+      "PinSummary": {
+        "description": "Pin object",
+        "properties": {
+          "cacheable_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "comment_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "created_at": {
+            "nullable": true,
+            "type": "string"
+          },
+          "description": {
+            "nullable": true,
+            "type": "string"
+          },
+          "domain": {
+            "nullable": false,
+            "type": "string"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_large_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image_medium_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "image_square_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "is_downstream_promotion": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_playable": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_repin": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_uploaded": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_video": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "price_currency": {
+            "nullable": false,
+            "type": "string"
+          },
+          "price_value": {
+            "nullable": false,
+            "type": "number"
+          },
+          "promoter": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "repin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "title": {
+            "nullable": true,
+            "type": "string"
+          },
+          "tracked_link": {
+            "nullable": true,
+            "type": "string"
+          },
+          "tracking_params": {
+            "nullable": true,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          }
+        },
+        "required": [
+          "created_at",
+          "is_downstream_promotion",
+          "is_playable",
+          "is_repin",
+          "is_uploaded",
+          "is_video",
+          "price_value",
+          "repin_count",
+          "title"
+        ],
+        "title": "Pin with summary keys",
+        "type": "object"
+      },
+      "UserCustom": {
+        "description": "Pinterest User.",
+        "properties": {
+          "about": {
+            "nullable": false,
+            "type": "string"
+          },
+          "active": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "ads_customize_from_conversion": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "age_in_years": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "allow_analytic_cookies": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "allow_marketing_cookies": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "allow_personalization_cookies": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "archived_board_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "blocked_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "board_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "businesses": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            }
+          },
+          "can_enable_mfa": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "can_upload_cover": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "canonical_merchant_domain": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "ccpa_opted_out": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "commerce_module_data": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "deprecated": true,
+            "nullable": true,
+            "type": "object"
+          },
+          "community_display_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "connected_to_dropbox": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_etsy": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_facebook": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_google": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_gplus": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_instagram": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_microsoft": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_old_instagram_auth": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_rakuten": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_twitter": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_yahoo": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "connected_to_youtube": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "content_claiming_access": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "created_at": {
+            "nullable": false,
+            "type": "string"
+          },
+          "custom_gender": {
+            "nullable": true,
+            "type": "string"
+          },
+          "debug": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "default_payment": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "deprecated": true,
+            "nullable": true,
+            "type": "object"
+          },
+          "default_shipping": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "deprecated": true,
+            "nullable": true,
+            "type": "object"
+          },
+          "domain_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "domain_verified": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "exclude_from_search": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "explicit_board_following_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "explicit_user_following_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "explicitly_followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "facebook_id": {
+            "nullable": true,
+            "type": "string"
+          },
+          "facebook_publish_stream_enabled": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "facebook_timeline_enabled": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "facebook_url": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "fast_advertiser_info_has_any_managed_advertisers": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "first_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "follower_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "following_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "full_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "gender": {
+            "nullable": false,
+            "type": "string"
+          },
+          "gplus_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "group_board_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "has_catalog": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_completed_quiz": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_custom_board_sorting_order": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_done_app_install": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_done_clickthrough": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_done_closeup": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_mfa_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_password": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_seen_notifications": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_shopping_showcase": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "has_showcase": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_large_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_medium_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_small_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_xlarge_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "implicitly_followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "impressum_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "indexed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "interest_following_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "ip_country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "is_any_website_verified": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_default_image": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_eligible_for_shop_tab": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_employee": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_geo_eligible_for_creator_messaging": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_high_risk": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_known_facebook_user": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_partner": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_primary_website_verified": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_story_pin_creator": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_tastemaker": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_third_party_ads_enabled": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_verified_merchant": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_write_banned": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "joined_communities_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "last_login_country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "last_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "last_pin_done_time": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "last_pin_like_time": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "last_pin_save_time": {
+            "nullable": true,
+            "type": "string"
+          },
+          "like_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "listed_website_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "locale": {
+            "nullable": true,
+            "type": "string"
+          },
+          "location": {
+            "nullable": true,
+            "type": "string"
+          },
+          "merchant_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "native_pin_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "obfuscated_email": {
+            "nullable": false,
+            "type": "string"
+          },
+          "owner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/UserCustom"
+              },
+              {
+                "$ref": "#/components/schemas/UserDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/UserSummary"
+              }
+            ]
+          },
+          "partner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PartnerCustom"
+              },
+              {
+                "$ref": "#/components/schemas/PartnerDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/PartnerSummary"
+              }
+            ]
+          },
+          "personalize_from_offsite_browsing": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "phone_country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "phone_number": {
+            "nullable": true,
+            "type": "string"
+          },
+          "phone_number_end": {
+            "nullable": true,
+            "type": "string"
+          },
+          "phone_number_without_country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "pin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "pin_thumbnail_urls": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "pins": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PinCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/PinDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/PinSummary"
+                }
+              ]
+            }
+          },
+          "pins_done_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "ppa_merchant_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "profile_cover_source": {
+            "nullable": true,
+            "type": "string"
+          },
+          "profile_discovered_public": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "profile_reach": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "profile_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "profile_views": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "push_package_user_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "recommendation_reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "repins_from": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            }
+          },
+          "scheduled_pin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "secret_board_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "secret_boards_remaining": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "should_show_creator_bubbles": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "should_show_homefeed_ads": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "show_creator_profile": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "show_discovered_feed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "show_engagement_tab": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "show_following_tab": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "show_impressum": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "storefront_management_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "storefront_search_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "story_pin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "subscribed_to_notifications": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "tag": {
+            "nullable": true,
+            "type": "string"
+          },
+          "third_party_ad_unit_id": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "string"
+          },
+          "third_party_ads_config": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "deprecated": true,
+            "nullable": false,
+            "type": "object"
+          },
+          "third_party_app_id": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "string"
+          },
+          "third_party_marketing_tracking_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "triggerable_experiments": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "twitter_publish_enabled": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "twitter_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          },
+          "unverified_phone_country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "unverified_phone_number": {
+            "nullable": true,
+            "type": "string"
+          },
+          "unverified_phone_number_without_country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "user_following_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "username": {
+            "nullable": false,
+            "type": "string"
+          },
+          "usmstate": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "string"
+          },
+          "verified_domains": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "verified_user_websites": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "video_pin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "video_upload_allowed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "video_views": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "website_url": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "title": "User with custom keys",
+        "type": "object"
+      },
+      "UserDetailed": {
+        "description": "Pinterest User.",
+        "properties": {
+          "about": {
+            "nullable": false,
+            "type": "string"
+          },
+          "active": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "blocked_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "board_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "businesses": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            }
+          },
+          "canonical_merchant_domain": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "commerce_module_data": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "deprecated": true,
+            "nullable": true,
+            "type": "object"
+          },
+          "created_at": {
+            "nullable": false,
+            "type": "string"
+          },
+          "debug": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/wildcards_OneOfAny"
+            },
+            "nullable": false,
+            "type": "object"
+          },
+          "domain_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "domain_verified": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "explicitly_followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "first_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "follower_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "following_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "full_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "gender": {
+            "nullable": false,
+            "type": "string"
+          },
+          "group_board_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "has_custom_board_sorting_order": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_large_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_medium_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_small_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_xlarge_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "implicitly_followed_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "impressum_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "indexed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_any_website_verified": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_default_image": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_employee": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_geo_eligible_for_creator_messaging": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_partner": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_primary_website_verified": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_story_pin_creator": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_verified_merchant": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "last_login_country": {
+            "nullable": true,
+            "type": "string"
+          },
+          "last_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "last_pin_like_time": {
+            "deprecated": true,
+            "nullable": true,
+            "type": "string"
+          },
+          "last_pin_save_time": {
+            "nullable": true,
+            "type": "string"
+          },
+          "like_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "listed_website_url": {
+            "nullable": true,
+            "type": "string"
+          },
+          "location": {
+            "nullable": true,
+            "type": "string"
+          },
+          "merchant_id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "native_pin_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "obfuscated_email": {
+            "nullable": false,
+            "type": "string"
+          },
+          "partner": {
+            "nullable": true,
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/PartnerCustom"
+              },
+              {
+                "$ref": "#/components/schemas/PartnerDetailed"
+              },
+              {
+                "$ref": "#/components/schemas/PartnerSummary"
+              }
+            ]
+          },
+          "pin_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "pin_thumbnail_urls": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "pins_done_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "profile_cover_source": {
+            "nullable": true,
+            "type": "string"
+          },
+          "profile_discovered_public": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "profile_reach": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "profile_views": {
+            "nullable": true,
+            "type": "integer"
+          },
+          "recommendation_reason": {
+            "nullable": true,
+            "type": "string"
+          },
+          "repins_from": {
+            "nullable": true,
+            "type": "array",
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/UserCustom"
+                },
+                {
+                  "$ref": "#/components/schemas/UserDetailed"
+                },
+                {
+                  "$ref": "#/components/schemas/UserSummary"
+                }
+              ]
+            }
+          },
+          "should_show_creator_bubbles": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "show_creator_profile": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "show_discovered_feed": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "show_impressum": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "subscribed_to_notifications": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "tag": {
+            "nullable": true,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          },
+          "user_following_count": {
+            "deprecated": true,
+            "nullable": false,
+            "type": "integer"
+          },
+          "username": {
+            "nullable": false,
+            "type": "string"
+          },
+          "verified_domains": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "verified_user_websites": {
+            "items": {
+              "type": "string"
+            },
+            "nullable": false,
+            "type": "array"
+          },
+          "website_url": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "about",
+          "domain_url",
+          "domain_verified",
+          "impressum_url",
+          "is_default_image",
+          "location",
+          "partner",
+          "pins",
+          "repins_from",
+          "show_impressum",
+          "username",
+          "verified_identity"
+        ],
+        "title": "User with detailed keys",
+        "type": "object"
+      },
+      "UserDidItDataCustom": {
+        "description": "A model that represents the \"did it\" actions recorded by a User\nfor a particular AggregatedPinData model.",
+        "properties": {
+          "helpful_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "marked_helpful_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          }
+        },
+        "title": "UserDidItData with custom keys",
+        "type": "object"
+      },
+      "UserDidItDataDetailed": {
+        "description": "A model that represents the \"did it\" actions recorded by a User\nfor a particular AggregatedPinData model.",
+        "properties": {
+          "helpful_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "marked_helpful_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          }
+        },
+        "required": ["helpful_count"],
+        "title": "UserDidItData with detailed keys",
+        "type": "object"
+      },
+      "UserDidItDataSummary": {
+        "description": "A model that represents the \"did it\" actions recorded by a User\nfor a particular AggregatedPinData model.",
+        "properties": {
+          "helpful_count": {
+            "nullable": false,
+            "type": "integer"
+          },
+          "marked_helpful_by_me": {
+            "nullable": false,
+            "type": "boolean"
+          }
+        },
+        "required": ["helpful_count"],
+        "title": "UserDidItData with summary keys",
+        "type": "object"
+      },
+      "UserSummary": {
+        "description": "Pinterest User.",
+        "properties": {
+          "first_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "full_name": {
+            "nullable": false,
+            "type": "string"
+          },
+          "gender": {
+            "nullable": false,
+            "type": "string"
+          },
+          "id": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_large_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_medium_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_small_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "image_xlarge_url": {
+            "nullable": false,
+            "type": "string"
+          },
+          "last_name": {
+            "nullable": true,
+            "type": "string"
+          },
+          "type": {
+            "nullable": false,
+            "type": "string"
+          },
+          "username": {
+            "nullable": false,
+            "type": "string"
+          }
+        },
+        "required": ["username"],
+        "title": "User with summary keys",
+        "type": "object"
+      },
+      "UserWebsiteCustom": {
+        "additionalProperties": {
+          "$ref": "#/components/schemas/wildcards_OneOfAny"
+        },
+        "description": "A website claimable by a user.\n\n    This is a read-only adapter for Domain and WebsitePath models, and it only\n    contains fields common to both of them.",
+        "title": "UserWebsite with custom keys",
+        "type": "object"
+      },
+      "UserWebsiteDetailed": {
+        "additionalProperties": {
+          "$ref": "#/components/schemas/wildcards_OneOfAny"
+        },
+        "description": "A website claimable by a user.\n\n    This is a read-only adapter for Domain and WebsitePath models, and it only\n    contains fields common to both of them.",
+        "title": "UserWebsite with detailed keys",
+        "type": "object"
+      },
+      "UserWebsiteSummary": {
+        "additionalProperties": {
+          "$ref": "#/components/schemas/wildcards_OneOfAny"
+        },
+        "description": "A website claimable by a user.\n\n    This is a read-only adapter for Domain and WebsitePath models, and it only\n    contains fields common to both of them.",
+        "title": "UserWebsite with summary keys",
+        "type": "object"
+      },
+      "User_Agent": {
+        "type": "string"
+      },
+      "VideoCustom": {
+        "additionalProperties": {
+          "$ref": "#/components/schemas/wildcards_OneOfAny"
+        },
+        "description": "Video object",
+        "title": "Video with custom keys",
+        "type": "object"
+      },
+      "VideoDetailed": {
+        "additionalProperties": {
+          "$ref": "#/components/schemas/wildcards_OneOfAny"
+        },
+        "description": "Video object",
+        "title": "Video with detailed keys",
+        "type": "object"
+      },
+      "VideoSummary": {
+        "additionalProperties": {
+          "$ref": "#/components/schemas/wildcards_OneOfAny"
+        },
+        "description": "Video object",
+        "title": "Video with summary keys",
+        "type": "object"
+      },
+      "X_Pinterest_AppState": {
+        "type": "string"
+      },
+      "X_Real_Ip": {
+        "type": "string"
+      },
+      "base_scheme": {
+        "enum": ["http", "https"],
+        "type": "string"
+      },
+      "fields": {
+        "items": {
+          "type": "string"
+        },
+        "type": "array"
+      },
+      "render_style": {
+        "enum": ["detailed", "summary", "all_fields"],
+        "type": "string"
+      },
+      "wildcards_OneOfAny": {
+        "oneOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "string"
+          },
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "items": {},
+            "type": "array"
+          }
+        ]
+      },
+      "ResponseStatus": {
+        "description": "An enumeration.",
+        "enum": ["success", "failure"],
+        "title": "ResponseStatus",
+        "type": "string"
+      },
+      "AggregatedPinDataCustom": {
+        "description": "A model that represents aggregated data of Pins with the same link\nand image signature.",
+        "properties": {
+          "is_dynamic_collections": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_shop_the_look": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_stela": {
+            "nullable": true,
+            "type": "boolean"
+          }
+        },
+        "title": "AggregatedPinData with custom keys",
+        "type": "object"
+      },
+      "AggregatedPinDataDetailed": {
+        "description": "A model that represents aggregated data of Pins with the same link\nand image signature.",
+        "properties": {
+          "is_dynamic_collections": {
+            "nullable": false,
+            "type": "boolean"
+          },
+          "is_shop_the_look": {
+            "nullable": true,
+            "type": "boolean"
+          },
+          "is_stela": {
+            "nullable": true,
+            "type": "boolean"
+          }
+        },
+        "title": "AggregatedPinData with detailed keys",
+        "type": "object"
+      },
+      "AggregatedPinDataSummary": {
+        "description": "A model that represents aggregated data of Pins with the same link\nand image signature.",
+        "properties": {
+          "is_shop_the_look": {
+            "nullable": true,
+            "type": "boolean"
+          }
+        },
+        "title": "AggregatedPinData with summary keys",
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "pinterest-oauth2": {
+        "flows": {
+          "authorizationCode": {
+            "authorizationUrl": "https://www.pinterest.com/oauth/",
+            "scopes": {
+              "all_write": "all_write",
+              "manage_ads": "Manage your ad campaigns and see data including spend, budget,\nand performance",
+              "manage_merchants": "See and manage your Catalog (aka your shopping feed)",
+              "manage_organic": "See, update, and add to your public data (including boards,\nPins, comments, following, followers, and your profile)",
+              "read": "See all data on pinterest",
+              "read_ads": "See data on your ad campaigns, including spend, budget, and\nperformance",
+              "read_advertisers": "See your advertising profile and settings",
+              "read_assets": "read_assets",
+              "read_boards": "See all your boards (including secret boards and group boards\nyou join)",
+              "read_campaigns": "See data on your ad campaigns, including spend, budget,\nand performance",
+              "read_domains": "Get your website's most clicked Pins, see the top Pins people\nare saving and more",
+              "read_internal": "Pinterest internal data access permission",
+              "read_merchants": "See your Catalog (aka your shopping feed)",
+              "read_organic": "See your public data (including boards, Pins, comments,\nfollowing, followers, and your profile)",
+              "read_pin_promotions": "See your ads and ad creative",
+              "read_pin_templates": "read_pin_templates",
+              "read_pins": "See all your public Pins and comments",
+              "read_private": "read_private",
+              "read_public": "See all the public data on Pinterest",
+              "read_secret": "See your secret boards and secret Pins",
+              "read_secret_boards": "See your secret boards",
+              "read_secret_pins": "See your secret Pins",
+              "read_user_followers": "Access your follows and followers",
+              "read_user_messages": "See your messages",
+              "read_user_notifications": "See your notifications",
+              "read_user_settings": "See your account settings",
+              "read_users": "See your public data (including boards, following, profile\netc.)",
+              "read_write": "See and change any data on Pinterest",
+              "search_domain": "Search for Pins from your website",
+              "search_global": "Search all public Pins for you",
+              "write_ads": "Create and manage your ad campaigns",
+              "write_advertisers": "Create and manage your advertising profile",
+              "write_assets": "write_assets",
+              "write_boards": "Create new boards for you, and change your board settings",
+              "write_campaigns": "Create and manage your ad campaigns",
+              "write_conversion_event_data": "write_conversion_event_data",
+              "write_merchants": "Manage your Catalog (aka your shopping feed)",
+              "write_organic": "Create new Pins and boards for you and update your public\ndata (including boards, Pins, following, followers, and your profile)",
+              "write_pin_promotions": "Create and manage ads and ad creative",
+              "write_pin_templates": "write_pin_templates",
+              "write_pins": "Create new Pins for you",
+              "write_user_followees": "Follow things for you",
+              "write_user_messages": "Send messages on behalf of you",
+              "write_user_settings": "Change your account settings",
+              "write_users": "Change your following boards, Pins and users",
+              "x_read": "x_read",
+              "x_read_write": "x_read_write"
+            },
+            "tokenUrl": "oauth/access_token/"
+          }
+        },
+        "type": "oauth2"
+      }
+    }
+  },
+  "info": {
+    "title": "Pin API",
+    "version": "0.0.1"
+  },
+  "openapi": "3.0.3",
+  "paths": {
+    "/v3/users/me/viewer/": {
+      "description": "Get an auth or unauth user's info\n\n    Returns:\n        A detailed user object",
+      "get": {
+        "operationId": "v3_get_current_user_handler",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "nullable": false,
+                          "oneOf": [
+                            {
+                              "$ref": "#/components/schemas/UserCustom"
+                            },
+                            {
+                              "$ref": "#/components/schemas/UserDetailed"
+                            },
+                            {
+                              "$ref": "#/components/schemas/UserSummary"
+                            }
+                          ],
+                          "readOnly": true
+                        },
+                        "endpoint_name": {
+                          "enum": ["v3_get_current_user_handler"],
+                          "type": "string"
+                        }
+                      },
+                      "title": "v3_get_current_user_handler response",
+                      "type": "object"
+                    }
+                  ]
+                }
+              }
+            },
+            "description": "v3_get_current_user_handler response",
+            "headers": {
+              "Pinterest-Version": {
+                "description": "The X-Content-Type-Options response HTTP header is a marker\nused by the server to indicate that the MIME types advertised in the\nContent-Type headers should not be changed and be followed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Content-Type-Options": {
+                "description": "The X-Content-Type-Options response HTTP header is a marker\nused by the server to indicate that the MIME types advertised in the\nContent-Type headers should not be changed and be followed.",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-pinterest-sli-endpoint-name": {
+                "description": "Name of api handler that was called",
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "x-pinterest-sli-response-type": {
+                "description": "response type to be used for service mesh",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "pinterest-oauth2": ["read_internal"]
+          }
+        ],
+        "x-pinterest-internal-owned-by": "ngapi"
+      },
+      "summary": "Get an auth or unauth user's info\n\n    Returns:\n        A detailed user object"
+    }
+  },
+  "servers": [
+    {
+      "description": "Development server",
+      "url": "https://api.pinterdev.com"
+    },
+    {
+      "description": "Staging server",
+      "url": "https://api-staging.pinterest.com"
+    },
+    {
+      "description": "Latest server (prod environment)",
+      "url": "https://api-latest.pinterest.com"
+    },
+    {
+      "description": "Production server",
+      "url": "https://api.pinterest.com"
+    }
+  ]
+}
