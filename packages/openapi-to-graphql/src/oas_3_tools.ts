@@ -124,7 +124,11 @@ export function methodToHttpMethod(method: string): HTTP_METHODS {
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
+export function getValidOAS3(
+  spec: Oas2 | Oas3,
+  oasValidatorOptions: object,
+  swagger2OpenAPIOptions: object
+): Promise<Oas3> {
   return new Promise((resolve, reject) => {
     // CASE: translate
     if (
@@ -135,7 +139,7 @@ export function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
         `Received Swagger - going to translate to OpenAPI Specification...`
       )
 
-      Swagger2OpenAPI.convertObj(spec, {})
+      Swagger2OpenAPI.convertObj(spec, swagger2OpenAPIOptions)
         .then((options) => resolve(options.openapi))
         .catch((error) =>
           reject(
@@ -152,7 +156,7 @@ export function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3> {
     ) {
       preprocessingLog(`Received OpenAPI Specification - going to validate...`)
 
-      OASValidator.validate(spec, {})
+      OASValidator.validate(spec, oasValidatorOptions)
         .then(() => resolve(spec as Oas3))
         .catch((error) =>
           reject(
