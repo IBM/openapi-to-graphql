@@ -55,13 +55,13 @@ exports.methodToHttpMethod = methodToHttpMethod;
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-function getValidOAS3(spec) {
+function getValidOAS3(spec, oasValidatorOptions, swagger2OpenAPIOptions) {
     return new Promise((resolve, reject) => {
         // CASE: translate
         if (typeof spec.swagger === 'string' &&
             spec.swagger === '2.0') {
             preprocessingLog(`Received Swagger - going to translate to OpenAPI Specification...`);
-            Swagger2OpenAPI.convertObj(spec, {})
+            Swagger2OpenAPI.convertObj(spec, swagger2OpenAPIOptions)
                 .then((options) => resolve(options.openapi))
                 .catch((error) => reject(`Could not convert Swagger '${spec.info.title}' to OpenAPI Specification. ${error.message}`));
             // CASE: validate
@@ -69,7 +69,7 @@ function getValidOAS3(spec) {
         else if (typeof spec.openapi === 'string' &&
             /^3/.test(spec.openapi)) {
             preprocessingLog(`Received OpenAPI Specification - going to validate...`);
-            OASValidator.validate(spec, {})
+            OASValidator.validate(spec, oasValidatorOptions)
                 .then(() => resolve(spec))
                 .catch((error) => reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${error.message}`));
         }

@@ -154,7 +154,7 @@ Schema options:
 
 - `addLimitArgument` (type: `boolean`, default: `false`): Add a `limit` argument to fields returning lists of objects/lists that will limit the number of returned elements, selecting the first `n` elements of the list.
 
-- `idFormats` (type: `string[]`): If a schema is of type string and has format UUID, it will be translated into a [GraphQL ID type](https://graphql.org/graphql-js/type/#graphqlid). To allow for more customzation, this option allows users to specify other formats that should be interpreted as ID types. 
+- `idFormats` (type: `string[]`, default: `[]`): If a schema is of type `string` and has format `UUID`, it will be translated into a [GraphQL ID type](https://graphql.org/graphql-js/type/#graphqlid). To allow for more customzation, this option allows users to specify other formats that should be interpreted as ID types. 
 
 - `selectQueryOrMutationField` (type: `object`, default: `{}`): OpenAPI-to-GraphQL, by default, will make all GET operations into `Query` fields and all other operations into `Mutation` fields. This option allows users to manually override this process. The operation is identifed first by the [title](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#infoObject) of the OAS, then the [path](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#paths-object) of the operation, and lastly the [method](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#path-item-object) of the operation. The `selectQueryOrMutationField` object is thus a triply nested object where the outer key is the title, followed by the path, and finally the method, which points to an integer value of either `0`, or `1`, corresponding to `Query` or `Mutation` type respectively. 
 
@@ -190,9 +190,18 @@ Authentication options:
 
 - `viewer` (type: `boolean`, default: `true`): The viewer object types (i.e. `QueryViewer` and `MutationViewer`) are artificial constructs that allow users to pass authentication credentials to OpenAPI-to-GraphQL. They are created when the OAS defines [security scheme objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#securitySchemeObject) and when operations adopt them through a [security requirement object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#securityRequirementObject). A viewer is created for each security scheme and each viewer contains authenticated operations that uses its respective security scheme. In addition, a special `AnyAuth` viewer, which can authenticate requests utilizing different security schemes, is created. Unfortunately, viewers are bulky so, depending on the API, it may be possible to send credentials through the `header`, `qs`, or `requestOptions` options. _Note: OAuth authentication is handled using the `tokenJSONpath` and `sendOAuthTokenInQuery` options._
 
-- `tokenJSONpath` (type: `string`, default: `undefined`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](./README.md#authorization).
+- `tokenJSONpath` (type: `string`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](./README.md#authorization).
 
 - `sendOAuthTokenInQuery` (type: `boolean`, default: `false`): If set to true, the OAuth token extracted from the provided `tokenJSONpath` will be sent as an `access_token` query parameter (instead of in the header).
+
+***
+
+Validation options:
+
+- `oasValidatorOptions` (type: `object`, default: `{}`): We use the [oas-validator](https://www.npmjs.com/package/oas-validator) library to validate Swaggers/OASs. We expose the options so that users can have more control over validation. See [here](https://github.com/Mermade/oas-kit/blob/master/docs/options.md) for more information.
+
+- `swagger2OpenAPIOptions` (type: `object`, default: `{}`): We use the [swagger2openapi](https://www.npmjs.com/package/swagger2openapi) library to validate Swaggers/OASs. We expose the options so that users can have more control over validation. See [here](https://github.com/Mermade/oas-kit/blob/master/docs/options.md) for more information.
+
 ***
 
 Logging options:

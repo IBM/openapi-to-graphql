@@ -46,7 +46,7 @@ export declare function methodToHttpMethod(method: string): HTTP_METHODS;
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export declare function getValidOAS3(spec: Oas2 | Oas3): Promise<Oas3>;
+export declare function getValidOAS3(spec: Oas2 | Oas3, oasValidatorOptions: object, swagger2OpenAPIOptions: object): Promise<Oas3>;
 /**
  * Counts the number of operations in an OAS.
  */
