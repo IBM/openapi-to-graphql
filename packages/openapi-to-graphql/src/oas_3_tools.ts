@@ -758,6 +758,22 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
 
   if (responseContentType) {
     let responseSchema = responseObject.content[responseContentType].schema
+
+    if (!responseSchema && responseContentType === 'text/plain') {
+      return {
+        responseContentType,
+        statusCode,
+        responseSchemaNames: {
+          fromPath: inferResourceNameFromPath(path)
+        },
+        responseSchema: {
+          description:
+            'Placeholder to support operations with no response schema and text/plain response type',
+          type: 'string'
+        }
+      }
+    }
+
     let fromRef: string
     if ('$ref' in responseSchema) {
       fromRef = responseSchema['$ref'].split('/').pop()
