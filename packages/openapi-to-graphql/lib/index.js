@@ -225,7 +225,11 @@ provideErrorExtensions, equivalentToMessages }) {
         }
         else {
             let saneFieldName;
-            if (!singularNames) {
+            const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
+            if (extensionFieldName) {
+                saneFieldName = extensionFieldName;
+            }
+            else if (!singularNames) {
                 /**
                  * Use operationId to avoid problems differentiating operations with the
                  * same path but differnet methods
@@ -281,7 +285,14 @@ provideErrorExtensions, equivalentToMessages }) {
         translationLog(`Process operation '${operationId}'...`);
         let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
         const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
-        let saneFieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
+        let saneFieldName;
+        const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
+        if (extensionFieldName) {
+            saneFieldName = extensionFieldName;
+        }
+        else {
+            Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
+        }
         if (operation.inViewer) {
             for (let securityRequirement of operation.securityRequirements) {
                 if (typeof authSubscriptionFields[securityRequirement] !== 'object') {

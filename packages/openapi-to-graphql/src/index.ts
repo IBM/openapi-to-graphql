@@ -392,9 +392,13 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
         }
       }
     } else {
-      let saneFieldName
+      let saneFieldName: string
+      const extensionFieldName =
+        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
 
-      if (!singularNames) {
+      if (extensionFieldName) {
+        saneFieldName = extensionFieldName
+      } else if (!singularNames) {
         /**
          * Use operationId to avoid problems differentiating operations with the
          * same path but differnet methods
@@ -475,11 +479,17 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
         Oas3Tools.CaseStyle.camelCase
       )
 
-      let saneFieldName = Oas3Tools.storeSaneName(
-        saneOperationId,
-        operationId,
-        data.saneMap
-      )
+      let saneFieldName: string
+
+      const extensionFieldName =
+        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
+
+      if (extensionFieldName) {
+        saneFieldName = extensionFieldName
+      } else {
+        Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap)
+      }
+
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {
           if (typeof authSubscriptionFields[securityRequirement] !== 'object') {
