@@ -8,44 +8,42 @@
  */
 
 // Type imports:
+import debug from 'debug'
+import * as jsonptr from 'json-ptr'
+import * as OASValidator from 'oas-validator'
+import * as pluralize from 'pluralize'
+// Imports:
+import * as Swagger2OpenAPI from 'swagger2openapi'
 import { Oas2 } from './types/oas2'
-import { Operation } from './types/operation'
 import {
-  Oas3,
-  ServerObject,
-  ParameterObject,
-  SchemaObject,
-  OperationObject,
-  ResponsesObject,
-  ResponseObject,
-  PathItemObject,
-  RequestBodyObject,
-  ReferenceObject,
-  LinksObject,
   LinkObject,
-  CallbacksObject,
-  CallbackObject,
+  LinksObject,
   MediaTypesObject,
+  Oas3,
+  OperationObject,
+  ParameterObject,
+  PathItemObject,
+  ReferenceObject,
+  RequestBodyObject,
+  ResponseObject,
+  ResponsesObject,
+  SchemaObject,
+  SecurityRequirementObject,
   SecuritySchemeObject,
-  SecurityRequirementObject
+  ServerObject
 } from './types/oas3'
+import { Operation } from './types/operation'
+import { InternalOptions } from './types/options'
 import {
   PreprocessingData,
   ProcessedSecurityScheme
 } from './types/preprocessing_data'
-import { InternalOptions } from './types/options'
-
-// Imports:
-import * as Swagger2OpenAPI from 'swagger2openapi'
-import * as OASValidator from 'oas-validator'
-import debug from 'debug'
 import { handleWarning, MitigationTypes } from './utils'
-import * as jsonptr from 'json-ptr'
-import * as pluralize from 'pluralize'
 
 // Type definitions & exports:
 export type SchemaNames = {
   // Sorted in the following priority order
+  fromExtension?: string
   fromRef?: string
   fromSchema?: string
   fromPath?: string
@@ -88,6 +86,10 @@ export enum HTTP_METHODS {
 }
 
 export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
+
+export enum OAS_GRAPHQL_EXTENSIONS {
+  Name = 'x-graphql-name'
+}
 
 /**
  * Given an HTTP method, convert it to the HTTP_METHODS enum
@@ -264,8 +266,8 @@ export function countOperationsWithPayload(oas: Oas3): number {
 /**
  * Resolves the given reference in the given object.
  */
-export function resolveRef(ref: string, oas: Oas3): any {
-  return jsonptr.JsonPointer.get(oas, ref)
+export function resolveRef<T = any>(ref: string, oas: Oas3): T {
+  return jsonptr.JsonPointer.get(oas, ref) as T
 }
 
 /**
@@ -618,13 +620,14 @@ export function getRequestSchemaAndNames(
     // Get resource name from different sources
     let fromRef: string
     if ('$ref' in payloadSchema) {
-      fromRef = payloadSchema['$ref'].split('/').pop()
-      payloadSchema = resolveRef(payloadSchema['$ref'], oas)
+      fromRef = payloadSchema.$ref.split('/').pop()
+      payloadSchema = resolveRef<SchemaObject>(payloadSchema.$ref, oas)
     }
 
-    let payloadSchemaNames: any = {
+    let payloadSchemaNames: SchemaNames = {
+      fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.Name],
       fromRef,
-      fromSchema: (payloadSchema as SchemaObject).title,
+      fromSchema: payloadSchema.title,
       fromPath: inferResourceNameFromPath(path)
     }
 
@@ -760,13 +763,14 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
     let responseSchema = responseObject.content[responseContentType].schema
     let fromRef: string
     if ('$ref' in responseSchema) {
-      fromRef = responseSchema['$ref'].split('/').pop()
-      responseSchema = resolveRef(responseSchema['$ref'], oas)
+      fromRef = responseSchema.$ref.split('/').pop()
+      responseSchema = resolveRef<SchemaObject>(responseSchema.$ref, oas)
     }
 
-    const responseSchemaNames = {
+    const responseSchemaNames: SchemaNames = {
+      fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.Name],
       fromRef,
-      fromSchema: (responseSchema as SchemaObject).title,
+      fromSchema: responseSchema.title,
       fromPath: inferResourceNameFromPath(path)
     }
 

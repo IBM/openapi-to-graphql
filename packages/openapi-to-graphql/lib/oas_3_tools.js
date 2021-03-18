@@ -4,14 +4,18 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getResponseObject = exports.getRequestSchemaAndNames = exports.getRequestBodyObject = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
+exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getResponseObject = exports.getRequestSchemaAndNames = exports.getRequestBodyObject = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.OAS_GRAPHQL_EXTENSIONS = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
+/**
+ * Utility functions around the OpenAPI Specification 3.
+ */
+// Type imports:
+const debug_1 = require("debug");
+const jsonptr = require("json-ptr");
+const OASValidator = require("oas-validator");
+const pluralize = require("pluralize");
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
-const OASValidator = require("oas-validator");
-const debug_1 = require("debug");
 const utils_1 = require("./utils");
-const jsonptr = require("json-ptr");
-const pluralize = require("pluralize");
 const httpLog = debug_1.default('http');
 const preprocessingLog = debug_1.default('preprocessing');
 const translationLog = debug_1.default('translation');
@@ -27,6 +31,10 @@ var HTTP_METHODS;
     HTTP_METHODS["head"] = "head";
 })(HTTP_METHODS = exports.HTTP_METHODS || (exports.HTTP_METHODS = {}));
 exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
+var OAS_GRAPHQL_EXTENSIONS;
+(function (OAS_GRAPHQL_EXTENSIONS) {
+    OAS_GRAPHQL_EXTENSIONS["Name"] = "x-graphql-name";
+})(OAS_GRAPHQL_EXTENSIONS = exports.OAS_GRAPHQL_EXTENSIONS || (exports.OAS_GRAPHQL_EXTENSIONS = {}));
 /**
  * Given an HTTP method, convert it to the HTTP_METHODS enum
  */
@@ -457,10 +465,11 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
         // Get resource name from different sources
         let fromRef;
         if ('$ref' in payloadSchema) {
-            fromRef = payloadSchema['$ref'].split('/').pop();
-            payloadSchema = resolveRef(payloadSchema['$ref'], oas);
+            fromRef = payloadSchema.$ref.split('/').pop();
+            payloadSchema = resolveRef(payloadSchema.$ref, oas);
         }
         let payloadSchemaNames = {
+            fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.Name],
             fromRef,
             fromSchema: payloadSchema.title,
             fromPath: inferResourceNameFromPath(path)
@@ -560,10 +569,11 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
         let responseSchema = responseObject.content[responseContentType].schema;
         let fromRef;
         if ('$ref' in responseSchema) {
-            fromRef = responseSchema['$ref'].split('/').pop();
-            responseSchema = resolveRef(responseSchema['$ref'], oas);
+            fromRef = responseSchema.$ref.split('/').pop();
+            responseSchema = resolveRef(responseSchema.$ref, oas);
         }
         const responseSchemaNames = {
+            fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.Name],
             fromRef,
             fromSchema: responseSchema.title,
             fromPath: inferResourceNameFromPath(path)

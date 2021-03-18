@@ -5,13 +5,14 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDataDef = exports.preprocessOas = void 0;
+// Type imports:
+const debug_1 = require("debug");
+const deepEqual = require("deep-equal");
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
-const deepEqual = require("deep-equal");
-const debug_1 = require("debug");
-const utils_1 = require("./utils");
-const graphql_1 = require("./types/graphql");
 const oas_3_tools_1 = require("./oas_3_tools");
+const graphql_1 = require("./types/graphql");
+const utils_1 = require("./utils");
 const preprocessingLog = debug_1.default('preprocessing');
 /**
  * Given an operation object from the OAS, create an Operation, which contains
@@ -603,12 +604,16 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
                             // Or if it is an object type, create references to all of the field types
                             let itemsSchema = collapsedSchema.items;
                             let itemsName = `${name}ListItem`;
+                            const fromExtension = collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
                             if ('$ref' in itemsSchema) {
                                 itemsName = collapsedSchema.items['$ref'].split('/').pop();
                             }
                             const subDefinition = createDataDef(
                             // Is this the correct classification for this name? It does not matter in the long run.
-                            { fromRef: itemsName }, itemsSchema, isInputObjectType, data, oas);
+                            {
+                                fromExtension,
+                                fromRef: itemsName
+                            }, itemsSchema, isInputObjectType, data, oas);
                             // Add list item reference
                             def.subDefinitions = subDefinition;
                         }
@@ -704,8 +709,14 @@ function getSchemaName(names, usedNames) {
         throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`);
     }
     let schemaName;
+    if (typeof names.fromExtension === 'string') {
+        const saneName = Oas3Tools.sanitize(names.fromExtension, Oas3Tools.CaseStyle.PascalCase);
+        if (!usedNames.includes(saneName)) {
+            schemaName = names.fromExtension;
+        }
+    }
     // CASE: name from reference
-    if (typeof names.fromRef === 'string') {
+    if (!schemaName && typeof names.fromRef === 'string') {
         const saneName = Oas3Tools.sanitize(names.fromRef, Oas3Tools.CaseStyle.PascalCase);
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromRef;
@@ -727,13 +738,15 @@ function getSchemaName(names, usedNames) {
     }
     // CASE: all names are already used - create approximate name
     if (!schemaName) {
-        schemaName = Oas3Tools.sanitize(typeof names.fromRef === 'string'
-            ? names.fromRef
-            : typeof names.fromSchema === 'string'
-                ? names.fromSchema
-                : typeof names.fromPath === 'string'
-                    ? names.fromPath
-                    : 'PlaceholderName', Oas3Tools.CaseStyle.PascalCase);
+        schemaName = Oas3Tools.sanitize(typeof names.fromExtension === 'string'
+            ? names.fromExtension
+            : typeof names.fromRef === 'string'
+                ? names.fromRef
+                : typeof names.fromSchema === 'string'
+                    ? names.fromSchema
+                    : typeof names.fromPath === 'string'
+                        ? names.fromPath
+                        : 'PlaceholderName', Oas3Tools.CaseStyle.PascalCase);
     }
     if (usedNames.includes(schemaName)) {
         let appendix = 2;
@@ -766,12 +779,14 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
     for (let propertyKey in schema.properties) {
         let propSchemaName = propertyKey;
         let propSchema = schema.properties[propertyKey];
+        const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
         if ('$ref' in propSchema) {
             propSchemaName = propSchema['$ref'].split('/').pop();
             propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
         }
         if (!(propertyKey in def.subDefinitions)) {
             const subDefinition = createDataDef({
+                fromExtension,
                 fromRef: propSchemaName,
                 fromSchema: propSchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
             }, propSchema, isInputObjectType, data, oas);
@@ -1009,7 +1024,9 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                         if (!incompatibleProperties.has(propertyName)) {
                             // Dereferenced by processing anyOfData
                             const propertySchema = properties[propertyName];
+                            const fromExtension = propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
                             const subDefinition = createDataDef({
+                                fromExtension,
                                 fromRef: propertyName,
                                 fromSchema: propertySchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
                             }, propertySchema, isInputObjectType, data, oas);
@@ -1102,7 +1119,9 @@ function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInpu
                     // Member types of GraphQL unions must be object types
                     if (Oas3Tools.getSchemaTargetGraphQLType(memberSchema, data) ===
                         'object') {
+                        const fromExtension = memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
                         const subDefinition = createDataDef({
+                            fromExtension,
                             fromRef,
                             fromSchema: memberSchema.title,
                             fromPath: `${saneName}Member`

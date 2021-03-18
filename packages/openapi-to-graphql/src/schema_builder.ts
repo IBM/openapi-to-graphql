@@ -8,42 +8,41 @@
  */
 
 // Type imports:
-import { PreprocessingData } from './types/preprocessing_data'
-import { Operation, DataDefinition } from './types/operation'
+import debug from 'debug'
 import {
-  Oas3,
-  SchemaObject,
-  ParameterObject,
-  ReferenceObject,
-  LinkObject
-} from './types/oas3'
-import { Args, GraphQLType } from './types/graphql'
-import {
-  GraphQLScalarType,
-  GraphQLObjectType,
-  GraphQLString,
-  GraphQLID,
-  GraphQLInt,
-  GraphQLFloat,
   GraphQLBoolean,
-  GraphQLNonNull,
-  GraphQLList,
-  GraphQLInputObjectType,
   GraphQLEnumType,
   GraphQLFieldConfigMap,
-  GraphQLOutputType,
-  GraphQLUnionType,
+  GraphQLFloat,
+  GraphQLID,
+  GraphQLInputFieldConfigMap,
+  GraphQLInputObjectType,
   GraphQLInputType,
-  GraphQLInputFieldConfigMap
+  GraphQLInt,
+  GraphQLList,
+  GraphQLNonNull,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLScalarType,
+  GraphQLString,
+  GraphQLUnionType
 } from 'graphql'
-
 // Imports:
 import GraphQLJSON from 'graphql-type-json'
 import * as Oas3Tools from './oas_3_tools'
-import { getResolver, OPENAPI_TO_GRAPHQL } from './resolver_builder'
 import { createDataDef } from './preprocessor'
-import debug from 'debug'
-import { handleWarning, sortObject, MitigationTypes } from './utils'
+import { getResolver, OPENAPI_TO_GRAPHQL } from './resolver_builder'
+import { Args } from './types/graphql'
+import {
+  LinkObject,
+  Oas3,
+  ParameterObject,
+  ReferenceObject,
+  SchemaObject
+} from './types/oas3'
+import { DataDefinition, Operation } from './types/operation'
+import { PreprocessingData } from './types/preprocessing_data'
+import { handleWarning, MitigationTypes, sortObject } from './utils'
 
 type GetArgsParams<TSource, TContext, TArgs> = {
   requestPayloadDef?: DataDefinition
@@ -512,7 +511,7 @@ function createOrReuseList<TSource, TContext, TArgs>({
     }
     return listObjectType
   } else {
-    throw new Error(`Cannot create list item object type '${itemsName}' in list 
+    throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`)
   }
 }
@@ -1218,10 +1217,10 @@ export function getArgs<TSource, TContext, TArgs>({
     let hasDefault = false
     if (typeof parameter.schema === 'object') {
       let schema = parameter.schema
-      if (typeof schema.$ref === 'string') {
-        schema = Oas3Tools.resolveRef(parameter.schema.$ref, operation.oas)
+      if ('$ref' in schema) {
+        schema = Oas3Tools.resolveRef<SchemaObject>(schema.$ref, operation.oas)
       }
-      if (typeof (schema as SchemaObject).default !== 'undefined') {
+      if (typeof schema.default !== 'undefined') {
         hasDefault = true
       }
     }

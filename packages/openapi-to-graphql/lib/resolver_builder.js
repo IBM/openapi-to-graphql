@@ -5,15 +5,19 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extractRequestDataFromArgs = exports.getResolver = exports.getPublishResolver = exports.getSubscribe = exports.OPENAPI_TO_GRAPHQL = void 0;
+/**
+ * Functions to create resolve functions.
+ */
+// Type imports:
+const debug_1 = require("debug");
+const form_urlencoded_1 = require("form-urlencoded");
+const graphql_1 = require("graphql");
+const graphql_subscriptions_1 = require("graphql-subscriptions");
+const JSONPath = require("jsonpath-plus");
+const querystring = require("querystring");
 const NodeRequest = require("request");
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
-const querystring = require("querystring");
-const JSONPath = require("jsonpath-plus");
-const debug_1 = require("debug");
-const graphql_1 = require("graphql");
-const form_urlencoded_1 = require("form-urlencoded");
-const graphql_subscriptions_1 = require("graphql-subscriptions");
 const pubsub = new graphql_subscriptions_1.PubSub();
 const translationLog = debug_1.debug('translation');
 const httpLog = debug_1.debug('http');
@@ -240,12 +244,10 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 param.schema &&
                 typeof param.schema === 'object') {
                 let schema = param.schema;
-                if (schema && schema.$ref && typeof schema.$ref === 'string') {
+                if ('$ref' in schema) {
                     schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
                 }
-                if (schema &&
-                    schema.default &&
-                    typeof schema.default !== 'undefined') {
+                if (schema && schema.default && typeof schema.default !== 'undefined') {
                     args[saneParamName] = schema.default;
                 }
             }

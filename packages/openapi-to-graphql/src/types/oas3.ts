@@ -3,8 +3,6 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import { Operation } from './operation'
-
 /**
  * Type definitions for the OpenAPI Specification 3.
  */
@@ -15,7 +13,6 @@ type ExternalDocumentationObject = {
 }
 
 export type SchemaObject = {
-  $ref?: string
   title?: string
   type?: 'string' | 'number' | 'object' | 'array' | 'boolean' | 'integer'
   format?: string

@@ -5,13 +5,17 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getArgs = exports.getGraphQLType = void 0;
+/**
+ * Functions to translate JSON schema to GraphQL (input) object types.
+ */
+// Type imports:
+const debug_1 = require("debug");
 const graphql_1 = require("graphql");
 // Imports:
 const graphql_type_json_1 = require("graphql-type-json");
 const Oas3Tools = require("./oas_3_tools");
-const resolver_builder_1 = require("./resolver_builder");
 const preprocessor_1 = require("./preprocessor");
-const debug_1 = require("debug");
+const resolver_builder_1 = require("./resolver_builder");
 const utils_1 = require("./utils");
 /**
  * We need to slightly modify the GraphQLJSON type.
@@ -345,7 +349,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
         return listObjectType;
     }
     else {
-        throw new Error(`Cannot create list item object type '${itemsName}' in list 
+        throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`);
     }
 }
@@ -898,8 +902,8 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         let hasDefault = false;
         if (typeof parameter.schema === 'object') {
             let schema = parameter.schema;
-            if (typeof schema.$ref === 'string') {
-                schema = Oas3Tools.resolveRef(parameter.schema.$ref, operation.oas);
+            if ('$ref' in schema) {
+                schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
             }
             if (typeof schema.default !== 'undefined') {
                 hasDefault = true;

@@ -31,43 +31,42 @@
  */
 
 // Type imports:
+import debug from 'debug'
 import {
-  Options,
-  InternalOptions,
-  Report,
-  ConnectOptions
-} from './types/options'
-import { Oas3 } from './types/oas3'
-import { Oas2 } from './types/oas2'
+  GraphQLFieldConfig,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLSchema
+} from 'graphql'
+import { GraphQLSchemaConfig } from 'graphql/type/schema'
+import * as NodeRequest from 'request'
+import { createAndLoadViewer } from './auth_builder'
+import * as GraphQLTools from './graphql_tools'
+import * as Oas3Tools from './oas_3_tools'
+import { preprocessOas } from './preprocessor'
+import {
+  getPublishResolver,
+  getResolver,
+  getSubscribe
+} from './resolver_builder'
+// Imports:
+import { getArgs, getGraphQLType } from './schema_builder'
 import {
   Args,
   GraphQLOperationType,
   SubscriptionContext
 } from './types/graphql'
+import { Oas2 } from './types/oas2'
+import { Oas3 } from './types/oas3'
 import { Operation } from './types/operation'
+import {
+  ConnectOptions,
+  InternalOptions,
+  Options,
+  Report
+} from './types/options'
 import { PreprocessingData } from './types/preprocessing_data'
-import {
-  GraphQLSchema,
-  GraphQLObjectType,
-  GraphQLOutputType,
-  GraphQLFieldConfig
-} from 'graphql'
-import * as NodeRequest from 'request'
-
-// Imports:
-import { getGraphQLType, getArgs } from './schema_builder'
-import {
-  getResolver,
-  getSubscribe,
-  getPublishResolver
-} from './resolver_builder'
-import * as GraphQLTools from './graphql_tools'
-import { preprocessOas } from './preprocessor'
-import * as Oas3Tools from './oas_3_tools'
-import { createAndLoadViewer } from './auth_builder'
-import debug from 'debug'
-import { GraphQLSchemaConfig } from 'graphql/type/schema'
-import { sortObject, handleWarning, MitigationTypes } from './utils'
+import { handleWarning, MitigationTypes, sortObject } from './utils'
 
 type Result<TSource, TContext, TArgs> = {
   schema: GraphQLSchema
@@ -157,33 +156,36 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
         spec.map((ele) => {
           return Oas3Tools.getValidOAS3(ele)
         })
-      ).then((oass) => {
-        resolve(
-          translateOpenAPIToGraphQL(
-            oass,
-            options as InternalOptions<TSource, TContext, TArgs>
+      )
+        .then((oass) => {
+          resolve(
+            translateOpenAPIToGraphQL(
+              oass,
+              options as InternalOptions<TSource, TContext, TArgs>
+            )
           )
-        )
-      }).catch((error) => {
-        reject(error)
-      })
+        })
+        .catch((error) => {
+          reject(error)
+        })
     } else {
       /**
        * Check if the spec is a valid OAS 3
        * If the spec is OAS 2.0, attempt to translate it into 3, then try to
        * translate the spec into a GraphQL schema
        */
-      Oas3Tools.getValidOAS3(spec).then((oas) => {
-        resolve(
-          translateOpenAPIToGraphQL(
-            [oas],
-            options as InternalOptions<TSource, TContext, TArgs>
+      Oas3Tools.getValidOAS3(spec)
+        .then((oas) => {
+          resolve(
+            translateOpenAPIToGraphQL(
+              [oas],
+              options as InternalOptions<TSource, TContext, TArgs>
+            )
           )
-        )
-      })
-      .catch((error) => {
-        reject(error)
-      })
+        })
+        .catch((error) => {
+          reject(error)
+        })
     }
   })
 }
@@ -318,12 +320,14 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
     // Check if the operation should be added as a Query or Mutation
     if (operation.operationType === GraphQLOperationType.Query) {
-      let fieldName = !singularNames
-        ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
-        : Oas3Tools.sanitize(
-            Oas3Tools.inferResourceNameFromPath(operation.path),
-            Oas3Tools.CaseStyle.camelCase
-          )
+      let fieldName =
+        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name] ||
+        (!singularNames
+          ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+          : Oas3Tools.sanitize(
+              Oas3Tools.inferResourceNameFromPath(operation.path),
+              Oas3Tools.CaseStyle.camelCase
+            ))
 
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {
@@ -811,5 +815,5 @@ function preliminaryChecks<TSource, TContext, TArgs>(
   checkCustomResolversStructure(options.customSubscriptionResolvers, data)
 }
 
-export { sanitize, CaseStyle } from './oas_3_tools'
+export { CaseStyle, sanitize } from './oas_3_tools'
 export { GraphQLOperationType } from './types/graphql'

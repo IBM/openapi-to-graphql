@@ -1,12 +1,10 @@
-/**
- * Utility functions around the OpenAPI Specification 3.
- */
 import { Oas2 } from './types/oas2';
+import { LinkObject, Oas3, OperationObject, ParameterObject, PathItemObject, ReferenceObject, RequestBodyObject, ResponseObject, SchemaObject, SecuritySchemeObject, ServerObject } from './types/oas3';
 import { Operation } from './types/operation';
-import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, PathItemObject, RequestBodyObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
-import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
+import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 export declare type SchemaNames = {
+    fromExtension?: string;
     fromRef?: string;
     fromSchema?: string;
     fromPath?: string;
@@ -38,6 +36,9 @@ export declare enum HTTP_METHODS {
     'head' = "head"
 }
 export declare const SUCCESS_STATUS_RX: RegExp;
+export declare enum OAS_GRAPHQL_EXTENSIONS {
+    Name = "x-graphql-name"
+}
 /**
  * Given an HTTP method, convert it to the HTTP_METHODS enum
  */
@@ -70,7 +71,7 @@ export declare function countOperationsWithPayload(oas: Oas3): number;
 /**
  * Resolves the given reference in the given object.
  */
-export declare function resolveRef(ref: string, oas: Oas3): any;
+export declare function resolveRef<T = any>(ref: string, oas: Oas3): T;
 /**
  * Returns the base URL to use for the given operation.
  */

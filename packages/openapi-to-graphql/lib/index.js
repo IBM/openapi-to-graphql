@@ -4,17 +4,44 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GraphQLOperationType = exports.CaseStyle = exports.sanitize = exports.createGraphQLSchema = void 0;
-const graphql_1 = require("./types/graphql");
-const graphql_2 = require("graphql");
+exports.GraphQLOperationType = exports.sanitize = exports.CaseStyle = exports.createGraphQLSchema = void 0;
+/**
+ * Defines the functions exposed by OpenAPI-to-GraphQL.
+ *
+ * Some general notes:
+ *
+ * - GraphQL interfaces rely on sanitized strings for (input) object type names
+ *   and fields. We perform sanitization only when assigning (field-) names, but
+ *   keep keys in the OAS otherwise as-is, to ensure that inner-OAS references
+ *   work as expected.
+ *
+ * - GraphQL (input) object types must have a unique name. Thus, sometimes Input
+ *   object types and object types need separate names, despite them having the
+ *   same structure. We thus append 'Input' to every input object type's name
+ *   as a convention.
+ *
+ * - To pass data between resolve functions, OpenAPI-to-GraphQL uses a _openAPIToGraphQL object
+ *   returned by every resolver in addition to its original data (OpenAPI-to-GraphQL does
+ *   not use the context to do so, which is an anti-pattern according to
+ *   https://github.com/graphql/graphql-js/issues/953).
+ *
+ * - OpenAPI-to-GraphQL can handle basic authentication and API key-based authentication
+ *   through GraphQL. To do this, OpenAPI-to-GraphQL creates two new intermediate Object
+ *   Types called QueryViewer and MutationViewer that take as input security
+ *   credentials and pass them on using the _openAPIToGraphQL object to other resolve
+ *   functions.
+ */
+// Type imports:
+const debug_1 = require("debug");
+const graphql_1 = require("graphql");
+const auth_builder_1 = require("./auth_builder");
+const GraphQLTools = require("./graphql_tools");
+const Oas3Tools = require("./oas_3_tools");
+const preprocessor_1 = require("./preprocessor");
+const resolver_builder_1 = require("./resolver_builder");
 // Imports:
 const schema_builder_1 = require("./schema_builder");
-const resolver_builder_1 = require("./resolver_builder");
-const GraphQLTools = require("./graphql_tools");
-const preprocessor_1 = require("./preprocessor");
-const Oas3Tools = require("./oas_3_tools");
-const auth_builder_1 = require("./auth_builder");
-const debug_1 = require("debug");
+const graphql_2 = require("./types/graphql");
 const utils_1 = require("./utils");
 const translationLog = debug_1.default('translation');
 /**
@@ -86,9 +113,11 @@ function createGraphQLSchema(spec, options) {
             // Convert all non-OAS 3 into OAS 3
             Promise.all(spec.map((ele) => {
                 return Oas3Tools.getValidOAS3(ele);
-            })).then((oass) => {
+            }))
+                .then((oass) => {
                 resolve(translateOpenAPIToGraphQL(oass, options));
-            }).catch((error) => {
+            })
+                .catch((error) => {
                 reject(error);
             });
         }
@@ -98,7 +127,8 @@ function createGraphQLSchema(spec, options) {
              * If the spec is OAS 2.0, attempt to translate it into 3, then try to
              * translate the spec into a GraphQL schema
              */
-            Oas3Tools.getValidOAS3(spec).then((oas) => {
+            Oas3Tools.getValidOAS3(spec)
+                .then((oas) => {
                 resolve(translateOpenAPIToGraphQL([oas], options));
             })
                 .catch((error) => {
@@ -171,10 +201,11 @@ provideErrorExtensions, equivalentToMessages }) {
         const field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
         const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
         // Check if the operation should be added as a Query or Mutation
-        if (operation.operationType === graphql_1.GraphQLOperationType.Query) {
-            let fieldName = !singularNames
-                ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
-                : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase);
+        if (operation.operationType === graphql_2.GraphQLOperationType.Query) {
+            let fieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name] ||
+                (!singularNames
+                    ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+                    : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase));
             if (operation.inViewer) {
                 for (let securityRequirement of operation.securityRequirements) {
                     if (typeof authQueryFields[securityRequirement] !== 'object') {
@@ -367,30 +398,30 @@ provideErrorExtensions, equivalentToMessages }) {
      * viewer objects.
      */
     if (Object.keys(authQueryFields).length > 0) {
-        Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, graphql_1.GraphQLOperationType.Query, data));
+        Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, graphql_2.GraphQLOperationType.Query, data));
     }
     if (Object.keys(authMutationFields).length > 0) {
-        Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, graphql_1.GraphQLOperationType.Mutation, data));
+        Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, graphql_2.GraphQLOperationType.Mutation, data));
     }
     if (Object.keys(authSubscriptionFields).length > 0) {
-        Object.assign(subscriptionFields, auth_builder_1.createAndLoadViewer(authSubscriptionFields, graphql_1.GraphQLOperationType.Subscription, data));
+        Object.assign(subscriptionFields, auth_builder_1.createAndLoadViewer(authSubscriptionFields, graphql_2.GraphQLOperationType.Subscription, data));
     }
     // Build up the schema
     const schemaConfig = {
         query: Object.keys(queryFields).length > 0
-            ? new graphql_2.GraphQLObjectType({
+            ? new graphql_1.GraphQLObjectType({
                 name: 'Query',
                 fields: queryFields
             })
             : GraphQLTools.getEmptyObjectType('Query'),
         mutation: Object.keys(mutationFields).length > 0
-            ? new graphql_2.GraphQLObjectType({
+            ? new graphql_1.GraphQLObjectType({
                 name: 'Mutation',
                 fields: mutationFields
             })
             : null,
         subscription: Object.keys(subscriptionFields).length > 0
-            ? new graphql_2.GraphQLObjectType({
+            ? new graphql_1.GraphQLObjectType({
                 name: 'Subscription',
                 fields: subscriptionFields
             })
@@ -407,7 +438,7 @@ provideErrorExtensions, equivalentToMessages }) {
             operation.responseDefinition.graphQLType = GraphQLTools.getEmptyObjectType(operation.responseDefinition.graphQLTypeName);
         }
     });
-    const schema = new graphql_2.GraphQLSchema(schemaConfig);
+    const schema = new graphql_1.GraphQLSchema(schemaConfig);
     return { schema, report: options.report, data };
 }
 /**
@@ -436,7 +467,7 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions, connectO
         data
     });
     // Get resolver and subscribe function for Subscription fields
-    if (operation.operationType === graphql_1.GraphQLOperationType.Subscription) {
+    if (operation.operationType === graphql_2.GraphQLOperationType.Subscription) {
         const responseSchemaName = operation.responseDefinition
             ? operation.responseDefinition.graphQLTypeName
             : null;
@@ -551,8 +582,8 @@ function preliminaryChecks(options, data) {
     checkCustomResolversStructure(options.customSubscriptionResolvers, data);
 }
 var oas_3_tools_1 = require("./oas_3_tools");
-Object.defineProperty(exports, "sanitize", { enumerable: true, get: function () { return oas_3_tools_1.sanitize; } });
 Object.defineProperty(exports, "CaseStyle", { enumerable: true, get: function () { return oas_3_tools_1.CaseStyle; } });
+Object.defineProperty(exports, "sanitize", { enumerable: true, get: function () { return oas_3_tools_1.sanitize; } });
 var graphql_3 = require("./types/graphql");
 Object.defineProperty(exports, "GraphQLOperationType", { enumerable: true, get: function () { return graphql_3.GraphQLOperationType; } });
 //# sourceMappingURL=index.js.map

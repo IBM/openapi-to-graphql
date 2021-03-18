@@ -4,29 +4,28 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
+import debug from 'debug'
+import * as deepEqual from 'deep-equal'
+// Imports:
+import * as Oas3Tools from './oas_3_tools'
+import { methodToHttpMethod } from './oas_3_tools'
+import { GraphQLOperationType } from './types/graphql'
 import {
-  Oas3,
   CallbackObject,
   LinkObject,
+  Oas3,
   OperationObject,
+  PathItemObject,
   ReferenceObject,
-  SchemaObject,
-  PathItemObject
+  SchemaObject
 } from './types/oas3'
+import { DataDefinition, Operation } from './types/operation'
 import { InternalOptions } from './types/options'
-import { Operation, DataDefinition } from './types/operation'
 import {
   PreprocessingData,
   ProcessedSecurityScheme
 } from './types/preprocessing_data'
-
-// Imports:
-import * as Oas3Tools from './oas_3_tools'
-import * as deepEqual from 'deep-equal'
-import debug from 'debug'
-import { handleWarning, getCommonPropertyNames, MitigationTypes } from './utils'
-import { GraphQLOperationType } from './types/graphql'
-import { methodToHttpMethod } from './oas_3_tools'
+import { getCommonPropertyNames, handleWarning, MitigationTypes } from './utils'
 
 const preprocessingLog = debug('preprocessing')
 
@@ -875,6 +874,8 @@ export function createDataDef<TSource, TContext, TArgs>(
               // Or if it is an object type, create references to all of the field types
               let itemsSchema = collapsedSchema.items
               let itemsName = `${name}ListItem`
+              const fromExtension =
+                collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
 
               if ('$ref' in itemsSchema) {
                 itemsName = collapsedSchema.items['$ref'].split('/').pop()
@@ -882,7 +883,10 @@ export function createDataDef<TSource, TContext, TArgs>(
 
               const subDefinition = createDataDef(
                 // Is this the correct classification for this name? It does not matter in the long run.
-                { fromRef: itemsName },
+                {
+                  fromExtension,
+                  fromRef: itemsName
+                },
                 itemsSchema as SchemaObject,
                 isInputObjectType,
                 data,
@@ -1010,10 +1014,20 @@ function getSchemaName(
     )
   }
 
-  let schemaName
+  let schemaName: string
+
+  if (typeof names.fromExtension === 'string') {
+    const saneName = Oas3Tools.sanitize(
+      names.fromExtension,
+      Oas3Tools.CaseStyle.PascalCase
+    )
+    if (!usedNames.includes(saneName)) {
+      schemaName = names.fromExtension
+    }
+  }
 
   // CASE: name from reference
-  if (typeof names.fromRef === 'string') {
+  if (!schemaName && typeof names.fromRef === 'string') {
     const saneName = Oas3Tools.sanitize(
       names.fromRef,
       Oas3Tools.CaseStyle.PascalCase
@@ -1048,7 +1062,9 @@ function getSchemaName(
   // CASE: all names are already used - create approximate name
   if (!schemaName) {
     schemaName = Oas3Tools.sanitize(
-      typeof names.fromRef === 'string'
+      typeof names.fromExtension === 'string'
+        ? names.fromExtension
+        : typeof names.fromRef === 'string'
         ? names.fromRef
         : typeof names.fromSchema === 'string'
         ? names.fromSchema
@@ -1101,6 +1117,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
   for (let propertyKey in schema.properties) {
     let propSchemaName = propertyKey
     let propSchema = schema.properties[propertyKey]
+    const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
 
     if ('$ref' in propSchema) {
       propSchemaName = propSchema['$ref'].split('/').pop()
@@ -1110,6 +1127,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
     if (!(propertyKey in def.subDefinitions)) {
       const subDefinition = createDataDef(
         {
+          fromExtension,
           fromRef: propSchemaName,
           fromSchema: propSchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
         },
@@ -1459,9 +1477,12 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
             if (!incompatibleProperties.has(propertyName)) {
               // Dereferenced by processing anyOfData
               const propertySchema = properties[propertyName] as SchemaObject
+              const fromExtension =
+                propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
 
               const subDefinition = createDataDef(
                 {
+                  fromExtension,
                   fromRef: propertyName,
                   fromSchema: propertySchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
                 },
@@ -1579,12 +1600,13 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
         collapsedSchema.oneOf.forEach((memberSchema) => {
           // Dereference member schema
           let fromRef: string
+
           if ('$ref' in memberSchema) {
             fromRef = memberSchema['$ref'].split('/').pop()
-            memberSchema = Oas3Tools.resolveRef(
+            memberSchema = Oas3Tools.resolveRef<SchemaObject>(
               memberSchema['$ref'],
               oas
-            ) as SchemaObject
+            )
           }
 
           // Member types of GraphQL unions must be object types
@@ -1592,8 +1614,11 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
             Oas3Tools.getSchemaTargetGraphQLType(memberSchema, data) ===
             'object'
           ) {
+            const fromExtension =
+              memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
             const subDefinition = createDataDef(
               {
+                fromExtension,
                 fromRef,
                 fromSchema: memberSchema.title,
                 fromPath: `${saneName}Member`
