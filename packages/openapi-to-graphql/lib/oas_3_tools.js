@@ -4,7 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getRequestSchemaAndNames = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
+exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getRequestSchemaAndNames = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.OAS_GRAPHQL_EXTENSIONS = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
 const operation_1 = require("./types/operation");
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
@@ -28,6 +28,10 @@ var HTTP_METHODS;
     HTTP_METHODS["head"] = "head";
 })(HTTP_METHODS = exports.HTTP_METHODS || (exports.HTTP_METHODS = {}));
 exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
+var OAS_GRAPHQL_EXTENSIONS;
+(function (OAS_GRAPHQL_EXTENSIONS) {
+    OAS_GRAPHQL_EXTENSIONS["Name"] = "x-graphql-name";
+})(OAS_GRAPHQL_EXTENSIONS = exports.OAS_GRAPHQL_EXTENSIONS || (exports.OAS_GRAPHQL_EXTENSIONS = {}));
 /**
  * Given an HTTP method, convert it to the HTTP_METHODS enum
  */
@@ -291,7 +295,7 @@ exports.desanitizeObjectKeys = desanitizeObjectKeys;
  */
 function getSchemaTargetGraphQLType(schemaOrRef, data, oas) {
     let schema;
-    if (typeof schemaOrRef.$ref === 'string') {
+    if ("$ref" in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
         schema = resolveRef(schemaOrRef.$ref, oas);
     }
     else {
@@ -383,7 +387,7 @@ function hasNestedOneOfUsage(schema, oas) {
     return (Array.isArray(schema.oneOf) &&
         schema.oneOf.some((memberSchemaOrRef) => {
             let memberSchema;
-            if (typeof memberSchemaOrRef.$ref === 'string') {
+            if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
                 memberSchema = resolveRef(memberSchemaOrRef.$ref, oas);
             }
             else {
@@ -409,7 +413,7 @@ function hasNestedAnyOfUsage(schema, oas) {
     return (Array.isArray(schema.anyOf) &&
         schema.anyOf.some((memberSchemaOrRef) => {
             let memberSchema;
-            if (typeof memberSchemaOrRef.$ref === 'string') {
+            if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
                 memberSchema = resolveRef(memberSchemaOrRef.$ref, oas);
             }
             else {
@@ -603,7 +607,7 @@ exports.inferResourceNameFromPath = inferResourceNameFromPath;
  * request schema is required for the operation.
  */
 function getRequestSchemaAndNames(path, method, operation, oas) {
-    var _a, _b, _c;
+    var _a;
     let payloadContentType; // randomly selected content-type, prioritizing application/json
     let requestBodyObject; // request object
     let payloadSchema; // request schema with given content-type
@@ -614,7 +618,7 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
     if (typeof requestBodyObjectOrRef === 'object' &&
         requestBodyObjectOrRef !== null) {
         // Resolve reference if applicable. Make sure we have a RequestBodyObject:
-        if (typeof ((_a = requestBodyObjectOrRef) === null || _a === void 0 ? void 0 : _a.$ref) === 'string') {
+        if ("$ref" in requestBodyObjectOrRef && typeof requestBodyObjectOrRef.$ref === 'string') {
             requestBodyObject = resolveRef(requestBodyObjectOrRef.$ref, oas);
         }
         else {
@@ -645,13 +649,15 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
                 if (payloadContentType === 'application/json' ||
                     payloadContentType === '*/*' ||
                     payloadContentType === 'application/x-www-form-urlencoded') {
+                    // Name extracted from a reference, if applicable
                     let fromRef;
                     // Determine payload schema
-                    const payloadSchemaOrRef = (_b = content === null || content === void 0 ? void 0 : content[payloadContentType]) === null || _b === void 0 ? void 0 : _b.schema;
+                    const payloadSchemaOrRef = (_a = content === null || content === void 0 ? void 0 : content[payloadContentType]) === null || _a === void 0 ? void 0 : _a.schema;
                     if (typeof payloadSchemaOrRef === 'object' &&
                         payloadSchemaOrRef !== null) {
                         // Resolve payload schema reference if applicable
-                        if (typeof ((_c = payloadSchemaOrRef) === null || _c === void 0 ? void 0 : _c.$ref) === 'string') {
+                        if ("$ref" in payloadSchemaOrRef &&
+                            typeof payloadSchemaOrRef.$ref === 'string') {
                             fromRef = payloadSchemaOrRef.$ref.split('/').pop();
                             payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas);
                         }
@@ -661,6 +667,7 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
                     }
                     // Determine possible schema names
                     payloadSchemaNames = {
+                        fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.Name],
                         fromRef,
                         fromSchema: payloadSchema === null || payloadSchema === void 0 ? void 0 : payloadSchema.title,
                         fromPath: inferResourceNameFromPath(path)
@@ -708,7 +715,7 @@ exports.getRequestSchemaAndNames = getRequestSchemaAndNames;
  * (if available).
  */
 function getResponseSchemaAndNames(path, method, operation, oas, data, options) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c;
     let responseContentType; // randomly selected content-type, prioritizing application/json
     let responseObject; // response object
     let responseSchema; // response schema with given content-type
@@ -717,7 +724,7 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
     // Get response object
     const responseObjectOrRef = (_a = operation === null || operation === void 0 ? void 0 : operation.responses) === null || _a === void 0 ? void 0 : _a[statusCode];
     if (typeof responseObjectOrRef === 'object' && responseObjectOrRef !== null) {
-        if (typeof ((_b = responseObjectOrRef) === null || _b === void 0 ? void 0 : _b.$ref) === 'string') {
+        if ("$ref" in responseObjectOrRef && typeof responseObjectOrRef.$ref === 'string') {
             responseObject = resolveRef(responseObjectOrRef.$ref, oas);
         }
         else {
@@ -740,11 +747,13 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
                 }
                 if (responseContentType === 'application/json' ||
                     responseContentType === '*/*') {
+                    // Name from reference, if applicable
                     let fromRef;
                     // Determine response schema
-                    const responseSchemaOrRef = (_d = (_c = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content) === null || _c === void 0 ? void 0 : _c[responseContentType]) === null || _d === void 0 ? void 0 : _d.schema;
+                    const responseSchemaOrRef = (_c = (_b = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content) === null || _b === void 0 ? void 0 : _b[responseContentType]) === null || _c === void 0 ? void 0 : _c.schema;
                     // Resolve response schema reference if applicable
-                    if (typeof ((_e = responseSchemaOrRef) === null || _e === void 0 ? void 0 : _e.$ref) === 'string') {
+                    if ("$ref" in responseSchemaOrRef &&
+                        typeof responseSchemaOrRef.$ref === 'string') {
                         fromRef = responseSchemaOrRef.$ref.split('/').pop();
                         responseSchema = resolveRef(responseSchemaOrRef.$ref, oas);
                     }
@@ -753,6 +762,7 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
                     }
                     // Determine possible schema names
                     responseSchemaNames = {
+                        fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.Name],
                         fromRef,
                         fromSchema: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.title,
                         fromPath: inferResourceNameFromPath(path)
@@ -845,22 +855,24 @@ function getLinks(path, method, operation, oas, data) {
     if (typeof operation.responses === 'object') {
         const responses = operation.responses;
         if (typeof responses[statusCode] === 'object') {
-            let response = responses[statusCode];
-            if (typeof response.$ref === 'string') {
-                response = resolveRef(response.$ref, oas);
+            const responseObjectOrRef = responses[statusCode];
+            let response;
+            if ("$ref" in responseObjectOrRef && typeof responseObjectOrRef.$ref === 'string') {
+                response = resolveRef(responseObjectOrRef.$ref, oas);
             }
-            // Here, we can be certain we have a ResponseObject:
-            response = response;
+            else {
+                response = responseObjectOrRef;
+            }
             if (typeof response.links === 'object') {
                 const epLinks = response.links;
                 for (let linkKey in epLinks) {
-                    let link = epLinks[linkKey];
-                    // Make sure we have LinkObjects:
-                    if (typeof link.$ref === 'string') {
-                        link = resolveRef(link.$ref, oas);
+                    const linkObjectOrRef = epLinks[linkKey];
+                    let link;
+                    if ("$ref" in linkObjectOrRef && typeof linkObjectOrRef.$ref === 'string') {
+                        link = resolveRef(linkObjectOrRef.$ref, oas);
                     }
                     else {
-                        link = link;
+                        link = linkObjectOrRef;
                     }
                     links[linkKey] = link;
                 }
@@ -884,7 +896,7 @@ function getParameters(path, method, operation, pathItem, oas) {
     const pathParams = pathItem.parameters;
     if (Array.isArray(pathParams)) {
         const pathItemParameters = pathParams.map((p) => {
-            if (typeof p.$ref === 'string') {
+            if ("$ref" in p && typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
                 return resolveRef(p.$ref, oas);
             }
@@ -899,7 +911,7 @@ function getParameters(path, method, operation, pathItem, oas) {
     const opObjectParameters = operation.parameters;
     if (Array.isArray(opObjectParameters)) {
         const operationParameters = opObjectParameters.map((p) => {
-            if (typeof p.$ref === 'string') {
+            if ("$ref" in p && typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
                 return resolveRef(p.$ref, oas);
             }
@@ -953,15 +965,15 @@ function getSecuritySchemes(oas) {
     if (typeof oas.components === 'object' &&
         typeof oas.components.securitySchemes === 'object') {
         for (let schemeKey in oas.components.securitySchemes) {
-            const securityScheme = oas.components.securitySchemes[schemeKey];
+            const securitySchemeOrRef = oas.components.securitySchemes[schemeKey];
             // Ensure we have actual SecuritySchemeObject:
-            if (typeof securityScheme.$ref === 'string') {
+            if ("$ref" in securitySchemeOrRef && typeof securitySchemeOrRef.$ref === 'string') {
                 // Result of resolution will be SecuritySchemeObject:
-                securitySchemes[schemeKey] = resolveRef(securityScheme.$ref, oas);
+                securitySchemes[schemeKey] = resolveRef(securitySchemeOrRef.$ref, oas);
             }
             else {
                 // We already have a SecuritySchemeObject:
-                securitySchemes[schemeKey] = securityScheme;
+                securitySchemes[schemeKey] = securitySchemeOrRef;
             }
         }
     }

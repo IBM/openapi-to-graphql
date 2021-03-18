@@ -6,7 +6,6 @@ declare type ExternalDocumentationObject = {
     url: string;
 };
 export declare type SchemaObject = {
-    $ref?: string;
     title?: string;
     type?: 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array';
     format?: string;

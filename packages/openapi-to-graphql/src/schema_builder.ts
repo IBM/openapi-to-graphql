@@ -531,7 +531,7 @@ function createOrReuseList<TSource, TContext, TArgs>({
     }
     return listObjectType
   } else {
-    throw new Error(`Cannot create list item object type '${itemsName}' in list 
+    throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`)
   }
 }
@@ -1204,10 +1204,10 @@ export function getArgs<TSource, TContext, TArgs>({
     let hasDefault = false
     if (typeof parameter.schema === 'object') {
       let schema = parameter.schema
-      if (typeof schema.$ref === 'string') {
-        schema = Oas3Tools.resolveRef(parameter.schema.$ref, operation.oas)
+      if ('$ref' in schema) {
+        schema = Oas3Tools.resolveRef<SchemaObject>(schema.$ref, operation.oas)
       }
-      if (typeof (schema as SchemaObject).default !== 'undefined') {
+      if (typeof schema.default !== 'undefined') {
         hasDefault = true
       }
     }

@@ -27,6 +27,7 @@ import debug from 'debug'
 import { handleWarning, getCommonPropertyNames, MitigationTypes } from './utils'
 import { GraphQLOperationType } from './types/graphql'
 import { methodToHttpMethod } from './oas_3_tools'
+import { Schema } from 'inspector'
 
 const preprocessingLog = debug('preprocessing')
 
@@ -344,15 +345,19 @@ export function preprocessOas<TSource, TContext, TArgs>(
             operation.callbacks
           ) {
             Object.entries(operation.callbacks).forEach(
-              ([callbackName, callback]) => {
-                const resolvedCallback = !('$ref' in callback)
-                  ? callback
-                  : (Oas3Tools.resolveRef(
-                      (callback as ReferenceObject).$ref,
-                      oas
-                    ) as CallbackObject)
+              ([callbackName, callbackObjectOrRef]) => {
+                let callback: CallbackObject
 
-                Object.entries(resolvedCallback).forEach(
+                if ('$ref' in callbackObjectOrRef && typeof callbackObjectOrRef.$ref === 'string') {
+                  callback = Oas3Tools.resolveRef(
+                    callbackObjectOrRef.$ref,
+                    oas
+                  )
+                } else {
+                  callback = callbackObjectOrRef as CallbackObject
+                }
+
+                Object.entries(callback).forEach(
                   ([callbackExpression, callbackPathItem]) => {
                     const resolvedCallbackPathItem = !(
                       '$ref' in callbackPathItem
@@ -646,7 +651,7 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
  */
 export function createDataDef<TSource, TContext, TArgs>(
   names: Oas3Tools.SchemaNames,
-  schema: SchemaObject,
+  schemaOrRef: SchemaObject | ReferenceObject,
   isInputObjectType: boolean,
   data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3,
@@ -655,13 +660,13 @@ export function createDataDef<TSource, TContext, TArgs>(
   const preferredName = getPreferredName(names)
 
   // Basic validation test
-  if (typeof schema !== 'object' && schema !== null) {
+  if (typeof schemaOrRef !== 'object' && schemaOrRef !== null) {
     handleWarning({
       mitigationType: MitigationTypes.MISSING_SCHEMA,
       message:
         `Could not create data definition for schema with ` +
         `preferred name '${preferredName}' and schema '${JSON.stringify(
-          schema
+          schemaOrRef
         )}'`,
       data,
       log: preprocessingLog
@@ -678,8 +683,11 @@ export function createDataDef<TSource, TContext, TArgs>(
       targetGraphQLType: TargetGraphQLType.json
     }
   } else {
-    if (typeof schema.$ref === 'string') {
-      schema = Oas3Tools.resolveRef(schema.$ref, oas)
+    let schema: SchemaObject
+    if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
+      schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas)
+    } else {
+      schema = schemaOrRef as SchemaObject
     }
 
     const saneLinks: { [key: string]: LinkObject } = {}
@@ -849,7 +857,7 @@ export function createDataDef<TSource, TContext, TArgs>(
             let itemsName = `${name}ListItem`
 
             if ('$ref' in itemsSchema) {
-              itemsName = collapsedSchema.items.$ref.split('/').pop()
+              itemsName = itemsSchema.$ref.split('/').pop()
             }
 
             const subDefinition = createDataDef(
@@ -989,10 +997,20 @@ function getSchemaName(
     )
   }
 
-  let schemaName
+  let schemaName: string
+
+  if (typeof names.fromExtension === 'string') {
+    const saneName = Oas3Tools.sanitize(
+      names.fromExtension,
+      Oas3Tools.CaseStyle.PascalCase
+    )
+    if (!usedNames.includes(saneName)) {
+      schemaName = names.fromExtension
+    }
+  }
 
   // CASE: name from reference
-  if (typeof names.fromRef === 'string') {
+  if (!schemaName && typeof names.fromRef === 'string') {
     const saneName = Oas3Tools.sanitize(
       names.fromRef,
       Oas3Tools.CaseStyle.PascalCase
@@ -1027,7 +1045,9 @@ function getSchemaName(
   // CASE: all names are already used - create approximate name
   if (!schemaName) {
     schemaName = Oas3Tools.sanitize(
-      typeof names.fromRef === 'string'
+      typeof names.fromExtension === 'string'
+        ? names.fromExtension
+        : typeof names.fromRef === 'string'
         ? names.fromRef
         : typeof names.fromSchema === 'string'
         ? names.fromSchema
@@ -1080,20 +1100,25 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
   for (let propertyKey in schema.properties) {
     if (!(propertyKey in def.subDefinitions)) {
       let propSchemaName = propertyKey
-      let propSchema: SchemaObject
 
-      if (typeof schema.properties[propertyKey].$ref === 'string') {
-        propSchemaName = schema.properties[propertyKey].$ref.split('/').pop()
+      const propSchemaOrRef = schema.properties[propertyKey]
+
+      let propSchema: SchemaObject
+      if ("$ref" in propSchemaOrRef && typeof propSchemaOrRef.$ref === 'string') {
+        propSchemaName = propSchemaOrRef.$ref.split('/').pop()
         propSchema = Oas3Tools.resolveRef(
-          schema.properties[propertyKey].$ref,
+          propSchemaOrRef.$ref,
           oas
-        ) as SchemaObject
+        )
       } else {
-        propSchema = schema.properties[propertyKey]
+        propSchema = propSchemaOrRef as SchemaObject
       }
+
+      const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
 
       const subDefinition = createDataDef(
         {
+          fromExtension,
           fromRef: propSchemaName,
           fromSchema: propSchema.title // TODO: Redundant because of fromRef but arguably, propertyKey is a better field name and title is a better type name
         },
@@ -1133,13 +1158,15 @@ function resolveAllOf<TSource, TContext, TArgs>(
   oas: Oas3
 ): SchemaObject {
   // Dereference schema
-  if (typeof schema.$ref === 'string') {
+  if ("$ref" in schema && typeof schema.$ref === 'string') {
     if (schema.$ref in references) {
       return references[schema.$ref]
     }
 
+    const reference = schema.$ref
+
     schema = Oas3Tools.resolveRef(schema.$ref, oas) as SchemaObject
-    references[schema.$ref] = schema
+    references[reference] = schema
   }
 
   /**
@@ -1270,10 +1297,10 @@ function getMemberSchemaData<TSource, TContext, TArgs>(
   schemas.forEach((schemaOrRef) => {
     // Dereference schemas
     let schema: SchemaObject
-    if (typeof schemaOrRef.$ref === 'string') {
+    if ("$ref" in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
       schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas) as SchemaObject
     } else {
-      schema = schemaOrRef
+      schema = schemaOrRef as SchemaObject
     }
 
     // Consolidate target GraphQL type
@@ -1322,8 +1349,22 @@ function createAnyOfObject<TSource, TContext, TArgs>(
    * properties; if not, do nothing.
    */
   const allProperties: {
-    [propertyName: string]: SchemaObject
-  } = collapsedSchema?.properties ?? {}
+    [propertyName: string]: SchemaObject | ReferenceObject
+  } = {}
+
+  if ('properties' in collapsedSchema) {
+    Object.entries(collapsedSchema.properties).forEach(([propertyName, propertyObjectOrRef]) => {
+      let property: SchemaObject
+
+      if ('$ref' in propertyObjectOrRef && typeof propertyObjectOrRef.$ref === 'string') {
+        property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas)
+      } else {
+        property = propertyObjectOrRef as SchemaObject
+      }
+
+      allProperties[propertyName] = property
+    })
+  }
 
   // Store the names of properties with conflicting contents
   const incompatibleProperties = new Set<string>()
@@ -1336,14 +1377,31 @@ function createAnyOfObject<TSource, TContext, TArgs>(
   collapsedSchema.anyOf.forEach((memberSchemaOrRef) => {
     // Collapsed schema should already be recursively resolved
     let memberSchema: SchemaObject
-    if (typeof memberSchemaOrRef.$ref === 'string') {
+    if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
       memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas)
     } else {
-      memberSchema = memberSchemaOrRef
+      memberSchema = memberSchemaOrRef as SchemaObject
     }
 
     if (memberSchema.properties) {
-      memberProperties.push(memberSchema.properties)
+      const properties: {
+        [propertyName: string]: SchemaObject
+      } = {}
+
+      Object.entries(memberSchema.properties).forEach(([propertyName, propertyObjectOrRef]) => {
+        let property: SchemaObject
+  
+        if ('$ref' in propertyObjectOrRef && typeof propertyObjectOrRef.$ref === 'string') {
+          property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas)
+        } else {
+          property = propertyObjectOrRef as SchemaObject
+        }
+  
+        properties[propertyName] = property
+      })
+
+
+      memberProperties.push(properties)
     }
   })
 
@@ -1469,14 +1527,14 @@ function createOneOfUnion<TSource, TContext, TArgs>(
     // Collapsed schema should already be recursively resolved
     let fromRef: string
     let memberSchema: SchemaObject
-    if (typeof memberSchemaOrRef.$ref === 'string') {
+    if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
       fromRef = memberSchemaOrRef.$ref.split('/').pop()
       memberSchema = Oas3Tools.resolveRef(
         memberSchemaOrRef.$ref,
         oas
-      ) as SchemaObject
+      )
     } else {
-      memberSchema = memberSchemaOrRef
+      memberSchema = memberSchemaOrRef as SchemaObject
     }
 
     const subDefinition = createDataDef(

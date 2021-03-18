@@ -413,16 +413,20 @@ export function getResolver<TSource, TContext, TArgs>({
         param.schema &&
         typeof param.schema === 'object'
       ) {
-        let schema = param.schema
-        if (schema && schema.$ref && typeof schema.$ref === 'string') {
-          schema = Oas3Tools.resolveRef(schema.$ref, operation.oas)
+        const schemaOrRef = param.schema
+
+        let schema: SchemaObject
+        if ('$ref' in schemaOrRef) {
+          schema = Oas3Tools.resolveRef<SchemaObject>(
+            schemaOrRef.$ref,
+            operation.oas
+          )
+        } else {
+          schema = schemaOrRef as SchemaObject
         }
-        if (
-          schema &&
-          (schema as SchemaObject).default &&
-          typeof (schema as SchemaObject).default !== 'undefined'
-        ) {
-          args[saneParamName] = (schema as SchemaObject).default
+
+        if (schema && schema.default && typeof schema.default !== 'undefined') {
+          args[saneParamName] = schema.default
         }
       }
     })
