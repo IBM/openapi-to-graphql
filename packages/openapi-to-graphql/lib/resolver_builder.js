@@ -240,13 +240,15 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             if (typeof args[saneParamName] === 'undefined' &&
                 param.schema &&
                 typeof param.schema === 'object') {
-                let schema = param.schema;
-                if (schema && schema.$ref && typeof schema.$ref === 'string') {
-                    schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
+                const schemaOrRef = param.schema;
+                let schema;
+                if ('$ref' in schemaOrRef) {
+                    schema = Oas3Tools.resolveRef(schemaOrRef.$ref, operation.oas);
                 }
-                if (schema &&
-                    schema.default &&
-                    typeof schema.default !== 'undefined') {
+                else {
+                    schema = schemaOrRef;
+                }
+                if (schema && schema.default && typeof schema.default !== 'undefined') {
                     args[saneParamName] = schema.default;
                 }
             }

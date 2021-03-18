@@ -46,6 +46,7 @@ import * as pluralize from 'pluralize'
 // Type definitions & exports:
 export type SchemaNames = {
   // Sorted in the following priority order
+  fromExtension?: string
   fromRef?: string
   fromSchema?: string
   fromPath?: string
@@ -88,6 +89,10 @@ export enum HTTP_METHODS {
 }
 
 export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
+
+export enum OAS_GRAPHQL_EXTENSIONS {
+  Name = 'x-graphql-name'
+}
 
 /**
  * Given an HTTP method, convert it to the HTTP_METHODS enum
@@ -268,8 +273,8 @@ export function countOperationsWithPayload(oas: Oas3): number {
 /**
  * Resolves the given reference in the given object.
  */
-export function resolveRef(ref: string, oas: Oas3): any {
-  return jsonptr.JsonPointer.get(oas, ref)
+export function resolveRef<T = any>(ref: string, oas: Oas3): T {
+  return jsonptr.JsonPointer.get(oas, ref) as T
 }
 
 /**
@@ -414,10 +419,10 @@ export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
   oas: Oas3
 ): TargetGraphQLType | null {
   let schema: SchemaObject
-  if (typeof schemaOrRef.$ref === 'string') {
+  if ("$ref" in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
     schema = resolveRef(schemaOrRef.$ref, oas)
   } else {
-    schema = schemaOrRef
+    schema = schemaOrRef as SchemaObject
   }
 
   // TODO: Need to resolve allOf here as well.
@@ -524,10 +529,10 @@ function hasNestedOneOfUsage(schema: SchemaObject, oas: Oas3): boolean {
     Array.isArray(schema.oneOf) &&
     schema.oneOf.some((memberSchemaOrRef) => {
       let memberSchema: SchemaObject
-      if (typeof memberSchemaOrRef.$ref === 'string') {
-        memberSchema = resolveRef(memberSchemaOrRef.$ref, oas) as SchemaObject
+      if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
+        memberSchema = resolveRef(memberSchemaOrRef.$ref, oas)
       } else {
-        memberSchema = memberSchemaOrRef
+        memberSchema = memberSchemaOrRef as SchemaObject
       }
 
       return (
@@ -555,10 +560,10 @@ function hasNestedAnyOfUsage(schema: SchemaObject, oas: Oas3): boolean {
     schema.anyOf.some((memberSchemaOrRef) => {
       let memberSchema: SchemaObject
 
-      if (typeof memberSchemaOrRef.$ref === 'string') {
-        memberSchema = resolveRef(memberSchemaOrRef.$ref, oas) as SchemaObject
+      if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
+        memberSchema = resolveRef(memberSchemaOrRef.$ref, oas)
       } else {
-        memberSchema = memberSchemaOrRef
+        memberSchema = memberSchemaOrRef as SchemaObject
       }
 
       return (
@@ -804,11 +809,11 @@ export function getRequestSchemaAndNames(
     requestBodyObjectOrRef !== null
   ) {
     // Resolve reference if applicable. Make sure we have a RequestBodyObject:
-    if (typeof (requestBodyObjectOrRef as ReferenceObject)?.$ref === 'string') {
+    if ("$ref" in requestBodyObjectOrRef && typeof requestBodyObjectOrRef.$ref === 'string') {
       requestBodyObject = resolveRef(
-        (requestBodyObjectOrRef as ReferenceObject).$ref,
+        requestBodyObjectOrRef.$ref,
         oas
-      ) as RequestBodyObject
+      )
     } else {
       requestBodyObject = requestBodyObjectOrRef as RequestBodyObject
     }
@@ -843,6 +848,7 @@ export function getRequestSchemaAndNames(
           payloadContentType === '*/*' ||
           payloadContentType === 'application/x-www-form-urlencoded'
         ) {
+          // Name extracted from a reference, if applicable
           let fromRef: string
 
           // Determine payload schema
@@ -853,13 +859,14 @@ export function getRequestSchemaAndNames(
           ) {
             // Resolve payload schema reference if applicable
             if (
-              typeof (payloadSchemaOrRef as ReferenceObject)?.$ref === 'string'
+              "$ref" in payloadSchemaOrRef &&
+              typeof payloadSchemaOrRef.$ref === 'string'
             ) {
               fromRef = payloadSchemaOrRef.$ref.split('/').pop()
               payloadSchema = resolveRef(
                 payloadSchemaOrRef.$ref,
                 oas
-              ) as SchemaObject
+              )
             } else {
               payloadSchema = payloadSchemaOrRef as SchemaObject
             }
@@ -867,6 +874,7 @@ export function getRequestSchemaAndNames(
 
           // Determine possible schema names
           payloadSchemaNames = {
+            fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.Name],
             fromRef,
             fromSchema: payloadSchema?.title,
             fromPath: inferResourceNameFromPath(path)
@@ -938,11 +946,11 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
   // Get response object
   const responseObjectOrRef = operation?.responses?.[statusCode]
   if (typeof responseObjectOrRef === 'object' && responseObjectOrRef !== null) {
-    if (typeof (responseObjectOrRef as ReferenceObject)?.$ref === 'string') {
+    if ("$ref" in responseObjectOrRef && typeof responseObjectOrRef.$ref === 'string') {
       responseObject = resolveRef(
-        (responseObjectOrRef as ReferenceObject).$ref,
+        responseObjectOrRef.$ref,
         oas
-      ) as ResponseObject
+      )
     } else {
       responseObject = responseObjectOrRef as ResponseObject
     }
@@ -968,6 +976,7 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
           responseContentType === 'application/json' ||
           responseContentType === '*/*'
         ) {
+          // Name from reference, if applicable
           let fromRef: string
 
           // Determine response schema
@@ -975,19 +984,21 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
             responseObject?.content?.[responseContentType]?.schema
           // Resolve response schema reference if applicable
           if (
-            typeof (responseSchemaOrRef as ReferenceObject)?.$ref === 'string'
+            "$ref" in responseSchemaOrRef &&
+            typeof responseSchemaOrRef.$ref === 'string'
           ) {
             fromRef = responseSchemaOrRef.$ref.split('/').pop()
             responseSchema = resolveRef(
               responseSchemaOrRef.$ref,
               oas
-            ) as SchemaObject
+            )
           } else {
             responseSchema = responseSchemaOrRef as SchemaObject
           }
 
           // Determine possible schema names
           responseSchemaNames = {
+            fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.Name],
             fromRef,
             fromSchema: responseSchema?.title,
             fromPath: inferResourceNameFromPath(path)
@@ -1106,29 +1117,30 @@ export function getLinks<TSource, TContext, TArgs>(
   if (typeof operation.responses === 'object') {
     const responses: ResponsesObject = operation.responses
     if (typeof responses[statusCode] === 'object') {
-      let response: ResponseObject | ReferenceObject = responses[statusCode]
+      const responseObjectOrRef = responses[statusCode]
 
-      if (typeof (response as ReferenceObject).$ref === 'string') {
+      let response: ResponseObject
+      if ("$ref" in responseObjectOrRef && typeof responseObjectOrRef.$ref === 'string') {
         response = resolveRef(
-          (response as ReferenceObject).$ref,
+          responseObjectOrRef.$ref,
           oas
-        ) as ResponseObject
+        )
+      } else {
+        response = responseObjectOrRef as ResponseObject
       }
-
-      // Here, we can be certain we have a ResponseObject:
-      response = response as ResponseObject
 
       if (typeof response.links === 'object') {
         const epLinks: LinksObject = response.links
         for (let linkKey in epLinks) {
-          let link: LinkObject | ReferenceObject = epLinks[linkKey]
+          const linkObjectOrRef = epLinks[linkKey]
 
-          // Make sure we have LinkObjects:
-          if (typeof (link as ReferenceObject).$ref === 'string') {
-            link = resolveRef((link as ReferenceObject).$ref, oas)
+          let link: LinkObject
+          if ("$ref" in linkObjectOrRef && typeof linkObjectOrRef.$ref === 'string') {
+            link = resolveRef(linkObjectOrRef.$ref, oas)
           } else {
-            link = link as LinkObject
+            link = linkObjectOrRef as LinkObject
           }
+
           links[linkKey] = link
         }
       }
@@ -1160,15 +1172,17 @@ export function getParameters(
   // First, consider parameters in Path Item Object:
   const pathParams = pathItem.parameters
   if (Array.isArray(pathParams)) {
-    const pathItemParameters: ParameterObject[] = pathParams.map((p) => {
-      if (typeof (p as ReferenceObject).$ref === 'string') {
-        // Here we know we have a parameter object:
-        return resolveRef((p as ReferenceObject).$ref, oas) as ParameterObject
-      } else {
-        // Here we know we have a parameter object:
-        return p as ParameterObject
+    const pathItemParameters: ParameterObject[] = pathParams.map(
+      (p) => {
+        if ("$ref" in p && typeof p.$ref === 'string') {
+          // Here we know we have a parameter object:
+          return resolveRef(p.$ref, oas) as ParameterObject
+        } else {
+          // Here we know we have a parameter object:
+          return p as ParameterObject
+        }
       }
-    })
+    )
     parameters = parameters.concat(pathItemParameters)
   }
 
@@ -1177,9 +1191,9 @@ export function getParameters(
   if (Array.isArray(opObjectParameters)) {
     const operationParameters: ParameterObject[] = opObjectParameters.map(
       (p) => {
-        if (typeof (p as ReferenceObject).$ref === 'string') {
+        if ("$ref" in p && typeof p.$ref === 'string') {
           // Here we know we have a parameter object:
-          return resolveRef((p as ReferenceObject).$ref, oas) as ParameterObject
+          return resolveRef(p.$ref, oas)
         } else {
           // Here we know we have a parameter object:
           return p as ParameterObject
@@ -1244,18 +1258,18 @@ export function getSecuritySchemes(
     typeof oas.components.securitySchemes === 'object'
   ) {
     for (let schemeKey in oas.components.securitySchemes) {
-      const securityScheme = oas.components.securitySchemes[schemeKey]
+      const securitySchemeOrRef = oas.components.securitySchemes[schemeKey]
 
       // Ensure we have actual SecuritySchemeObject:
-      if (typeof (securityScheme as ReferenceObject).$ref === 'string') {
+      if ("$ref" in securitySchemeOrRef && typeof securitySchemeOrRef.$ref === 'string') {
         // Result of resolution will be SecuritySchemeObject:
         securitySchemes[schemeKey] = resolveRef(
-          (securityScheme as ReferenceObject).$ref,
+          securitySchemeOrRef.$ref,
           oas
-        ) as SecuritySchemeObject
+        )
       } else {
         // We already have a SecuritySchemeObject:
-        securitySchemes[schemeKey] = securityScheme as SecuritySchemeObject
+        securitySchemes[schemeKey] = securitySchemeOrRef as SecuritySchemeObject
       }
     }
   }

@@ -4,7 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GraphQLOperationType = exports.CaseStyle = exports.sanitize = exports.createGraphQLSchema = void 0;
+exports.GraphQLOperationType = exports.sanitize = exports.CaseStyle = exports.createGraphQLSchema = void 0;
 const graphql_1 = require("./types/graphql");
 const graphql_2 = require("graphql");
 // Imports:
@@ -162,9 +162,10 @@ provideErrorExtensions, equivalentToMessages }) {
         const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
         // Check if the operation should be added as a Query or Mutation
         if (operation.operationType === graphql_1.GraphQLOperationType.Query) {
-            let fieldName = !singularNames
-                ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
-                : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase);
+            let fieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name] ||
+                (!singularNames
+                    ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+                    : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase));
             if (operation.inViewer) {
                 for (let securityRequirement of operation.securityRequirements) {
                     if (typeof authQueryFields[securityRequirement] !== 'object') {
@@ -541,8 +542,8 @@ function preliminaryChecks(options, data) {
     checkCustomResolversStructure(options.customSubscriptionResolvers, data);
 }
 var oas_3_tools_1 = require("./oas_3_tools");
-Object.defineProperty(exports, "sanitize", { enumerable: true, get: function () { return oas_3_tools_1.sanitize; } });
 Object.defineProperty(exports, "CaseStyle", { enumerable: true, get: function () { return oas_3_tools_1.CaseStyle; } });
+Object.defineProperty(exports, "sanitize", { enumerable: true, get: function () { return oas_3_tools_1.sanitize; } });
 var graphql_3 = require("./types/graphql");
 Object.defineProperty(exports, "GraphQLOperationType", { enumerable: true, get: function () { return graphql_3.GraphQLOperationType; } });
 //# sourceMappingURL=index.js.map

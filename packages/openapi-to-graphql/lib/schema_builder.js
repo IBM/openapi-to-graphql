@@ -360,7 +360,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
         return listObjectType;
     }
     else {
-        throw new Error(`Cannot create list item object type '${itemsName}' in list 
+        throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`);
     }
 }
@@ -885,8 +885,8 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         let hasDefault = false;
         if (typeof parameter.schema === 'object') {
             let schema = parameter.schema;
-            if (typeof schema.$ref === 'string') {
-                schema = Oas3Tools.resolveRef(parameter.schema.$ref, operation.oas);
+            if ('$ref' in schema) {
+                schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
             }
             if (typeof schema.default !== 'undefined') {
                 hasDefault = true;

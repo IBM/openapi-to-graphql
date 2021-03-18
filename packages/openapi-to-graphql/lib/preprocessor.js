@@ -222,11 +222,15 @@ function preprocessOas(oass, options) {
                 // Process all callbacks
                 if (data.options.createSubscriptionsFromCallbacks &&
                     operation.callbacks) {
-                    Object.entries(operation.callbacks).forEach(([callbackName, callback]) => {
-                        const resolvedCallback = !('$ref' in callback)
-                            ? callback
-                            : Oas3Tools.resolveRef(callback.$ref, oas);
-                        Object.entries(resolvedCallback).forEach(([callbackExpression, callbackPathItem]) => {
+                    Object.entries(operation.callbacks).forEach(([callbackName, callbackObjectOrRef]) => {
+                        let callback;
+                        if ('$ref' in callbackObjectOrRef && typeof callbackObjectOrRef.$ref === 'string') {
+                            callback = Oas3Tools.resolveRef(callbackObjectOrRef.$ref, oas);
+                        }
+                        else {
+                            callback = callbackObjectOrRef;
+                        }
+                        Object.entries(callback).forEach(([callbackExpression, callbackPathItem]) => {
                             const resolvedCallbackPathItem = !('$ref' in callbackPathItem)
                                 ? callbackPathItem
                                 : Oas3Tools.resolveRef(callbackPathItem.$ref, oas);
@@ -444,14 +448,14 @@ function getProcessedSecuritySchemes(oas, data) {
  * Method to either create a new or reuse an existing, centrally stored data
  * definition.
  */
-function createDataDef(names, schema, isInputObjectType, data, oas, links) {
+function createDataDef(names, schemaOrRef, isInputObjectType, data, oas, links) {
     const preferredName = getPreferredName(names);
     // Basic validation test
-    if (typeof schema !== 'object' && schema !== null) {
+    if (typeof schemaOrRef !== 'object' && schemaOrRef !== null) {
         utils_1.handleWarning({
             mitigationType: utils_1.MitigationTypes.MISSING_SCHEMA,
             message: `Could not create data definition for schema with ` +
-                `preferred name '${preferredName}' and schema '${JSON.stringify(schema)}'`,
+                `preferred name '${preferredName}' and schema '${JSON.stringify(schemaOrRef)}'`,
             data,
             log: preprocessingLog
         });
@@ -467,8 +471,12 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
         };
     }
     else {
-        if (typeof schema.$ref === 'string') {
-            schema = Oas3Tools.resolveRef(schema.$ref, oas);
+        let schema;
+        if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
+            schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas);
+        }
+        else {
+            schema = schemaOrRef;
         }
         const saneLinks = {};
         if (typeof links === 'object') {
@@ -585,7 +593,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
                         let itemsSchema = collapsedSchema.items;
                         let itemsName = `${name}ListItem`;
                         if ('$ref' in itemsSchema) {
-                            itemsName = collapsedSchema.items.$ref.split('/').pop();
+                            itemsName = itemsSchema.$ref.split('/').pop();
                         }
                         const subDefinition = createDataDef(
                         // Is this the correct classification for this name? It does not matter in the long run.
@@ -686,8 +694,14 @@ function getSchemaName(names, usedNames) {
         throw new Error(`Cannot create data definition without name(s), excluding the preferred name.`);
     }
     let schemaName;
+    if (typeof names.fromExtension === 'string') {
+        const saneName = Oas3Tools.sanitize(names.fromExtension, Oas3Tools.CaseStyle.PascalCase);
+        if (!usedNames.includes(saneName)) {
+            schemaName = names.fromExtension;
+        }
+    }
     // CASE: name from reference
-    if (typeof names.fromRef === 'string') {
+    if (!schemaName && typeof names.fromRef === 'string') {
         const saneName = Oas3Tools.sanitize(names.fromRef, Oas3Tools.CaseStyle.PascalCase);
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromRef;
@@ -709,13 +723,15 @@ function getSchemaName(names, usedNames) {
     }
     // CASE: all names are already used - create approximate name
     if (!schemaName) {
-        schemaName = Oas3Tools.sanitize(typeof names.fromRef === 'string'
-            ? names.fromRef
-            : typeof names.fromSchema === 'string'
-                ? names.fromSchema
-                : typeof names.fromPath === 'string'
-                    ? names.fromPath
-                    : 'PlaceholderName', Oas3Tools.CaseStyle.PascalCase);
+        schemaName = Oas3Tools.sanitize(typeof names.fromExtension === 'string'
+            ? names.fromExtension
+            : typeof names.fromRef === 'string'
+                ? names.fromRef
+                : typeof names.fromSchema === 'string'
+                    ? names.fromSchema
+                    : typeof names.fromPath === 'string'
+                        ? names.fromPath
+                        : 'PlaceholderName', Oas3Tools.CaseStyle.PascalCase);
     }
     if (usedNames.includes(schemaName)) {
         let appendix = 2;
@@ -748,15 +764,18 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
     for (let propertyKey in schema.properties) {
         if (!(propertyKey in def.subDefinitions)) {
             let propSchemaName = propertyKey;
+            const propSchemaOrRef = schema.properties[propertyKey];
             let propSchema;
-            if (typeof schema.properties[propertyKey].$ref === 'string') {
-                propSchemaName = schema.properties[propertyKey].$ref.split('/').pop();
-                propSchema = Oas3Tools.resolveRef(schema.properties[propertyKey].$ref, oas);
+            if ("$ref" in propSchemaOrRef && typeof propSchemaOrRef.$ref === 'string') {
+                propSchemaName = propSchemaOrRef.$ref.split('/').pop();
+                propSchema = Oas3Tools.resolveRef(propSchemaOrRef.$ref, oas);
             }
             else {
-                propSchema = schema.properties[propertyKey];
+                propSchema = propSchemaOrRef;
             }
+            const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
             const subDefinition = createDataDef({
+                fromExtension,
                 fromRef: propSchemaName,
                 fromSchema: propSchema.title // TODO: Redundant because of fromRef but arguably, propertyKey is a better field name and title is a better type name
             }, propSchema, isInputObjectType, data, oas);
@@ -782,12 +801,13 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
  */
 function resolveAllOf(schema, references, data, oas) {
     // Dereference schema
-    if (typeof schema.$ref === 'string') {
+    if ("$ref" in schema && typeof schema.$ref === 'string') {
         if (schema.$ref in references) {
             return references[schema.$ref];
         }
+        const reference = schema.$ref;
         schema = Oas3Tools.resolveRef(schema.$ref, oas);
-        references[schema.$ref] = schema;
+        references[reference] = schema;
     }
     /**
      * TODO: Is there a better method to copy the schema?
@@ -881,7 +901,7 @@ function getMemberSchemaData(schemas, data, oas) {
     schemas.forEach((schemaOrRef) => {
         // Dereference schemas
         let schema;
-        if (typeof schemaOrRef.$ref === 'string') {
+        if ("$ref" in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
             schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas);
         }
         else {
@@ -904,7 +924,6 @@ function getMemberSchemaData(schemas, data, oas) {
     return result;
 }
 function createAnyOfObject(saneName, saneInputName, collapsedSchema, isInputObjectType, def, data, oas) {
-    var _a;
     /**
      * Used to find incompatible properties
      *
@@ -917,7 +936,19 @@ function createAnyOfObject(saneName, saneInputName, collapsedSchema, isInputObje
      * If it is conflicting, add to incompatiable
      * properties; if not, do nothing.
      */
-    const allProperties = (_a = collapsedSchema === null || collapsedSchema === void 0 ? void 0 : collapsedSchema.properties) !== null && _a !== void 0 ? _a : {};
+    const allProperties = {};
+    if ('properties' in collapsedSchema) {
+        Object.entries(collapsedSchema.properties).forEach(([propertyName, propertyObjectOrRef]) => {
+            let property;
+            if ('$ref' in propertyObjectOrRef && typeof propertyObjectOrRef.$ref === 'string') {
+                property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas);
+            }
+            else {
+                property = propertyObjectOrRef;
+            }
+            allProperties[propertyName] = property;
+        });
+    }
     // Store the names of properties with conflicting contents
     const incompatibleProperties = new Set();
     // An array containing the properties of all member schemas
@@ -925,14 +956,25 @@ function createAnyOfObject(saneName, saneInputName, collapsedSchema, isInputObje
     collapsedSchema.anyOf.forEach((memberSchemaOrRef) => {
         // Collapsed schema should already be recursively resolved
         let memberSchema;
-        if (typeof memberSchemaOrRef.$ref === 'string') {
+        if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
             memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas);
         }
         else {
             memberSchema = memberSchemaOrRef;
         }
         if (memberSchema.properties) {
-            memberProperties.push(memberSchema.properties);
+            const properties = {};
+            Object.entries(memberSchema.properties).forEach(([propertyName, propertyObjectOrRef]) => {
+                let property;
+                if ('$ref' in propertyObjectOrRef && typeof propertyObjectOrRef.$ref === 'string') {
+                    property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas);
+                }
+                else {
+                    property = propertyObjectOrRef;
+                }
+                properties[propertyName] = property;
+            });
+            memberProperties.push(properties);
         }
     });
     /**
@@ -1016,7 +1058,7 @@ function createOneOfUnion(saneName, saneInputName, collapsedSchema, isInputObjec
         // Collapsed schema should already be recursively resolved
         let fromRef;
         let memberSchema;
-        if (typeof memberSchemaOrRef.$ref === 'string') {
+        if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
             fromRef = memberSchemaOrRef.$ref.split('/').pop();
             memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas);
         }

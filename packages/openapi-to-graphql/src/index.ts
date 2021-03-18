@@ -68,7 +68,6 @@ import { createAndLoadViewer } from './auth_builder'
 import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
 import { sortObject, handleWarning, MitigationTypes } from './utils'
-
 const translationLog = debug('translation')
 
 type Result<TSource, TContext, TArgs> = {
@@ -314,12 +313,14 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
     // Check if the operation should be added as a Query or Mutation
     if (operation.operationType === GraphQLOperationType.Query) {
-      let fieldName = !singularNames
-        ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
-        : Oas3Tools.sanitize(
-            Oas3Tools.inferResourceNameFromPath(operation.path),
-            Oas3Tools.CaseStyle.camelCase
-          )
+      let fieldName =
+        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name] ||
+        (!singularNames
+          ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+          : Oas3Tools.sanitize(
+              Oas3Tools.inferResourceNameFromPath(operation.path),
+              Oas3Tools.CaseStyle.camelCase
+            ))
 
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {
@@ -807,5 +808,5 @@ function preliminaryChecks<TSource, TContext, TArgs>(
   checkCustomResolversStructure(options.customSubscriptionResolvers, data)
 }
 
-export { sanitize, CaseStyle } from './oas_3_tools'
+export { CaseStyle, sanitize } from './oas_3_tools'
 export { GraphQLOperationType } from './types/graphql'
