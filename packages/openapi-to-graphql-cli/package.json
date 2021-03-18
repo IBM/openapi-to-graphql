@@ -1,6 +1,6 @@
 {
   "name": "openapi-to-graphql-cli",
-  "version": "2.2.6",
+  "version": "2.3.0",
   "description": "CLI for turning APIs described by OpenAPI Specifications (OAS) into GraphQL interfaces",
   "copyright.owner": "IBM Corp.",
   "contributors": [
@@ -53,7 +53,7 @@
     "express-graphql": "^0.11.0",
     "graphql": "^15.3.0",
     "js-yaml": "^3.14.0",
-    "openapi-to-graphql": "^2.2.6",
+    "openapi-to-graphql": "^2.3.0",
     "request": "^2.88.0"
   },
   "devDependencies": {

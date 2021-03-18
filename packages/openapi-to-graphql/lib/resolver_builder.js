@@ -201,7 +201,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         translationLog(`Use custom resolver for ${operation.operationString}`);
         return customResolvers[title][path][method];
     }
-    // Return resolve function :
+    // Return resolve function:
     return (source, args, context, info) => {
         /**
          * Fetch resolveData from possibly existing _openAPIToGraphQL

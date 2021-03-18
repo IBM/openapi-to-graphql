@@ -20,7 +20,7 @@ declare type GetResolverParams<TSource, TContext, TArgs> = {
     responseName?: string;
     data: PreprocessingData<TSource, TContext, TArgs>;
     baseUrl?: string;
-    requestOptions?: RequestOptions<TSource, TContext, TArgs>;
+    requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>;
 };
 declare type GetSubscribeParams<TSource, TContext, TArgs> = {
     operation: Operation;

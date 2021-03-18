@@ -43,6 +43,16 @@ export declare type RequestHeadersFunction<TSource, TContext, TArgs> = (method: 
     context: TContext;
     info: GraphQLResolveInfo;
 }) => Headers;
+/**
+ * We rely on the Request library in order to make resolver API calls.
+ *
+ * We expose the options so that users can have more control over the calls.
+ *
+ * We modify the RequestOptions so that headers can also be provided as a
+ * function.
+ *
+ * Based on: https://github.com/request/request#requestoptions-callback
+ */
 export declare type RequestOptions<TSource, TContext, TArgs> = Omit<NodeRequest.OptionsWithUrl, 'headers'> & {
     headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>;
 };
@@ -155,11 +165,17 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
         [key: string]: string;
     };
     /**
-     * Allows to override or add options to the node's request object used to make
-     * calls to the API backend.
-     * e.g. Setup the web proxy to use.
+     * We use the Request library to make calls to the API backend.
+     *
+     * Allows to override or add options to the API calls, e.g. setup the web
+     * proxy to use.
+     *
+     * Headers can either be provided as an object or a function that returns
+     * an object.
+     *
+     * Based on: https://github.com/request/request#requestoptions-callback
      */
-    requestOptions?: RequestOptions<TSource, TContext, TArgs>;
+    requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>;
     /**
      * Allows to override or add options to the PubSub connect object used to make
      * publish/subscribe to the API backend.
@@ -224,6 +240,22 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * header.
      */
     sendOAuthTokenInQuery: boolean;
+    /**
+     * We use the oas-validator library to validate Swaggers/OASs.
+     *
+     * We expose the options so that users can have more control over validation.
+     *
+     * Based on: https://github.com/Mermade/oas-kit/blob/master/docs/options.md
+     */
+    oasValidatorOptions: object;
+    /**
+     * We use the swagger2graphql library to translate Swaggers to OASs.
+     *
+     * We expose the options so that users can have more control over translation.
+     *
+     * Based on: https://github.com/Mermade/oas-kit/blob/master/docs/options.md
+     */
+    swagger2OpenAPIOptions: object;
     /**
      * The error extensions is part of the GraphQLErrors that will be returned if
      * the query cannot be fulfilled. It provides information about the failed

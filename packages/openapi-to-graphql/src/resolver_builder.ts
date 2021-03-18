@@ -57,7 +57,7 @@ type GetResolverParams<TSource, TContext, TArgs> = {
   responseName?: string
   data: PreprocessingData<TSource, TContext, TArgs>
   baseUrl?: string
-  requestOptions?: RequestOptions<TSource, TContext, TArgs>
+  requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>
 }
 
 type GetSubscribeParams<TSource, TContext, TArgs> = {
@@ -362,7 +362,7 @@ export function getResolver<TSource, TContext, TArgs>({
     return customResolvers[title][path][method]
   }
 
-  // Return resolve function :
+  // Return resolve function:
   return (source, args, context, info) => {
     /**
      * Fetch resolveData from possibly existing _openAPIToGraphQL
