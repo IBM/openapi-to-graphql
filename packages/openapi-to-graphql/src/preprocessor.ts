@@ -27,7 +27,6 @@ import debug from 'debug'
 import { handleWarning, getCommonPropertyNames, MitigationTypes } from './utils'
 import { GraphQLOperationType } from './types/graphql'
 import { methodToHttpMethod } from './oas_3_tools'
-import { Schema } from 'inspector'
 
 const preprocessingLog = debug('preprocessing')
 

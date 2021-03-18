@@ -17,7 +17,7 @@ import {
   ReferenceObject,
   LinkObject
 } from './types/oas3'
-import { Args, GraphQLType } from './types/graphql'
+import { Args } from './types/graphql'
 import {
   GraphQLScalarType,
   GraphQLObjectType,

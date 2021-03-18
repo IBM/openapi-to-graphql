@@ -23,8 +23,6 @@ import {
   ReferenceObject,
   LinksObject,
   LinkObject,
-  CallbacksObject,
-  CallbackObject,
   MediaTypesObject,
   SecuritySchemeObject,
   SecurityRequirementObject
