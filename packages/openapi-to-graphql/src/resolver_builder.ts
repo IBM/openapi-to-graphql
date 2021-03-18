@@ -8,21 +8,23 @@
  */
 
 // Type imports:
-import { debug } from 'debug'
-import formurlencoded from 'form-urlencoded'
-import { GraphQLError, GraphQLFieldResolver } from 'graphql'
-import { PubSub } from 'graphql-subscriptions'
-import { IncomingHttpHeaders } from 'http'
-import * as JSONPath from 'jsonpath-plus'
-import * as querystring from 'querystring'
+import { SchemaObject, ParameterObject } from './types/oas3'
+import { ConnectOptions } from './types/options'
+import { Operation } from './types/operation'
+import { SubscriptionContext } from './types/graphql'
+import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
+import { RequestOptions } from './types/options'
+
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
-import { SubscriptionContext } from './types/graphql'
-import { ParameterObject, SchemaObject } from './types/oas3'
-import { Operation } from './types/operation'
-import { ConnectOptions, RequestOptions } from './types/options'
-import { PreprocessingData } from './types/preprocessing_data'
+import * as querystring from 'querystring'
+import * as JSONPath from 'jsonpath-plus'
+import { debug } from 'debug'
+import { GraphQLError, GraphQLFieldResolver } from 'graphql'
+import formurlencoded from 'form-urlencoded'
+import { PubSub } from 'graphql-subscriptions'
+import { IncomingHttpHeaders } from 'http'
 
 const pubsub = new PubSub()
 

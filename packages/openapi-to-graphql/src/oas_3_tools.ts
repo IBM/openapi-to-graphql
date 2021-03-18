@@ -8,37 +8,38 @@
  */
 
 // Type imports:
-import debug from 'debug'
-import * as jsonptr from 'json-ptr'
-import * as OASValidator from 'oas-validator'
-import * as pluralize from 'pluralize'
-// Imports:
-import * as Swagger2OpenAPI from 'swagger2openapi'
 import { Oas2 } from './types/oas2'
-import {
-  LinkObject,
-  LinksObject,
-  MediaTypesObject,
-  Oas3,
-  OperationObject,
-  ParameterObject,
-  PathItemObject,
-  ReferenceObject,
-  RequestBodyObject,
-  ResponseObject,
-  ResponsesObject,
-  SchemaObject,
-  SecurityRequirementObject,
-  SecuritySchemeObject,
-  ServerObject
-} from './types/oas3'
 import { Operation } from './types/operation'
-import { InternalOptions } from './types/options'
+import {
+  Oas3,
+  ServerObject,
+  ParameterObject,
+  SchemaObject,
+  OperationObject,
+  ResponsesObject,
+  ResponseObject,
+  PathItemObject,
+  RequestBodyObject,
+  ReferenceObject,
+  LinksObject,
+  LinkObject,
+  MediaTypesObject,
+  SecuritySchemeObject,
+  SecurityRequirementObject
+} from './types/oas3'
 import {
   PreprocessingData,
   ProcessedSecurityScheme
 } from './types/preprocessing_data'
+import { InternalOptions } from './types/options'
+
+// Imports:
+import * as Swagger2OpenAPI from 'swagger2openapi'
+import * as OASValidator from 'oas-validator'
+import debug from 'debug'
 import { handleWarning, MitigationTypes } from './utils'
+import * as jsonptr from 'json-ptr'
+import * as pluralize from 'pluralize'
 
 // Type definitions & exports:
 export type SchemaNames = {

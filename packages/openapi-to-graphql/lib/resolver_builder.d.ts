@@ -1,11 +1,15 @@
 /// <reference types="node" />
+/**
+ * Functions to create resolve functions.
+ */
+import { ParameterObject } from './types/oas3';
+import { ConnectOptions } from './types/options';
+import { Operation } from './types/operation';
+import { SubscriptionContext } from './types/graphql';
+import { PreprocessingData } from './types/preprocessing_data';
+import { RequestOptions } from './types/options';
 import { GraphQLFieldResolver } from 'graphql';
 import { IncomingHttpHeaders } from 'http';
-import { SubscriptionContext } from './types/graphql';
-import { ParameterObject } from './types/oas3';
-import { Operation } from './types/operation';
-import { ConnectOptions, RequestOptions } from './types/options';
-import { PreprocessingData } from './types/preprocessing_data';
 export declare const OPENAPI_TO_GRAPHQL = "_openAPIToGraphQL";
 declare type GetResolverParams<TSource, TContext, TArgs> = {
     operation: Operation;

@@ -1,8 +1,11 @@
+/**
+ * Utility functions around the OpenAPI Specification 3.
+ */
 import { Oas2 } from './types/oas2';
-import { LinkObject, Oas3, OperationObject, ParameterObject, PathItemObject, ReferenceObject, RequestBodyObject, ResponseObject, SchemaObject, SecuritySchemeObject, ServerObject } from './types/oas3';
 import { Operation } from './types/operation';
-import { InternalOptions } from './types/options';
+import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, PathItemObject, RequestBodyObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
+import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
     fromExtension?: string;
     fromRef?: string;

@@ -8,41 +8,42 @@
  */
 
 // Type imports:
-import debug from 'debug'
+import { PreprocessingData } from './types/preprocessing_data'
+import { Operation, DataDefinition } from './types/operation'
 import {
+  Oas3,
+  SchemaObject,
+  ParameterObject,
+  ReferenceObject,
+  LinkObject
+} from './types/oas3'
+import { Args, GraphQLType } from './types/graphql'
+import {
+  GraphQLScalarType,
+  GraphQLObjectType,
+  GraphQLString,
+  GraphQLID,
+  GraphQLInt,
+  GraphQLFloat,
   GraphQLBoolean,
+  GraphQLNonNull,
+  GraphQLList,
+  GraphQLInputObjectType,
   GraphQLEnumType,
   GraphQLFieldConfigMap,
-  GraphQLFloat,
-  GraphQLID,
-  GraphQLInputFieldConfigMap,
-  GraphQLInputObjectType,
-  GraphQLInputType,
-  GraphQLInt,
-  GraphQLList,
-  GraphQLNonNull,
-  GraphQLObjectType,
   GraphQLOutputType,
-  GraphQLScalarType,
-  GraphQLString,
-  GraphQLUnionType
+  GraphQLUnionType,
+  GraphQLInputType,
+  GraphQLInputFieldConfigMap
 } from 'graphql'
+
 // Imports:
 import GraphQLJSON from 'graphql-type-json'
 import * as Oas3Tools from './oas_3_tools'
-import { createDataDef } from './preprocessor'
 import { getResolver, OPENAPI_TO_GRAPHQL } from './resolver_builder'
-import { Args } from './types/graphql'
-import {
-  LinkObject,
-  Oas3,
-  ParameterObject,
-  ReferenceObject,
-  SchemaObject
-} from './types/oas3'
-import { DataDefinition, Operation } from './types/operation'
-import { PreprocessingData } from './types/preprocessing_data'
-import { handleWarning, MitigationTypes, sortObject } from './utils'
+import { createDataDef } from './preprocessor'
+import debug from 'debug'
+import { handleWarning, sortObject, MitigationTypes } from './utils'
 
 type GetArgsParams<TSource, TContext, TArgs> = {
   requestPayloadDef?: DataDefinition

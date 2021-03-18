@@ -5,14 +5,13 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDataDef = exports.preprocessOas = void 0;
-// Type imports:
-const debug_1 = require("debug");
-const deepEqual = require("deep-equal");
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
-const oas_3_tools_1 = require("./oas_3_tools");
-const graphql_1 = require("./types/graphql");
+const deepEqual = require("deep-equal");
+const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const graphql_1 = require("./types/graphql");
+const oas_3_tools_1 = require("./oas_3_tools");
 const preprocessingLog = debug_1.default('preprocessing');
 /**
  * Given an operation object from the OAS, create an Operation, which contains

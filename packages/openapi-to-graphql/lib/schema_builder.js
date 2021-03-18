@@ -5,17 +5,13 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getArgs = exports.getGraphQLType = void 0;
-/**
- * Functions to translate JSON schema to GraphQL (input) object types.
- */
-// Type imports:
-const debug_1 = require("debug");
 const graphql_1 = require("graphql");
 // Imports:
 const graphql_type_json_1 = require("graphql-type-json");
 const Oas3Tools = require("./oas_3_tools");
-const preprocessor_1 = require("./preprocessor");
 const resolver_builder_1 = require("./resolver_builder");
+const preprocessor_1 = require("./preprocessor");
+const debug_1 = require("debug");
 const utils_1 = require("./utils");
 /**
  * We need to slightly modify the GraphQLJSON type.

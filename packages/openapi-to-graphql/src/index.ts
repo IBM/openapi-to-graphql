@@ -31,42 +31,43 @@
  */
 
 // Type imports:
-import debug from 'debug'
 import {
-  GraphQLFieldConfig,
-  GraphQLObjectType,
-  GraphQLOutputType,
-  GraphQLSchema
-} from 'graphql'
-import { GraphQLSchemaConfig } from 'graphql/type/schema'
-import * as NodeRequest from 'request'
-import { createAndLoadViewer } from './auth_builder'
-import * as GraphQLTools from './graphql_tools'
-import * as Oas3Tools from './oas_3_tools'
-import { preprocessOas } from './preprocessor'
-import {
-  getPublishResolver,
-  getResolver,
-  getSubscribe
-} from './resolver_builder'
-// Imports:
-import { getArgs, getGraphQLType } from './schema_builder'
+  Options,
+  InternalOptions,
+  Report,
+  ConnectOptions
+} from './types/options'
+import { Oas3 } from './types/oas3'
+import { Oas2 } from './types/oas2'
 import {
   Args,
   GraphQLOperationType,
   SubscriptionContext
 } from './types/graphql'
-import { Oas2 } from './types/oas2'
-import { Oas3 } from './types/oas3'
 import { Operation } from './types/operation'
-import {
-  ConnectOptions,
-  InternalOptions,
-  Options,
-  Report
-} from './types/options'
 import { PreprocessingData } from './types/preprocessing_data'
-import { handleWarning, MitigationTypes, sortObject } from './utils'
+import {
+  GraphQLSchema,
+  GraphQLObjectType,
+  GraphQLOutputType,
+  GraphQLFieldConfig
+} from 'graphql'
+import * as NodeRequest from 'request'
+
+// Imports:
+import { getGraphQLType, getArgs } from './schema_builder'
+import {
+  getResolver,
+  getSubscribe,
+  getPublishResolver
+} from './resolver_builder'
+import * as GraphQLTools from './graphql_tools'
+import { preprocessOas } from './preprocessor'
+import * as Oas3Tools from './oas_3_tools'
+import { createAndLoadViewer } from './auth_builder'
+import debug from 'debug'
+import { GraphQLSchemaConfig } from 'graphql/type/schema'
+import { sortObject, handleWarning, MitigationTypes } from './utils'
 
 type Result<TSource, TContext, TArgs> = {
   schema: GraphQLSchema

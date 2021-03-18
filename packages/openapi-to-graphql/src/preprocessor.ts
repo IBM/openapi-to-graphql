@@ -4,28 +4,29 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import debug from 'debug'
-import * as deepEqual from 'deep-equal'
-// Imports:
-import * as Oas3Tools from './oas_3_tools'
-import { methodToHttpMethod } from './oas_3_tools'
-import { GraphQLOperationType } from './types/graphql'
 import {
+  Oas3,
   CallbackObject,
   LinkObject,
-  Oas3,
   OperationObject,
-  PathItemObject,
   ReferenceObject,
-  SchemaObject
+  SchemaObject,
+  PathItemObject
 } from './types/oas3'
-import { DataDefinition, Operation } from './types/operation'
 import { InternalOptions } from './types/options'
+import { Operation, DataDefinition } from './types/operation'
 import {
   PreprocessingData,
   ProcessedSecurityScheme
 } from './types/preprocessing_data'
-import { getCommonPropertyNames, handleWarning, MitigationTypes } from './utils'
+
+// Imports:
+import * as Oas3Tools from './oas_3_tools'
+import * as deepEqual from 'deep-equal'
+import debug from 'debug'
+import { handleWarning, getCommonPropertyNames, MitigationTypes } from './utils'
+import { GraphQLOperationType } from './types/graphql'
+import { methodToHttpMethod } from './oas_3_tools'
 
 const preprocessingLog = debug('preprocessing')
 
