@@ -14,7 +14,7 @@ import { Operation } from './types/operation'
 import { SubscriptionContext } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
-import { RequestOptions } from './types/options'
+import { RequestOptions, RequestOptionsFunction } from './types/options'
 
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
@@ -57,7 +57,9 @@ type GetResolverParams<TSource, TContext, TArgs> = {
   responseName?: string
   data: PreprocessingData<TSource, TContext, TArgs>
   baseUrl?: string
-  requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>
+  requestOptions?:
+    | Partial<RequestOptions<TSource, TContext, TArgs>>
+    | RequestOptionsFunction<TSource, TContext, TArgs>
 }
 
 type GetSubscribeParams<TSource, TContext, TArgs> = {
@@ -487,7 +489,7 @@ export function getResolver<TSource, TContext, TArgs>({
       args,
       data
     )
-    const url = baseUrl + path
+    let url = baseUrl + path
 
     /**
      * The Content-Type and Accept property should not be changed because the
@@ -510,21 +512,41 @@ export function getResolver<TSource, TContext, TArgs>({
 
     let options: NodeRequest.OptionsWithUrl
     if (requestOptions) {
+      let requestOptionsVal: any = requestOptions
+      let method = operation.method
+      if (typeof requestOptions === 'function') {
+        requestOptionsVal = requestOptions(method, path, title, {
+          source,
+          args,
+          context,
+          info
+        })
+
+        if (
+          requestOptionsVal.url &&
+          requestOptionsVal.url.toString().trim().length > 0
+        ) {
+          url = requestOptionsVal.url.toString().trim()
+        }
+        if (requestOptionsVal.method && requestOptionsVal.method.length > 0) {
+          method = Oas3Tools.methodToHttpMethod(requestOptionsVal.method)
+        }
+      }
       options = {
-        ...requestOptions,
-        method: operation.method,
+        ...requestOptionsVal,
+        method: method,
         url // Must be after the requestOptions spread as url is a mandatory field so undefined may be used
       }
 
       options.headers = {} // Handle requestOptions.header later if applicable
       options.qs = {} // Handle requestOptions.qs later if applicable
 
-      if (requestOptions.headers) {
+      if (requestOptionsVal.headers) {
         // requestOptions.headers may be either an object or a function
-        if (typeof requestOptions.headers === 'object') {
-          Object.assign(options.headers, headers, requestOptions.headers)
-        } else if (typeof requestOptions.headers === 'function') {
-          const headers = requestOptions.headers(method, path, title, {
+        if (typeof requestOptionsVal.headers === 'object') {
+          Object.assign(options.headers, headers, requestOptionsVal.headers)
+        } else if (typeof requestOptionsVal.headers === 'function') {
+          const headers = requestOptionsVal.headers(method, path, title, {
             source,
             args,
             context,
@@ -539,8 +561,8 @@ export function getResolver<TSource, TContext, TArgs>({
         options.headers = headers
       }
 
-      if (requestOptions.qs) {
-        Object.assign(options.qs, qs, requestOptions.qs)
+      if (requestOptionsVal.qs) {
+        Object.assign(options.qs, qs, requestOptionsVal.qs)
       } else {
         options.qs = qs
       }

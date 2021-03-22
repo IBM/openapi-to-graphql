@@ -36,6 +36,7 @@ import {
   InternalOptions,
   Report,
   ConnectOptions,
+  RequestOptionsFunction,
   RequestOptions
 } from './types/options'
 import { Oas3 } from './types/oas3'
@@ -640,7 +641,9 @@ function getFieldForOperation<TSource, TContext, TArgs>(
   operation: Operation,
   baseUrl: string,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  requestOptions: Partial<RequestOptions<TSource, TContext, TArgs>>,
+  requestOptions:
+    | Partial<RequestOptions<TSource, TContext, TArgs>>
+    | RequestOptionsFunction<TSource, TContext, TArgs>,
   connectOptions: ConnectOptions
 ): GraphQLFieldConfig<TSource, TContext | SubscriptionContext, TArgs> {
   // Create GraphQL Type for response:

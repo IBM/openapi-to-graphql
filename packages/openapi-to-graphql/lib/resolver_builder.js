@@ -283,7 +283,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         resolveData.usedParams = Object.assign(resolveData.usedParams, args);
         // Build URL (i.e., fill in path parameters):
         const { path, qs, headers } = extractRequestDataFromArgs(operation.path, operation.parameters, args, data);
-        const url = baseUrl + path;
+        let url = baseUrl + path;
         /**
          * The Content-Type and Accept property should not be changed because the
          * object type has already been created and unlike these properties, it
@@ -303,17 +303,33 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 : 'application/json';
         let options;
         if (requestOptions) {
-            options = Object.assign(Object.assign({}, requestOptions), { method: operation.method, url // Must be after the requestOptions spread as url is a mandatory field so undefined may be used
+            let requestOptionsVal = requestOptions;
+            let method = operation.method;
+            if (typeof requestOptions === 'function') {
+                requestOptionsVal = requestOptions(method, path, title, {
+                    source,
+                    args,
+                    context,
+                    info
+                });
+                if (requestOptionsVal.url && requestOptionsVal.url.toString().trim().length > 0) {
+                    url = requestOptionsVal.url.toString().trim();
+                }
+                if (requestOptionsVal.method && requestOptionsVal.method.length > 0) {
+                    method = Oas3Tools.methodToHttpMethod(requestOptionsVal.method);
+                }
+            }
+            options = Object.assign(Object.assign({}, requestOptionsVal), { method: method, url // Must be after the requestOptions spread as url is a mandatory field so undefined may be used
              });
             options.headers = {}; // Handle requestOptions.header later if applicable
             options.qs = {}; // Handle requestOptions.qs later if applicable
-            if (requestOptions.headers) {
+            if (requestOptionsVal.headers) {
                 // requestOptions.headers may be either an object or a function
-                if (typeof requestOptions.headers === 'object') {
-                    Object.assign(options.headers, headers, requestOptions.headers);
+                if (typeof requestOptionsVal.headers === 'object') {
+                    Object.assign(options.headers, headers, requestOptionsVal.headers);
                 }
-                else if (typeof requestOptions.headers === 'function') {
-                    const headers = requestOptions.headers(method, path, title, {
+                else if (typeof requestOptionsVal.headers === 'function') {
+                    const headers = requestOptionsVal.headers(method, path, title, {
                         source,
                         args,
                         context,
@@ -327,8 +343,8 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             else {
                 options.headers = headers;
             }
-            if (requestOptions.qs) {
-                Object.assign(options.qs, qs, requestOptions.qs);
+            if (requestOptionsVal.qs) {
+                Object.assign(options.qs, qs, requestOptionsVal.qs);
             }
             else {
                 options.qs = qs;

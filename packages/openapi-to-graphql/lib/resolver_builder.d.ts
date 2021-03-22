@@ -7,7 +7,7 @@ import { ConnectOptions } from './types/options';
 import { Operation } from './types/operation';
 import { SubscriptionContext } from './types/graphql';
 import { PreprocessingData } from './types/preprocessing_data';
-import { RequestOptions } from './types/options';
+import { RequestOptions, RequestOptionsFunction } from './types/options';
 import { GraphQLFieldResolver } from 'graphql';
 import { IncomingHttpHeaders } from 'http';
 export declare const OPENAPI_TO_GRAPHQL = "_openAPIToGraphQL";
@@ -20,7 +20,7 @@ declare type GetResolverParams<TSource, TContext, TArgs> = {
     responseName?: string;
     data: PreprocessingData<TSource, TContext, TArgs>;
     baseUrl?: string;
-    requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>;
+    requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>> | RequestOptionsFunction<TSource, TContext, TArgs>;
 };
 declare type GetSubscribeParams<TSource, TContext, TArgs> = {
     operation: Operation;

@@ -60,6 +60,18 @@ export type RequestHeadersFunction<TSource, TContext, TArgs> = (
   }
 ) => Headers
 
+export type RequestOptionsFunction<TSource, TContext, TArgs> = (
+  method: string,
+  path: string,
+  title: string,
+  resolverParams?: {
+    source: TSource
+    args: TArgs
+    context: TContext
+    info: GraphQLResolveInfo
+  }
+) => Partial<NodeRequest.CoreOptions>
+
 /**
  * We rely on the Request library in order to make resolver API calls.
  *
@@ -219,7 +231,9 @@ export type InternalOptions<TSource, TContext, TArgs> = {
    *
    * Based on: https://github.com/request/request#requestoptions-callback
    */
-  requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>
+  requestOptions?:
+    | Partial<RequestOptions<TSource, TContext, TArgs>>
+    | RequestOptionsFunction<TSource, TContext, TArgs>
 
   /**
    * Allows to override or add options to the PubSub connect object used to make
