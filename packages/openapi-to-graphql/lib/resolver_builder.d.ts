@@ -7,10 +7,25 @@ import { ConnectOptions } from './types/options';
 import { Operation } from './types/operation';
 import { SubscriptionContext } from './types/graphql';
 import { PreprocessingData } from './types/preprocessing_data';
-import { RequestOptions, RequestOptionsFunction } from './types/options';
+import { RequestOptions } from './types/options';
 import { GraphQLFieldResolver } from 'graphql';
 import { IncomingHttpHeaders } from 'http';
 export declare const OPENAPI_TO_GRAPHQL = "_openAPIToGraphQL";
+declare type GetSubscribeParams<TSource, TContext, TArgs> = {
+    operation: Operation;
+    argsFromLink?: {
+        [key: string]: string;
+    };
+    payloadName?: string;
+    data: PreprocessingData<TSource, TContext, TArgs>;
+    baseUrl?: string;
+    connectOptions: ConnectOptions;
+};
+declare type GetPublishResolverParams<TSource, TContext, TArgs> = {
+    operation: Operation;
+    responseName?: string;
+    data: PreprocessingData<TSource, TContext, TArgs>;
+};
 declare type GetResolverParams<TSource, TContext, TArgs> = {
     operation: Operation;
     argsFromLink?: {
@@ -20,17 +35,7 @@ declare type GetResolverParams<TSource, TContext, TArgs> = {
     responseName?: string;
     data: PreprocessingData<TSource, TContext, TArgs>;
     baseUrl?: string;
-    requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>> | RequestOptionsFunction<TSource, TContext, TArgs>;
-};
-declare type GetSubscribeParams<TSource, TContext, TArgs> = {
-    operation: Operation;
-    argsFromLink?: {
-        [key: string]: string;
-    };
-    payloadName?: string;
-    data: PreprocessingData<TSource, TContext, TArgs>;
-    baseUrl?: string;
-    connectOptions?: ConnectOptions;
+    requestOptions: RequestOptions<TSource, TContext, TArgs>;
 };
 declare type ResolveData<TSource, TContext, TArgs> = {
     /**
@@ -61,7 +66,7 @@ declare type OpenAPIToGraphQLSource<TSource, TContext, TArgs> = {
     _openAPIToGraphQL: OpenAPIToGraphQLRoot<TSource, TContext, TArgs>;
 };
 export declare function getSubscribe<TSource, TContext, TArgs>({ operation, payloadName, data, baseUrl, connectOptions }: GetSubscribeParams<TSource, TContext, TArgs>): GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>;
-export declare function getPublishResolver<TSource, TContext, TArgs>({ operation, responseName, data }: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<TSource, TContext, TArgs>;
+export declare function getPublishResolver<TSource, TContext, TArgs>({ operation, responseName, data }: GetPublishResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<TSource, TContext, TArgs>;
 /**
  * If the operation type is Query or Mutation, create and return a resolver
  * function that performs API requests for the given GraphQL query

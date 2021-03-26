@@ -14,7 +14,7 @@ import { Operation } from './types/operation'
 import { SubscriptionContext } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
-import { RequestOptions, RequestOptionsFunction } from './types/options'
+import { RequestOptions } from './types/options'
 
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
@@ -25,6 +25,7 @@ import { GraphQLError, GraphQLFieldResolver } from 'graphql'
 import formurlencoded from 'form-urlencoded'
 import { PubSub } from 'graphql-subscriptions'
 import { IncomingHttpHeaders } from 'http'
+import * as merge from 'merge-deep'
 
 const pubsub = new PubSub()
 
@@ -50,6 +51,21 @@ type AuthOptions = {
   authCookie: NodeRequest.Cookie
 }
 
+type GetSubscribeParams<TSource, TContext, TArgs> = {
+  operation: Operation
+  argsFromLink?: { [key: string]: string }
+  payloadName?: string
+  data: PreprocessingData<TSource, TContext, TArgs>
+  baseUrl?: string
+  connectOptions: ConnectOptions
+}
+
+type GetPublishResolverParams<TSource, TContext, TArgs> = {
+  operation: Operation
+  responseName?: string
+  data: PreprocessingData<TSource, TContext, TArgs>
+}
+
 type GetResolverParams<TSource, TContext, TArgs> = {
   operation: Operation
   argsFromLink?: { [key: string]: string }
@@ -57,18 +73,7 @@ type GetResolverParams<TSource, TContext, TArgs> = {
   responseName?: string
   data: PreprocessingData<TSource, TContext, TArgs>
   baseUrl?: string
-  requestOptions?:
-    | Partial<RequestOptions<TSource, TContext, TArgs>>
-    | RequestOptionsFunction<TSource, TContext, TArgs>
-}
-
-type GetSubscribeParams<TSource, TContext, TArgs> = {
-  operation: Operation
-  argsFromLink?: { [key: string]: string }
-  payloadName?: string
-  data: PreprocessingData<TSource, TContext, TArgs>
-  baseUrl?: string
-  connectOptions?: ConnectOptions
+  requestOptions: RequestOptions<TSource, TContext, TArgs>
 }
 
 type ResolveData<TSource, TContext, TArgs> = {
@@ -239,7 +244,7 @@ export function getPublishResolver<TSource, TContext, TArgs>({
   operation,
   responseName,
   data
-}: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<
+}: GetPublishResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<
   TSource,
   TContext,
   TArgs
@@ -489,7 +494,7 @@ export function getResolver<TSource, TContext, TArgs>({
       args,
       data
     )
-    let url = baseUrl + path
+    const url = baseUrl + path
 
     /**
      * The Content-Type and Accept property should not be changed because the
@@ -510,130 +515,28 @@ export function getResolver<TSource, TContext, TArgs>({
         ? operation.responseContentType
         : 'application/json'
 
-    let options: NodeRequest.OptionsWithUrl
-    if (requestOptions) {
-      let requestOptionsVal: any = requestOptions
-      let method = operation.method
-      if (typeof requestOptions === 'function') {
-        requestOptionsVal = requestOptions(method, path, title, {
-          source,
-          args,
-          context,
-          info
-        })
-
-        if (
-          requestOptionsVal.url &&
-          requestOptionsVal.url.toString().trim().length > 0
-        ) {
-          url = requestOptionsVal.url.toString().trim()
-        }
-        if (requestOptionsVal.method && requestOptionsVal.method.length > 0) {
-          method = Oas3Tools.methodToHttpMethod(requestOptionsVal.method)
-        }
-      }
-      options = {
-        ...requestOptionsVal,
-        method: method,
-        url // Must be after the requestOptions spread as url is a mandatory field so undefined may be used
-      }
-
-      options.headers = {} // Handle requestOptions.header later if applicable
-      options.qs = {} // Handle requestOptions.qs later if applicable
-
-      if (requestOptionsVal.headers) {
-        // requestOptions.headers may be either an object or a function
-        if (typeof requestOptionsVal.headers === 'object') {
-          Object.assign(options.headers, headers, requestOptionsVal.headers)
-        } else if (typeof requestOptionsVal.headers === 'function') {
-          const headers = requestOptionsVal.headers(method, path, title, {
-            source,
-            args,
-            context,
-            info
-          })
-
-          if (typeof headers === 'object') {
-            Object.assign(options.headers, headers, headers)
-          }
-        }
-      } else {
-        options.headers = headers
-      }
-
-      if (requestOptionsVal.qs) {
-        Object.assign(options.qs, qs, requestOptionsVal.qs)
-      } else {
-        options.qs = qs
-      }
-    } else {
-      options = {
-        method: operation.method,
-        url,
+    // Add `headers` option:
+    if (typeof data.options.headers === 'object') {
+      Object.assign(headers, data.options.headers)
+    } else if (typeof data.options.headers === 'function') {
+      Object.assign(
         headers,
-        qs
-      }
-    }
-
-    /**
-     * Determine possible payload
-     *
-     * GraphQL produces sanitized payload names, so we have to sanitize before
-     * lookup here
-     */
-    resolveData.usedPayload = undefined
-    if (typeof payloadName === 'string') {
-      // The option genericPayloadArgName will change the payload name to "requestBody"
-      const sanePayloadName = data.options.genericPayloadArgName
-        ? 'requestBody'
-        : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase)
-
-      let rawPayload
-      if (operation.payloadContentType === 'application/json') {
-        rawPayload = JSON.stringify(
-          Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
-        )
-      } else if (
-        operation.payloadContentType === 'application/x-www-form-urlencoded'
-      ) {
-        rawPayload = formurlencoded(
-          Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
-        )
-      } else {
-        // Payload is not an object
-        rawPayload = args[sanePayloadName]
-      }
-      options.body = rawPayload
-      resolveData.usedPayload = rawPayload
-    }
-
-    /**
-     * Pass on OpenAPI-to-GraphQL options
-     */
-    if (typeof data.options === 'object') {
-      // Headers:
-      if (typeof data.options.headers === 'object') {
-        Object.assign(options.headers, data.options.headers)
-      } else if (typeof data.options.headers === 'function') {
-        const headers = data.options.headers(method, path, title, {
+        data.options.headers(method, path, title, {
           source,
           args,
           context,
           info
         })
-
-        if (typeof headers === 'object') {
-          Object.assign(options.headers, headers)
-        }
-      }
-
-      // Query string:
-      if (typeof data.options.qs === 'object') {
-        Object.assign(options.qs, data.options.qs)
-      }
+      )
     }
 
-    // Get authentication headers and query parameters
+    // Add `qs` option:
+    if (typeof data.options.qs === 'object') {
+      Object.assign(qs, data.options.qs)
+    }
+
+    // Get authentication headers and query string parameters
+    let cookieJar
     if (
       source &&
       typeof source === 'object' &&
@@ -645,28 +548,80 @@ export function getResolver<TSource, TContext, TArgs>({
         data
       )
 
-      // ...and pass them to the options
-      Object.assign(options.headers, authHeaders)
-      Object.assign(options.qs, authQs)
+      // ...and add them
+      Object.assign(headers, authHeaders)
+      Object.assign(qs, authQs)
 
       // Add authentication cookie if created
       if (authCookie !== null) {
-        const j = NodeRequest.jar()
-        j.setCookie(authCookie, options.url)
-        options.jar = j
+        cookieJar = NodeRequest.jar()
+        cookieJar.setCookie(authCookie, url)
       }
     }
 
     // Extract OAuth token from context (if available)
     if (data.options.sendOAuthTokenInQuery) {
-      const oauthQueryObj = createOAuthQS(data, context)
-      Object.assign(options.qs, oauthQueryObj)
+      const oAuthQueryObj = createOAuthQS(data, context)
+      Object.assign(qs, oAuthQueryObj)
     } else {
-      const oauthHeader = createOAuthHeader(data, context)
-      Object.assign(options.headers, oauthHeader)
+      const oAuthHeader = createOAuthHeader(data, context)
+      Object.assign(headers, oAuthHeader)
+    }
+
+    /**
+     * Determine possible payload
+     *
+     * GraphQL produces sanitized payload names, so we have to sanitize before
+     * lookup here
+     */
+    let payload
+    if (typeof payloadName === 'string') {
+      // The option `genericPayloadArgName` will change the payload name to "requestBody"
+      const sanePayloadName = data.options.genericPayloadArgName
+        ? 'requestBody'
+        : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase)
+
+      if (operation.payloadContentType === 'application/json') {
+        payload = JSON.stringify(
+          Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
+        )
+      } else if (
+        operation.payloadContentType === 'application/x-www-form-urlencoded'
+      ) {
+        payload = formurlencoded(
+          Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
+        )
+      } else {
+        // Payload is not an object
+        payload = args[sanePayloadName]
+      }
+    }
+
+    let options: NodeRequest.OptionsWithUrl = {
+      method: operation.method,
+      url,
+      headers,
+      qs,
+      body: payload,
+      jar: cookieJar // For authentication cookies
+    }
+
+    // The options `requestOptions` will finalize the options
+    if (requestOptions) {
+      /**
+       * If requestOptions is a function, the run the function, otherwise,
+       * use the original value
+       */
+      const requestOptionsValue =
+        typeof requestOptions === 'function'
+          ? requestOptions(method, path, title, { source, args, context, info })
+          : requestOptions
+
+      options = merge(options, requestOptionsValue)
     }
 
     resolveData.usedRequestOptions = options
+    resolveData.usedPayload = payload
     resolveData.usedStatusCode = operation.statusCode
 
     // Make the call

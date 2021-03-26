@@ -14,6 +14,7 @@ const debug_1 = require("debug");
 const graphql_1 = require("graphql");
 const form_urlencoded_1 = require("form-urlencoded");
 const graphql_subscriptions_1 = require("graphql-subscriptions");
+const merge = require("merge-deep");
 const pubsub = new graphql_subscriptions_1.PubSub();
 const translationLog = debug_1.debug('translation');
 const httpLog = debug_1.debug('http');
@@ -283,7 +284,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         resolveData.usedParams = Object.assign(resolveData.usedParams, args);
         // Build URL (i.e., fill in path parameters):
         const { path, qs, headers } = extractRequestDataFromArgs(operation.path, operation.parameters, args, data);
-        let url = baseUrl + path;
+        const url = baseUrl + path;
         /**
          * The Content-Type and Accept property should not be changed because the
          * object type has already been created and unlike these properties, it
@@ -301,62 +302,45 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             typeof operation.responseContentType !== 'undefined'
                 ? operation.responseContentType
                 : 'application/json';
-        let options;
-        if (requestOptions) {
-            let requestOptionsVal = requestOptions;
-            let method = operation.method;
-            if (typeof requestOptions === 'function') {
-                requestOptionsVal = requestOptions(method, path, title, {
-                    source,
-                    args,
-                    context,
-                    info
-                });
-                if (requestOptionsVal.url && requestOptionsVal.url.toString().trim().length > 0) {
-                    url = requestOptionsVal.url.toString().trim();
-                }
-                if (requestOptionsVal.method && requestOptionsVal.method.length > 0) {
-                    method = Oas3Tools.methodToHttpMethod(requestOptionsVal.method);
-                }
-            }
-            options = Object.assign(Object.assign({}, requestOptionsVal), { method: method, url // Must be after the requestOptions spread as url is a mandatory field so undefined may be used
-             });
-            options.headers = {}; // Handle requestOptions.header later if applicable
-            options.qs = {}; // Handle requestOptions.qs later if applicable
-            if (requestOptionsVal.headers) {
-                // requestOptions.headers may be either an object or a function
-                if (typeof requestOptionsVal.headers === 'object') {
-                    Object.assign(options.headers, headers, requestOptionsVal.headers);
-                }
-                else if (typeof requestOptionsVal.headers === 'function') {
-                    const headers = requestOptionsVal.headers(method, path, title, {
-                        source,
-                        args,
-                        context,
-                        info
-                    });
-                    if (typeof headers === 'object') {
-                        Object.assign(options.headers, headers, headers);
-                    }
-                }
-            }
-            else {
-                options.headers = headers;
-            }
-            if (requestOptionsVal.qs) {
-                Object.assign(options.qs, qs, requestOptionsVal.qs);
-            }
-            else {
-                options.qs = qs;
+        // Add `headers` option:
+        if (typeof data.options.headers === 'object') {
+            Object.assign(headers, data.options.headers);
+        }
+        else if (typeof data.options.headers === 'function') {
+            Object.assign(headers, data.options.headers(method, path, title, {
+                source,
+                args,
+                context,
+                info
+            }));
+        }
+        // Add `qs` option:
+        if (typeof data.options.qs === 'object') {
+            Object.assign(qs, data.options.qs);
+        }
+        // Get authentication headers and query string parameters
+        let cookieJar;
+        if (source &&
+            typeof source === 'object' &&
+            typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
+            const { authHeaders, authQs, authCookie } = getAuthOptions(operation, source[exports.OPENAPI_TO_GRAPHQL], data);
+            // ...and add them
+            Object.assign(headers, authHeaders);
+            Object.assign(qs, authQs);
+            // Add authentication cookie if created
+            if (authCookie !== null) {
+                cookieJar = NodeRequest.jar();
+                cookieJar.setCookie(authCookie, url);
             }
         }
+        // Extract OAuth token from context (if available)
+        if (data.options.sendOAuthTokenInQuery) {
+            const oAuthQueryObj = createOAuthQS(data, context);
+            Object.assign(qs, oAuthQueryObj);
+        }
         else {
-            options = {
-                method: operation.method,
-                url,
-                headers,
-                qs
-            };
+            const oAuthHeader = createOAuthHeader(data, context);
+            Object.assign(headers, oAuthHeader);
         }
         /**
          * Determine possible payload
@@ -364,75 +348,44 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
          * GraphQL produces sanitized payload names, so we have to sanitize before
          * lookup here
          */
-        resolveData.usedPayload = undefined;
+        let payload;
         if (typeof payloadName === 'string') {
-            // The option genericPayloadArgName will change the payload name to "requestBody"
+            // The option `genericPayloadArgName` will change the payload name to "requestBody"
             const sanePayloadName = data.options.genericPayloadArgName
                 ? 'requestBody'
                 : Oas3Tools.sanitize(payloadName, Oas3Tools.CaseStyle.camelCase);
-            let rawPayload;
             if (operation.payloadContentType === 'application/json') {
-                rawPayload = JSON.stringify(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
+                payload = JSON.stringify(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
             }
             else if (operation.payloadContentType === 'application/x-www-form-urlencoded') {
-                rawPayload = form_urlencoded_1.default(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
+                payload = form_urlencoded_1.default(Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap));
             }
             else {
                 // Payload is not an object
-                rawPayload = args[sanePayloadName];
-            }
-            options.body = rawPayload;
-            resolveData.usedPayload = rawPayload;
-        }
-        /**
-         * Pass on OpenAPI-to-GraphQL options
-         */
-        if (typeof data.options === 'object') {
-            // Headers:
-            if (typeof data.options.headers === 'object') {
-                Object.assign(options.headers, data.options.headers);
-            }
-            else if (typeof data.options.headers === 'function') {
-                const headers = data.options.headers(method, path, title, {
-                    source,
-                    args,
-                    context,
-                    info
-                });
-                if (typeof headers === 'object') {
-                    Object.assign(options.headers, headers);
-                }
-            }
-            // Query string:
-            if (typeof data.options.qs === 'object') {
-                Object.assign(options.qs, data.options.qs);
+                payload = args[sanePayloadName];
             }
         }
-        // Get authentication headers and query parameters
-        if (source &&
-            typeof source === 'object' &&
-            typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
-            const { authHeaders, authQs, authCookie } = getAuthOptions(operation, source[exports.OPENAPI_TO_GRAPHQL], data);
-            // ...and pass them to the options
-            Object.assign(options.headers, authHeaders);
-            Object.assign(options.qs, authQs);
-            // Add authentication cookie if created
-            if (authCookie !== null) {
-                const j = NodeRequest.jar();
-                j.setCookie(authCookie, options.url);
-                options.jar = j;
-            }
-        }
-        // Extract OAuth token from context (if available)
-        if (data.options.sendOAuthTokenInQuery) {
-            const oauthQueryObj = createOAuthQS(data, context);
-            Object.assign(options.qs, oauthQueryObj);
-        }
-        else {
-            const oauthHeader = createOAuthHeader(data, context);
-            Object.assign(options.headers, oauthHeader);
+        let options = {
+            method: operation.method,
+            url,
+            headers,
+            qs,
+            body: payload,
+            jar: cookieJar // For authentication cookies
+        };
+        // The options `requestOptions` will finalize the options
+        if (requestOptions) {
+            /**
+             * If requestOptions is a function, the run the function, otherwise,
+             * use the original value
+             */
+            const requestOptionsValue = typeof requestOptions === 'function'
+                ? requestOptions(method, path, title, { source, args, context, info })
+                : requestOptions;
+            options = merge(options, requestOptionsValue);
         }
         resolveData.usedRequestOptions = options;
+        resolveData.usedPayload = payload;
         resolveData.usedStatusCode = operation.statusCode;
         // Make the call
         httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}\n` +
