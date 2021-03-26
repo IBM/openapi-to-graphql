@@ -380,7 +380,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
              * use the original value
              */
             const requestOptionsValue = typeof requestOptions === 'function'
-                ? requestOptions(method, path, title, { source, args, context, info })
+                ? requestOptions(method, path, title, { source, args, context, info }, options)
                 : requestOptions;
             options = merge(options, requestOptionsValue);
         }
