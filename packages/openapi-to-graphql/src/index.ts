@@ -108,6 +108,7 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
   headers: {},
   qs: {},
   requestOptions: {},
+  connectOptions: {},
   customResolvers: {},
   customSubscriptionResolvers: {},
 
@@ -640,7 +641,7 @@ function getFieldForOperation<TSource, TContext, TArgs>(
   operation: Operation,
   baseUrl: string,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  requestOptions: Partial<RequestOptions<TSource, TContext, TArgs>>,
+  requestOptions: RequestOptions<TSource, TContext, TArgs>,
   connectOptions: ConnectOptions
 ): GraphQLFieldConfig<TSource, TContext | SubscriptionContext, TArgs> {
   // Create GraphQL Type for response:

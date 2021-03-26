@@ -45,6 +45,7 @@ const DEFAULT_OPTIONS = {
     headers: {},
     qs: {},
     requestOptions: {},
+    connectOptions: {},
     customResolvers: {},
     customSubscriptionResolvers: {},
     // Authentication options

@@ -2089,8 +2089,7 @@ test('Header arguments are not created when they are provided through requestOpt
       headers: {
         snack_type: 'chips',
         snack_size: 'large'
-      },
-      url: undefined // Mandatory for requestOptions type
+      }
     }
   }
 
@@ -2200,8 +2199,7 @@ test('Query string arguments are not created when they are provided through requ
     requestOptions: {
       qs: {
         limit: '10'
-      },
-      url: undefined // Mandatory for requestOptions type
+      }
     }
   }
 
@@ -2274,18 +2272,17 @@ test('Use headers option as function', () => {
     })
 })
 
-test('Use requestOptions headers option as function', () => {
+test('Use requestOptions option as function', () => {
   const options: Options<any, any, any> = {
-    requestOptions: {
-      headers: (method, path, title) => {
-        if (method === 'get' && path === '/snack') {
-          return {
+    requestOptions: (method, path, title) => {
+      if (method === 'get' && path === '/snack') {
+        return {
+          headers: {
             snack_type: 'chips',
             snack_size: 'small'
           }
         }
-      },
-      url: undefined // Mandatory for requestOptions type
+      }
     }
   }
 

@@ -36,6 +36,23 @@ export declare type Headers = {
 /**
  * Given a set parameters corresponding to a specific operation in the OAS,
  * provide the appropriate headers
+ *
+ * NOTE: This will be used to modify resolvers AND the schema. For example, if
+ * a `foo` header is set, then the resolver call will append the `foo` header,
+ * and the `foo` parameter will be removed from the GraphQL schema. In
+ * resolver_builder.ts, the function will be called with all arguments, but in
+ * schema_builder.ts, only the `method`, `path`, and `title` will be provided
+ * (because `resolverParams` and `generatedRequestOptions` are only available
+ * during execution). Therefore, for query, path, header, and cookie parameters,
+ * a value must be provided without `resolverParam` and
+ * `generatedRequestOptions` or else the schema will not have the right
+ * parameters.
+ *
+ * @param method HTTP method of the operation
+ * @param path   HTTP path of the operation
+ * @param title  Title of the OAS (useful for multi-OAS input)
+ * @param resolverParams Optional. Resolver parameters. The parameter names will be
+ * sanitized. Refer to the `saneMap` in the `PreprocessingData` for mapping.
  */
 export declare type RequestHeadersFunction<TSource, TContext, TArgs> = (method: string, path: string, title: string, resolverParams?: {
     source: TSource;
@@ -44,18 +61,35 @@ export declare type RequestHeadersFunction<TSource, TContext, TArgs> = (method: 
     info: GraphQLResolveInfo;
 }) => Headers;
 /**
- * We rely on the Request library in order to make resolver API calls.
+ * Given a set parameters corresponding to a specific operation in the OAS as
+ * well as the resolver parameters, provide the appropriate Request options
  *
- * We expose the options so that users can have more control over the calls.
+ * NOTE: This will be used to modify resolvers AND the schema. For example, if
+ * a `foo` header is set, then the resolver call will append the `foo` header,
+ * and the `foo` parameter will be removed from the GraphQL schema. In
+ * resolver_builder.ts, the function will be called with all arguments, but in
+ * schema_builder.ts, only the `method`, `path`, and `title` will be provided
+ * (because `resolverParams` and `generatedRequestOptions` are only available
+ * during execution). Therefore, for query, path, header, and cookie parameters,
+ * a value must be provided without `resolverParam` and
+ * `generatedRequestOptions` or else the schema will not have the right
+ * parameters.
  *
- * We modify the RequestOptions so that headers can also be provided as a
- * function.
- *
- * Based on: https://github.com/request/request#requestoptions-callback
+ * @param method HTTP method of the operation
+ * @param path   HTTP path of the operation
+ * @param title  Title of the OAS (useful for multi-OAS input)
+ * @param resolverParams Optional. Resolver parameters. The parameter names will be
+ * sanitized. Refer to the `saneMap` in the `PreprocessingData` for mapping.
+ * @param generatedRequestOptions Optional. The generated Request options that
+ * would otherwise be used.
  */
-export declare type RequestOptions<TSource, TContext, TArgs> = Omit<NodeRequest.OptionsWithUrl, 'headers'> & {
-    headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>;
-};
+export declare type RequestOptionsFunction<TSource, TContext, TArgs> = (method: string, path: string, title: string, resolverParams?: {
+    source: TSource;
+    args: TArgs;
+    context: TContext;
+    info: GraphQLResolveInfo;
+}, generatedRequestOptions?: NodeRequest.OptionsWithUrl) => Partial<NodeRequest.OptionsWithUrl>;
+export declare type RequestOptions<TSource, TContext, TArgs> = Partial<NodeRequest.OptionsWithUrl> | RequestOptionsFunction<TSource, TContext, TArgs>;
 export declare type Options<TSource, TContext, TArgs> = Partial<InternalOptions<TSource, TContext, TArgs>>;
 export declare type InternalOptions<TSource, TContext, TArgs> = {
     strict: boolean;
@@ -97,7 +131,7 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * into a GraphQL ID type. To allow for more customzation, this option allows
      * users to specify other formats that should be interpreted as ID types.
      */
-    idFormats?: string[];
+    idFormats: string[];
     /**
      * Allows to define the root operation type (Query or Mutation type) of any
      * OAS operation explicitly.
@@ -108,7 +142,7 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * The field is identifed first by the title of the OAS, then the path of the
      * operation, and lastly the method of the operation.
      */
-    selectQueryOrMutationField?: OasTitlePathMethodObject<GraphQLOperationType>;
+    selectQueryOrMutationField: OasTitlePathMethodObject<GraphQLOperationType>;
     /**
      * Sets argument name for the payload of a mutation to 'requestBody'
      */
@@ -157,11 +191,11 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
     /**
      * Custom headers to send with every request made by a resolve function.
      */
-    headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>;
+    headers: Headers | RequestHeadersFunction<TSource, TContext, TArgs>;
     /**
      * Custom query parameters to send with every reqeust by a resolve function.
      */
-    qs?: {
+    qs: {
         [key: string]: string;
     };
     /**
@@ -171,18 +205,19 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * proxy to use.
      *
      * Headers can either be provided as an object or a function that returns
-     * an object.
+     * a Request library options object.
      *
      * Based on: https://github.com/request/request#requestoptions-callback
      */
-    requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>;
+    requestOptions: RequestOptions<TSource, TContext, TArgs>;
     /**
      * Allows to override or add options to the PubSub connect object used to make
-     * publish/subscribe to the API backend.
-     * e.g. Setup the web proxy to use.
+     * publish/subscribe to the API backend, e.g. setup the web proxy to use.
      */
-    connectOptions?: ConnectOptions;
+    connectOptions: ConnectOptions;
     /**
+     * Optional
+     *
      * Specifies the URL on which all paths will be based on.
      * Overrides the server object in the OAS.
      */
@@ -202,7 +237,7 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * implementing performance improvements like caching, or dealing with
      * non-standard authentication requirements.
      */
-    customResolvers?: OasTitlePathMethodObject<GraphQLFieldResolver<TSource, TContext, TArgs>>;
+    customResolvers: OasTitlePathMethodObject<GraphQLFieldResolver<TSource, TContext, TArgs>>;
     /**
      * Allows to define custom resolvers and subscribe functions for fields on the
      * Subscription root operation type.
@@ -221,7 +256,7 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * Note: Subscription fields will only be generated if the
      * createSubscriptionsFromCallbacks option is enabled.
      */
-    customSubscriptionResolvers?: OasTitlePathMethodObject<{
+    customSubscriptionResolvers: OasTitlePathMethodObject<{
         subscribe: GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>;
         resolve: GraphQLFieldResolver<TSource, TContext, TArgs>;
     }>;

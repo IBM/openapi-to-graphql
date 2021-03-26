@@ -1026,80 +1026,63 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
 }
 
 /**
- * Determin if an argument should be created if the argument has already been
+ * Determine if an argument should be created if the argument has already been
  * provided through the options
  */
-function skipArg<TSource, TContext, TArgs>(
+function shouldSkipArgumentBecauseOptions<TSource, TContext, TArgs>(
   parameter: ParameterObject,
   operation: Operation,
   data: PreprocessingData<TSource, TContext, TArgs>
 ): boolean {
-  if (typeof data.options === 'object') {
-    switch (parameter.in) {
-      case 'header':
-        // Check header option
-        if (
-          typeof data.options.headers === 'object' &&
-          parameter.name in data.options.headers
-        ) {
-          return true
-        } else if (typeof data.options.headers === 'function') {
-          const headers = data.options.headers(
-            operation.method,
-            operation.path,
-            operation.oas.info.title
-          )
+  // Get the value of `requestOptions` as it can be both an object or a function
+  const requestOptionsValue =
+    typeof data.options.requestOptions === 'object'
+      ? data.options.requestOptions
+      : typeof data.options.requestOptions === 'function'
+      ? data.options.requestOptions(
+          operation.method,
+          operation.path,
+          operation.oas.info.title
+        )
+      : undefined
 
-          if (typeof headers === 'object') {
-            return true
-          }
-
-          // Check requestOptions option
-        } else if (typeof data.options.requestOptions === 'object') {
-          if (
-            typeof data.options.requestOptions.headers === 'object' &&
-            parameter.name in data.options.requestOptions.headers
-          ) {
-            return true
-          } else if (
-            typeof data.options.requestOptions.headers === 'function'
-          ) {
-            const headers = data.options.requestOptions.headers(
+  switch (parameter.in) {
+    case 'header':
+      /**
+       * Get headers from `requestOptions` if possible
+       *
+       * Otherwise, get headers from `headers` if possible
+       */
+      const headers =
+        requestOptionsValue && 'headers' in requestOptionsValue
+          ? requestOptionsValue.headers
+          : typeof data.options.headers === 'object'
+          ? data.options.headers
+          : typeof data.options.headers === 'function'
+          ? data.options.headers(
               operation.method,
               operation.path,
               operation.oas.info.title
             )
+          : undefined
 
-            if (typeof headers === 'object') {
-              return true
-            }
-          }
-        }
+      return headers && parameter.name in headers
 
-        break
+    case 'query':
+      /**
+       * Get qs from `requestOptions` if possible
+       *
+       * Otherwise, get query strings from `qs` if possible
+       */
+      const qs =
+        requestOptionsValue && 'qs' in requestOptionsValue
+          ? requestOptionsValue.qs
+          : typeof data.options.qs === 'object'
+          ? data.options.qs
+          : undefined
 
-      case 'query':
-        // Check header option
-        if (
-          typeof data.options.qs === 'object' &&
-          parameter.name in data.options.qs
-        ) {
-          return true
-
-          // Check requestOptions option
-        } else if (
-          typeof data.options.requestOptions === 'object' &&
-          typeof data.options.requestOptions.qs === 'object' &&
-          parameter.name in data.options.requestOptions.qs
-        ) {
-          return true
-        }
-
-        break
-    }
+      return qs && parameter.name in qs
   }
-
-  return false
 }
 
 /**
@@ -1131,7 +1114,7 @@ export function getArgs<TSource, TContext, TArgs>({
     }
 
     // If this parameter is provided via options, ignore
-    if (skipArg(parameter, operation, data)) {
+    if (shouldSkipArgumentBecauseOptions(parameter, operation, data)) {
       return
     }
 
