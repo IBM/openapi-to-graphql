@@ -59,11 +59,20 @@ function startServer(PORT) {
   })
 
   app.post('/api/type', (req, res) => {
-    if (req.body?.type?.name && !Types[req.body.type.name]) {
+    if (
+      req.body &&
+      req.body.type &&
+      req.body.type.name &&
+      !Types[req.body.type.name]
+    ) {
       Types[req.body.type.name] = req.body.type
     }
 
-    res.send({ data: req.body.baseTypeCommandAttribute ?? 'created' })
+    res.send({
+      data: req.body.baseTypeCommandAttribute
+        ? req.body.baseTypeCommandAttribute
+        : 'created'
+    })
   })
 
   return new Promise((resolve) => {
