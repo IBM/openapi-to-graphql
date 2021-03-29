@@ -1,0 +1,257 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Example API 4",
+    "description": "An API to test converting Open API Specs 3.0 to GraphQL",
+    "version": "1.0.0",
+    "termsOfService": "http://example.com/terms/",
+    "contact": {
+      "name": "Erik Wittern",
+      "url": "http://www.example.com/support"
+    },
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    }
+  },
+  "externalDocs": {
+    "url": "http://example.com/docs",
+    "description": "Some more natural language description."
+  },
+  "tags": [
+    {
+      "name": "test",
+      "description": "Indicates this API is for testing"
+    }
+  ],
+  "servers": [
+    {
+      "url": "http://localhost:{port}/{basePath}",
+      "description": "The location of the local test server.",
+      "variables": {
+        "port": {
+          "default": "3004"
+        },
+        "basePath": {
+          "default": "api"
+        }
+      }
+    }
+  ],
+  "paths": {
+    "/type/{typeName}": {
+      "get": {
+        "description": "Basic union test with discriminator",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "typeName",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/baseType"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/type": {
+      "post": {
+        "description": "Test with nested polymorphic type in the request body",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/baseTypeCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/types": {
+      "get": {
+        "description": "Nested union in response type schema",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/typesList"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/firstDerivedType": {
+      "get": {
+        "description": "Derived type in the response body",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/firstDerivedType"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/secondDerivedType": {
+      "get": {
+        "description": "Derived type in the response body",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/secondDerivedType"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oneOfDerivedTypes/{typeName}": {
+      "get": {
+        "description": "Nested union in response type",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "typeName",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/firstDerivedType"
+                    },
+                    {
+                      "$ref": "#/components/schemas/secondDerivedType"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "typesList": {
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/baseType"
+        }
+      },
+      "baseType": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "baseAttribute": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["FIRST_DERIVED_TYPE", "SECOND_DERIVED_TYPE"]
+          }
+        },
+        "discriminator": {
+          "propertyName": "kind",
+          "mapping": {
+            "FIRST_DERIVED_TYPE": "firstDerivedType",
+            "SECOND_DERIVED_TYPE": "secondDerivedType"
+          }
+        },
+        "required": ["kind"]
+      },
+      "baseTypeCommand": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "$ref": "#/components/schemas/baseType"
+          },
+          "baseTypeCommandAttribute": {
+            "type": "string"
+          }
+        }
+      },
+      "firstDerivedType": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseType"
+          }
+        ],
+        "properties": {
+          "firstDerivedTypeAttribute": {
+            "type": "number"
+          }
+        }
+      },
+      "secondDerivedType": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/baseType"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "secondDerivedTypeAttribute": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

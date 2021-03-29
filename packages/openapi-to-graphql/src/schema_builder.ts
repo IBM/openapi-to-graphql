@@ -139,6 +139,16 @@ export function getGraphQLType<TSource, TContext, TArgs>({
 }: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>):
   | GraphQLOutputType
   | GraphQLInputType {
+  /**
+   * TODO: Refactor this when GraphQL receives a support for input unions.
+   * If this metod is not processing input object type and passed data definition
+   * contains nested union definition, the passed data definition should be replaced
+   * by the nested union definition
+   */
+  if (def.unionDefinition && !isInputObjectType) {
+    def = def.unionDefinition
+  }
+
   const name = isInputObjectType
     ? def.graphQLInputObjectTypeName
     : def.graphQLTypeName
@@ -366,33 +376,37 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
       name: def.graphQLTypeName,
       description,
       types,
-      resolveType: (source, context, info) => {
-        const properties = Object.keys(source)
-          // Remove custom _openAPIToGraphQL property used to pass data
-          .filter((property) => property !== '_openAPIToGraphQL')
+      resolveType: def.resolveType
+        ? def.resolveType
+        : (source, context, info) => {
+            const properties = Object.keys(source)
+              // Remove custom _openAPIToGraphQL property used to pass data
+              .filter((property) => property !== '_openAPIToGraphQL')
 
-        /**
-         * Find appropriate member type
-         *
-         * TODO: currently, the check is performed by only checking the property
-         * names. In the future, we should also check the types of those
-         * properties.
-         *
-         * TODO: there is a chance a that an intended member type cannot be
-         * identified if, for whatever reason, the return data is a superset
-         * of the fields specified in the OAS
-         */
-        return types.find((type) => {
-          const typeFields = Object.keys(type.getFields())
+            /**
+             * Find appropriate member type
+             *
+             * TODO: currently, the check is performed by only checking the property
+             * names. In the future, we should also check the types of those
+             * properties.
+             *
+             * TODO: there is a chance a that an intended member type cannot be
+             * identified if, for whatever reason, the return data is a superset
+             * of the fields specified in the OAS
+             */
+            return types.find((type) => {
+              const typeFields = Object.keys(type.getFields())
 
-          // The type should be a superset of the properties
-          if (properties.length <= typeFields.length) {
-            return properties.every((property) => typeFields.includes(property))
+              // The type should be a superset of the properties
+              if (properties.length <= typeFields.length) {
+                return properties.every((property) =>
+                  typeFields.includes(property)
+                )
+              }
+
+              return false
+            })
           }
-
-          return false
-        })
-      }
     })
 
     return def.graphQLType
