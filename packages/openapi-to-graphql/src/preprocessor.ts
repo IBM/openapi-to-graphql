@@ -608,9 +608,7 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
       case 'oauth2':
         handleWarning({
           mitigationType: MitigationTypes.OAUTH_SECURITY_SCHEME,
-          message:
-            `OAuth security scheme found in OAS '${oas.info.title}'. ` +
-            `OAuth support is provided using the 'tokenJSONpath' option`,
+          message: `OAuth security scheme found in OAS '${oas.info.title}'`,
           data,
           log: preprocessingLog
         })
