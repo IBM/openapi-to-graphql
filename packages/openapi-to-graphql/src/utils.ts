@@ -76,7 +76,7 @@ export const mitigations: { [mitigationType in MitigationTypes]: string } = {
     'Select first response object with successful status code (200-299).',
   NON_APPLICATION_JSON_SCHEMA: 'Ignore schema',
   OBJECT_MISSING_PROPERTIES:
-    'The (sub-)object will be stored in an arbitray JSON type.',
+    'The (sub-)object will be stored in an arbitrary JSON type.',
   UNKNOWN_TARGET_TYPE: 'The data will be stored in an arbitrary JSON type.',
   UNRESOLVABLE_SCHEMA: 'Ignore and continue. May lead to unexpected behavior.',
   UNSUPPORTED_HTTP_SECURITY_SCHEME: 'Ignore security scheme.',
@@ -100,7 +100,7 @@ export const mitigations: { [mitigationType in MitigationTypes]: string } = {
   LIMIT_ARGUMENT_NAME_COLLISION: `Do not override existing 'limit' argument.`,
 
   // Miscellaneous
-  OAUTH_SECURITY_SCHEME: `Ignore security scheme`
+  OAUTH_SECURITY_SCHEME: `Do not create OAuth viewer. OAuth support is provided using the 'tokenJSONpath' option.`
 }
 
 /**
@@ -160,7 +160,7 @@ export function sortObject<T>(o: T): T {
  * Finds the common property names between two objects
  */
 export function getCommonPropertyNames(object1, object2): string[] {
-  return Object.keys(object1).filter(propertyName => {
+  return Object.keys(object1).filter((propertyName) => {
     return propertyName in object2
   })
 }

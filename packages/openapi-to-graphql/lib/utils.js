@@ -67,7 +67,7 @@ exports.mitigations = {
     MISSING_SCHEMA: 'Use arbitrary JSON type.',
     MULTIPLE_RESPONSES: 'Select first response object with successful status code (200-299).',
     NON_APPLICATION_JSON_SCHEMA: 'Ignore schema',
-    OBJECT_MISSING_PROPERTIES: 'The (sub-)object will be stored in an arbitray JSON type.',
+    OBJECT_MISSING_PROPERTIES: 'The (sub-)object will be stored in an arbitrary JSON type.',
     UNKNOWN_TARGET_TYPE: 'The data will be stored in an arbitrary JSON type.',
     UNRESOLVABLE_SCHEMA: 'Ignore and continue. May lead to unexpected behavior.',
     UNSUPPORTED_HTTP_SECURITY_SCHEME: 'Ignore security scheme.',
@@ -86,7 +86,7 @@ exports.mitigations = {
     CUSTOM_RESOLVER_UNKNOWN_PATH_METHOD: 'Ignore this set of custom resolvers.',
     LIMIT_ARGUMENT_NAME_COLLISION: `Do not override existing 'limit' argument.`,
     // Miscellaneous
-    OAUTH_SECURITY_SCHEME: `Ignore security scheme`
+    OAUTH_SECURITY_SCHEME: `Do not create OAuth viewer. OAuth support is provided using the 'tokenJSONpath' option.`
 };
 /**
  * Utilities that are specific to OpenAPI-to-GraphQL
@@ -130,7 +130,7 @@ exports.sortObject = sortObject;
  * Finds the common property names between two objects
  */
 function getCommonPropertyNames(object1, object2) {
-    return Object.keys(object1).filter(propertyName => {
+    return Object.keys(object1).filter((propertyName) => {
         return propertyName in object2;
     });
 }

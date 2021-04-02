@@ -408,8 +408,7 @@ function getProcessedSecuritySchemes(oas, data) {
             case 'oauth2':
                 utils_1.handleWarning({
                     mitigationType: utils_1.MitigationTypes.OAUTH_SECURITY_SCHEME,
-                    message: `OAuth security scheme found in OAS '${oas.info.title}'. ` +
-                        `OAuth support is provided using the 'tokenJSONpath' option`,
+                    message: `OAuth security scheme found in OAS '${oas.info.title}'`,
                     data,
                     log: preprocessingLog
                 });
