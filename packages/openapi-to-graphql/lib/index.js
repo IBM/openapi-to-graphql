@@ -162,7 +162,7 @@ provideErrorExtensions, equivalentToMessages }) {
         const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
         // Check if the operation should be added as a Query or Mutation
         if (operation.operationType === graphql_1.GraphQLOperationType.Query) {
-            let fieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name] ||
+            let fieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName] ||
                 (!singularNames
                     ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
                     : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase));
@@ -225,7 +225,7 @@ provideErrorExtensions, equivalentToMessages }) {
         }
         else {
             let saneFieldName;
-            const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
+            const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
             if (extensionFieldName) {
                 saneFieldName = extensionFieldName;
             }
@@ -286,7 +286,7 @@ provideErrorExtensions, equivalentToMessages }) {
         let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
         const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
         let saneFieldName;
-        const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
+        const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
         if (extensionFieldName) {
             saneFieldName = extensionFieldName;
         }

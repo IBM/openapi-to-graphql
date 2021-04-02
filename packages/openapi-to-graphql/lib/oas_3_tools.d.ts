@@ -40,7 +40,9 @@ export declare enum HTTP_METHODS {
 }
 export declare const SUCCESS_STATUS_RX: RegExp;
 export declare enum OAS_GRAPHQL_EXTENSIONS {
-    Name = "x-graphql-name"
+    TypeName = "x-graphql-type-name",
+    FieldName = "x-graphql-field-name",
+    EnumMapping = "x-graphql-enum-mapping"
 }
 /**
  * Given an HTTP method, convert it to the HTTP_METHODS enum

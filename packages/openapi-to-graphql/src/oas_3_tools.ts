@@ -89,7 +89,9 @@ export enum HTTP_METHODS {
 export const SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/
 
 export enum OAS_GRAPHQL_EXTENSIONS {
-  Name = 'x-graphql-name'
+  TypeName = 'x-graphql-type-name',
+  FieldName = 'x-graphql-field-name',
+  EnumMapping = 'x-graphql-enum-mapping'
 }
 
 /**
@@ -872,7 +874,7 @@ export function getRequestSchemaAndNames(
 
           // Determine possible schema names
           payloadSchemaNames = {
-            fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.Name],
+            fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
             fromRef,
             fromSchema: payloadSchema?.title,
             fromPath: inferResourceNameFromPath(path)
@@ -996,7 +998,7 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
 
           // Determine possible schema names
           responseSchemaNames = {
-            fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.Name],
+            fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
             fromRef,
             fromSchema: responseSchema?.title,
             fromPath: inferResourceNameFromPath(path)
