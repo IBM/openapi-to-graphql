@@ -692,14 +692,16 @@ export function createDataDef<TSource, TContext, TArgs>(
     const saneLinks: { [key: string]: LinkObject } = {}
     if (typeof links === 'object') {
       Object.keys(links).forEach((linkKey) => {
-        saneLinks[
-          Oas3Tools.sanitize(
-            linkKey,
-            !data.options.simpleNames
-              ? Oas3Tools.CaseStyle.camelCase
-              : Oas3Tools.CaseStyle.simple
-          )
-        ] = links[linkKey]
+        const link = links[linkKey]
+        const fromExtension = link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
+        const linkSaneName = Oas3Tools.sanitize(
+          fromExtension || linkKey,
+          !data.options.simpleNames
+            ? Oas3Tools.CaseStyle.camelCase
+            : Oas3Tools.CaseStyle.simple
+        )
+
+        saneLinks[linkSaneName] = link
       })
     }
 
@@ -859,9 +861,15 @@ export function createDataDef<TSource, TContext, TArgs>(
               itemsName = itemsSchema.$ref.split('/').pop()
             }
 
+            const fromExtension =
+              collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
+
             const subDefinition = createDataDef(
               // Is this the correct classification for this name? It does not matter in the long run.
-              { fromRef: itemsName },
+              { 
+                fromExtension,
+                fromRef: itemsName 
+              },
               itemsSchema as SchemaObject,
               isInputObjectType,
               data,
@@ -1003,6 +1011,13 @@ function getSchemaName(
       names.fromExtension,
       Oas3Tools.CaseStyle.PascalCase
     )
+
+    if (usedNames.includes(saneName)) {
+      throw new Error(
+        `Cannot create Type with name "${saneName}".\nYou provided ${names.fromExtension} in an ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName} extension but it collides with another Type called ${saneName}`
+      )
+    }
+
     if (!usedNames.includes(saneName)) {
       schemaName = names.fromExtension
     }
@@ -1113,7 +1128,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
         propSchema = propSchemaOrRef as SchemaObject
       }
 
-      const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
+      const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
 
       const subDefinition = createDataDef(
         {
@@ -1399,7 +1414,6 @@ function createAnyOfObject<TSource, TContext, TArgs>(
         properties[propertyName] = property
       })
 
-
       memberProperties.push(properties)
     }
   })
@@ -1536,8 +1550,12 @@ function createOneOfUnion<TSource, TContext, TArgs>(
       memberSchema = memberSchemaOrRef as SchemaObject
     }
 
+    const fromExtension =
+      memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
+
     const subDefinition = createDataDef(
       {
+        fromExtension,
         fromRef,
         fromSchema: memberSchema.title,
         fromPath: `${saneName}Member`
