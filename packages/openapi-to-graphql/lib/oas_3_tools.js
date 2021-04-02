@@ -29,7 +29,9 @@ var HTTP_METHODS;
 exports.SUCCESS_STATUS_RX = /2[0-9]{2}|2XX/;
 var OAS_GRAPHQL_EXTENSIONS;
 (function (OAS_GRAPHQL_EXTENSIONS) {
-    OAS_GRAPHQL_EXTENSIONS["Name"] = "x-graphql-name";
+    OAS_GRAPHQL_EXTENSIONS["TypeName"] = "x-graphql-type-name";
+    OAS_GRAPHQL_EXTENSIONS["FieldName"] = "x-graphql-field-name";
+    OAS_GRAPHQL_EXTENSIONS["EnumMapping"] = "x-graphql-enum-mapping";
 })(OAS_GRAPHQL_EXTENSIONS = exports.OAS_GRAPHQL_EXTENSIONS || (exports.OAS_GRAPHQL_EXTENSIONS = {}));
 /**
  * Given an HTTP method, convert it to the HTTP_METHODS enum
@@ -465,7 +467,7 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
             payloadSchema = resolveRef(payloadSchema.$ref, oas);
         }
         let payloadSchemaNames = {
-            fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.Name],
+            fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
             fromRef,
             fromSchema: payloadSchema.title,
             fromPath: inferResourceNameFromPath(path)
@@ -569,7 +571,7 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
             responseSchema = resolveRef(responseSchema.$ref, oas);
         }
         const responseSchemaNames = {
-            fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.Name],
+            fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
             fromRef,
             fromSchema: responseSchema.title,
             fromPath: inferResourceNameFromPath(path)

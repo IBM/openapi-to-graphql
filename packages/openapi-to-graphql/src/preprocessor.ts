@@ -687,14 +687,16 @@ export function createDataDef<TSource, TContext, TArgs>(
     const saneLinks = {}
     if (typeof links === 'object') {
       Object.keys(links).forEach((linkKey) => {
-        saneLinks[
-          Oas3Tools.sanitize(
-            linkKey,
-            !data.options.simpleNames
-              ? Oas3Tools.CaseStyle.camelCase
-              : Oas3Tools.CaseStyle.simple
-          )
-        ] = links[linkKey]
+        const link = links[linkKey]
+        const fromExtension = link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
+        const linkSaneName = Oas3Tools.sanitize(
+          fromExtension || linkKey,
+          !data.options.simpleNames
+            ? Oas3Tools.CaseStyle.camelCase
+            : Oas3Tools.CaseStyle.simple
+        )
+
+        saneLinks[linkSaneName] = link
       })
     }
 
@@ -876,7 +878,7 @@ export function createDataDef<TSource, TContext, TArgs>(
               let itemsSchema = collapsedSchema.items
               let itemsName = `${name}ListItem`
               const fromExtension =
-                collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
+                collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
 
               if ('$ref' in itemsSchema) {
                 itemsName = collapsedSchema.items['$ref'].split('/').pop()
@@ -1022,6 +1024,13 @@ function getSchemaName(
       names.fromExtension,
       Oas3Tools.CaseStyle.PascalCase
     )
+
+    if (usedNames.includes(saneName)) {
+      throw new Error(
+        `Cannot create Type with name "${saneName}".\nYou provided ${names.fromExtension} in an ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName} extension but it collides with another Type called ${saneName}`
+      )
+    }
+
     if (!usedNames.includes(saneName)) {
       schemaName = names.fromExtension
     }
@@ -1118,7 +1127,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
   for (let propertyKey in schema.properties) {
     let propSchemaName = propertyKey
     let propSchema = schema.properties[propertyKey]
-    const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
+    const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
 
     if ('$ref' in propSchema) {
       propSchemaName = propSchema['$ref'].split('/').pop()
@@ -1479,7 +1488,7 @@ function createDataDefFromAnyOf<TSource, TContext, TArgs>(
               // Dereferenced by processing anyOfData
               const propertySchema = properties[propertyName] as SchemaObject
               const fromExtension =
-                propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
+                propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
 
               const subDefinition = createDataDef(
                 {
@@ -1616,7 +1625,7 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
             'object'
           ) {
             const fromExtension =
-              memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
+              memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
             const subDefinition = createDataDef(
               {
                 fromExtension,

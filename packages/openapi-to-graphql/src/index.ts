@@ -315,7 +315,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     // Check if the operation should be added as a Query or Mutation
     if (operation.operationType === GraphQLOperationType.Query) {
       let fieldName =
-        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name] ||
+        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName] ||
         (!singularNames
           ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
           : Oas3Tools.sanitize(
@@ -395,7 +395,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     } else {
       let saneFieldName: string
       const extensionFieldName =
-        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
+        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
 
       if (extensionFieldName) {
         saneFieldName = extensionFieldName
@@ -483,7 +483,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
       let saneFieldName: string
 
       const extensionFieldName =
-        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name]
+        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
 
       if (extensionFieldName) {
         saneFieldName = extensionFieldName

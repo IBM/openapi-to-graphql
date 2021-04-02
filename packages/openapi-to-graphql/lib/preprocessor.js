@@ -469,9 +469,12 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
         const saneLinks = {};
         if (typeof links === 'object') {
             Object.keys(links).forEach((linkKey) => {
-                saneLinks[Oas3Tools.sanitize(linkKey, !data.options.simpleNames
+                const link = links[linkKey];
+                const fromExtension = link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+                const linkSaneName = Oas3Tools.sanitize(fromExtension || linkKey, !data.options.simpleNames
                     ? Oas3Tools.CaseStyle.camelCase
-                    : Oas3Tools.CaseStyle.simple)] = links[linkKey];
+                    : Oas3Tools.CaseStyle.simple);
+                saneLinks[linkSaneName] = link;
             });
         }
         // Determine the index of possible existing data definition
@@ -603,7 +606,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
                             // Or if it is an object type, create references to all of the field types
                             let itemsSchema = collapsedSchema.items;
                             let itemsName = `${name}ListItem`;
-                            const fromExtension = collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
+                            const fromExtension = collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
                             if ('$ref' in itemsSchema) {
                                 itemsName = collapsedSchema.items['$ref'].split('/').pop();
                             }
@@ -710,6 +713,9 @@ function getSchemaName(names, usedNames) {
     let schemaName;
     if (typeof names.fromExtension === 'string') {
         const saneName = Oas3Tools.sanitize(names.fromExtension, Oas3Tools.CaseStyle.PascalCase);
+        if (usedNames.includes(saneName)) {
+            throw new Error(`Cannot create Type with name "${saneName}".\nYou provided ${names.fromExtension} in an ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName} extension but it collides with another Type called ${saneName}`);
+        }
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromExtension;
         }
@@ -778,7 +784,7 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
     for (let propertyKey in schema.properties) {
         let propSchemaName = propertyKey;
         let propSchema = schema.properties[propertyKey];
-        const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
+        const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
         if ('$ref' in propSchema) {
             propSchemaName = propSchema['$ref'].split('/').pop();
             propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
@@ -1023,7 +1029,7 @@ function createDataDefFromAnyOf(saneName, saneInputName, collapsedSchema, isInpu
                         if (!incompatibleProperties.has(propertyName)) {
                             // Dereferenced by processing anyOfData
                             const propertySchema = properties[propertyName];
-                            const fromExtension = propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
+                            const fromExtension = propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
                             const subDefinition = createDataDef({
                                 fromExtension,
                                 fromRef: propertyName,
@@ -1118,7 +1124,7 @@ function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInpu
                     // Member types of GraphQL unions must be object types
                     if (Oas3Tools.getSchemaTargetGraphQLType(memberSchema, data) ===
                         'object') {
-                        const fromExtension = memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.Name];
+                        const fromExtension = memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
                         const subDefinition = createDataDef({
                             fromExtension,
                             fromRef,
