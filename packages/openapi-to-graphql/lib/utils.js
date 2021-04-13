@@ -130,7 +130,7 @@ exports.sortObject = sortObject;
  * Finds the common property names between two objects
  */
 function getCommonPropertyNames(object1, object2) {
-    return Object.keys(object1).filter(propertyName => {
+    return Object.keys(object1).filter((propertyName) => {
         return propertyName in object2;
     });
 }

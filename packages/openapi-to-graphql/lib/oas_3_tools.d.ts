@@ -99,12 +99,12 @@ export declare function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(sch
  */
 export declare function inferResourceNameFromPath(path: string): string;
 /**
- * Returns JSON-compatible schema required by the given operation
+ * Get the request object for a given operation
  */
 export declare function getRequestBodyObject(operation: OperationObject, oas: Oas3): {
-    payloadContentType: string;
-    requestBodyObject: RequestBodyObject;
-} | null;
+    payloadContentType?: string;
+    requestBodyObject?: RequestBodyObject;
+};
 /**
  * Returns the request schema (if any) for the given operation,
  * a dictionary of names from different sources (if available), and whether the
@@ -112,12 +112,13 @@ export declare function getRequestBodyObject(operation: OperationObject, oas: Oa
  */
 export declare function getRequestSchemaAndNames(path: string, method: HTTP_METHODS, operation: OperationObject, oas: Oas3): RequestSchemaAndNames;
 /**
- * Returns JSON-compatible schema produced by the given operation
+ * Select a response object for a given operation and status code, prioritizing
+ * objects with a JSON content-type
  */
 export declare function getResponseObject(operation: OperationObject, statusCode: string, oas: Oas3): {
-    responseContentType: string;
-    responseObject: ResponseObject;
-} | null;
+    responseContentType?: string;
+    responseObject?: ResponseObject;
+};
 /**
  * Returns the response schema for the given operation,
  * a successful  status code, and a dictionary of names from different sources
@@ -127,7 +128,7 @@ export declare function getResponseSchemaAndNames<TSource, TContext, TArgs>(path
 /**
  * Returns a success status code for the given operation
  */
-export declare function getResponseStatusCode<TSource, TContext, TArgs>(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>): string | void;
+export declare function getResponseStatusCode<TSource, TContext, TArgs>(path: string, method: string, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>): string;
 /**
  * Returns a hash containing the links in the given operation.
  */

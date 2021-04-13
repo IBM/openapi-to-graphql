@@ -247,7 +247,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
     for (let path in oas.paths) {
       const pathItem = !('$ref' in oas.paths[path])
         ? oas.paths[path]
-        : (Oas3Tools.resolveRef(oas.paths[path]['$ref'], oas) as PathItemObject)
+        : (Oas3Tools.resolveRef(oas.paths[path].$ref, oas) as PathItemObject)
 
       Object.keys(pathItem)
         .filter((objectKey) => {
@@ -347,7 +347,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
                 const resolvedCallback = !('$ref' in callback)
                   ? callback
                   : (Oas3Tools.resolveRef(
-                      (callback as ReferenceObject)['$ref'],
+                      (callback as ReferenceObject).$ref,
                       oas
                     ) as CallbackObject)
 
@@ -357,7 +357,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
                       '$ref' in callbackPathItem
                     )
                       ? callbackPathItem
-                      : Oas3Tools.resolveRef(callbackPathItem['$ref'], oas)
+                      : Oas3Tools.resolveRef(callbackPathItem.$ref, oas)
 
                     const callbackOperationObjectMethods = Object.keys(
                       resolvedCallbackPathItem
@@ -679,7 +679,7 @@ export function createDataDef<TSource, TContext, TArgs>(
     }
   } else {
     if ('$ref' in schema) {
-      schema = Oas3Tools.resolveRef(schema['$ref'], oas)
+      schema = Oas3Tools.resolveRef(schema.$ref, oas)
     }
 
     const saneLinks = {}
@@ -875,7 +875,7 @@ export function createDataDef<TSource, TContext, TArgs>(
               let itemsName = `${name}ListItem`
 
               if ('$ref' in itemsSchema) {
-                itemsName = collapsedSchema.items['$ref'].split('/').pop()
+                itemsName = collapsedSchema.items.$ref.split('/').pop()
               }
 
               const subDefinition = createDataDef(
@@ -1101,8 +1101,8 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
     let propSchema = schema.properties[propertyKey]
 
     if ('$ref' in propSchema) {
-      propSchemaName = propSchema['$ref'].split('/').pop()
-      propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas) as SchemaObject
+      propSchemaName = propSchema.$ref.split('/').pop()
+      propSchema = Oas3Tools.resolveRef(propSchema.$ref, oas) as SchemaObject
     }
 
     if (!(propertyKey in def.subDefinitions)) {
@@ -1148,8 +1148,8 @@ function resolveAllOf<TSource, TContext, TArgs>(
 ): SchemaObject {
   // Dereference schema
   if ('$ref' in schema) {
-    const referenceLocation = schema['$ref']
-    schema = Oas3Tools.resolveRef(schema['$ref'], oas) as SchemaObject
+    const referenceLocation = schema.$ref
+    schema = Oas3Tools.resolveRef(schema.$ref, oas) as SchemaObject
 
     if (referenceLocation in references) {
       return references[referenceLocation]
@@ -1279,7 +1279,7 @@ function getMemberSchemaData<TSource, TContext, TArgs>(
   schemas.forEach((schema) => {
     // Dereference schemas
     if ('$ref' in schema) {
-      schema = Oas3Tools.resolveRef(schema['$ref'], oas) as SchemaObject
+      schema = Oas3Tools.resolveRef(schema.$ref, oas) as SchemaObject
     }
 
     // Consolidate target GraphQL type
@@ -1321,7 +1321,7 @@ function hasNestedOneOfUsage(
       // anyOf and oneOf are nested
       if ('$ref' in memberSchema) {
         memberSchema = Oas3Tools.resolveRef(
-          memberSchema['$ref'],
+          memberSchema.$ref,
           oas
         ) as SchemaObject
       }
@@ -1349,7 +1349,7 @@ function hasNestedAnyOfUsage(
       // anyOf and oneOf are nested
       if ('$ref' in memberSchema) {
         memberSchema = Oas3Tools.resolveRef(
-          memberSchema['$ref'],
+          memberSchema.$ref,
           oas
         ) as SchemaObject
       }
@@ -1578,9 +1578,9 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
           // Dereference member schema
           let fromRef: string
           if ('$ref' in memberSchema) {
-            fromRef = memberSchema['$ref'].split('/').pop()
+            fromRef = memberSchema.$ref.split('/').pop()
             memberSchema = Oas3Tools.resolveRef(
-              memberSchema['$ref'],
+              memberSchema.$ref,
               oas
             ) as SchemaObject
           }

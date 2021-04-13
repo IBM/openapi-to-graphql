@@ -550,54 +550,49 @@ export function inferResourceNameFromPath(path: string): string {
 }
 
 /**
- * Returns JSON-compatible schema required by the given operation
+ * Get the request object for a given operation
  */
 export function getRequestBodyObject(
   operation: OperationObject,
   oas: Oas3
-): { payloadContentType: string; requestBodyObject: RequestBodyObject } | null {
-  if (typeof operation.requestBody === 'object') {
-    let requestBodyObject: RequestBodyObject | ReferenceObject =
-      operation.requestBody
+): { payloadContentType?: string; requestBodyObject?: RequestBodyObject } {
+  let payloadContentType: string
+  let requestBodyObject: RequestBodyObject
 
-    // Make sure we have a RequestBodyObject:
-    if (typeof (requestBodyObject as ReferenceObject).$ref === 'string') {
+  const requestBodyObjectOrRef = operation?.requestBody
+  if (
+    typeof requestBodyObjectOrRef === 'object' &&
+    requestBodyObjectOrRef !== null
+  ) {
+    // Resolve reference if applicable. Make sure we have a RequestBodyObject:
+    if (typeof (requestBodyObjectOrRef as ReferenceObject).$ref === 'string') {
       requestBodyObject = resolveRef(
-        (requestBodyObject as ReferenceObject).$ref,
+        (requestBodyObjectOrRef as ReferenceObject).$ref,
         oas
       ) as RequestBodyObject
     } else {
-      requestBodyObject = requestBodyObject as RequestBodyObject
+      requestBodyObject = requestBodyObjectOrRef as RequestBodyObject
     }
 
-    if (typeof requestBodyObject.content === 'object') {
-      const content: MediaTypesObject = requestBodyObject.content
-
+    const content: MediaTypesObject = requestBodyObject?.content
+    if (typeof content === 'object' && content !== null) {
       // Prioritize content-type JSON
-      if (Object.keys(content).includes('application/json')) {
-        return {
-          payloadContentType: 'application/json',
-          requestBodyObject
-        }
-      } else if (
-        Object.keys(content).includes('application/x-www-form-urlencoded')
-      ) {
-        return {
-          payloadContentType: 'application/x-www-form-urlencoded',
-          requestBodyObject
-        }
+      if ('application/json' in content) {
+        payloadContentType = 'application/json'
+      } else if ('application/x-www-form-urlencoded' in content) {
+        payloadContentType = 'application/x-www-form-urlencoded'
       } else {
         // Pick first (random) content type
         const randomContentType = Object.keys(content)[0]
-
-        return {
-          payloadContentType: randomContentType,
-          requestBodyObject
-        }
+        payloadContentType = randomContentType
       }
     }
   }
-  return { payloadContentType: null, requestBodyObject: null }
+
+  return {
+    payloadContentType,
+    requestBodyObject
+  }
 }
 
 /**
@@ -616,39 +611,51 @@ export function getRequestSchemaAndNames(
     oas
   )
 
-  if (payloadContentType) {
-    let payloadSchema = requestBodyObject.content[payloadContentType].schema
+  let payloadSchema: SchemaObject
+  let payloadSchemaNames: SchemaNames
+  let payloadRequired = false
 
+  const payloadSchemaOrRef =
+    requestBodyObject?.content?.[payloadContentType]?.schema
+
+  if (
+    typeof payloadContentType === 'string' &&
+    typeof payloadSchemaOrRef === 'object' &&
+    payloadSchemaOrRef !== null
+  ) {
     // Get resource name from different sources
     let fromRef: string
-    if ('$ref' in payloadSchema) {
-      fromRef = payloadSchema['$ref'].split('/').pop()
-      payloadSchema = resolveRef(payloadSchema['$ref'], oas)
-    }
-
-    let payloadSchemaNames: any = {
-      fromRef,
-      fromSchema: (payloadSchema as SchemaObject).title,
-      fromPath: inferResourceNameFromPath(path)
+    if (typeof (payloadSchemaOrRef as ReferenceObject).$ref === 'string') {
+      fromRef = payloadSchemaOrRef.$ref.split('/').pop()
+      payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas) as SchemaObject
+    } else {
+      payloadSchema = payloadSchemaOrRef as SchemaObject
     }
 
     // Determine if request body is required:
-    const payloadRequired =
+    payloadRequired =
       typeof requestBodyObject.required === 'boolean'
         ? requestBodyObject.required
         : false
 
-    /**
-     * Edge case: if request body content-type is not application/json or
-     * application/x-www-form-urlencoded, do not parse it.
-     *
-     * Instead, treat the request body as a black box and send it as a string
-     * with the proper content-type header
-     */
     if (
-      payloadContentType !== 'application/json' &&
-      payloadContentType !== 'application/x-www-form-urlencoded'
+      payloadContentType === 'application/json' ||
+      payloadContentType === 'application/x-www-form-urlencoded'
     ) {
+      payloadSchemaNames = {
+        fromRef,
+        fromSchema: payloadSchema?.title,
+        fromPath: inferResourceNameFromPath(path)
+      }
+
+      /**
+       * Edge case: if request body content-type is not application/json or
+       * application/x-www-form-urlencoded, do not parse it.
+       *
+       * Instead, treat the request body as a black box and send it as a string
+       * with the proper content-type header
+       */
+    } else {
       const saneContentTypeName = uncapitalize(
         payloadContentType.split('/').reduce((name, term) => {
           return name + capitalize(term)
@@ -662,8 +669,9 @@ export function getRequestSchemaAndNames(
       let description = `String represents payload of content type '${payloadContentType}'`
 
       if (
-        'description' in payloadSchema &&
-        typeof payloadSchema.description === 'string'
+        typeof payloadSchema === 'object' &&
+        payloadSchema !== null &&
+        typeof (payloadSchema as SchemaObject).description === 'string'
       ) {
         description += `\n\nOriginal top level description: '${payloadSchema['description']}'`
       }
@@ -673,68 +681,57 @@ export function getRequestSchemaAndNames(
         type: 'string'
       }
     }
-
-    return {
-      payloadContentType,
-      payloadSchema,
-      payloadSchemaNames,
-      payloadRequired
-    }
   }
+
   return {
-    payloadRequired: false
+    payloadContentType,
+    payloadSchema,
+    payloadSchemaNames,
+    payloadRequired
   }
 }
 
 /**
- * Returns JSON-compatible schema produced by the given operation
+ * Select a response object for a given operation and status code, prioritizing
+ * objects with a JSON content-type
  */
 export function getResponseObject(
   operation: OperationObject,
   statusCode: string,
   oas: Oas3
-): { responseContentType: string; responseObject: ResponseObject } | null {
-  if (typeof operation.responses === 'object') {
-    const responses: ResponsesObject = operation.responses
-    if (typeof responses[statusCode] === 'object') {
-      let responseObject: ResponseObject | ReferenceObject =
-        responses[statusCode]
+): { responseContentType?: string; responseObject?: ResponseObject } {
+  let responseContentType
+  let responseObject
 
-      // Make sure we have a ResponseObject:
-      if (typeof (responseObject as ReferenceObject).$ref === 'string') {
-        responseObject = resolveRef(
-          (responseObject as ReferenceObject).$ref,
-          oas
-        ) as ResponseObject
+  const responseObjectOrRef = operation?.responses?.[statusCode]
+  if (typeof responseObjectOrRef === 'object' && responseObjectOrRef !== null) {
+    // Resolve reference if applicable. Make sure we have a ResponseObject:
+    if (typeof (responseObjectOrRef as ReferenceObject).$ref === 'string') {
+      responseObject = resolveRef(
+        (responseObjectOrRef as ReferenceObject).$ref,
+        oas
+      ) as ResponseObject
+    } else {
+      responseObject = responseObjectOrRef as ResponseObject
+    }
+
+    const content: MediaTypesObject = responseObject?.content
+    if (typeof content === 'object' && content !== null) {
+      // Prioritize content-type JSON
+      if ('application/json' in content) {
+        responseContentType = 'application/json'
       } else {
-        responseObject = responseObject as ResponseObject
-      }
-
-      if (
-        responseObject.content &&
-        typeof responseObject.content !== 'undefined'
-      ) {
-        const content: MediaTypesObject = responseObject.content
-
-        // Prioritize content-type JSON
-        if (Object.keys(content).includes('application/json')) {
-          return {
-            responseContentType: 'application/json',
-            responseObject
-          }
-        } else {
-          // Pick first (random) content type
-          const randomContentType = Object.keys(content)[0]
-
-          return {
-            responseContentType: randomContentType,
-            responseObject
-          }
-        }
+        // Pick first (random) content type
+        const randomContentType = Object.keys(content)[0]
+        responseContentType = randomContentType
       }
     }
   }
-  return { responseContentType: null, responseObject: null }
+
+  return {
+    responseContentType,
+    responseObject
+  }
 }
 
 /**
@@ -760,17 +757,28 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
     oas
   )
 
-  if (responseContentType) {
-    let responseSchema = responseObject.content[responseContentType].schema
+  let responseSchema: SchemaObject
+  let responseSchemaNames: SchemaNames
+
+  const responseSchemaOrRef =
+    responseObject?.content?.[responseContentType]?.schema
+
+  if (
+    typeof responseContentType === 'string' &&
+    typeof responseSchemaOrRef === 'object' &&
+    responseSchemaOrRef !== null
+  ) {
     let fromRef: string
-    if ('$ref' in responseSchema) {
-      fromRef = responseSchema['$ref'].split('/').pop()
-      responseSchema = resolveRef(responseSchema['$ref'], oas)
+    if (typeof (responseSchemaOrRef as ReferenceObject).$ref === 'string') {
+      fromRef = responseSchemaOrRef.$ref.split('/').pop()
+      responseSchema = resolveRef(responseSchemaOrRef.$ref, oas) as SchemaObject
+    } else {
+      responseSchema = responseSchemaOrRef as SchemaObject
     }
 
-    const responseSchemaNames = {
+    responseSchemaNames = {
       fromRef,
-      fromSchema: (responseSchema as SchemaObject).title,
+      fromSchema: responseSchema?.title,
       fromPath: inferResourceNameFromPath(path)
     }
 
@@ -794,13 +802,6 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
         type: 'string'
       }
     }
-
-    return {
-      responseContentType,
-      responseSchema,
-      responseSchemaNames,
-      statusCode
-    }
   } else {
     /**
      * GraphQL requires that objects must have some properties.
@@ -822,8 +823,13 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
         }
       }
     }
+  }
 
-    return {}
+  return {
+    responseContentType,
+    responseSchema,
+    responseSchemaNames,
+    statusCode
   }
 }
 
@@ -836,15 +842,17 @@ export function getResponseStatusCode<TSource, TContext, TArgs>(
   operation: OperationObject,
   oas: Oas3,
   data: PreprocessingData<TSource, TContext, TArgs>
-): string | void {
-  if (typeof operation.responses === 'object') {
+): string {
+  if (typeof operation.responses === 'object' && operation.responses !== null) {
     const codes = Object.keys(operation.responses)
     const successCodes = codes.filter((code) => {
       return SUCCESS_STATUS_RX.test(code)
     })
+
     if (successCodes.length === 1) {
       return successCodes[0]
     } else if (successCodes.length > 1) {
+      // Select a random success code
       handleWarning({
         mitigationType: MitigationTypes.MULTIPLE_RESPONSES,
         message:
@@ -861,10 +869,10 @@ export function getResponseStatusCode<TSource, TContext, TArgs>(
         data,
         log: translationLog
       })
+
       return successCodes[0]
     }
   }
-  return null
 }
 
 /**
@@ -882,6 +890,7 @@ export function getLinks<TSource, TContext, TArgs>(
   if (!statusCode) {
     return links
   }
+
   if (typeof operation.responses === 'object') {
     const responses: ResponsesObject = operation.responses
     if (typeof responses[statusCode] === 'object') {
@@ -904,7 +913,7 @@ export function getLinks<TSource, TContext, TArgs>(
 
           // Make sure we have LinkObjects:
           if (typeof (link as ReferenceObject).$ref === 'string') {
-            link = resolveRef(link['$ref'], oas)
+            link = resolveRef((link as ReferenceObject).$ref, oas)
           } else {
             link = link as LinkObject
           }
@@ -942,7 +951,7 @@ export function getParameters(
     const pathItemParameters: ParameterObject[] = pathParams.map((p) => {
       if (typeof (p as ReferenceObject).$ref === 'string') {
         // Here we know we have a parameter object:
-        return resolveRef(p['$ref'], oas) as ParameterObject
+        return resolveRef((p as ReferenceObject).$ref, oas) as ParameterObject
       } else {
         // Here we know we have a parameter object:
         return p as ParameterObject
@@ -958,7 +967,7 @@ export function getParameters(
       (p) => {
         if (typeof (p as ReferenceObject).$ref === 'string') {
           // Here we know we have a parameter object:
-          return resolveRef(p['$ref'], oas) as ParameterObject
+          return resolveRef((p as ReferenceObject).$ref, oas) as ParameterObject
         } else {
           // Here we know we have a parameter object:
           return p as ParameterObject

@@ -405,44 +405,41 @@ function inferResourceNameFromPath(path) {
 }
 exports.inferResourceNameFromPath = inferResourceNameFromPath;
 /**
- * Returns JSON-compatible schema required by the given operation
+ * Get the request object for a given operation
  */
 function getRequestBodyObject(operation, oas) {
-    if (typeof operation.requestBody === 'object') {
-        let requestBodyObject = operation.requestBody;
-        // Make sure we have a RequestBodyObject:
-        if (typeof requestBodyObject.$ref === 'string') {
-            requestBodyObject = resolveRef(requestBodyObject.$ref, oas);
+    let payloadContentType;
+    let requestBodyObject;
+    const requestBodyObjectOrRef = operation === null || operation === void 0 ? void 0 : operation.requestBody;
+    if (typeof requestBodyObjectOrRef === 'object' &&
+        requestBodyObjectOrRef !== null) {
+        // Resolve reference if applicable. Make sure we have a RequestBodyObject:
+        if (typeof requestBodyObjectOrRef.$ref === 'string') {
+            requestBodyObject = resolveRef(requestBodyObjectOrRef.$ref, oas);
         }
         else {
-            requestBodyObject = requestBodyObject;
+            requestBodyObject = requestBodyObjectOrRef;
         }
-        if (typeof requestBodyObject.content === 'object') {
-            const content = requestBodyObject.content;
+        const content = requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.content;
+        if (typeof content === 'object' && content !== null) {
             // Prioritize content-type JSON
-            if (Object.keys(content).includes('application/json')) {
-                return {
-                    payloadContentType: 'application/json',
-                    requestBodyObject
-                };
+            if ('application/json' in content) {
+                payloadContentType = 'application/json';
             }
-            else if (Object.keys(content).includes('application/x-www-form-urlencoded')) {
-                return {
-                    payloadContentType: 'application/x-www-form-urlencoded',
-                    requestBodyObject
-                };
+            else if ('application/x-www-form-urlencoded' in content) {
+                payloadContentType = 'application/x-www-form-urlencoded';
             }
             else {
                 // Pick first (random) content type
                 const randomContentType = Object.keys(content)[0];
-                return {
-                    payloadContentType: randomContentType,
-                    requestBodyObject
-                };
+                payloadContentType = randomContentType;
             }
         }
     }
-    return { payloadContentType: null, requestBodyObject: null };
+    return {
+        payloadContentType,
+        requestBodyObject
+    };
 }
 exports.getRequestBodyObject = getRequestBodyObject;
 /**
@@ -451,33 +448,44 @@ exports.getRequestBodyObject = getRequestBodyObject;
  * request schema is required for the operation.
  */
 function getRequestSchemaAndNames(path, method, operation, oas) {
+    var _a, _b;
     const { payloadContentType, requestBodyObject } = getRequestBodyObject(operation, oas);
-    if (payloadContentType) {
-        let payloadSchema = requestBodyObject.content[payloadContentType].schema;
+    let payloadSchema;
+    let payloadSchemaNames;
+    let payloadRequired = false;
+    const payloadSchemaOrRef = (_b = (_a = requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.content) === null || _a === void 0 ? void 0 : _a[payloadContentType]) === null || _b === void 0 ? void 0 : _b.schema;
+    if (typeof payloadContentType === 'string' &&
+        typeof payloadSchemaOrRef === 'object' &&
+        payloadSchemaOrRef !== null) {
         // Get resource name from different sources
         let fromRef;
-        if ('$ref' in payloadSchema) {
-            fromRef = payloadSchema['$ref'].split('/').pop();
-            payloadSchema = resolveRef(payloadSchema['$ref'], oas);
+        if (typeof payloadSchemaOrRef.$ref === 'string') {
+            fromRef = payloadSchemaOrRef.$ref.split('/').pop();
+            payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas);
         }
-        let payloadSchemaNames = {
-            fromRef,
-            fromSchema: payloadSchema.title,
-            fromPath: inferResourceNameFromPath(path)
-        };
+        else {
+            payloadSchema = payloadSchemaOrRef;
+        }
         // Determine if request body is required:
-        const payloadRequired = typeof requestBodyObject.required === 'boolean'
+        payloadRequired = typeof requestBodyObject.required === 'boolean'
             ? requestBodyObject.required
             : false;
-        /**
-         * Edge case: if request body content-type is not application/json or
-         * application/x-www-form-urlencoded, do not parse it.
-         *
-         * Instead, treat the request body as a black box and send it as a string
-         * with the proper content-type header
-         */
-        if (payloadContentType !== 'application/json' &&
-            payloadContentType !== 'application/x-www-form-urlencoded') {
+        if (payloadContentType === 'application/json' ||
+            payloadContentType === 'application/x-www-form-urlencoded') {
+            payloadSchemaNames = {
+                fromRef,
+                fromSchema: payloadSchema === null || payloadSchema === void 0 ? void 0 : payloadSchema.title,
+                fromPath: inferResourceNameFromPath(path)
+            };
+            /**
+             * Edge case: if request body content-type is not application/json or
+             * application/x-www-form-urlencoded, do not parse it.
+             *
+             * Instead, treat the request body as a black box and send it as a string
+             * with the proper content-type header
+             */
+        }
+        else {
             const saneContentTypeName = uncapitalize(payloadContentType.split('/').reduce((name, term) => {
                 return name + capitalize(term);
             }));
@@ -485,7 +493,8 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
                 fromPath: saneContentTypeName
             };
             let description = `String represents payload of content type '${payloadContentType}'`;
-            if ('description' in payloadSchema &&
+            if (typeof payloadSchema === 'object' &&
+                payloadSchema !== null &&
                 typeof payloadSchema.description === 'string') {
                 description += `\n\nOriginal top level description: '${payloadSchema['description']}'`;
             }
@@ -494,55 +503,50 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
                 type: 'string'
             };
         }
-        return {
-            payloadContentType,
-            payloadSchema,
-            payloadSchemaNames,
-            payloadRequired
-        };
     }
     return {
-        payloadRequired: false
+        payloadContentType,
+        payloadSchema,
+        payloadSchemaNames,
+        payloadRequired
     };
 }
 exports.getRequestSchemaAndNames = getRequestSchemaAndNames;
 /**
- * Returns JSON-compatible schema produced by the given operation
+ * Select a response object for a given operation and status code, prioritizing
+ * objects with a JSON content-type
  */
 function getResponseObject(operation, statusCode, oas) {
-    if (typeof operation.responses === 'object') {
-        const responses = operation.responses;
-        if (typeof responses[statusCode] === 'object') {
-            let responseObject = responses[statusCode];
-            // Make sure we have a ResponseObject:
-            if (typeof responseObject.$ref === 'string') {
-                responseObject = resolveRef(responseObject.$ref, oas);
+    var _a;
+    let responseContentType;
+    let responseObject;
+    const responseObjectOrRef = (_a = operation === null || operation === void 0 ? void 0 : operation.responses) === null || _a === void 0 ? void 0 : _a[statusCode];
+    if (typeof responseObjectOrRef === 'object' &&
+        responseObjectOrRef !== null) {
+        // Resolve reference if applicable. Make sure we have a ResponseObject:
+        if (typeof responseObjectOrRef.$ref === 'string') {
+            responseObject = resolveRef(responseObjectOrRef.$ref, oas);
+        }
+        else {
+            responseObject = responseObjectOrRef;
+        }
+        const content = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content;
+        if (typeof content === 'object' && content !== null) {
+            // Prioritize content-type JSON
+            if ('application/json' in content) {
+                responseContentType = 'application/json';
             }
             else {
-                responseObject = responseObject;
-            }
-            if (responseObject.content &&
-                typeof responseObject.content !== 'undefined') {
-                const content = responseObject.content;
-                // Prioritize content-type JSON
-                if (Object.keys(content).includes('application/json')) {
-                    return {
-                        responseContentType: 'application/json',
-                        responseObject
-                    };
-                }
-                else {
-                    // Pick first (random) content type
-                    const randomContentType = Object.keys(content)[0];
-                    return {
-                        responseContentType: randomContentType,
-                        responseObject
-                    };
-                }
+                // Pick first (random) content type
+                const randomContentType = Object.keys(content)[0];
+                responseContentType = randomContentType;
             }
         }
     }
-    return { responseContentType: null, responseObject: null };
+    return {
+        responseContentType,
+        responseObject
+    };
 }
 exports.getResponseObject = getResponseObject;
 /**
@@ -551,21 +555,29 @@ exports.getResponseObject = getResponseObject;
  * (if available).
  */
 function getResponseSchemaAndNames(path, method, operation, oas, data, options) {
+    var _a, _b;
     const statusCode = getResponseStatusCode(path, method, operation, oas, data);
     if (!statusCode) {
         return {};
     }
     let { responseContentType, responseObject } = getResponseObject(operation, statusCode, oas);
-    if (responseContentType) {
-        let responseSchema = responseObject.content[responseContentType].schema;
+    let responseSchema;
+    let responseSchemaNames;
+    const responseSchemaOrRef = (_b = (_a = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content) === null || _a === void 0 ? void 0 : _a[responseContentType]) === null || _b === void 0 ? void 0 : _b.schema;
+    if (typeof responseContentType === 'string' &&
+        typeof responseSchemaOrRef === 'object' &&
+        responseSchemaOrRef !== null) {
         let fromRef;
-        if ('$ref' in responseSchema) {
-            fromRef = responseSchema['$ref'].split('/').pop();
-            responseSchema = resolveRef(responseSchema['$ref'], oas);
+        if (typeof responseSchemaOrRef.$ref === 'string') {
+            fromRef = responseSchemaOrRef.$ref.split('/').pop();
+            responseSchema = resolveRef(responseSchemaOrRef.$ref, oas);
         }
-        const responseSchemaNames = {
+        else {
+            responseSchema = responseSchemaOrRef;
+        }
+        responseSchemaNames = {
             fromRef,
-            fromSchema: responseSchema.title,
+            fromSchema: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.title,
             fromPath: inferResourceNameFromPath(path)
         };
         /**
@@ -583,12 +595,6 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
                 type: 'string'
             };
         }
-        return {
-            responseContentType,
-            responseSchema,
-            responseSchemaNames,
-            statusCode
-        };
     }
     else {
         /**
@@ -610,15 +616,20 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
                 }
             };
         }
-        return {};
     }
+    return {
+        responseContentType,
+        responseSchema,
+        responseSchemaNames,
+        statusCode
+    };
 }
 exports.getResponseSchemaAndNames = getResponseSchemaAndNames;
 /**
  * Returns a success status code for the given operation
  */
 function getResponseStatusCode(path, method, operation, oas, data) {
-    if (typeof operation.responses === 'object') {
+    if (typeof operation.responses === 'object' && operation.responses !== null) {
         const codes = Object.keys(operation.responses);
         const successCodes = codes.filter((code) => {
             return exports.SUCCESS_STATUS_RX.test(code);
@@ -627,6 +638,7 @@ function getResponseStatusCode(path, method, operation, oas, data) {
             return successCodes[0];
         }
         else if (successCodes.length > 1) {
+            // Select a random success code
             utils_1.handleWarning({
                 mitigationType: utils_1.MitigationTypes.MULTIPLE_RESPONSES,
                 message: `Operation '${formatOperationString(method, path, oas.info.title)}' ` +
@@ -640,7 +652,6 @@ function getResponseStatusCode(path, method, operation, oas, data) {
             return successCodes[0];
         }
     }
-    return null;
 }
 exports.getResponseStatusCode = getResponseStatusCode;
 /**
@@ -667,7 +678,7 @@ function getLinks(path, method, operation, oas, data) {
                     let link = epLinks[linkKey];
                     // Make sure we have LinkObjects:
                     if (typeof link.$ref === 'string') {
-                        link = resolveRef(link['$ref'], oas);
+                        link = resolveRef(link.$ref, oas);
                     }
                     else {
                         link = link;
@@ -696,7 +707,7 @@ function getParameters(path, method, operation, pathItem, oas) {
         const pathItemParameters = pathParams.map((p) => {
             if (typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
-                return resolveRef(p['$ref'], oas);
+                return resolveRef(p.$ref, oas);
             }
             else {
                 // Here we know we have a parameter object:
@@ -711,7 +722,7 @@ function getParameters(path, method, operation, pathItem, oas) {
         const operationParameters = opObjectParameters.map((p) => {
             if (typeof p.$ref === 'string') {
                 // Here we know we have a parameter object:
-                return resolveRef(p['$ref'], oas);
+                return resolveRef(p.$ref, oas);
             }
             else {
                 // Here we know we have a parameter object:
