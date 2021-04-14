@@ -138,7 +138,7 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * the operation path than the response object by leveraging common
      * conventions.
      *
-     * For example, given the operation 'GET /users/{userId}/car', OpenAPI-to-GraphQL will
+     * For example, given the operation GET /users/{userId}/car, OpenAPI-to-GraphQL will
      * create a Query field 'userCar'. Note that because 'users' is followed by
      * the parameter 'userId', it insinuates that this operation will get the car
      * that belongs to a singular user. Hence, the name 'userCar' is more fitting
