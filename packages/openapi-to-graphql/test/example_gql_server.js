@@ -15,8 +15,8 @@ const openAPIToGraphQL = require('../lib/index')
 // const oas = require('./fixtures/example_oas2.json')
 // const oas = require('./fixtures/example_oas3.json')
 // const oas = require('./fixtures/example_oas4.json')
-const oas = require('./fixtures/example_oas5.json')
-// const oas = require('./fixtures/example_oas6.json')
+// const oas = require('./fixtures/example_oas5.json')
+const oas = require('./fixtures/example_oas6.json')
 
 // const oas = require('./fixtures/github.json')
 // const oas = require('./fixtures/instagram.json')
@@ -32,7 +32,7 @@ const oas = require('./fixtures/example_oas5.json')
 
 openAPIToGraphQL
   .createGraphQLSchema(oas, {
-    simpleEnumValues: true
+    fillEmptyResponses: true
   })
   .then(({ schema, report }) => {
     console.log(JSON.stringify(report, null, 2))

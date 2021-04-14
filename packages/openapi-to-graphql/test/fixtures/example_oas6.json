@@ -311,6 +311,21 @@
           }
         }
       }
+    },
+    "/noResponseSchema": {
+      "get": {
+        "description": "No provided response schema test",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "example": "Hello world"
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
