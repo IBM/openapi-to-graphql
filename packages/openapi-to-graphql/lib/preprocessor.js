@@ -1136,7 +1136,7 @@ function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInpu
                     utils_1.handleWarning({
                         mitigationType: utils_1.MitigationTypes.COMBINE_SCHEMAS,
                         message: `Schema '${JSON.stringify(def.schema)}' contains 'oneOf' so ` +
-                            `create a GraphQL union type but all member schemas are not` +
+                            `create a GraphQL union type but all member schemas are not ` +
                             `object types and union member types must be object types.`,
                         mitigationAddendum: `Use arbitrary JSON type instead.`,
                         data,
