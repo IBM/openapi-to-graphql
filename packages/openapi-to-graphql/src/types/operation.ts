@@ -87,6 +87,12 @@ export type DataDefinition = {
 
   // The GraphQL input object type if it is created
   graphQLInputObjectType?: GraphQLInputObjectType | GraphQLList<any>
+
+  // The potential override of the resolveType function if the Graph QL type is union
+  resolveType?: any
+
+  // The field for storing object that describes union type that should be used for respose types
+  unionDefinition?: DataDefinition
 }
 
 export type Operation = {

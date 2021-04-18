@@ -34,6 +34,10 @@ export type SchemaObject = {
   anyOf?: (SchemaObject | ReferenceObject)[]
   oneOf?: (SchemaObject | ReferenceObject)[]
   not?: (SchemaObject | ReferenceObject)[]
+  discriminator?: {
+    propertyName: string
+    mapping: Map<string, string>
+  }
 }
 
 export type ReferenceObject = {

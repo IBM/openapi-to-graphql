@@ -27,6 +27,8 @@ import debug from 'debug'
 import { handleWarning, getCommonPropertyNames, MitigationTypes } from './utils'
 import { GraphQLOperationType } from './types/graphql'
 import { methodToHttpMethod } from './oas_3_tools'
+import { GraphQLObjectType } from 'graphql'
+import { getGraphQLType } from './schema_builder'
 
 const preprocessingLog = debug('preprocessing')
 
@@ -649,7 +651,8 @@ export function createDataDef<TSource, TContext, TArgs>(
   isInputObjectType: boolean,
   data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3,
-  links?: { [key: string]: LinkObject }
+  links?: { [key: string]: LinkObject },
+  resolveDiscriminator: boolean = true
 ): DataDefinition {
   const preferredName = getPreferredName(names)
 
@@ -864,6 +867,26 @@ export function createDataDef<TSource, TContext, TArgs>(
         }
       }
 
+      /**
+       * Union types will be extracted either from the discriminator mapping
+       * or from the enum list defined for discriminator property
+       */
+      if (hasDiscriminator(schema) && resolveDiscriminator) {
+        const unionDef = createDataDefFromDiscriminator(
+          saneName,
+          schema,
+          isInputObjectType,
+          def,
+          data,
+          oas
+        )
+
+        if (unionDef && typeof unionDef === 'object') {
+          def.targetGraphQLType = 'json'
+          return def
+        }
+      }
+
       if (targetGraphQLType) {
         switch (targetGraphQLType) {
           case 'list':
@@ -940,6 +963,12 @@ export function createDataDef<TSource, TContext, TArgs>(
       return def
     }
   }
+}
+
+// Checks if schema object has discriminator field
+function hasDiscriminator(schema: SchemaObject): boolean {
+  const collapsedSchema: SchemaObject = JSON.parse(JSON.stringify(schema))
+  return collapsedSchema.discriminator?.propertyName ? true : false
 }
 
 /**
@@ -1137,6 +1166,248 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
 }
 
 /**
+ * Iterate through discriminator object mapping or through discriminator
+ * enum values and resolve derived schemas
+ */
+function createDataDefFromDiscriminator<TSource, TContext, TArgs>(
+  saneName: string,
+  schema: SchemaObject,
+  isInputObjectType = false,
+  def: DataDefinition,
+  data: PreprocessingData<TSource, TContext, TArgs>,
+  oas: Oas3
+): DataDefinition {
+  /**
+   * Check if discriminator exists and if it has
+   * defined property name
+   */
+  if (!schema.discriminator?.propertyName) {
+    return null
+  }
+
+  const unionTypes: DataDefinition[] = []
+  const schemaToTypeMap: Map<string, string> = new Map()
+
+  // Get the discriminator property name
+  const discriminator = schema.discriminator.propertyName
+
+  /**
+   * Check if there is defined property pointed by discriminator
+   * and if that property is in the required properties list
+   */
+  if (
+    schema.properties &&
+    schema.properties[discriminator] &&
+    schema.required &&
+    schema.required.indexOf(discriminator) > -1
+  ) {
+    let discriminatorProperty = schema.properties[discriminator]
+
+    // Dereference discriminator property
+    if ('$ref' in discriminatorProperty) {
+      discriminatorProperty = Oas3Tools.resolveRef(
+        discriminatorProperty['$ref'],
+        oas
+      ) as SchemaObject
+    }
+
+    /**
+     * Check if there is mapping defined for discriminator property
+     * and iterate through the map in order to generate derived types
+     */
+    if (schema.discriminator.mapping) {
+      for (const key in schema.discriminator.mapping) {
+        const unionTypeDef = createUnionSubDefinitionFromDiscriminator(
+          schema,
+          saneName,
+          schema.discriminator.mapping[key],
+          isInputObjectType,
+          data,
+          oas
+        )
+
+        if (unionTypeDef) {
+          unionTypes.push(unionTypeDef)
+          schemaToTypeMap.set(key, unionTypeDef.preferredName)
+        }
+      }
+    } else if (
+      /**
+       * If there is no defined mapping, check if discriminator property
+       * schema has defined enum, and if enum exists iterate through
+       * the enum values and generate derived types
+       */
+      discriminatorProperty.enum &&
+      discriminatorProperty.enum.length > 0
+    ) {
+      const discriminatorAllowedValues = discriminatorProperty.enum
+      discriminatorAllowedValues.forEach((enumValue) => {
+        const unionTypeDef = createUnionSubDefinitionFromDiscriminator(
+          schema,
+          saneName,
+          enumValue,
+          isInputObjectType,
+          data,
+          oas
+        )
+
+        if (unionTypeDef) {
+          unionTypes.push(unionTypeDef)
+          schemaToTypeMap.set(enumValue, unionTypeDef.preferredName)
+        }
+      })
+    }
+  }
+
+  // Union type will be created if unionTypes list is not empty
+  if (unionTypes.length > 0) {
+    const iteration = 0
+
+    /**
+     * Get GraphQL types for union type members so that
+     * these types can be used in resolveType method for
+     * this union
+     */
+    const types = Object.values(unionTypes).map((memberTypeDefinition) => {
+      return getGraphQLType({
+        def: memberTypeDefinition,
+        data,
+        iteration: iteration + 1,
+        isInputObjectType
+      }) as GraphQLObjectType
+    })
+
+    /**
+     * TODO: Refactor this when GraphQL receives a support for input unions.
+     * Create DataDefinition object for union with custom resolveType function
+     * which resolves union types based on discriminator provided in the Open API
+     * schema. The union data definition should be used for generating response
+     * type and for inputs parent data definition should be used
+     */
+    def.unionDefinition = {
+      ...def,
+      targetGraphQLType: 'union',
+      subDefinitions: unionTypes,
+      resolveType: (source, context, info) => {
+        // Find the appropriate union member type
+        return types.find((type) => {
+          // Check if source contains not empty discriminator field
+          if (source[discriminator]) {
+            const typeName = schemaToTypeMap.get(source[discriminator])
+            return typeName === type.name
+          }
+
+          return false
+        })
+      }
+    }
+
+    return def
+  }
+
+  return null
+}
+
+function createUnionSubDefinitionFromDiscriminator<TSource, TContext, TArgs>(
+  unionSchema: SchemaObject,
+  unionSaneName: string,
+  subSchemaName: string,
+  isInputObjectType: boolean,
+  data: PreprocessingData<TSource, TContext, TArgs>,
+  oas: Oas3
+): DataDefinition {
+  // Find schema for derived type using schemaName
+  let schema = oas.components.schemas[subSchemaName]
+
+  // Resolve reference
+  if (schema && '$ref' in schema) {
+    schema = Oas3Tools.resolveRef(schema['$ref'], oas) as SchemaObject
+  }
+
+  if (!schema) {
+    handleWarning({
+      mitigationType: MitigationTypes.MISSING_SCHEMA,
+      message: `Resolving schema from discriminator with name ${subSchemaName} in schema '${JSON.stringify(
+        unionSchema
+      )} failed because such schema was not found.`,
+      data,
+      log: preprocessingLog
+    })
+    return null
+  }
+
+  if (!isSchemaDerivedFrom(schema, unionSchema, oas)) {
+    return null
+  }
+
+  const collapsedSchema = resolveAllOf(schema, {}, data, oas)
+
+  if (
+    collapsedSchema &&
+    Oas3Tools.getSchemaTargetGraphQLType(collapsedSchema, data) === 'object'
+  ) {
+    let subNames = {}
+    if (deepEqual(unionSchema, schema)) {
+      subNames = {
+        fromRef: `${unionSaneName}Member`,
+        fromSchema: collapsedSchema.title
+      }
+    } else {
+      subNames = {
+        fromRef: subSchemaName,
+        fromSchema: collapsedSchema.title
+      }
+    }
+
+    return createDataDef(
+      subNames,
+      schema,
+      isInputObjectType,
+      data,
+      oas,
+      {},
+      false
+    )
+  }
+
+  return null
+}
+
+/**
+ * Check if child schema is derived from parent schema by recursively
+ * looking into schemas references in child's allOf property
+ */
+function isSchemaDerivedFrom(
+  childSchema: SchemaObject,
+  parentSchema: SchemaObject,
+  oas: Oas3
+) {
+  if (!childSchema.allOf) {
+    return false
+  }
+
+  for (const allOfSchema of childSchema.allOf) {
+    let resolvedSchema: SchemaObject = null
+    if (allOfSchema && '$ref' in allOfSchema) {
+      resolvedSchema = Oas3Tools.resolveRef(
+        allOfSchema['$ref'],
+        oas
+      ) as SchemaObject
+    } else {
+      resolvedSchema = allOfSchema
+    }
+
+    if (deepEqual(resolvedSchema, parentSchema)) {
+      return true
+    } else if (isSchemaDerivedFrom(resolvedSchema, parentSchema, oas)) {
+      return true
+    }
+  }
+
+  return false
+}
+
+/**
  * Recursively traverse a schema and resolve allOf by appending the data to the
  * parent schema
  */
@@ -1282,23 +1553,26 @@ function getMemberSchemaData<TSource, TContext, TArgs>(
       schema = Oas3Tools.resolveRef(schema.$ref, oas) as SchemaObject
     }
 
+    const collapsedSchema = resolveAllOf(schema, {}, data, oas)
+
     // Consolidate target GraphQL type
     const memberTargetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(
-      schema,
+      collapsedSchema,
       data
     )
+
     if (memberTargetGraphQLType) {
       result.allTargetGraphQLTypes.push(memberTargetGraphQLType)
     }
 
     // Consolidate properties
-    if (schema.properties) {
-      result.allProperties.push(schema.properties)
+    if (collapsedSchema.properties) {
+      result.allProperties.push(collapsedSchema.properties)
     }
 
     // Consolidate required
-    if (schema.required) {
-      result.allRequired = result.allRequired.concat(schema.required)
+    if (collapsedSchema.required) {
+      result.allRequired = result.allRequired.concat(collapsedSchema.required)
     }
   })
 
@@ -1585,21 +1859,32 @@ function createDataDefFromOneOf<TSource, TContext, TArgs>(
             ) as SchemaObject
           }
 
+          const collapsedMemberSchema = resolveAllOf(
+            memberSchema,
+            {},
+            data,
+            oas
+          )
+
           // Member types of GraphQL unions must be object types
           if (
-            Oas3Tools.getSchemaTargetGraphQLType(memberSchema, data) ===
-            'object'
+            Oas3Tools.getSchemaTargetGraphQLType(
+              collapsedMemberSchema,
+              data
+            ) === 'object'
           ) {
             const subDefinition = createDataDef(
               {
                 fromRef,
-                fromSchema: memberSchema.title,
+                fromSchema: collapsedMemberSchema.title,
                 fromPath: `${saneName}Member`
               },
               memberSchema,
               isInputObjectType,
               data,
-              oas
+              oas,
+              {},
+              false
             )
             ;(def.subDefinitions as DataDefinition[]).push(subDefinition)
           } else {
