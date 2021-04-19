@@ -55,54 +55,8 @@ function processOperation<TSource, TContext, TArgs>(
   data: PreprocessingData<TSource, TContext, TArgs>,
   options: InternalOptions<TSource, TContext, TArgs>
 ): Operation {
-  // Determine description
-  let description = operation.description
-  if (
-    (typeof description !== 'string' || description === '') &&
-    typeof operation.summary === 'string'
-  ) {
-    description = operation.summary
-  }
-
-  if (data.options.equivalentToMessages) {
-    // Description may not exist
-    if (typeof description !== 'string') {
-      description = ''
-    }
-
-    description += `\n\nEquivalent to ${operationString}`
-  }
-
-  // Determine tags
-  const tags = operation.tags || []
-
-  // Hold on to the operationId
-  const operationId =
-    typeof operation.operationId !== 'undefined'
-      ? operation.operationId
-      : Oas3Tools.generateOperationId(method, path)
-
-  // Request schema
-  const {
-    payloadContentType,
-    payloadSchema,
-    payloadSchemaNames,
-    payloadRequired
-  } = Oas3Tools.getRequestSchemaAndNames(path, method, operation, oas)
-
-  const payloadDefinition =
-    payloadSchema && typeof payloadSchema !== 'undefined'
-      ? createDataDef(
-          payloadSchemaNames,
-          payloadSchema as SchemaObject,
-          true,
-          data,
-          oas
-        )
-      : undefined
-
   // Response schema
-  let {
+  const {
     responseContentType,
     responseSchema,
     responseSchemaNames,
@@ -116,7 +70,114 @@ function processOperation<TSource, TContext, TArgs>(
     options
   )
 
-  if (typeof responseSchema !== 'object') {
+  /**
+   * All GraphQL fields must have a type, which is derived from the response
+   * schema. Therefore, the response schema is the first to be determined.
+   */
+  if (typeof responseSchema === 'object') {
+    // Description
+    let description = operation.description
+    if (
+      (typeof description !== 'string' || description === '') &&
+      typeof operation.summary === 'string'
+    ) {
+      description = operation.summary
+    }
+
+    if (data.options.equivalentToMessages) {
+      // Description may not exist
+      if (typeof description !== 'string') {
+        description = ''
+      }
+
+      description += `\n\nEquivalent to ${operationString}`
+    }
+
+    // Tags
+    const tags = operation.tags || []
+
+    // OperationId
+    const operationId =
+      typeof operation.operationId !== 'undefined'
+        ? operation.operationId
+        : Oas3Tools.generateOperationId(method, path)
+
+    // Request schema
+    const {
+      payloadContentType,
+      payloadSchema,
+      payloadSchemaNames,
+      payloadRequired
+    } = Oas3Tools.getRequestSchemaAndNames(path, method, operation, oas)
+
+    // Request data definition
+    const payloadDefinition =
+      payloadSchema && typeof payloadSchema !== 'undefined'
+        ? createDataDef(
+            payloadSchemaNames,
+            payloadSchema as SchemaObject,
+            true,
+            data,
+            oas
+          )
+        : undefined
+
+    // Links
+    const links = Oas3Tools.getLinks(path, method, operation, oas, data)
+
+    // Response data definition
+    const responseDefinition = createDataDef(
+      responseSchemaNames,
+      responseSchema as SchemaObject,
+      false,
+      data,
+      oas,
+      links
+    )
+
+    // Parameters
+    const parameters = Oas3Tools.getParameters(
+      path,
+      method,
+      operation,
+      pathItem,
+      oas
+    )
+
+    // Security protocols
+    const securityRequirements = options.viewer
+      ? Oas3Tools.getSecurityRequirements(operation, data.security, oas)
+      : []
+
+    // Servers
+    const servers = Oas3Tools.getServers(operation, pathItem, oas)
+
+    // Whether to place this operation into an authentication viewer
+    const inViewer =
+      securityRequirements.length > 0 && data.options.viewer !== false
+
+    return {
+      operation,
+      operationId,
+      operationString,
+      operationType,
+      description,
+      tags,
+      path,
+      method,
+      payloadContentType,
+      payloadDefinition,
+      payloadRequired,
+      responseContentType,
+      responseDefinition,
+      parameters,
+      securityRequirements,
+      servers,
+      inViewer,
+      statusCode,
+      oas
+    }
+  } else {
     handleWarning({
       mitigationType: MitigationTypes.MISSING_RESPONSE_SCHEMA,
       message:
@@ -126,63 +187,6 @@ function processOperation<TSource, TContext, TArgs>(
       data,
       log: preprocessingLog
     })
-
-    return
-  }
-
-  // Links
-  const links = Oas3Tools.getLinks(path, method, operation, oas, data)
-
-  const responseDefinition = createDataDef(
-    responseSchemaNames,
-    responseSchema as SchemaObject,
-    false,
-    data,
-    oas,
-    links
-  )
-
-  // Parameters
-  const parameters = Oas3Tools.getParameters(
-    path,
-    method,
-    operation,
-    pathItem,
-    oas
-  )
-
-  // Security protocols
-  const securityRequirements = options.viewer
-    ? Oas3Tools.getSecurityRequirements(operation, data.security, oas)
-    : []
-
-  // Servers
-  const servers = Oas3Tools.getServers(operation, pathItem, oas)
-
-  // Whether to place this operation into an authentication viewer
-  const inViewer =
-    securityRequirements.length > 0 && data.options.viewer !== false
-
-  return {
-    operation,
-    operationId,
-    operationString,
-    operationType,
-    description,
-    tags,
-    path,
-    method,
-    payloadContentType,
-    payloadDefinition,
-    payloadRequired,
-    responseContentType,
-    responseDefinition,
-    parameters,
-    securityRequirements,
-    servers,
-    inViewer,
-    statusCode,
-    oas
   }
 }
 
@@ -245,18 +249,20 @@ export function preprocessOas<TSource, TContext, TArgs>(
 
     // Process all operations
     for (let path in oas.paths) {
-      const pathItem = !('$ref' in oas.paths[path])
-        ? oas.paths[path]
-        : (Oas3Tools.resolveRef(oas.paths[path].$ref, oas) as PathItemObject)
+      const pathItem =
+        typeof oas.paths[path].$ref === 'string'
+          ? (Oas3Tools.resolveRef(oas.paths[path].$ref, oas) as PathItemObject)
+          : oas.paths[path]
 
       Object.keys(pathItem)
-        .filter((objectKey) => {
+        .filter((pathFields) => {
           /**
-           * Get only fields that contain operation objects
+           * Get only method fields that contain operation objects (e.g. "get",
+           * "put", "post", "delete", etc.)
            *
            * Can also contain other fields such as summary or description
            */
-          return Oas3Tools.isHttpMethod(objectKey)
+          return Oas3Tools.isHttpMethod(pathFields)
         })
         .forEach((rawMethod) => {
           const operationString =
@@ -287,14 +293,10 @@ export function preprocessOas<TSource, TContext, TArgs>(
 
           // Option selectQueryOrMutationField can override operation type
           if (
-            typeof options.selectQueryOrMutationField === 'object' &&
-            typeof options.selectQueryOrMutationField[oas.info.title] ===
-              'object' &&
-            typeof options.selectQueryOrMutationField[oas.info.title][path] ===
-              'object' &&
-            typeof options.selectQueryOrMutationField[oas.info.title][path][
-              httpMethod
-            ] === 'number' // This is an TS enum, which is translated to have a integer value
+            typeof options?.selectQueryOrMutationField?.[oas.info.title]?.[
+              path
+            ]?.[httpMethod] === 'number'
+            // This is an enum, which is an integer value
           ) {
             operationType =
               options.selectQueryOrMutationField[oas.info.title][path][
@@ -331,6 +333,8 @@ export function preprocessOas<TSource, TContext, TArgs>(
                 data,
                 log: preprocessingLog
               })
+
+              return
             }
           }
 
@@ -651,7 +655,7 @@ export function createDataDef<TSource, TContext, TArgs>(
   const preferredName = getPreferredName(names)
 
   // Basic validation test
-  if (typeof schema !== 'object') {
+  if (typeof schema !== 'object' && schema !== null) {
     handleWarning({
       mitigationType: MitigationTypes.MISSING_SCHEMA,
       message:
@@ -663,7 +667,6 @@ export function createDataDef<TSource, TContext, TArgs>(
       log: preprocessingLog
     })
 
-    // TODO: Does this change make the option fillEmptyResponses obsolete?
     return {
       preferredName,
       schema: null,
@@ -675,11 +678,11 @@ export function createDataDef<TSource, TContext, TArgs>(
       targetGraphQLType: 'json'
     }
   } else {
-    if ('$ref' in schema) {
+    if (typeof schema.$ref === 'string') {
       schema = Oas3Tools.resolveRef(schema.$ref, oas)
     }
 
-    const saneLinks = {}
+    const saneLinks: { [key: string]: LinkObject } = {}
     if (typeof links === 'object') {
       Object.keys(links).forEach((linkKey) => {
         saneLinks[
@@ -696,6 +699,7 @@ export function createDataDef<TSource, TContext, TArgs>(
     // Determine the index of possible existing data definition
     const index = getSchemaIndex(preferredName, schema, data.defs)
 
+    // There is a preexisting data definition
     if (index !== -1) {
       // Found existing data definition and fetch it
       const existingDataDef = data.defs[index]
@@ -704,47 +708,45 @@ export function createDataDef<TSource, TContext, TArgs>(
        * Collapse links if possible, i.e. if the current operation has links,
        * combine them with the prexisting ones
        */
-      if (typeof saneLinks !== 'undefined') {
-        if (typeof existingDataDef.links !== 'undefined') {
-          // Check if there are any overlapping links
-          Object.keys(existingDataDef.links).forEach((saneLinkKey) => {
-            if (
-              typeof saneLinks[saneLinkKey] !== 'undefined' &&
-              !deepEqual(
-                existingDataDef.links[saneLinkKey],
-                saneLinks[saneLinkKey]
-              )
-            ) {
-              handleWarning({
-                mitigationType: MitigationTypes.DUPLICATE_LINK_KEY,
-                message:
-                  `Multiple operations with the same response body share the same sanitized ` +
-                  `link key '${saneLinkKey}' but have different link definitions ` +
-                  `'${JSON.stringify(
-                    existingDataDef.links[saneLinkKey]
-                  )}' and ` +
-                  `'${JSON.stringify(saneLinks[saneLinkKey])}'.`,
-                data,
-                log: preprocessingLog
-              })
-            }
-          })
+      if (typeof existingDataDef.links === 'object') {
+        // Check if there are any overlapping links
+        Object.keys(existingDataDef.links).forEach((saneLinkKey) => {
+          if (
+            !deepEqual(
+              existingDataDef.links[saneLinkKey],
+              saneLinks[saneLinkKey]
+            )
+          ) {
+            handleWarning({
+              mitigationType: MitigationTypes.DUPLICATE_LINK_KEY,
+              message:
+                `Multiple operations with the same response body share the same sanitized ` +
+                `link key '${saneLinkKey}' but have different link definitions ` +
+                `'${JSON.stringify(existingDataDef.links[saneLinkKey])}' and ` +
+                `'${JSON.stringify(saneLinks[saneLinkKey])}'.`,
+              data,
+              log: preprocessingLog
+            })
 
-          /**
-           * Collapse the links
-           *
-           * Avoid overwriting preexisting links
-           */
-          existingDataDef.links = { ...saneLinks, ...existingDataDef.links }
-        } else {
-          // No preexisting links, so simply assign the links
-          existingDataDef.links = saneLinks
-        }
+            return
+          }
+        })
+
+        /**
+         * Collapse the links
+         *
+         * Avoid overwriting preexisting links
+         */
+        existingDataDef.links = { ...saneLinks, ...existingDataDef.links }
+      } else {
+        // No preexisting links, so simply assign the links
+        existingDataDef.links = saneLinks
       }
 
       return existingDataDef
+
+      // There is no preexisting data definition, so create a new one
     } else {
-      // Else, define a new name, store the def, and return it
       const name = getSchemaName(names, data.usedTypeNames)
 
       // Store and sanitize the name
@@ -782,7 +784,7 @@ export function createDataDef<TSource, TContext, TArgs>(
          */
         schema,
         required: [],
-        targetGraphQLType,
+        targetGraphQLType, // May change due to allOf and oneOf resolution
         subDefinitions: undefined,
         links: saneLinks,
         graphQLTypeName: saneName,

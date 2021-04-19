@@ -3,7 +3,7 @@
  */
 import { Oas2 } from './types/oas2';
 import { Operation } from './types/operation';
-import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, PathItemObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
+import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, PathItemObject, LinkObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
@@ -18,13 +18,13 @@ export declare type SchemaNames = {
 };
 export declare type RequestSchemaAndNames = {
     payloadContentType?: string;
-    payloadSchema?: SchemaObject | ReferenceObject;
+    payloadSchema?: SchemaObject;
     payloadSchemaNames?: SchemaNames;
     payloadRequired: boolean;
 };
 export declare type ResponseSchemaAndNames = {
     responseContentType?: string;
-    responseSchema?: SchemaObject | ReferenceObject;
+    responseSchema?: SchemaObject;
     responseSchemaNames?: SchemaNames;
     statusCode?: string;
 };

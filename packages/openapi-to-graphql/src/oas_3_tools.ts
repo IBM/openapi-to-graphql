@@ -59,14 +59,14 @@ export type SchemaNames = {
 
 export type RequestSchemaAndNames = {
   payloadContentType?: string
-  payloadSchema?: SchemaObject | ReferenceObject
+  payloadSchema?: SchemaObject
   payloadSchemaNames?: SchemaNames
   payloadRequired: boolean
 }
 
 export type ResponseSchemaAndNames = {
   responseContentType?: string
-  responseSchema?: SchemaObject | ReferenceObject
+  responseSchema?: SchemaObject
   responseSchemaNames?: SchemaNames
   statusCode?: string
 }
@@ -560,10 +560,10 @@ export function getRequestSchemaAndNames(
   operation: OperationObject,
   oas: Oas3
 ): RequestSchemaAndNames {
-  let payloadContentType: string
-  let requestBodyObject: RequestBodyObject
-  let payloadSchema: SchemaObject
-  let payloadSchemaNames: SchemaNames
+  let payloadContentType: string // randomly selected content-type, prioritizing application/json
+  let requestBodyObject: RequestBodyObject // request object
+  let payloadSchema: SchemaObject // request schema with given content-type
+  let payloadSchemaNames: SchemaNames // dictionary of names
   let payloadRequired = false
 
   // Get request body
@@ -697,10 +697,10 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
   data: PreprocessingData<TSource, TContext, TArgs>,
   options: InternalOptions<TSource, TContext, TArgs>
 ): ResponseSchemaAndNames {
-  let responseObject // response object
-  let responseContentType // randomly selected content-type, prioritizing application/json
-  let responseSchema // response schema with given content-type
-  let responseSchemaNames // dictionary of names
+  let responseContentType: string // randomly selected content-type, prioritizing application/json
+  let responseObject: ResponseObject // response object
+  let responseSchema: SchemaObject // response schema with given content-type
+  let responseSchemaNames: SchemaNames // dictionary of names
 
   const statusCode = getResponseStatusCode(path, method, operation, oas, data)
 

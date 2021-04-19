@@ -411,10 +411,10 @@ exports.inferResourceNameFromPath = inferResourceNameFromPath;
  */
 function getRequestSchemaAndNames(path, method, operation, oas) {
     var _a, _b, _c;
-    let payloadContentType;
-    let requestBodyObject;
-    let payloadSchema;
-    let payloadSchemaNames;
+    let payloadContentType; // randomly selected content-type, prioritizing application/json
+    let requestBodyObject; // request object
+    let payloadSchema; // request schema with given content-type
+    let payloadSchemaNames; // dictionary of names
     let payloadRequired = false;
     // Get request body
     const requestBodyObjectOrRef = operation === null || operation === void 0 ? void 0 : operation.requestBody;
@@ -516,8 +516,8 @@ exports.getRequestSchemaAndNames = getRequestSchemaAndNames;
  */
 function getResponseSchemaAndNames(path, method, operation, oas, data, options) {
     var _a, _b, _c, _d, _e;
-    let responseObject; // response object
     let responseContentType; // randomly selected content-type, prioritizing application/json
+    let responseObject; // response object
     let responseSchema; // response schema with given content-type
     let responseSchemaNames; // dictionary of names
     const statusCode = getResponseStatusCode(path, method, operation, oas, data);
