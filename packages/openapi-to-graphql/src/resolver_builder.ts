@@ -857,13 +857,7 @@ export function getResolver<TSource, TContext, TArgs>({
              * if that is the case, that would explain why there is not
              * a content-type
              */
-            const { responseContentType } = Oas3Tools.getResponseObject(
-              operation,
-              operation.statusCode,
-              operation.oas
-            )
-
-            if (typeof responseContentType !== 'string') {
+            if (typeof operation.responseContentType !== 'string') {
               resolve(null)
             } else {
               const errorString = 'Response does not have a Content-Type header'

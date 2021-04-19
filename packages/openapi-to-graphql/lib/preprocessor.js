@@ -53,8 +53,8 @@ function processOperation(path, method, operationString, operationType, operatio
         ? createDataDef(payloadSchemaNames, payloadSchema, true, data, oas)
         : undefined;
     // Response schema
-    const { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, operation, oas, data, options);
-    if (!responseSchema || typeof responseSchema !== 'object') {
+    let { responseContentType, responseSchema, responseSchemaNames, statusCode } = Oas3Tools.getResponseSchemaAndNames(path, method, operation, oas, data, options);
+    if (typeof responseSchema !== 'object') {
         utils_1.handleWarning({
             mitigationType: utils_1.MitigationTypes.MISSING_RESPONSE_SCHEMA,
             message: `Operation ${operationString} has no (valid) response schema. ` +
@@ -63,7 +63,7 @@ function processOperation(path, method, operationString, operationType, operatio
             data,
             log: preprocessingLog
         });
-        return undefined;
+        return;
     }
     // Links
     const links = Oas3Tools.getLinks(path, method, operation, oas, data);
@@ -194,13 +194,12 @@ function preprocessOas(oass, options) {
                             : graphql_1.GraphQLOperationType.Query;
                 }
                 const operationData = processOperation(path, httpMethod, operationString, operationType, operation, pathItem, oas, data, options);
-                if (operationData) {
+                if (typeof operationData === 'object') {
                     /**
                      * Handle operationId property name collision
                      * May occur if multiple OAS are provided
                      */
-                    if (operationData &&
-                        !(operationData.operationId in data.operations)) {
+                    if (!(operationData.operationId in data.operations)) {
                         data.operations[operationData.operationId] = operationData;
                     }
                     else {

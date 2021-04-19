@@ -4,7 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getResponseObject = exports.getRequestSchemaAndNames = exports.getRequestBodyObject = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
+exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getRequestSchemaAndNames = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
@@ -405,93 +405,101 @@ function inferResourceNameFromPath(path) {
 }
 exports.inferResourceNameFromPath = inferResourceNameFromPath;
 /**
- * Get the request object for a given operation
- */
-function getRequestBodyObject(operation, oas) {
-    var _a;
-    let payloadContentType;
-    let requestBodyObject;
-    const requestBodyObjectOrRef = operation === null || operation === void 0 ? void 0 : operation.requestBody;
-    // Resolve reference if applicable. Make sure we have a RequestBodyObject:
-    if (typeof ((_a = requestBodyObjectOrRef) === null || _a === void 0 ? void 0 : _a.$ref) === 'string') {
-        requestBodyObject = resolveRef(requestBodyObjectOrRef.$ref, oas);
-    }
-    else {
-        requestBodyObject = requestBodyObjectOrRef;
-    }
-    const content = requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.content;
-    if (typeof content === 'object' && content !== null) {
-        // Prioritize content-type JSON
-        if ('application/json' in content) {
-            payloadContentType = 'application/json';
-        }
-        else if ('application/x-www-form-urlencoded' in content) {
-            payloadContentType = 'application/x-www-form-urlencoded';
-        }
-        else {
-            // Pick first (random) content type
-            const randomContentType = Object.keys(content)[0];
-            payloadContentType = randomContentType;
-        }
-    }
-    return {
-        payloadContentType,
-        requestBodyObject
-    };
-}
-exports.getRequestBodyObject = getRequestBodyObject;
-/**
  * Returns the request schema (if any) for the given operation,
  * a dictionary of names from different sources (if available), and whether the
  * request schema is required for the operation.
  */
 function getRequestSchemaAndNames(path, method, operation, oas) {
     var _a, _b, _c;
-    const { payloadContentType, requestBodyObject } = getRequestBodyObject(operation, oas);
+    let payloadContentType;
+    let requestBodyObject;
     let payloadSchema;
     let payloadSchemaNames;
-    let fromRef;
-    const payloadSchemaOrRef = (_b = (_a = requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.content) === null || _a === void 0 ? void 0 : _a[payloadContentType]) === null || _b === void 0 ? void 0 : _b.schema;
-    // Resolve payload schema reference if applicable
-    if (typeof ((_c = payloadSchemaOrRef) === null || _c === void 0 ? void 0 : _c.$ref) === 'string') {
-        fromRef = payloadSchemaOrRef.$ref.split('/').pop();
-        payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas);
-    }
-    else {
-        payloadSchema = payloadSchemaOrRef;
-    }
-    // Determine if request body is required:
-    const payloadRequired = typeof (requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.required) === 'boolean'
-        ? requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.required : false;
-    payloadSchemaNames = {
-        fromRef,
-        fromSchema: payloadSchema === null || payloadSchema === void 0 ? void 0 : payloadSchema.title,
-        fromPath: inferResourceNameFromPath(path)
-    };
-    /**
-     * Edge case: if request body content-type is not application/json or
-     * application/x-www-form-urlencoded, do not parse it.
-     *
-     * Instead, treat the request body as a black box and send it as a string
-     * with the proper content-type header
-     */
-    if (typeof payloadContentType === 'string' &&
-        payloadContentType !== 'application/json' &&
-        payloadContentType !== 'application/x-www-form-urlencoded') {
-        const saneContentTypeName = uncapitalize(payloadContentType.split('/').reduce((name, term) => {
-            return name + capitalize(term);
-        }));
-        payloadSchemaNames = {
-            fromPath: saneContentTypeName
-        };
-        let description = `String represents payload of content type '${payloadContentType}'`;
-        if (typeof (payloadSchema === null || payloadSchema === void 0 ? void 0 : payloadSchema.description) === 'string') {
-            description += `\n\nOriginal top level description: '${payloadSchema.description}'`;
+    let payloadRequired = false;
+    // Get request body
+    const requestBodyObjectOrRef = operation === null || operation === void 0 ? void 0 : operation.requestBody;
+    if (typeof requestBodyObjectOrRef === 'object' &&
+        requestBodyObjectOrRef !== null) {
+        // Resolve reference if applicable. Make sure we have a RequestBodyObject:
+        if (typeof ((_a = requestBodyObjectOrRef) === null || _a === void 0 ? void 0 : _a.$ref) === 'string') {
+            requestBodyObject = resolveRef(requestBodyObjectOrRef.$ref, oas);
         }
-        payloadSchema = {
-            description,
-            type: 'string'
-        };
+        else {
+            requestBodyObject = requestBodyObjectOrRef;
+        }
+        if (typeof requestBodyObject === 'object' && requestBodyObject !== null) {
+            // Determine if request body is required:
+            payloadRequired =
+                typeof (requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.required) === 'boolean'
+                    ? requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.required : false;
+            // Determine content-type
+            const content = requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.content;
+            if (typeof content === 'object' &&
+                content !== null &&
+                Object.keys(content).length > 0) {
+                // Prioritize content-type JSON
+                if ('application/json' in content) {
+                    payloadContentType = 'application/json';
+                }
+                else if ('application/x-www-form-urlencoded' in content) {
+                    payloadContentType = 'application/x-www-form-urlencoded';
+                }
+                else {
+                    // Pick first (random) content type
+                    const randomContentType = Object.keys(content)[0];
+                    payloadContentType = randomContentType;
+                }
+                if (payloadContentType === 'application/json' ||
+                    payloadContentType === '*/*' ||
+                    payloadContentType === 'application/x-www-form-urlencoded') {
+                    let fromRef;
+                    // Determine payload schema
+                    const payloadSchemaOrRef = (_b = content === null || content === void 0 ? void 0 : content[payloadContentType]) === null || _b === void 0 ? void 0 : _b.schema;
+                    if (typeof payloadSchemaOrRef === 'object' &&
+                        payloadSchemaOrRef !== null) {
+                        // Resolve payload schema reference if applicable
+                        if (typeof ((_c = payloadSchemaOrRef) === null || _c === void 0 ? void 0 : _c.$ref) === 'string') {
+                            fromRef = payloadSchemaOrRef.$ref.split('/').pop();
+                            payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas);
+                        }
+                        else {
+                            payloadSchema = payloadSchemaOrRef;
+                        }
+                    }
+                    // Determine possible schema names
+                    payloadSchemaNames = {
+                        fromRef,
+                        fromSchema: payloadSchema === null || payloadSchema === void 0 ? void 0 : payloadSchema.title,
+                        fromPath: inferResourceNameFromPath(path)
+                    };
+                    /**
+                     * Edge case: if request body content-type is not application/json or
+                     * application/x-www-form-urlencoded, do not parse it.
+                     *
+                     * Instead, treat the request body as a black box and send it as a string
+                     * with the proper content-type header
+                     */
+                }
+                else {
+                    const saneContentTypeName = uncapitalize(payloadContentType.split('/').reduce((name, term) => {
+                        return name + capitalize(term);
+                    }));
+                    let description = `String represents payload of content type '${payloadContentType}'`;
+                    if (typeof (payloadSchema === null || payloadSchema === void 0 ? void 0 : payloadSchema.description) === 'string') {
+                        description += `\n\nOriginal top level description: '${payloadSchema.description}'`;
+                    }
+                    // Replacement schema to avoid parsing
+                    payloadSchema = {
+                        description,
+                        type: 'string'
+                    };
+                    // Determine possible schema names
+                    payloadSchemaNames = {
+                        fromPath: saneContentTypeName
+                    };
+                }
+            }
+        }
     }
     return {
         payloadContentType,
@@ -502,102 +510,105 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
 }
 exports.getRequestSchemaAndNames = getRequestSchemaAndNames;
 /**
- * Select a response object for a given operation and status code, prioritizing
- * objects with a JSON content-type
- */
-function getResponseObject(operation, statusCode, oas) {
-    var _a, _b;
-    let responseContentType;
-    let responseObject;
-    const responseObjectOrRef = (_a = operation === null || operation === void 0 ? void 0 : operation.responses) === null || _a === void 0 ? void 0 : _a[statusCode];
-    // Resolve reference if applicable. Make sure we have a ResponseObject:
-    if (typeof ((_b = responseObjectOrRef) === null || _b === void 0 ? void 0 : _b.$ref) === 'string') {
-        responseObject = resolveRef(responseObjectOrRef.$ref, oas);
-    }
-    else {
-        responseObject = responseObjectOrRef;
-    }
-    const content = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content;
-    if (typeof content === 'object' && content !== null) {
-        // Prioritize content-type JSON
-        if ('application/json' in content) {
-            responseContentType = 'application/json';
-        }
-        else {
-            // Pick first (random) content type
-            const randomContentType = Object.keys(content)[0];
-            responseContentType = randomContentType;
-        }
-    }
-    return {
-        responseContentType,
-        responseObject
-    };
-}
-exports.getResponseObject = getResponseObject;
-/**
  * Returns the response schema for the given operation,
- * a successful  status code, and a dictionary of names from different sources
+ * a successful status code, and a dictionary of names from different sources
  * (if available).
  */
 function getResponseSchemaAndNames(path, method, operation, oas, data, options) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e;
+    let responseObject; // response object
+    let responseContentType; // randomly selected content-type, prioritizing application/json
+    let responseSchema; // response schema with given content-type
+    let responseSchemaNames; // dictionary of names
     const statusCode = getResponseStatusCode(path, method, operation, oas, data);
-    if (!statusCode) {
-        return {};
+    // Get response object
+    const responseObjectOrRef = (_a = operation === null || operation === void 0 ? void 0 : operation.responses) === null || _a === void 0 ? void 0 : _a[statusCode];
+    if (typeof responseObjectOrRef === 'object' && responseObjectOrRef !== null) {
+        if (typeof ((_b = responseObjectOrRef) === null || _b === void 0 ? void 0 : _b.$ref) === 'string') {
+            responseObject = resolveRef(responseObjectOrRef.$ref, oas);
+        }
+        else {
+            responseObject = responseObjectOrRef;
+        }
+        // Determine content-type
+        if (typeof responseObject === 'object' && responseObject !== null) {
+            const content = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content;
+            if (typeof content === 'object' &&
+                content !== null &&
+                Object.keys(content).length > 0) {
+                // Prioritize content-type JSON
+                if ('application/json' in content) {
+                    responseContentType = 'application/json';
+                }
+                else {
+                    // Pick first (random) content type
+                    const randomContentType = Object.keys(content)[0];
+                    responseContentType = randomContentType;
+                }
+                if (responseContentType === 'application/json' ||
+                    responseContentType === '*/*') {
+                    let fromRef;
+                    // Determine response schema
+                    const responseSchemaOrRef = (_d = (_c = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content) === null || _c === void 0 ? void 0 : _c[responseContentType]) === null || _d === void 0 ? void 0 : _d.schema;
+                    // Resolve response schema reference if applicable
+                    if (typeof ((_e = responseSchemaOrRef) === null || _e === void 0 ? void 0 : _e.$ref) === 'string') {
+                        fromRef = responseSchemaOrRef.$ref.split('/').pop();
+                        responseSchema = resolveRef(responseSchemaOrRef.$ref, oas);
+                    }
+                    else {
+                        responseSchema = responseSchemaOrRef;
+                    }
+                    // Determine possible schema names
+                    responseSchemaNames = {
+                        fromRef,
+                        fromSchema: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.title,
+                        fromPath: inferResourceNameFromPath(path)
+                    };
+                    /**
+                     * Edge case: if response body content-type is not application/json,
+                     * do not parse.
+                     */
+                }
+                else {
+                    let description = 'Placeholder to access non-application/json response bodies';
+                    if (typeof (responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.description) === 'string') {
+                        description += `\n\nOriginal top level description: '${responseSchema.description}'`;
+                    }
+                    // Replacement schema to avoid parsing
+                    responseSchema = {
+                        description,
+                        type: 'string'
+                    };
+                    // Determine possible schema names
+                    responseSchemaNames = {
+                        fromSchema: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.title,
+                        fromPath: inferResourceNameFromPath(path)
+                    };
+                }
+                return {
+                    responseContentType,
+                    responseSchema,
+                    responseSchemaNames,
+                    statusCode
+                };
+            }
+        }
     }
-    let { responseContentType, responseObject } = getResponseObject(operation, statusCode, oas);
-    // Handle fillEmptyResponses option
-    if (responseContentType === undefined && options.fillEmptyResponses) {
+    // No response schema
+    if (options.fillEmptyResponses) {
         return {
             responseSchemaNames: {
                 fromPath: inferResourceNameFromPath(path)
             },
-            responseContentType: 'application/json',
             responseSchema: {
                 description: 'Placeholder to support operations with no response schema',
-                type: 'object'
+                type: 'string'
             }
         };
     }
-    let responseSchema;
-    let responseSchemaNames;
-    let fromRef;
-    const responseSchemaOrRef = (_b = (_a = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content) === null || _a === void 0 ? void 0 : _a[responseContentType]) === null || _b === void 0 ? void 0 : _b.schema;
-    // Resolve response schema reference if applicable
-    if (typeof ((_c = responseSchemaOrRef) === null || _c === void 0 ? void 0 : _c.$ref) === 'string') {
-        fromRef = responseSchemaOrRef.$ref.split('/').pop();
-        responseSchema = resolveRef(responseSchemaOrRef.$ref, oas);
-    }
     else {
-        responseSchema = responseSchemaOrRef;
+        return {};
     }
-    responseSchemaNames = {
-        fromRef,
-        fromSchema: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.title,
-        fromPath: inferResourceNameFromPath(path)
-    };
-    /**
-     * Edge case: if response body content-type is not application/json, do not
-     * parse.
-     */
-    if (typeof responseContentType === 'string' &&
-        responseContentType !== 'application/json') {
-        let description = 'Placeholder to access non-application/json response bodies';
-        if (typeof (responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.description) === 'string') {
-            description += `\n\nOriginal top level description: '${responseSchema.description}'`;
-        }
-        responseSchema = {
-            description,
-            type: 'string'
-        };
-    }
-    return {
-        responseContentType,
-        responseSchema,
-        responseSchemaNames,
-        statusCode
-    };
 }
 exports.getResponseSchemaAndNames = getResponseSchemaAndNames;
 /**
