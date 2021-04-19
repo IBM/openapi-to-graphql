@@ -149,7 +149,7 @@ function preprocessOas(oass, options) {
         for (let path in oas.paths) {
             const pathItem = !('$ref' in oas.paths[path])
                 ? oas.paths[path]
-                : Oas3Tools.resolveRef(oas.paths[path]['$ref'], oas);
+                : Oas3Tools.resolveRef(oas.paths[path].$ref, oas);
             Object.keys(pathItem)
                 .filter((objectKey) => {
                 /**
@@ -219,11 +219,11 @@ function preprocessOas(oass, options) {
                     Object.entries(operation.callbacks).forEach(([callbackName, callback]) => {
                         const resolvedCallback = !('$ref' in callback)
                             ? callback
-                            : Oas3Tools.resolveRef(callback['$ref'], oas);
+                            : Oas3Tools.resolveRef(callback.$ref, oas);
                         Object.entries(resolvedCallback).forEach(([callbackExpression, callbackPathItem]) => {
                             const resolvedCallbackPathItem = !('$ref' in callbackPathItem)
                                 ? callbackPathItem
-                                : Oas3Tools.resolveRef(callbackPathItem['$ref'], oas);
+                                : Oas3Tools.resolveRef(callbackPathItem.$ref, oas);
                             const callbackOperationObjectMethods = Object.keys(resolvedCallbackPathItem).filter((objectKey) => {
                                 /**
                                  * Get only fields that contain operation objects
@@ -462,9 +462,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
         };
     }
     else {
-        if ('$ref' in schema) {
-            schema = Oas3Tools.resolveRef(schema['$ref'], oas);
-        }
+        let resolvedSchema = '$ref' in schema ? Oas3Tools.resolveRef(schema.$ref, oas) : schema;
         const saneLinks = {};
         if (typeof links === 'object') {
             Object.keys(links).forEach((linkKey) => {
@@ -477,7 +475,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
             });
         }
         // Determine the index of possible existing data definition
-        const index = getSchemaIndex(preferredName, schema, data.defs);
+        const index = getSchemaIndex(preferredName, resolvedSchema, data.defs);
         if (index !== -1) {
             // Found existing data definition and fetch it
             const existingDataDef = data.defs[index];
@@ -530,7 +528,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
              *
              * Perhaps, just copy it at the root level (operation schema)
              */
-            const collapsedSchema = resolveAllOf(schema, {}, data, oas);
+            const collapsedSchema = resolveAllOf(resolvedSchema, {}, data, oas);
             const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(collapsedSchema, data);
             const def = {
                 preferredName,
@@ -542,7 +540,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
                  * schema and name pair. The look up should resolve references but
                  * currently, it does not.
                  */
-                schema,
+                schema: resolvedSchema,
                 required: [],
                 targetGraphQLType,
                 subDefinitions: undefined,
@@ -607,7 +605,7 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
                             let itemsName = `${name}ListItem`;
                             const fromExtension = collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
                             if ('$ref' in itemsSchema) {
-                                itemsName = collapsedSchema.items['$ref'].split('/').pop();
+                                itemsName = itemsSchema.$ref.split('/').pop();
                             }
                             const subDefinition = createDataDef(
                             // Is this the correct classification for this name? It does not matter in the long run.
@@ -785,8 +783,8 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
         let propSchema = schema.properties[propertyKey];
         const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
         if ('$ref' in propSchema) {
-            propSchemaName = propSchema['$ref'].split('/').pop();
-            propSchema = Oas3Tools.resolveRef(propSchema['$ref'], oas);
+            propSchemaName = propSchema.$ref.split('/').pop();
+            propSchema = Oas3Tools.resolveRef(propSchema.$ref, oas);
         }
         if (!(propertyKey in def.subDefinitions)) {
             const subDefinition = createDataDef({
@@ -817,8 +815,8 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
 function resolveAllOf(schema, references, data, oas) {
     // Dereference schema
     if ('$ref' in schema) {
-        const referenceLocation = schema['$ref'];
-        schema = Oas3Tools.resolveRef(schema['$ref'], oas);
+        const referenceLocation = schema.$ref;
+        schema = Oas3Tools.resolveRef(schema.$ref, oas);
         if (referenceLocation in references) {
             return references[referenceLocation];
         }
@@ -915,7 +913,7 @@ function getMemberSchemaData(schemas, data, oas) {
     schemas.forEach((schema) => {
         // Dereference schemas
         if ('$ref' in schema) {
-            schema = Oas3Tools.resolveRef(schema['$ref'], oas);
+            schema = Oas3Tools.resolveRef(schema.$ref, oas);
         }
         // Consolidate target GraphQL type
         const memberTargetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(schema, data);
@@ -944,7 +942,7 @@ function hasNestedOneOfUsage(collapsedSchema, oas) {
         collapsedSchema.oneOf.some((memberSchema) => {
             // anyOf and oneOf are nested
             if ('$ref' in memberSchema) {
-                memberSchema = Oas3Tools.resolveRef(memberSchema['$ref'], oas);
+                memberSchema = Oas3Tools.resolveRef(memberSchema.$ref, oas);
             }
             return (Array.isArray(memberSchema.anyOf) || Array.isArray(memberSchema.oneOf) // Nested oneOf would result in nested unions which are not allowed by GraphQL
             );
@@ -961,7 +959,7 @@ function hasNestedAnyOfUsage(collapsedSchema, oas) {
         collapsedSchema.anyOf.some((memberSchema) => {
             // anyOf and oneOf are nested
             if ('$ref' in memberSchema) {
-                memberSchema = Oas3Tools.resolveRef(memberSchema['$ref'], oas);
+                memberSchema = Oas3Tools.resolveRef(memberSchema.$ref, oas);
             }
             return (Array.isArray(memberSchema.anyOf) || Array.isArray(memberSchema.oneOf));
         }));
@@ -1117,8 +1115,8 @@ function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInpu
                     // Dereference member schema
                     let fromRef;
                     if ('$ref' in memberSchema) {
-                        fromRef = memberSchema['$ref'].split('/').pop();
-                        memberSchema = Oas3Tools.resolveRef(memberSchema['$ref'], oas);
+                        fromRef = memberSchema.$ref.split('/').pop();
+                        memberSchema = Oas3Tools.resolveRef(memberSchema.$ref, oas);
                     }
                     // Member types of GraphQL unions must be object types
                     if (Oas3Tools.getSchemaTargetGraphQLType(memberSchema, data) ===
@@ -1160,7 +1158,7 @@ function createDataDefFromOneOf(saneName, saneInputName, collapsedSchema, isInpu
                     utils_1.handleWarning({
                         mitigationType: utils_1.MitigationTypes.COMBINE_SCHEMAS,
                         message: `Schema '${JSON.stringify(def.schema)}' contains 'oneOf' so ` +
-                            `create a GraphQL union type but all member schemas are not` +
+                            `create a GraphQL union type but all member schemas are not ` +
                             `object types and union member types must be object types.`,
                         mitigationAddendum: `Use arbitrary JSON type instead.`,
                         data,

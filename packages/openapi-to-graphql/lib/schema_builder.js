@@ -876,7 +876,7 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
          * we can avoid doing it a second time in resolveRev()
          */
         if ('$ref' in schema) {
-            schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas);
+            schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
         }
         const paramDef = preprocessor_1.createDataDef({ fromSchema: parameter.name }, schema, true, data, operation.oas);
         const type = getGraphQLType({

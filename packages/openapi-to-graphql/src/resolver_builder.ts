@@ -861,11 +861,11 @@ export function getResolver<TSource, TContext, TArgs>({
               operation.statusCode,
               operation.oas
             )
-            if (responseContentType === null) {
+
+            if (typeof responseContentType !== 'string') {
               resolve(null)
             } else {
-              const errorString =
-                'Response does not have a Content-Type property'
+              const errorString = 'Response does not have a Content-Type header'
 
               httpLog(errorString)
               reject(errorString)

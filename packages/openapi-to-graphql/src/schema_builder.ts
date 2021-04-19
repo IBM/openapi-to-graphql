@@ -1184,7 +1184,7 @@ export function getArgs<TSource, TContext, TArgs>({
      * we can avoid doing it a second time in resolveRev()
      */
     if ('$ref' in schema) {
-      schema = Oas3Tools.resolveRef(schema['$ref'], operation.oas)
+      schema = Oas3Tools.resolveRef(schema.$ref, operation.oas)
     }
 
     const paramDef = createDataDef(
