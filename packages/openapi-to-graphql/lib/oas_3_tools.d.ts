@@ -3,7 +3,7 @@
  */
 import { Oas2 } from './types/oas2';
 import { Operation } from './types/operation';
-import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, ResponseObject, PathItemObject, RequestBodyObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
+import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, PathItemObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
@@ -99,29 +99,14 @@ export declare function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(sch
  */
 export declare function inferResourceNameFromPath(path: string): string;
 /**
- * Get the request object for a given operation
- */
-export declare function getRequestBodyObject(operation: OperationObject, oas: Oas3): {
-    payloadContentType?: string;
-    requestBodyObject?: RequestBodyObject;
-};
-/**
  * Returns the request schema (if any) for the given operation,
  * a dictionary of names from different sources (if available), and whether the
  * request schema is required for the operation.
  */
 export declare function getRequestSchemaAndNames(path: string, method: HTTP_METHODS, operation: OperationObject, oas: Oas3): RequestSchemaAndNames;
 /**
- * Select a response object for a given operation and status code, prioritizing
- * objects with a JSON content-type
- */
-export declare function getResponseObject(operation: OperationObject, statusCode: string, oas: Oas3): {
-    responseContentType?: string;
-    responseObject?: ResponseObject;
-};
-/**
  * Returns the response schema for the given operation,
- * a successful  status code, and a dictionary of names from different sources
+ * a successful status code, and a dictionary of names from different sources
  * (if available).
  */
 export declare function getResponseSchemaAndNames<TSource, TContext, TArgs>(path: string, method: HTTP_METHODS, operation: OperationObject, oas: Oas3, data: PreprocessingData<TSource, TContext, TArgs>, options: InternalOptions<TSource, TContext, TArgs>): ResponseSchemaAndNames;

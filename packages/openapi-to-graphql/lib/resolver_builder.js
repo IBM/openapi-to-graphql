@@ -574,8 +574,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                          * if that is the case, that would explain why there is not
                          * a content-type
                          */
-                        const { responseContentType } = Oas3Tools.getResponseObject(operation, operation.statusCode, operation.oas);
-                        if (typeof responseContentType !== 'string') {
+                        if (typeof operation.responseContentType !== 'string') {
                             resolve(null);
                         }
                         else {

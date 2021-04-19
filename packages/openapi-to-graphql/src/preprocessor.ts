@@ -102,7 +102,7 @@ function processOperation<TSource, TContext, TArgs>(
       : undefined
 
   // Response schema
-  const {
+  let {
     responseContentType,
     responseSchema,
     responseSchemaNames,
@@ -116,7 +116,7 @@ function processOperation<TSource, TContext, TArgs>(
     options
   )
 
-  if (!responseSchema || typeof responseSchema !== 'object') {
+  if (typeof responseSchema !== 'object') {
     handleWarning({
       mitigationType: MitigationTypes.MISSING_RESPONSE_SCHEMA,
       message:
@@ -127,7 +127,7 @@ function processOperation<TSource, TContext, TArgs>(
       log: preprocessingLog
     })
 
-    return undefined
+    return
   }
 
   // Links
@@ -316,15 +316,12 @@ export function preprocessOas<TSource, TContext, TArgs>(
             options
           )
 
-          if (operationData) {
+          if (typeof operationData === 'object') {
             /**
              * Handle operationId property name collision
              * May occur if multiple OAS are provided
              */
-            if (
-              operationData &&
-              !(operationData.operationId in data.operations)
-            ) {
+            if (!(operationData.operationId in data.operations)) {
               data.operations[operationData.operationId] = operationData
             } else {
               handleWarning({
