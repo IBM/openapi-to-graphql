@@ -166,9 +166,10 @@ provideErrorExtensions, equivalentToMessages }) {
             if (extensionFieldName in queryFields) {
                 throw new Error(`Cannot create query with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another query called "${extensionFieldName}"`);
             }
-            let fieldName = extensionFieldName !== null && extensionFieldName !== void 0 ? extensionFieldName : (!singularNames
-                ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
-                : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase));
+            let fieldName = extensionFieldName ||
+                (!singularNames
+                    ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+                    : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase));
             if (operation.inViewer) {
                 for (let securityRequirement of operation.securityRequirements) {
                     if (typeof authQueryFields[securityRequirement] !== 'object') {
@@ -295,7 +296,8 @@ provideErrorExtensions, equivalentToMessages }) {
         if (extensionFieldName && extensionFieldName in data.saneMap) {
             throw new Error(`Cannot create subscription with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another subscription called "${extensionFieldName}"`);
         }
-        const saneFieldName = extensionFieldName !== null && extensionFieldName !== void 0 ? extensionFieldName : Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
+        const saneFieldName = extensionFieldName ||
+            Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
         if (operation.inViewer) {
             for (let securityRequirement of operation.securityRequirements) {
                 if (typeof authSubscriptionFields[securityRequirement] !== 'object') {
