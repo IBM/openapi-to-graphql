@@ -459,7 +459,7 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
     let fromRef;
     const payloadSchemaOrRef = (_b = (_a = requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.content) === null || _a === void 0 ? void 0 : _a[payloadContentType]) === null || _b === void 0 ? void 0 : _b.schema;
     // Resolve payload schema reference if applicable
-    if ('$ref' in payloadSchemaOrRef) {
+    if (payloadSchemaOrRef && '$ref' in payloadSchemaOrRef) {
         fromRef = payloadSchemaOrRef.$ref.split('/').pop();
         payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas);
     }
@@ -470,7 +470,7 @@ function getRequestSchemaAndNames(path, method, operation, oas) {
     const payloadRequired = typeof (requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.required) === 'boolean'
         ? requestBodyObject === null || requestBodyObject === void 0 ? void 0 : requestBodyObject.required : false;
     payloadSchemaNames = {
-        fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
+        fromExtension: payloadSchema === null || payloadSchema === void 0 ? void 0 : payloadSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
         fromRef,
         fromSchema: payloadSchema === null || payloadSchema === void 0 ? void 0 : payloadSchema.title,
         fromPath: inferResourceNameFromPath(path)
@@ -572,7 +572,7 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
     let fromRef;
     const responseSchemaOrRef = (_b = (_a = responseObject === null || responseObject === void 0 ? void 0 : responseObject.content) === null || _a === void 0 ? void 0 : _a[responseContentType]) === null || _b === void 0 ? void 0 : _b.schema;
     // Resolve response schema reference if applicable
-    if ('$ref' in responseSchemaOrRef) {
+    if (responseSchemaOrRef && '$ref' in responseSchemaOrRef) {
         fromRef = responseSchemaOrRef.$ref.split('/').pop();
         responseSchema = resolveRef(responseSchemaOrRef.$ref, oas);
     }
@@ -580,7 +580,7 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
         responseSchema = responseSchemaOrRef;
     }
     responseSchemaNames = {
-        fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
+        fromExtension: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
         fromRef,
         fromSchema: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.title,
         fromPath: inferResourceNameFromPath(path)

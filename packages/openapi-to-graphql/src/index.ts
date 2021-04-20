@@ -314,8 +314,17 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
     // Check if the operation should be added as a Query or Mutation
     if (operation.operationType === GraphQLOperationType.Query) {
+      const extensionFieldName =
+        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
+
+      if (extensionFieldName in queryFields) {
+        throw new Error(
+          `Cannot create query with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another query called "${extensionFieldName}"`
+        )
+      }
+
       let fieldName =
-        operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName] ||
+        extensionFieldName ??
         (!singularNames
           ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
           : Oas3Tools.sanitize(
@@ -398,6 +407,11 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
         operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
 
       if (extensionFieldName) {
+        if (extensionFieldName in data.saneMap) {
+          throw new Error(
+            `Cannot create mutation with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another mutation called "${extensionFieldName}"`
+          )
+        }
         saneFieldName = extensionFieldName
       } else if (!singularNames) {
         /**
@@ -480,16 +494,18 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
         Oas3Tools.CaseStyle.camelCase
       )
 
-      let saneFieldName: string
-
       const extensionFieldName =
         operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
 
-      if (extensionFieldName) {
-        saneFieldName = extensionFieldName
-      } else {
-        Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap)
+      if (extensionFieldName && extensionFieldName in data.saneMap) {
+        throw new Error(
+          `Cannot create subscription with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another subscription called "${extensionFieldName}"`
+        )
       }
+
+      const saneFieldName =
+        extensionFieldName ??
+        Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap)
 
       if (operation.inViewer) {
         for (let securityRequirement of operation.securityRequirements) {

@@ -1024,7 +1024,7 @@ function getSchemaName(
 
     if (usedNames.includes(saneName)) {
       throw new Error(
-        `Cannot create Type with name "${saneName}".\nYou provided ${names.fromExtension} in an ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName} extension but it collides with another Type called ${saneName}`
+        `Cannot create Type with name "${saneName}".\nYou provided "${names.fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it conflicts with another Type called "${saneName}"`
       )
     }
 

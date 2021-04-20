@@ -162,10 +162,13 @@ provideErrorExtensions, equivalentToMessages }) {
         const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
         // Check if the operation should be added as a Query or Mutation
         if (operation.operationType === graphql_1.GraphQLOperationType.Query) {
-            let fieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName] ||
-                (!singularNames
-                    ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
-                    : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase));
+            const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+            if (extensionFieldName in queryFields) {
+                throw new Error(`Cannot create query with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another query called "${extensionFieldName}"`);
+            }
+            let fieldName = extensionFieldName !== null && extensionFieldName !== void 0 ? extensionFieldName : (!singularNames
+                ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
+                : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase));
             if (operation.inViewer) {
                 for (let securityRequirement of operation.securityRequirements) {
                     if (typeof authQueryFields[securityRequirement] !== 'object') {
@@ -227,6 +230,9 @@ provideErrorExtensions, equivalentToMessages }) {
             let saneFieldName;
             const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
             if (extensionFieldName) {
+                if (extensionFieldName in data.saneMap) {
+                    throw new Error(`Cannot create mutation with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another mutation called "${extensionFieldName}"`);
+                }
                 saneFieldName = extensionFieldName;
             }
             else if (!singularNames) {
@@ -285,14 +291,11 @@ provideErrorExtensions, equivalentToMessages }) {
         translationLog(`Process operation '${operationId}'...`);
         let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
         const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
-        let saneFieldName;
         const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
-        if (extensionFieldName) {
-            saneFieldName = extensionFieldName;
+        if (extensionFieldName && extensionFieldName in data.saneMap) {
+            throw new Error(`Cannot create subscription with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another subscription called "${extensionFieldName}"`);
         }
-        else {
-            Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
-        }
+        const saneFieldName = extensionFieldName !== null && extensionFieldName !== void 0 ? extensionFieldName : Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
         if (operation.inViewer) {
             for (let securityRequirement of operation.securityRequirements) {
                 if (typeof authSubscriptionFields[securityRequirement] !== 'object') {

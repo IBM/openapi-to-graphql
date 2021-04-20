@@ -618,7 +618,7 @@ export function getRequestSchemaAndNames(
   const payloadSchemaOrRef =
     requestBodyObject?.content?.[payloadContentType]?.schema
   // Resolve payload schema reference if applicable
-  if ('$ref' in payloadSchemaOrRef) {
+  if (payloadSchemaOrRef && '$ref' in payloadSchemaOrRef) {
     fromRef = payloadSchemaOrRef.$ref.split('/').pop()
     payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas) as SchemaObject
   } else {
@@ -632,7 +632,7 @@ export function getRequestSchemaAndNames(
       : false
 
   payloadSchemaNames = {
-    fromExtension: payloadSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
+    fromExtension: payloadSchema?.[OAS_GRAPHQL_EXTENSIONS.TypeName],
     fromRef,
     fromSchema: payloadSchema?.title,
     fromPath: inferResourceNameFromPath(path)
@@ -767,7 +767,7 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
   const responseSchemaOrRef =
     responseObject?.content?.[responseContentType]?.schema
   // Resolve response schema reference if applicable
-  if ('$ref' in responseSchemaOrRef) {
+  if (responseSchemaOrRef && '$ref' in responseSchemaOrRef) {
     fromRef = responseSchemaOrRef.$ref.split('/').pop()
     responseSchema = resolveRef(responseSchemaOrRef.$ref, oas) as SchemaObject
   } else {
@@ -775,7 +775,7 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
   }
 
   responseSchemaNames = {
-    fromExtension: responseSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
+    fromExtension: responseSchema?.[OAS_GRAPHQL_EXTENSIONS.TypeName],
     fromRef,
     fromSchema: responseSchema?.title,
     fromPath: inferResourceNameFromPath(path)

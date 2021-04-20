@@ -430,7 +430,11 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         const requiredProperty = typeof def.required === 'object' && def.required.includes(fieldTypeKey);
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
-            const saneFieldTypeKey = Oas3Tools.sanitize(fieldTypeKey, !data.options.simpleNames
+            const fromExtension = fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+            if (fromExtension && fromExtension in fields) {
+                throw new Error(`Cannot create field with name "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field called "${fromExtension}"`);
+            }
+            const saneFieldTypeKey = fromExtension !== null && fromExtension !== void 0 ? fromExtension : Oas3Tools.sanitize(fieldTypeKey, !data.options.simpleNames
                 ? Oas3Tools.CaseStyle.camelCase
                 : Oas3Tools.CaseStyle.simple);
             const sanePropName = Oas3Tools.storeSaneName(saneFieldTypeKey, fieldTypeKey, data.saneMap);
