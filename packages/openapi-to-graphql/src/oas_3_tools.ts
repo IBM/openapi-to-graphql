@@ -1024,6 +1024,7 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
 
           // Determine possible schema names
           responseSchemaNames = {
+            fromExtension: responseSchema?.[OAS_GRAPHQL_EXTENSIONS.TypeName],
             fromSchema: responseSchema?.title,
             fromPath: inferResourceNameFromPath(path)
           }
