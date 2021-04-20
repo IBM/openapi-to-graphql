@@ -324,7 +324,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
       }
 
       let fieldName =
-        extensionFieldName ??
+        extensionFieldName ||
         (!singularNames
           ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
           : Oas3Tools.sanitize(
@@ -504,7 +504,7 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
       }
 
       const saneFieldName =
-        extensionFieldName ??
+        extensionFieldName ||
         Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap)
 
       if (operation.inViewer) {

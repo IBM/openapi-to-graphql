@@ -366,12 +366,17 @@ function createOrReuseEnum({ def, data }) {
         translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`);
         const values = {};
         const mapping = def.schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping] || {};
-        def.schema.enum.forEach((e) => {
-            values[Oas3Tools.sanitize(mapping[e.toString()] || e.toString(), !data.options.simpleEnumValues
-                ? Oas3Tools.CaseStyle.ALL_CAPS
-                : Oas3Tools.CaseStyle.simple)] = {
-                value: e
-            };
+        def.schema.enum.forEach((enumValue) => {
+            const enumValueString = enumValue.toString();
+            const fromExtension = mapping[enumValueString];
+            const saneEnumValue = fromExtension ||
+                Oas3Tools.sanitize(enumValueString, !data.options.simpleEnumValues
+                    ? Oas3Tools.CaseStyle.ALL_CAPS
+                    : Oas3Tools.CaseStyle.simple);
+            if (fromExtension in values) {
+                throw new Error(`Cannot create enum value "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it conflicts with another enum value "${fromExtension}"`);
+            }
+            values[saneEnumValue] = { value: enumValue };
         });
         // Store newly created Enum Object Type
         def.graphQLType = new graphql_1.GraphQLEnumType({
@@ -434,9 +439,10 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             if (fromExtension && fromExtension in fields) {
                 throw new Error(`Cannot create field with name "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field called "${fromExtension}"`);
             }
-            const saneFieldTypeKey = fromExtension !== null && fromExtension !== void 0 ? fromExtension : Oas3Tools.sanitize(fieldTypeKey, !data.options.simpleNames
-                ? Oas3Tools.CaseStyle.camelCase
-                : Oas3Tools.CaseStyle.simple);
+            const saneFieldTypeKey = fromExtension ||
+                Oas3Tools.sanitize(fieldTypeKey, !data.options.simpleNames
+                    ? Oas3Tools.CaseStyle.camelCase
+                    : Oas3Tools.CaseStyle.simple);
             const sanePropName = Oas3Tools.storeSaneName(saneFieldTypeKey, fieldTypeKey, data.saneMap);
             fields[sanePropName] = {
                 type: requiredProperty

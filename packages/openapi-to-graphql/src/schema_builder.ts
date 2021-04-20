@@ -538,17 +538,23 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
     const values = {}
     const mapping =
       def.schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping] || {}
-    def.schema.enum.forEach((e) => {
-      values[
+    def.schema.enum.forEach((enumValue) => {
+      const enumValueString = enumValue.toString()
+      const fromExtension = mapping[enumValueString]
+      const saneEnumValue =
+        fromExtension ||
         Oas3Tools.sanitize(
-          mapping[e.toString()] || e.toString(),
+          enumValueString,
           !data.options.simpleEnumValues
             ? Oas3Tools.CaseStyle.ALL_CAPS
             : Oas3Tools.CaseStyle.simple
         )
-      ] = {
-        value: e
+      if (fromExtension in values) {
+        throw new Error(
+          `Cannot create enum value "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it conflicts with another enum value "${fromExtension}"`
+        )
       }
+      values[saneEnumValue] = { value: enumValue }
     })
 
     // Store newly created Enum Object Type
@@ -642,7 +648,7 @@ function createFields<TSource, TContext, TArgs>({
       }
 
       const saneFieldTypeKey =
-        fromExtension ??
+        fromExtension ||
         Oas3Tools.sanitize(
           fieldTypeKey,
           !data.options.simpleNames

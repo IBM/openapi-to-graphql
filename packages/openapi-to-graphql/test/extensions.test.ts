@@ -137,24 +137,24 @@ describe('GraphQL Extensions', () => {
       )
     })
 
-    test.skip('should throw when x-graphql-field-name causes naming conflicts on links', async () => {
-      const oas = require('./fixtures/extensions_error3.json')
+    test('should throw when x-graphql-field-name causes naming conflicts on links', async () => {
+      const oas = require('./fixtures/extensions_error6.json')
       await expect(
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create field with name "name".\nYou provided "name" in x-graphql-field-name, but it conflicts with another field called "name"'
+          'Cannot create link with name "group".\nYou provided "group" in x-graphql-field-name, but it conflicts with another link called "group"'
         )
       )
     })
 
-    test.skip('should throw when x-graphql-enum-mapping causes naming conflicts', async () => {
-      const oas = require('./fixtures/extensions_error3.json')
+    test('should throw when x-graphql-enum-mapping causes naming conflicts', async () => {
+      const oas = require('./fixtures/extensions_error7.json')
       await expect(
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create field with name "name".\nYou provided "name" in x-graphql-field-name, but it conflicts with another field called "name"'
+          'Cannot create enum value "CONFLICT".\nYou provided "CONFLICT" in x-graphql-enum-mapping, but it conflicts with another enum value "CONFLICT"'
         )
       )
     })

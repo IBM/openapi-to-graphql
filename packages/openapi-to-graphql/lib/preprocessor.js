@@ -468,6 +468,9 @@ function createDataDef(names, schema, isInputObjectType, data, oas, links) {
             Object.keys(links).forEach((linkKey) => {
                 const link = links[linkKey];
                 const fromExtension = link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+                if (fromExtension in saneLinks) {
+                    throw new Error(`Cannot create link with name "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another link called "${fromExtension}"`);
+                }
                 const linkSaneName = Oas3Tools.sanitize(fromExtension || linkKey, !data.options.simpleNames
                     ? Oas3Tools.CaseStyle.camelCase
                     : Oas3Tools.CaseStyle.simple);
