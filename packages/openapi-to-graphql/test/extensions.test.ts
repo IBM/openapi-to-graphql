@@ -123,7 +123,7 @@ describe('GraphQL Extensions', () => {
       )
     })
 
-    test.skip('should throw when x-graphql-field-name causes naming conflicts on subscriptions', async () => {
+    test('should throw when x-graphql-field-name causes naming conflicts on subscriptions', async () => {
       const oas = require('./fixtures/extensions_error5.json')
       await expect(
         openAPIToGraphQL.createGraphQLSchema(oas, {
@@ -148,7 +148,7 @@ describe('GraphQL Extensions', () => {
       )
     })
 
-    test('should throw when x-graphql-enum-mapping causes naming conflicts', async () => {
+    test.skip('should throw when x-graphql-enum-mapping causes naming conflicts', async () => {
       const oas = require('./fixtures/extensions_error3.json')
       await expect(
         openAPIToGraphQL.createGraphQLSchema(oas)
