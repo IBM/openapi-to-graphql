@@ -704,7 +704,7 @@ function getSchemaName(names, usedNames) {
     if (typeof names.fromExtension === 'string') {
         const saneName = Oas3Tools.sanitize(names.fromExtension, Oas3Tools.CaseStyle.PascalCase);
         if (usedNames.includes(saneName)) {
-            throw new Error(`Cannot create Type with name "${saneName}".\nYou provided ${names.fromExtension} in an ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName} extension but it collides with another Type called ${saneName}`);
+            throw new Error(`Cannot create Type with name "${saneName}".\nYou provided "${names.fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it conflicts with another Type called "${saneName}"`);
         }
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromExtension;

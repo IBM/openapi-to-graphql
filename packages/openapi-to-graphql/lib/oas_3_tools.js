@@ -786,6 +786,7 @@ function getResponseSchemaAndNames(path, method, operation, oas, data, options) 
                     };
                     // Determine possible schema names
                     responseSchemaNames = {
+                        fromExtension: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema[OAS_GRAPHQL_EXTENSIONS.TypeName],
                         fromSchema: responseSchema === null || responseSchema === void 0 ? void 0 : responseSchema.title,
                         fromPath: inferResourceNameFromPath(path)
                     };
