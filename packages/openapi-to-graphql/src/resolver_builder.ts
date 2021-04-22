@@ -10,7 +10,7 @@
 // Type imports:
 import { SchemaObject, ParameterObject } from './types/oas3'
 import { ConnectOptions } from './types/options'
-import { Operation } from './types/operation'
+import { TargetGraphQLType, Operation } from './types/operation'
 import { SubscriptionContext } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
 import * as NodeRequest from 'request'
@@ -275,7 +275,7 @@ export function getPublishResolver<TSource, TContext, TArgs>({
     let saneData
 
     if (typeof payload === 'object') {
-      if (typeOfResponse === 'object') {
+      if (typeOfResponse === TargetGraphQLType.object) {
         if (Buffer.isBuffer(payload)) {
           try {
             responseBody = JSON.parse(payload.toString())
@@ -294,12 +294,12 @@ export function getPublishResolver<TSource, TContext, TArgs>({
         saneData = Oas3Tools.sanitizeObjectKeys(payload)
       } else if (
         (Buffer.isBuffer(payload) || Array.isArray(payload)) &&
-        typeOfResponse === 'string'
+        typeOfResponse === TargetGraphQLType.string
       ) {
         saneData = payload.toString()
       }
     } else if (typeof payload === 'string') {
-      if (typeOfResponse === 'object') {
+      if (typeOfResponse === TargetGraphQLType.object) {
         try {
           responseBody = JSON.parse(payload)
           saneData = Oas3Tools.sanitizeObjectKeys(responseBody)
@@ -312,7 +312,7 @@ export function getPublishResolver<TSource, TContext, TArgs>({
           pubsubLog(errorString)
           return null
         }
-      } else if (typeOfResponse === 'string') {
+      } else if (typeOfResponse === TargetGraphQLType.string) {
         saneData = payload
       }
     }

@@ -6,6 +6,19 @@ import { Oas3, LinkObject, OperationObject, ParameterObject, ServerObject, Schem
 import { GraphQLOperationType } from './graphql';
 import { GraphQLScalarType, GraphQLObjectType, GraphQLInputObjectType, GraphQLList, GraphQLEnumType, GraphQLUnionType } from 'graphql';
 import { HTTP_METHODS } from '../oas_3_tools';
+export declare enum TargetGraphQLType {
+    string = "string",
+    integer = "integer",
+    float = "float",
+    boolean = "boolean",
+    id = "id",
+    json = "json",
+    object = "object",
+    list = "list",
+    enum = "enum",
+    anyOfObject = "anyOfObject",
+    oneOfUnion = "oneOfUnion"
+}
 export declare type DataDefinition = {
     preferredName: string;
     schema: SchemaObject;
@@ -15,7 +28,7 @@ export declare type DataDefinition = {
      * property in all member schemas
      */
     required: string[];
-    targetGraphQLType: string;
+    targetGraphQLType: TargetGraphQLType;
     links: {
         [key: string]: LinkObject;
     };

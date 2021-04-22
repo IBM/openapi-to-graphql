@@ -9,7 +9,7 @@
 
 // Type imports:
 import { Oas2 } from './types/oas2'
-import { Operation } from './types/operation'
+import { TargetGraphQLType, Operation } from './types/operation'
 import {
   Oas3,
   ServerObject,
@@ -407,61 +407,292 @@ export function desanitizeObjectKeys(
 
 /**
  * Returns the GraphQL type that the provided schema should be made into
- *
- * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
 export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
-  schema: SchemaObject,
-  data: PreprocessingData<TSource, TContext, TArgs>
-): string | null {
+  schemaOrRef: SchemaObject | ReferenceObject,
+  data: PreprocessingData<TSource, TContext, TArgs>,
+  oas: Oas3
+): TargetGraphQLType | null {
+  let schema: SchemaObject
+  if (typeof schemaOrRef.$ref === 'string') {
+    schema = resolveRef(schemaOrRef.$ref, oas)
+  } else {
+    schema = schemaOrRef
+  }
+
+  // TODO: Need to resolve allOf here as well.
+
+  // CASE: Check for nested or concurrent anyOf and oneOf
+  if (
+    // TODO: Should also consider if the member schema contains type data
+    (Array.isArray(schema.anyOf) && Array.isArray(schema.oneOf)) || // anyOf and oneOf used concurrently
+    hasNestedAnyOfUsage(schema, oas) ||
+    hasNestedOneOfUsage(schema, oas)
+  ) {
+    handleWarning({
+      mitigationType: MitigationTypes.COMBINE_SCHEMAS,
+      message:
+        `Schema '${JSON.stringify(schema)}' contains either both ` +
+        `'anyOf' and 'oneOf' or nested 'anyOf' and 'oneOf' which ` +
+        `is currently not supported.`,
+      mitigationAddendum: `Use arbitrary JSON type instead.`,
+      data,
+      log: preprocessingLog
+    })
+
+    return TargetGraphQLType.json
+  }
+
+  if (Array.isArray(schema.anyOf)) {
+    return GetAnyOfTargetGraphQLType(schema, data, oas)
+  }
+
+  if (Array.isArray(schema.oneOf)) {
+    return GetOneOfTargetGraphQLType(schema, data, oas)
+  }
+
+  // CASE: enum
+  if (Array.isArray(schema.enum)) {
+    return TargetGraphQLType.enum
+  }
+
   // CASE: object
   if (schema.type === 'object' || typeof schema.properties === 'object') {
     // TODO: additionalProperties is more like a flag than a type itself
     // CASE: arbitrary JSON
     if (typeof schema.additionalProperties === 'object') {
-      return 'json'
+      return TargetGraphQLType.json
     } else {
-      return 'object'
+      return TargetGraphQLType.object
     }
   }
 
   // CASE: array
   if (schema.type === 'array' || 'items' in schema) {
-    return 'list'
+    return TargetGraphQLType.list
   }
 
-  // CASE: enum
-  if (Array.isArray(schema.enum)) {
-    return 'enum'
-  }
+  // Special edge cases involving the schema format
+  if (typeof schema.format === 'string') {
+    /**
+     * CASE: 64 bit int - return number instead of integer, leading to use of
+     * GraphQLFloat, which can support 64 bits:
+     */
+    if (schema.type === 'integer' && schema.format === 'int64') {
+      return TargetGraphQLType.float
 
-  // CASE: a type is present
-  if (typeof schema.type === 'string') {
-    // Special edge cases involving the schema format
-    if (typeof schema.format === 'string') {
-      /**
-       * CASE: 64 bit int - return number instead of integer, leading to use of
-       * GraphQLFloat, which can support 64 bits:
-       */
-      if (schema.type === 'integer' && schema.format === 'int64') {
-        return 'number'
-
-        // CASE: id
-      } else if (
-        schema.type === 'string' &&
-        (schema.format === 'uuid' ||
-          // Custom ID format
-          (Array.isArray(data.options.idFormats) &&
-            data.options.idFormats.includes(schema.format)))
-      ) {
-        return 'id'
-      }
+      // CASE: id
+    } else if (
+      schema.type === 'string' &&
+      (schema.format === 'uuid' ||
+        // Custom ID format
+        (Array.isArray(data.options.idFormats) &&
+          data.options.idFormats.includes(schema.format)))
+    ) {
+      return TargetGraphQLType.id
     }
+  }
 
-    return schema.type
+  switch (schema.type) {
+    case 'string':
+      return TargetGraphQLType.string
+
+    case 'number':
+      return TargetGraphQLType.float
+
+    case 'integer':
+      return TargetGraphQLType.integer
+
+    case 'boolean':
+      return TargetGraphQLType.boolean
+
+    default:
+    // Error: unsupported schema type
   }
 
   return null
+}
+
+/**
+ * Check to see if there are cases of nested oneOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
+function hasNestedOneOfUsage(schema: SchemaObject, oas: Oas3): boolean {
+  // TODO: Should also consider if the member schema contains type data
+  return (
+    Array.isArray(schema.oneOf) &&
+    schema.oneOf.some((memberSchemaOrRef) => {
+      let memberSchema: SchemaObject
+      if (typeof memberSchemaOrRef.$ref === 'string') {
+        memberSchema = resolveRef(memberSchemaOrRef.$ref, oas) as SchemaObject
+      } else {
+        memberSchema = memberSchemaOrRef
+      }
+
+      return (
+        /**
+         * anyOf and oneOf are nested
+         *
+         * Nested oneOf would result in nested unions which are not allowed by
+         * GraphQL
+         */
+        Array.isArray(memberSchema.anyOf) || Array.isArray(memberSchema.oneOf)
+      )
+    })
+  )
+}
+
+/**
+ * Check to see if there are cases of nested anyOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
+function hasNestedAnyOfUsage(schema: SchemaObject, oas: Oas3): boolean {
+  // TODO: Should also consider if the member schema contains type data
+  return (
+    Array.isArray(schema.anyOf) &&
+    schema.anyOf.some((memberSchemaOrRef) => {
+      let memberSchema: SchemaObject
+
+      if (typeof memberSchemaOrRef.$ref === 'string') {
+        memberSchema = resolveRef(memberSchemaOrRef.$ref, oas) as SchemaObject
+      } else {
+        memberSchema = memberSchemaOrRef
+      }
+
+      return (
+        // anyOf and oneOf are nested
+        Array.isArray(memberSchema.anyOf) || Array.isArray(memberSchema.oneOf)
+      )
+    })
+  )
+}
+
+function GetAnyOfTargetGraphQLType<TSource, TContext, TArgs>(
+  schema: SchemaObject,
+  data: PreprocessingData<TSource, TContext, TArgs>,
+  oas: Oas3
+): TargetGraphQLType {
+  // Identify the type of the base schema, meaning ignoring the anyOf
+  const schemaWithNoAnyOf = { ...schema }
+  delete schemaWithNoAnyOf.anyOf
+  const baseTargetType = getSchemaTargetGraphQLType(
+    schemaWithNoAnyOf,
+    data,
+    oas
+  )
+
+  // Target GraphQL types of all the member schemas
+  const memberTargetTypes: TargetGraphQLType[] = []
+  schema.anyOf.forEach((memberSchema) => {
+    const memberTargetType = getSchemaTargetGraphQLType(memberSchema, data, oas)
+
+    if (memberTargetType !== null) {
+      memberTargetTypes.push(memberTargetType)
+    }
+  })
+
+  if (memberTargetTypes.length > 0) {
+    const firstMemberTargetType = memberTargetTypes[0]
+    const consistentMemberTargetTypes = memberTargetTypes.every(
+      (targetType) => {
+        return targetType === firstMemberTargetType
+      }
+    )
+
+    if (consistentMemberTargetTypes) {
+      if (baseTargetType !== null) {
+        if (baseTargetType === firstMemberTargetType) {
+          if (baseTargetType === 'object') {
+            // Base schema and member schema types are object types
+            return TargetGraphQLType.anyOfObject
+          } else {
+            // Base schema and member schema types but no object types
+            return baseTargetType
+          }
+        } else {
+          // Base schema and member schema types are not consistent
+          return TargetGraphQLType.json
+        }
+      } else {
+        if (firstMemberTargetType === TargetGraphQLType.object) {
+          return TargetGraphQLType.anyOfObject
+        } else {
+          return firstMemberTargetType
+        }
+      }
+    } else {
+      // Member schema types are not consistent
+      return TargetGraphQLType.json
+    }
+  } else {
+    // No member schema types, therefore use the base schema type
+    return baseTargetType
+  }
+}
+
+function GetOneOfTargetGraphQLType<TSource, TContext, TArgs>(
+  schema: SchemaObject,
+  data: PreprocessingData<TSource, TContext, TArgs>,
+  oas: Oas3
+): TargetGraphQLType {
+  // Identify the type of the base schema, meaning ignoring the oneOf
+  const schemaWithNoOneOf = { ...schema }
+  delete schemaWithNoOneOf.oneOf
+  const baseTargetType = getSchemaTargetGraphQLType(
+    schemaWithNoOneOf,
+    data,
+    oas
+  )
+
+  // Target GraphQL types of all the member schemas
+  const memberTargetTypes: TargetGraphQLType[] = []
+  schema.oneOf.forEach((memberSchema) => {
+    const memberTargetType = getSchemaTargetGraphQLType(memberSchema, data, oas)
+
+    if (memberTargetType !== null) {
+      memberTargetTypes.push(memberTargetType)
+    }
+  })
+
+  if (memberTargetTypes.length > 0) {
+    const firstMemberTargetType = memberTargetTypes[0]
+    const consistentMemberTargetTypes = memberTargetTypes.every(
+      (targetType) => {
+        return targetType === firstMemberTargetType
+      }
+    )
+
+    if (consistentMemberTargetTypes) {
+      if (baseTargetType !== null) {
+        if (baseTargetType === firstMemberTargetType) {
+          if (baseTargetType === 'object') {
+            // Base schema and member schema types are object types
+            return TargetGraphQLType.oneOfUnion
+          } else {
+            // Base schema and member schema types but no object types
+            return baseTargetType
+          }
+        } else {
+          // Base schema and member schema types are not consistent
+          return TargetGraphQLType.json
+        }
+      } else {
+        if (firstMemberTargetType === TargetGraphQLType.object) {
+          return TargetGraphQLType.oneOfUnion
+        } else {
+          return firstMemberTargetType
+        }
+      }
+    } else {
+      // Member schema types are not consistent
+      return TargetGraphQLType.json
+    }
+  } else {
+    // No member schema types, therefore use the base schema type
+    return baseTargetType
+  }
 }
 
 /**

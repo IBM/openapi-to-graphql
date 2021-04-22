@@ -5,6 +5,7 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getRequestSchemaAndNames = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
+const operation_1 = require("./types/operation");
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
 const OASValidator = require("oas-validator");
@@ -287,54 +288,246 @@ function desanitizeObjectKeys(obj, mapping = {}) {
 exports.desanitizeObjectKeys = desanitizeObjectKeys;
 /**
  * Returns the GraphQL type that the provided schema should be made into
- *
- * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
-function getSchemaTargetGraphQLType(schema, data) {
+function getSchemaTargetGraphQLType(schemaOrRef, data, oas) {
+    let schema;
+    if (typeof schemaOrRef.$ref === 'string') {
+        schema = resolveRef(schemaOrRef.$ref, oas);
+    }
+    else {
+        schema = schemaOrRef;
+    }
+    // TODO: Need to resolve allOf here as well.
+    // CASE: Check for nested or concurrent anyOf and oneOf
+    if (
+    // TODO: Should also consider if the member schema contains type data
+    (Array.isArray(schema.anyOf) && Array.isArray(schema.oneOf)) || // anyOf and oneOf used concurrently
+        hasNestedAnyOfUsage(schema, oas) ||
+        hasNestedOneOfUsage(schema, oas)) {
+        utils_1.handleWarning({
+            mitigationType: utils_1.MitigationTypes.COMBINE_SCHEMAS,
+            message: `Schema '${JSON.stringify(schema)}' contains either both ` +
+                `'anyOf' and 'oneOf' or nested 'anyOf' and 'oneOf' which ` +
+                `is currently not supported.`,
+            mitigationAddendum: `Use arbitrary JSON type instead.`,
+            data,
+            log: preprocessingLog
+        });
+        return operation_1.TargetGraphQLType.json;
+    }
+    if (Array.isArray(schema.anyOf)) {
+        return GetAnyOfTargetGraphQLType(schema, data, oas);
+    }
+    if (Array.isArray(schema.oneOf)) {
+        return GetOneOfTargetGraphQLType(schema, data, oas);
+    }
+    // CASE: enum
+    if (Array.isArray(schema.enum)) {
+        return operation_1.TargetGraphQLType.enum;
+    }
     // CASE: object
     if (schema.type === 'object' || typeof schema.properties === 'object') {
         // TODO: additionalProperties is more like a flag than a type itself
         // CASE: arbitrary JSON
         if (typeof schema.additionalProperties === 'object') {
-            return 'json';
+            return operation_1.TargetGraphQLType.json;
         }
         else {
-            return 'object';
+            return operation_1.TargetGraphQLType.object;
         }
     }
     // CASE: array
     if (schema.type === 'array' || 'items' in schema) {
-        return 'list';
+        return operation_1.TargetGraphQLType.list;
     }
-    // CASE: enum
-    if (Array.isArray(schema.enum)) {
-        return 'enum';
-    }
-    // CASE: a type is present
-    if (typeof schema.type === 'string') {
-        // Special edge cases involving the schema format
-        if (typeof schema.format === 'string') {
-            /**
-             * CASE: 64 bit int - return number instead of integer, leading to use of
-             * GraphQLFloat, which can support 64 bits:
-             */
-            if (schema.type === 'integer' && schema.format === 'int64') {
-                return 'number';
-                // CASE: id
-            }
-            else if (schema.type === 'string' &&
-                (schema.format === 'uuid' ||
-                    // Custom ID format
-                    (Array.isArray(data.options.idFormats) &&
-                        data.options.idFormats.includes(schema.format)))) {
-                return 'id';
-            }
+    // Special edge cases involving the schema format
+    if (typeof schema.format === 'string') {
+        /**
+         * CASE: 64 bit int - return number instead of integer, leading to use of
+         * GraphQLFloat, which can support 64 bits:
+         */
+        if (schema.type === 'integer' && schema.format === 'int64') {
+            return operation_1.TargetGraphQLType.float;
+            // CASE: id
         }
-        return schema.type;
+        else if (schema.type === 'string' &&
+            (schema.format === 'uuid' ||
+                // Custom ID format
+                (Array.isArray(data.options.idFormats) &&
+                    data.options.idFormats.includes(schema.format)))) {
+            return operation_1.TargetGraphQLType.id;
+        }
+    }
+    switch (schema.type) {
+        case 'string':
+            return operation_1.TargetGraphQLType.string;
+        case 'number':
+            return operation_1.TargetGraphQLType.float;
+        case 'integer':
+            return operation_1.TargetGraphQLType.integer;
+        case 'boolean':
+            return operation_1.TargetGraphQLType.boolean;
+        default:
+        // Error: unsupported schema type
     }
     return null;
 }
 exports.getSchemaTargetGraphQLType = getSchemaTargetGraphQLType;
+/**
+ * Check to see if there are cases of nested oneOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
+function hasNestedOneOfUsage(schema, oas) {
+    // TODO: Should also consider if the member schema contains type data
+    return (Array.isArray(schema.oneOf) &&
+        schema.oneOf.some((memberSchemaOrRef) => {
+            let memberSchema;
+            if (typeof memberSchemaOrRef.$ref === 'string') {
+                memberSchema = resolveRef(memberSchemaOrRef.$ref, oas);
+            }
+            else {
+                memberSchema = memberSchemaOrRef;
+            }
+            return (
+            /**
+             * anyOf and oneOf are nested
+             *
+             * Nested oneOf would result in nested unions which are not allowed by
+             * GraphQL
+             */
+            Array.isArray(memberSchema.anyOf) || Array.isArray(memberSchema.oneOf));
+        }));
+}
+/**
+ * Check to see if there are cases of nested anyOf fields in the member schemas
+ *
+ * We currently cannot handle complex cases of oneOf and anyOf
+ */
+function hasNestedAnyOfUsage(schema, oas) {
+    // TODO: Should also consider if the member schema contains type data
+    return (Array.isArray(schema.anyOf) &&
+        schema.anyOf.some((memberSchemaOrRef) => {
+            let memberSchema;
+            if (typeof memberSchemaOrRef.$ref === 'string') {
+                memberSchema = resolveRef(memberSchemaOrRef.$ref, oas);
+            }
+            else {
+                memberSchema = memberSchemaOrRef;
+            }
+            return (
+            // anyOf and oneOf are nested
+            Array.isArray(memberSchema.anyOf) || Array.isArray(memberSchema.oneOf));
+        }));
+}
+function GetAnyOfTargetGraphQLType(schema, data, oas) {
+    // Identify the type of the base schema, meaning ignoring the anyOf
+    const schemaWithNoAnyOf = Object.assign({}, schema);
+    delete schemaWithNoAnyOf.anyOf;
+    const baseTargetType = getSchemaTargetGraphQLType(schemaWithNoAnyOf, data, oas);
+    // Target GraphQL types of all the member schemas
+    const memberTargetTypes = [];
+    schema.anyOf.forEach((memberSchema) => {
+        const memberTargetType = getSchemaTargetGraphQLType(memberSchema, data, oas);
+        if (memberTargetType !== null) {
+            memberTargetTypes.push(memberTargetType);
+        }
+    });
+    if (memberTargetTypes.length > 0) {
+        const firstMemberTargetType = memberTargetTypes[0];
+        const consistentMemberTargetTypes = memberTargetTypes.every((targetType) => {
+            return targetType === firstMemberTargetType;
+        });
+        if (consistentMemberTargetTypes) {
+            if (baseTargetType !== null) {
+                if (baseTargetType === firstMemberTargetType) {
+                    if (baseTargetType === 'object') {
+                        // Base schema and member schema types are object types
+                        return operation_1.TargetGraphQLType.anyOfObject;
+                    }
+                    else {
+                        // Base schema and member schema types but no object types
+                        return baseTargetType;
+                    }
+                }
+                else {
+                    // Base schema and member schema types are not consistent
+                    return operation_1.TargetGraphQLType.json;
+                }
+            }
+            else {
+                if (firstMemberTargetType === operation_1.TargetGraphQLType.object) {
+                    return operation_1.TargetGraphQLType.anyOfObject;
+                }
+                else {
+                    return firstMemberTargetType;
+                }
+            }
+        }
+        else {
+            // Member schema types are not consistent
+            return operation_1.TargetGraphQLType.json;
+        }
+    }
+    else {
+        // No member schema types, therefore use the base schema type
+        return baseTargetType;
+    }
+}
+function GetOneOfTargetGraphQLType(schema, data, oas) {
+    // Identify the type of the base schema, meaning ignoring the oneOf
+    const schemaWithNoOneOf = Object.assign({}, schema);
+    delete schemaWithNoOneOf.oneOf;
+    const baseTargetType = getSchemaTargetGraphQLType(schemaWithNoOneOf, data, oas);
+    // Target GraphQL types of all the member schemas
+    const memberTargetTypes = [];
+    schema.oneOf.forEach((memberSchema) => {
+        const memberTargetType = getSchemaTargetGraphQLType(memberSchema, data, oas);
+        if (memberTargetType !== null) {
+            memberTargetTypes.push(memberTargetType);
+        }
+    });
+    if (memberTargetTypes.length > 0) {
+        const firstMemberTargetType = memberTargetTypes[0];
+        const consistentMemberTargetTypes = memberTargetTypes.every((targetType) => {
+            return targetType === firstMemberTargetType;
+        });
+        if (consistentMemberTargetTypes) {
+            if (baseTargetType !== null) {
+                if (baseTargetType === firstMemberTargetType) {
+                    if (baseTargetType === 'object') {
+                        // Base schema and member schema types are object types
+                        return operation_1.TargetGraphQLType.oneOfUnion;
+                    }
+                    else {
+                        // Base schema and member schema types but no object types
+                        return baseTargetType;
+                    }
+                }
+                else {
+                    // Base schema and member schema types are not consistent
+                    return operation_1.TargetGraphQLType.json;
+                }
+            }
+            else {
+                if (firstMemberTargetType === operation_1.TargetGraphQLType.object) {
+                    return operation_1.TargetGraphQLType.oneOfUnion;
+                }
+                else {
+                    return firstMemberTargetType;
+                }
+            }
+        }
+        else {
+            // Member schema types are not consistent
+            return operation_1.TargetGraphQLType.json;
+        }
+    }
+    else {
+        // No member schema types, therefore use the base schema type
+        return baseTargetType;
+    }
+}
 /**
  * Identifies common path components in the given list of paths. Returns these
  * components as well as an updated list of paths where the common prefix was

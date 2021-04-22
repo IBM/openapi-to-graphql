@@ -9,7 +9,7 @@
 
 // Type imports:
 import { PreprocessingData } from './types/preprocessing_data'
-import { Operation, DataDefinition } from './types/operation'
+import { Operation, DataDefinition, TargetGraphQLType } from './types/operation'
 import {
   Oas3,
   SchemaObject,
@@ -150,7 +150,8 @@ export function getGraphQLType<TSource, TContext, TArgs>({
 
   switch (def.targetGraphQLType) {
     // CASE: object - create object type
-    case 'object':
+    case TargetGraphQLType.object:
+    case TargetGraphQLType.anyOfObject:
       return createOrReuseOt({
         def,
         operation,
@@ -160,7 +161,7 @@ export function getGraphQLType<TSource, TContext, TArgs>({
       })
 
     // CASE: union - create union type
-    case 'union':
+    case TargetGraphQLType.oneOfUnion:
       return createOrReuseUnion({
         def,
         operation,
@@ -169,7 +170,7 @@ export function getGraphQLType<TSource, TContext, TArgs>({
       })
 
     // CASE: list - create list type
-    case 'list':
+    case TargetGraphQLType.list:
       return createOrReuseList({
         def,
         operation,
@@ -179,18 +180,36 @@ export function getGraphQLType<TSource, TContext, TArgs>({
       })
 
     // CASE: enum - create enum type
-    case 'enum':
+    case TargetGraphQLType.enum:
       return createOrReuseEnum({
         def,
         data
       })
 
     // CASE: scalar - return scalar type
-    default:
-      return getScalarType({
-        def,
-        data
-      })
+    case TargetGraphQLType.string:
+      def.graphQLType = GraphQLString
+      return def.graphQLType
+
+    case TargetGraphQLType.integer:
+      def.graphQLType = GraphQLInt
+      return def.graphQLType
+
+    case TargetGraphQLType.float:
+      def.graphQLType = GraphQLFloat
+      return def.graphQLType
+
+    case TargetGraphQLType.boolean:
+      def.graphQLType = GraphQLBoolean
+      return def.graphQLType
+
+    case TargetGraphQLType.id:
+      def.graphQLType = GraphQLID
+      return def.graphQLType
+
+    case TargetGraphQLType.json:
+      def.graphQLType = CleanGraphQLJSON
+      return def.graphQLType
   }
 }
 
@@ -557,39 +576,6 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
 
     return def.graphQLType
   }
-}
-
-/**
- * Returns the GraphQL scalar type matching the given JSON schema type
- */
-function getScalarType<TSource, TContext, TArgs>({
-  def,
-  data
-}: CreateOrReuseSimpleTypeParams<TSource, TContext, TArgs>): GraphQLScalarType {
-  switch (def.targetGraphQLType) {
-    case 'id':
-      def.graphQLType = GraphQLID
-      break
-    case 'string':
-      def.graphQLType = GraphQLString
-      break
-    case 'integer':
-      def.graphQLType = GraphQLInt
-      break
-    case 'number':
-      def.graphQLType = GraphQLFloat
-      break
-    case 'boolean':
-      def.graphQLType = GraphQLBoolean
-      break
-    case 'json':
-      def.graphQLType = CleanGraphQLJSON
-      break
-    default:
-      throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`)
-  }
-
-  return def.graphQLType
 }
 
 /**

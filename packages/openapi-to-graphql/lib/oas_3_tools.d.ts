@@ -2,8 +2,8 @@
  * Utility functions around the OpenAPI Specification 3.
  */
 import { Oas2 } from './types/oas2';
-import { Operation } from './types/operation';
-import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, PathItemObject, LinkObject, SecuritySchemeObject } from './types/oas3';
+import { TargetGraphQLType, Operation } from './types/operation';
+import { Oas3, ServerObject, ParameterObject, SchemaObject, OperationObject, PathItemObject, ReferenceObject, LinkObject, SecuritySchemeObject } from './types/oas3';
 import { PreprocessingData, ProcessedSecurityScheme } from './types/preprocessing_data';
 import { InternalOptions } from './types/options';
 export declare type SchemaNames = {
@@ -88,10 +88,8 @@ caseStyle?: CaseStyle): any;
 export declare function desanitizeObjectKeys(obj: object | Array<any>, mapping?: object): object | Array<any>;
 /**
  * Returns the GraphQL type that the provided schema should be made into
- *
- * Does not consider allOf, anyOf, oneOf, or not (handled separately)
  */
-export declare function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(schema: SchemaObject, data: PreprocessingData<TSource, TContext, TArgs>): string | null;
+export declare function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(schemaOrRef: SchemaObject | ReferenceObject, data: PreprocessingData<TSource, TContext, TArgs>, oas: Oas3): TargetGraphQLType | null;
 /**
  * Infers a resource name from the given URL path.
  *
