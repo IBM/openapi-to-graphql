@@ -17,7 +17,7 @@ type ExternalDocumentationObject = {
 export type SchemaObject = {
   $ref?: string
   title?: string
-  type?: 'string' | 'number' | 'object' | 'array' | 'boolean' | 'integer'
+  type?: 'string' | 'number' | 'integer' | 'boolean' | 'object' | 'array'
   format?: string
   nullable?: boolean
   description?: string

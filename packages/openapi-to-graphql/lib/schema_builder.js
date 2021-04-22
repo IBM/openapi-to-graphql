@@ -5,6 +5,7 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getArgs = exports.getGraphQLType = void 0;
+const operation_1 = require("./types/operation");
 const graphql_1 = require("graphql");
 // Imports:
 const graphql_type_json_1 = require("graphql-type-json");
@@ -62,7 +63,8 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
     }
     switch (def.targetGraphQLType) {
         // CASE: object - create object type
-        case 'object':
+        case operation_1.TargetGraphQLType.object:
+        case operation_1.TargetGraphQLType.anyOfObject:
             return createOrReuseOt({
                 def,
                 operation,
@@ -71,7 +73,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 isInputObjectType
             });
         // CASE: union - create union type
-        case 'union':
+        case operation_1.TargetGraphQLType.oneOfUnion:
             return createOrReuseUnion({
                 def,
                 operation,
@@ -79,7 +81,7 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 iteration
             });
         // CASE: list - create list type
-        case 'list':
+        case operation_1.TargetGraphQLType.list:
             return createOrReuseList({
                 def,
                 operation,
@@ -88,17 +90,30 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 isInputObjectType
             });
         // CASE: enum - create enum type
-        case 'enum':
+        case operation_1.TargetGraphQLType.enum:
             return createOrReuseEnum({
                 def,
                 data
             });
         // CASE: scalar - return scalar type
-        default:
-            return getScalarType({
-                def,
-                data
-            });
+        case operation_1.TargetGraphQLType.string:
+            def.graphQLType = graphql_1.GraphQLString;
+            return def.graphQLType;
+        case operation_1.TargetGraphQLType.integer:
+            def.graphQLType = graphql_1.GraphQLInt;
+            return def.graphQLType;
+        case operation_1.TargetGraphQLType.float:
+            def.graphQLType = graphql_1.GraphQLFloat;
+            return def.graphQLType;
+        case operation_1.TargetGraphQLType.boolean:
+            def.graphQLType = graphql_1.GraphQLBoolean;
+            return def.graphQLType;
+        case operation_1.TargetGraphQLType.id:
+            def.graphQLType = graphql_1.GraphQLID;
+            return def.graphQLType;
+        case operation_1.TargetGraphQLType.json:
+            def.graphQLType = CleanGraphQLJSON;
+            return def.graphQLType;
     }
 }
 exports.getGraphQLType = getGraphQLType;
@@ -379,34 +394,6 @@ function createOrReuseEnum({ def, data }) {
         });
         return def.graphQLType;
     }
-}
-/**
- * Returns the GraphQL scalar type matching the given JSON schema type
- */
-function getScalarType({ def, data }) {
-    switch (def.targetGraphQLType) {
-        case 'id':
-            def.graphQLType = graphql_1.GraphQLID;
-            break;
-        case 'string':
-            def.graphQLType = graphql_1.GraphQLString;
-            break;
-        case 'integer':
-            def.graphQLType = graphql_1.GraphQLInt;
-            break;
-        case 'number':
-            def.graphQLType = graphql_1.GraphQLFloat;
-            break;
-        case 'boolean':
-            def.graphQLType = graphql_1.GraphQLBoolean;
-            break;
-        case 'json':
-            def.graphQLType = CleanGraphQLJSON;
-            break;
-        default:
-            throw new Error(`Cannot process schema type '${def.targetGraphQLType}'.`);
-    }
-    return def.graphQLType;
 }
 /**
  * Creates the fields object to be used by an (input) object type

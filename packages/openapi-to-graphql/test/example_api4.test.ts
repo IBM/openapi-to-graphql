@@ -321,8 +321,9 @@ test('anyOf test with some extraneous member schemas\n\nEquivalent to GET /anyOf
 /**
  * anyOf contains three member schemas
  *
- * None of the member schemas are object type schemas. As a result, it defaults to the
- * arbitrary JSON type.
+ * Base schema has no target GraphQL type. One member schema has an integer
+ * target type and the other two have no target types. Therefore, use integer
+ * type.
  */
 test('anyOf test with no object type member schemas\n\nEquivalent to GET /anyOf8', () => {
   return graphql(createdSchema, anyOfQuery).then((result) => {
@@ -335,7 +336,7 @@ test('anyOf test with no object type member schemas\n\nEquivalent to GET /anyOf8
       description:
         'anyOf test with no object type member schemas\n\nEquivalent to GET /anyOf8',
       type: {
-        name: 'JSON',
+        name: 'Int',
         kind: 'SCALAR',
         fields: null
       }

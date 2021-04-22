@@ -30,6 +30,26 @@ import {
 
 import { HTTP_METHODS } from '../oas_3_tools'
 
+export enum TargetGraphQLType {
+  // scalars
+  string = 'string',
+  integer = 'integer',
+  float = 'float',
+  boolean = 'boolean',
+  id = 'id',
+
+  // JSON
+  json = 'json',
+
+  // non-scalars
+  object = 'object',
+  list = 'list',
+  enum = 'enum',
+
+  anyOfObject = 'anyOfObject',
+  oneOfUnion = 'oneOfUnion'
+}
+
 export type DataDefinition = {
   // OAS-related:
 
@@ -47,7 +67,7 @@ export type DataDefinition = {
   required: string[]
 
   // The type GraphQL type this dataDefintion will be created into
-  targetGraphQLType: string
+  targetGraphQLType: TargetGraphQLType
 
   // Collapsed link objects from all operations returning the same response data
   links: { [key: string]: LinkObject }

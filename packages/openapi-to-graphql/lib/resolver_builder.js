@@ -5,6 +5,7 @@
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extractRequestDataFromArgs = exports.getResolver = exports.getPublishResolver = exports.getSubscribe = exports.OPENAPI_TO_GRAPHQL = void 0;
+const operation_1 = require("./types/operation");
 const NodeRequest = require("request");
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
@@ -134,7 +135,7 @@ function getPublishResolver({ operation, responseName, data }) {
         let responseBody;
         let saneData;
         if (typeof payload === 'object') {
-            if (typeOfResponse === 'object') {
+            if (typeOfResponse === operation_1.TargetGraphQLType.object) {
                 if (Buffer.isBuffer(payload)) {
                     try {
                         responseBody = JSON.parse(payload.toString());
@@ -153,12 +154,12 @@ function getPublishResolver({ operation, responseName, data }) {
                 saneData = Oas3Tools.sanitizeObjectKeys(payload);
             }
             else if ((Buffer.isBuffer(payload) || Array.isArray(payload)) &&
-                typeOfResponse === 'string') {
+                typeOfResponse === operation_1.TargetGraphQLType.string) {
                 saneData = payload.toString();
             }
         }
         else if (typeof payload === 'string') {
-            if (typeOfResponse === 'object') {
+            if (typeOfResponse === operation_1.TargetGraphQLType.object) {
                 try {
                     responseBody = JSON.parse(payload);
                     saneData = Oas3Tools.sanitizeObjectKeys(responseBody);
@@ -171,7 +172,7 @@ function getPublishResolver({ operation, responseName, data }) {
                     return null;
                 }
             }
-            else if (typeOfResponse === 'string') {
+            else if (typeOfResponse === operation_1.TargetGraphQLType.string) {
                 saneData = payload;
             }
         }
