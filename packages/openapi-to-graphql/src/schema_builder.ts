@@ -1191,7 +1191,10 @@ export function getArgs<TSource, TContext, TArgs>({
     }
 
     const paramDef = createDataDef(
-      { fromSchema: parameter.name },
+      {
+        fromSchema: parameter.name,
+        fromExtension: schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
+      },
       schema as SchemaObject,
       true,
       data,

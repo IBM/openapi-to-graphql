@@ -534,11 +534,19 @@ function createDataDef(names, schemaOrRef, isInputObjectType, data, oas, links) 
         }
         else {
             const name = getSchemaName(names, data.usedTypeNames);
-            // Store and sanitize the name
-            const saneName = !data.options.simpleNames
-                ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
-                : Oas3Tools.capitalize(Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple));
-            const saneInputName = Oas3Tools.capitalize(saneName + 'Input');
+            let saneInputName;
+            let saneName;
+            if (name === names.fromExtension) {
+                saneName = name;
+                saneInputName = name;
+            }
+            else {
+                // Store and sanitize the name
+                saneName = !data.options.simpleNames
+                    ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
+                    : Oas3Tools.capitalize(Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple));
+                saneInputName = Oas3Tools.capitalize(saneName + 'Input');
+            }
             Oas3Tools.storeSaneName(saneName, name, data.saneMap);
             /**
              * Recursively resolve allOf so type, properties, anyOf, oneOf, and
