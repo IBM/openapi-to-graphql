@@ -1,7 +1,12 @@
 'use strict'
 
 import { beforeAll, describe, test, expect } from '@jest/globals'
-import { GraphQLEnumType, GraphQLObjectType, GraphQLSchema } from 'graphql'
+import {
+  GraphQLEnumType,
+  GraphQLInputObjectType,
+  GraphQLObjectType,
+  GraphQLSchema
+} from 'graphql'
 
 import * as openAPIToGraphQL from '../lib/index'
 import { Oas3 } from '../lib/types/oas3'
@@ -75,6 +80,13 @@ describe('GraphQL Extensions', () => {
       expect(fields).not.toContain('pet')
       expect(fields).toContain('orderPet')
       expect(order.getFields().orderPet.type.toString()).toEqual('Pet')
+    })
+
+    test('should rename Parameters with x-graphql-type-name', () => {
+      const renamedType = createdSchema.getType('Meta')
+      expect(renamedType).toBeInstanceOf(GraphQLInputObjectType)
+      expect(createdSchema.getType('AdditionalMetadata')).toBeUndefined()
+      expect(createdSchema.getType('AdditionalMetadataInput')).toBeUndefined()
     })
   })
 
