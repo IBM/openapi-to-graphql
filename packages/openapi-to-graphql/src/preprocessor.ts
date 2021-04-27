@@ -756,13 +756,21 @@ export function createDataDef<TSource, TContext, TArgs>(
       // Else, define a new name, store the def, and return it
       const name = getSchemaName(names, data.usedTypeNames)
 
-      // Store and sanitize the name
-      const saneName = !data.options.simpleNames
-        ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
-        : Oas3Tools.capitalize(
-            Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple)
-          )
-      const saneInputName = Oas3Tools.capitalize(saneName + 'Input')
+      let saneInputName: string
+      let saneName: string
+
+      if (name === names.fromExtension) {
+        saneName = name
+        saneInputName = name
+      } else {
+        // Store and sanitize the name
+        saneName = !data.options.simpleNames
+          ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
+          : Oas3Tools.capitalize(
+              Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple)
+            )
+        saneInputName = Oas3Tools.capitalize(saneName + 'Input')
+      }
 
       Oas3Tools.storeSaneName(saneName, name, data.saneMap)
 

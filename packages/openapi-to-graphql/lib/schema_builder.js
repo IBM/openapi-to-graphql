@@ -888,7 +888,10 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
         if ('$ref' in schema) {
             schema = Oas3Tools.resolveRef(schema.$ref, operation.oas);
         }
-        const paramDef = preprocessor_1.createDataDef({ fromSchema: parameter.name }, schema, true, data, operation.oas);
+        const paramDef = preprocessor_1.createDataDef({
+            fromSchema: parameter.name,
+            fromExtension: schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
+        }, schema, true, data, operation.oas);
         const type = getGraphQLType({
             def: paramDef,
             operation,
