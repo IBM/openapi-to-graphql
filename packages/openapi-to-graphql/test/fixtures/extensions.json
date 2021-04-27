@@ -526,6 +526,21 @@
             "description": "The password for login in clear text",
             "required": false,
             "schema": { "type": "string" }
+          },
+          {
+            "name": "additionalMetadata",
+            "in": "query",
+            "description": "Additional metadata",
+            "required": false,
+            "schema": {
+              "type": "object",
+              "x-graphql-type-name": "Meta",
+              "properties": {
+                "test": {
+                  "type": "string"
+                }
+              }
+            }
           }
         ],
         "responses": {
