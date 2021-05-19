@@ -421,7 +421,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         const fieldTypeDefinition = fieldTypeDefinitions[fieldName];
         const fieldSchema = fieldTypeDefinition.schema;
         // readOnly fields should not be included for Input types
-        if (isInputObjectType && fieldSchema.readOnly) {
+        if (isInputObjectType && (fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema.readOnly)) {
             continue;
         }
         // Get object type describing the property
