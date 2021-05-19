@@ -617,7 +617,7 @@ function createFields<TSource, TContext, TArgs>({
     const fieldSchema = fieldTypeDefinition.schema
 
     // readOnly fields should not be included for Input types
-    if (isInputObjectType && fieldSchema.readOnly) {
+    if (isInputObjectType && fieldSchema?.readOnly) {
       continue
     }
 
