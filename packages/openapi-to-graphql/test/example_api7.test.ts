@@ -1,6 +1,14 @@
 'use strict'
 
-import { graphql, parse, validate, execute, subscribe } from 'graphql'
+import {
+  graphql,
+  parse,
+  validate,
+  execute,
+  subscribe,
+  GraphQLSchema,
+  GraphQLObjectType
+} from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import { createServer } from 'http'
@@ -23,7 +31,7 @@ const MQTT_PORT = 1885
 oas.servers[0].variables.port.default = String(HTTP_PORT)
 oas.servers[1].variables.port.default = String(MQTT_PORT)
 
-let createdSchema
+let createdSchema: GraphQLSchema
 let wsServer
 let mqttClient
 let subscriptionServer
@@ -181,4 +189,16 @@ test('Receive data from the subscription after creating a new instance', () => {
         .catch(reject)
     }, 500)
   })
+})
+
+test('should filter out readOnly properties from Input types', () => {
+  const device = createdSchema.getType('Device') as GraphQLObjectType
+  const deviceProps = Object.keys(device.getFields())
+
+  expect(deviceProps).toEqual(['id', 'name', 'status', 'userName'])
+
+  const deviceInput = createdSchema.getType('DeviceInput') as GraphQLObjectType
+  const deviceInputProps = Object.keys(deviceInput.getFields())
+
+  expect(deviceInputProps).toEqual(['name', 'status', 'userName'])
 })

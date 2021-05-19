@@ -171,7 +171,6 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
             (typeof operation === 'object'
                 ? ` (for operation '${operation.operationString}')`
                 : ''));
-        console.log(def);
         def.graphQLInputObjectType = new graphql_1.GraphQLInputObjectType({
             name: def.graphQLInputObjectTypeName,
             description,
@@ -346,7 +345,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
         return listObjectType;
     }
     else {
-        throw new Error(`Cannot create list item object type '${itemsName}' in list 
+        throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`);
     }
 }

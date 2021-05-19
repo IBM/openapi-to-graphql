@@ -289,7 +289,6 @@ function createOrReuseOt<TSource, TContext, TArgs>({
           : '')
     )
 
-    console.log(def)
     def.graphQLInputObjectType = new GraphQLInputObjectType({
       name: def.graphQLInputObjectTypeName,
       description,
@@ -513,7 +512,7 @@ function createOrReuseList<TSource, TContext, TArgs>({
     }
     return listObjectType
   } else {
-    throw new Error(`Cannot create list item object type '${itemsName}' in list 
+    throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`)
   }
 }
