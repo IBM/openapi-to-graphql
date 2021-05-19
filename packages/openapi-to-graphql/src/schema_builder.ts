@@ -308,7 +308,6 @@ function createOrReuseOt<TSource, TContext, TArgs>({
           : '')
     )
 
-    console.log(def)
     def.graphQLInputObjectType = new GraphQLInputObjectType({
       name: def.graphQLInputObjectTypeName,
       description,

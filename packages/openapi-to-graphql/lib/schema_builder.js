@@ -186,7 +186,6 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
             (typeof operation === 'object'
                 ? ` (for operation '${operation.operationString}')`
                 : ''));
-        console.log(def);
         def.graphQLInputObjectType = new graphql_1.GraphQLInputObjectType({
             name: def.graphQLInputObjectTypeName,
             description,
