@@ -171,6 +171,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
             (typeof operation === 'object'
                 ? ` (for operation '${operation.operationString}')`
                 : ''));
+        console.log(def);
         def.graphQLInputObjectType = new graphql_1.GraphQLInputObjectType({
             name: def.graphQLInputObjectTypeName,
             description,
@@ -418,6 +419,10 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
     for (let fieldTypeKey in fieldTypeDefinitions) {
         const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey];
         const fieldSchema = fieldTypeDefinition.schema;
+        // readOnly fields should not be included for Input types
+        if (isInputObjectType && fieldSchema.readOnly) {
+            continue;
+        }
         // Get object type describing the property
         const objectType = getGraphQLType({
             def: fieldTypeDefinition,
