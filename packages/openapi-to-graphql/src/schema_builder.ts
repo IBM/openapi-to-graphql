@@ -308,6 +308,7 @@ function createOrReuseOt<TSource, TContext, TArgs>({
           : '')
     )
 
+    console.log(def)
     def.graphQLInputObjectType = new GraphQLInputObjectType({
       name: def.graphQLInputObjectTypeName,
       description,
@@ -628,6 +629,11 @@ function createFields<TSource, TContext, TArgs>({
   for (let fieldName in fieldTypeDefinitions) {
     const fieldTypeDefinition = fieldTypeDefinitions[fieldName]
     const fieldSchema = fieldTypeDefinition.schema
+
+    // readOnly fields should not be included for Input types
+    if (isInputObjectType && fieldSchema.readOnly) {
+      continue
+    }
 
     // Get object type describing the property
     const objectType = getGraphQLType({
