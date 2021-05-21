@@ -621,6 +621,11 @@ function createFields<TSource, TContext, TArgs>({
       continue
     }
 
+    // writeOnly fields should not be included for non-Input types
+    if (!isInputObjectType && fieldSchema?.writeOnly) {
+      continue
+    }
+
     // Get object type describing the property
     const objectType = getGraphQLType({
       def: fieldTypeDefinition,
