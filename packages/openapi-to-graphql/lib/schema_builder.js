@@ -345,7 +345,7 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
         return listObjectType;
     }
     else {
-        throw new Error(`Cannot create list item object type '${itemsName}' in list 
+        throw new Error(`Cannot create list item object type '${itemsName}' in list
     '${name}' with schema '${JSON.stringify(itemsSchema)}'`);
     }
 }
@@ -418,6 +418,14 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
     for (let fieldTypeKey in fieldTypeDefinitions) {
         const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey];
         const fieldSchema = fieldTypeDefinition.schema;
+        // readOnly fields should not be included for Input types
+        if (isInputObjectType && (fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema.readOnly)) {
+            continue;
+        }
+        // writeOnly fields should not be included for non-Input types
+        if (!isInputObjectType && (fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema.writeOnly)) {
+            continue;
+        }
         // Get object type describing the property
         const objectType = getGraphQLType({
             def: fieldTypeDefinition,
