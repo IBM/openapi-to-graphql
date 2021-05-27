@@ -697,9 +697,22 @@ export function createDataDef<TSource, TContext, TArgs>(
         const extensionFieldName =
           link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
 
+        if (!Oas3Tools.isSanitized(extensionFieldName)) {
+          throw new Error(
+            `Cannot create link field with name ` +
+              `"${extensionFieldName}".\nYou provided "${extensionFieldName}" in ` +
+              `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it is not ` +
+              `GraphQL-safe."`
+          )
+        }
+
         if (extensionFieldName in saneLinks) {
           throw new Error(
-            `Cannot create link field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`
+            `Cannot create link field with name ` +
+              `"${extensionFieldName}".\nYou provided ` +
+              `"${extensionFieldName}" in ` +
+              `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
+              `conflicts with another field named "${extensionFieldName}".`
           )
         }
 
@@ -1017,25 +1030,35 @@ function getSchemaName(
 ): string {
   if (Object.keys(names).length === 1 && typeof names.preferred === 'string') {
     throw new Error(
-      `Cannot create data definition without name(s), excluding the preferred name.`
+      `Cannot create data definition without name(s), excluding the ` +
+        `preferred name.`
     )
   }
 
   let schemaName: string
 
   if (typeof names.fromExtension === 'string') {
-    const saneName = Oas3Tools.sanitize(
-      names.fromExtension,
-      Oas3Tools.CaseStyle.PascalCase
-    )
+    const extensionTypeName = names.fromExtension
 
-    if (usedNames.includes(saneName)) {
+    if (!Oas3Tools.isSanitized(extensionTypeName)) {
       throw new Error(
-        `Cannot create type with name "${saneName}".\nYou provided "${names.fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it conflicts with another type named "${saneName}"`
+        `Cannot create type with name "${extensionTypeName}".\nYou ` +
+          `provided "${extensionTypeName}" in ` +
+          `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it is not ` +
+          `GraphQL-safe."`
       )
     }
 
-    if (!usedNames.includes(saneName)) {
+    if (usedNames.includes(extensionTypeName)) {
+      throw new Error(
+        `Cannot create type with name "${extensionTypeName}".\nYou provided ` +
+          `"${names.fromExtension}" in ` +
+          `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it conflicts ` +
+          `with another type named "${extensionTypeName}".`
+      )
+    }
+
+    if (!usedNames.includes(extensionTypeName)) {
       schemaName = names.fromExtension
     }
   }

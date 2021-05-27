@@ -831,7 +831,7 @@ function resolveRuntimeExpression(paramName, value, resolveData, root, args) {
             return resolveData.responseHeaders[value.split('header.')[1]];
         }
     }
-    throw new Error(`Cannot create link because '${value}' is an invalid runtime expression`);
+    throw new Error(`Cannot create link because '${value}' is an invalid runtime expression.`);
 }
 /**
  * Check if a string is a runtime expression in the context of link parameters

@@ -156,6 +156,10 @@ export declare enum CaseStyle {
     ALL_CAPS = 3
 }
 /**
+ * Checks to see if the provided string is GraphQL-safe
+ */
+export declare function isSanitized(str: string): boolean;
+/**
  * First sanitizes given string and then also camelCases it.
  */
 export declare function sanitize(str: string, caseStyle: CaseStyle): string;

@@ -4,7 +4,7 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getRequestSchemaAndNames = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.OAS_GRAPHQL_EXTENSIONS = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
+exports.generateOperationId = exports.uncapitalize = exports.capitalize = exports.formatOperationString = exports.isHttpMethod = exports.trim = exports.storeSaneName = exports.sanitize = exports.isSanitized = exports.CaseStyle = exports.getSecurityRequirements = exports.getSecuritySchemes = exports.getServers = exports.getParameters = exports.getLinks = exports.getResponseStatusCode = exports.getResponseSchemaAndNames = exports.getRequestSchemaAndNames = exports.inferResourceNameFromPath = exports.getSchemaTargetGraphQLType = exports.desanitizeObjectKeys = exports.sanitizeObjectKeys = exports.getBaseUrl = exports.resolveRef = exports.countOperationsWithPayload = exports.countOperationsSubscription = exports.countOperationsMutation = exports.countOperationsQuery = exports.countOperations = exports.getValidOAS3 = exports.methodToHttpMethod = exports.OAS_GRAPHQL_EXTENSIONS = exports.SUCCESS_STATUS_RX = exports.HTTP_METHODS = void 0;
 const operation_1 = require("./types/operation");
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
@@ -1027,6 +1027,13 @@ var CaseStyle;
     CaseStyle[CaseStyle["camelCase"] = 2] = "camelCase";
     CaseStyle[CaseStyle["ALL_CAPS"] = 3] = "ALL_CAPS"; // Used for enum values
 })(CaseStyle = exports.CaseStyle || (exports.CaseStyle = {}));
+/**
+ * Checks to see if the provided string is GraphQL-safe
+ */
+function isSanitized(str) {
+    return /[a-zA-Z0-9_]/gi.test(str);
+}
+exports.isSanitized = isSanitized;
 /**
  * First sanitizes given string and then also camelCases it.
  */

@@ -1187,7 +1187,7 @@ function resolveRuntimeExpression(
   }
 
   throw new Error(
-    `Cannot create link because '${value}' is an invalid runtime expression`
+    `Cannot create link because '${value}' is an invalid runtime expression.`
   )
 }
 
