@@ -278,6 +278,12 @@ function addQueryFields({ authQueryFields, queryFields, operationId, operation, 
     const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
     // Field name provided by x-graphql-field-name OAS extension
     const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+    if (!Oas3Tools.isSanitized(extensionFieldName)) {
+        throw new Error(`Cannot create query field with name "${extensionFieldName}".\nYou ` +
+            `provided "${extensionFieldName}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it is not ` +
+            `GraphQL-safe."`);
+    }
     const generatedFieldName = operationIdFieldNames
         ? saneOperationId // Sanitized (generated) operationId
         : singularNames
@@ -312,7 +318,10 @@ function addQueryFields({ authQueryFields, queryFields, operationId, operation, 
             // Check for extensionFieldName because it can create conflicts
             if (extensionFieldName &&
                 extensionFieldName in authQueryFields[securityRequirement]) {
-                throw new Error(`Cannot create query field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+                throw new Error(`Cannot create query field with name "${extensionFieldName}".\nYou ` +
+                    ` provided "${extensionFieldName}" in ` +
+                    `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts ` +
+                    `with another field named "${extensionFieldName}".`);
             }
             /**
              * If using fieldName will cause a conflict, then try to use the
@@ -344,7 +353,10 @@ function addQueryFields({ authQueryFields, queryFields, operationId, operation, 
     else {
         // Check for extensionFieldName because it can create conflicts
         if (extensionFieldName && extensionFieldName in queryFields) {
-            throw new Error(`Cannot create query field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+            throw new Error(`Cannot create query field with name "${extensionFieldName}".\nYou ` +
+                `provided "${extensionFieldName}" in ` +
+                `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts ` +
+                `with another field named "${extensionFieldName}".`);
         }
         /**
          * If using fieldName will cause a conflict, then try to use the
@@ -379,6 +391,12 @@ function addMutationFields({ authMutationFields, mutationFields, operationId, op
     const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
     // Field name provided by x-graphql-field-name OAS extension
     const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+    if (!Oas3Tools.isSanitized(extensionFieldName)) {
+        throw new Error(`Cannot create mutation field with name "${extensionFieldName}".\nYou ` +
+            `provided "${extensionFieldName}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it is not ` +
+            `GraphQL-safe."`);
+    }
     const generatedFieldName = singularNames
         ? Oas3Tools.sanitize(
         // Generated singular name with HTTP method
@@ -406,7 +424,10 @@ function addMutationFields({ authMutationFields, mutationFields, operationId, op
             // Check for extensionFieldName because it can create conflicts
             if (extensionFieldName &&
                 extensionFieldName in authMutationFields[securityRequirement]) {
-                throw new Error(`Cannot create mutation field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+                throw new Error(`Cannot create mutation field with name ` +
+                    `"${extensionFieldName}".\nYou provided "${extensionFieldName}" ` +
+                    `in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
+                    `conflicts with another field named "${extensionFieldName}".`);
             }
             // Final fieldName verification
             if (fieldName in authMutationFields[securityRequirement]) {
@@ -430,7 +451,10 @@ function addMutationFields({ authMutationFields, mutationFields, operationId, op
     else {
         // Check for extensionFieldName because it can create conflicts
         if (extensionFieldName && extensionFieldName in mutationFields) {
-            throw new Error(`Cannot create mutation field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+            throw new Error(`Cannot create mutation field with name ` +
+                `"${extensionFieldName}".\nYou provided "${extensionFieldName}" ` +
+                `in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
+                `conflicts with another field named "${extensionFieldName}".`);
         }
         // Final fieldName verification
         if (fieldName in mutationFields) {
@@ -454,6 +478,12 @@ function addSubscriptionFields({ authSubscriptionFields, subscriptionFields, ope
     const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions);
     const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
     const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+    if (!Oas3Tools.isSanitized(extensionFieldName)) {
+        throw new Error(`Cannot create subscription field with name ` +
+            `"${extensionFieldName}".\nYou provided "${extensionFieldName}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it is not ` +
+            `GraphQL-safe."`);
+    }
     const fieldName = extensionFieldName || saneOperationId;
     // Generate viewer
     if (operation.inViewer) {
@@ -463,7 +493,10 @@ function addSubscriptionFields({ authSubscriptionFields, subscriptionFields, ope
             }
             if (extensionFieldName &&
                 extensionFieldName in authSubscriptionFields[securityRequirement]) {
-                throw new Error(`Cannot create subscription field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+                throw new Error(`Cannot create subscription field with name ` +
+                    `"${extensionFieldName}".\nYou provided "${extensionFieldName}" ` +
+                    `in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
+                    `conflicts with another field named "${extensionFieldName}".`);
             }
             // Final fieldName verification
             if (fieldName in authSubscriptionFields[securityRequirement]) {
@@ -486,7 +519,10 @@ function addSubscriptionFields({ authSubscriptionFields, subscriptionFields, ope
     }
     else {
         if (extensionFieldName && extensionFieldName in subscriptionFields) {
-            throw new Error(`Cannot create subscription field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+            throw new Error(`Cannot create subscription field with name ` +
+                `"${extensionFieldName}".\nYou provided "${extensionFieldName}" ` +
+                `in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
+                `conflicts with another field named "${extensionFieldName}".`);
         }
         // Final fieldName verification
         if (fieldName in subscriptionFields) {

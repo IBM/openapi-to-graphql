@@ -1,3 +1,8 @@
+// Copyright IBM Corp. 2017,2018. All Rights Reserved.
+// Node module: openapi-to-graphql
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
 'use strict'
 
 import { beforeAll, describe, test, expect } from '@jest/globals'
@@ -97,7 +102,9 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create type with name "User".\nYou provided "User" in x-graphql-type-name, but it conflicts with another type named "User"'
+          `Cannot create type with name "User".\nYou provided "User" in ` +
+            `x-graphql-type-name, but it conflicts with another type named ` +
+            `"User".`
         )
       )
     })
@@ -108,7 +115,9 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create field with name "name".\nYou provided "name" in x-graphql-field-name, but it conflicts with another field named "name"'
+          `Cannot create field with name "name".\nYou provided "name" in ` +
+            `x-graphql-field-name, but it conflicts with another field named ` +
+            `"name".`
         )
       )
     })
@@ -119,7 +128,9 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create query field with name "user".\nYou provided "user" in x-graphql-field-name, but it conflicts with another field named "user"'
+          `Cannot create query field with name "user".\nYou provided ` +
+            `"user" in x-graphql-field-name, but it conflicts with another ` +
+            `field named "user".`
         )
       )
     })
@@ -130,7 +141,9 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create mutation field with name "createUser".\nYou provided "createUser" in x-graphql-field-name, but it conflicts with another field named "createUser"'
+          `Cannot create mutation field with name "createUser".\nYou ` +
+            `provided "createUser" in x-graphql-field-name, but it ` +
+            `conflicts with another field named "createUser".`
         )
       )
     })
@@ -144,7 +157,10 @@ describe('GraphQL Extensions', () => {
         })
       ).rejects.toThrowError(
         new Error(
-          'Cannot create subscription field with name "userEventListener".\nYou provided "userEventListener" in x-graphql-field-name, but it conflicts with another field named "userEventListener"'
+          `Cannot create subscription field with name ` +
+            `"userEventListener".\nYou provided "userEventListener" ` +
+            `in x-graphql-field-name, but it conflicts with another ` +
+            `field named "userEventListener".`
         )
       )
     })
@@ -155,7 +171,9 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create link field with name "group".\nYou provided "group" in x-graphql-field-name, but it conflicts with another field named "group"'
+          `Cannot create link field with name "group".\nYou provided ` +
+            `"group" in x-graphql-field-name, but it conflicts with ` +
+            `another field named "group".`
         )
       )
     })
@@ -166,7 +184,9 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create enum value "CONFLICT".\nYou provided "CONFLICT" in x-graphql-enum-mapping, but it conflicts with another value "CONFLICT"'
+          `Cannot create enum value "CONFLICT".\nYou provided ` +
+            `"CONFLICT" in x-graphql-enum-mapping, but it conflicts ` +
+            `with another value "CONFLICT".`
         )
       )
     })

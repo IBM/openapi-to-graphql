@@ -531,8 +531,10 @@ function createOrReuseList<TSource, TContext, TArgs>({
     }
     return listObjectType
   } else {
-    throw new Error(`Cannot create list item object type '${itemsName}' in list
-    '${name}' with schema '${JSON.stringify(itemsSchema)}'`)
+    throw new Error(
+      `Cannot create list item object type '${itemsName}' in list ` +
+        `'${name}' with schema '${JSON.stringify(itemsSchema)}'.`
+    )
   }
 }
 
@@ -555,12 +557,23 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
     translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`)
 
     const values = {}
-    const mapping =
+
+    const extensionEnumMapping =
       def.schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping] || {}
+
     def.schema.enum.forEach((enumValue) => {
       const enumValueString = enumValue.toString()
 
-      const extensionEnumValue = mapping[enumValueString]
+      const extensionEnumValue = extensionEnumMapping[enumValueString]
+
+      if (!Oas3Tools.isSanitized(extensionEnumValue)) {
+        throw new Error(
+          `Cannot create enum value "${extensionEnumValue}".\nYou ` +
+            `provided "${extensionEnumValue}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it is not ` +
+            `GraphQL-safe."`
+        )
+      }
 
       const emumValue =
         extensionEnumValue ||
@@ -570,9 +583,13 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
             ? Oas3Tools.CaseStyle.ALL_CAPS
             : Oas3Tools.CaseStyle.simple
         )
+
       if (extensionEnumValue in values) {
         throw new Error(
-          `Cannot create enum value "${extensionEnumValue}".\nYou provided "${extensionEnumValue}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it conflicts with another value "${extensionEnumValue}"`
+          `Cannot create enum value "${extensionEnumValue}".\nYou ` +
+            `provided "${extensionEnumValue}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it ` +
+            `conflicts with another value "${extensionEnumValue}".`
         )
       }
       values[emumValue] = { value: enumValue }
@@ -629,9 +646,21 @@ function createFields<TSource, TContext, TArgs>({
       const extensionFieldName =
         fieldSchema?.[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
 
+      if (!Oas3Tools.isSanitized(extensionFieldName)) {
+        throw new Error(
+          `Cannot create field with name "${extensionFieldName}".\nYou ` +
+            `provided "${extensionFieldName}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it is not ` +
+            `GraphQL-safe."`
+        )
+      }
+
       if (extensionFieldName && extensionFieldName in fields) {
         throw new Error(
-          `Cannot create field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`
+          `Cannot create field with name "${extensionFieldName}".\nYou ` +
+            `provided "${extensionFieldName}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
+            `conflicts with another field named "${extensionFieldName}".`
         )
       }
 
@@ -683,7 +712,8 @@ function createFields<TSource, TContext, TArgs>({
           mitigationType: MitigationTypes.LINK_NAME_COLLISION,
           message:
             `Cannot create link '${saneLinkKey}' because parent ` +
-            `object type already contains a field with the same (sanitized) name.`,
+            `object type already contains a field with the same ` +
+            `(sanitized) name.`,
           data,
           log: translationLog
         })

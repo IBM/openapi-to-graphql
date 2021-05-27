@@ -1,3 +1,10 @@
+// Copyright IBM Corp. 2017,2018. All Rights Reserved.
+// Node module: openapi-to-graphql
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
+'use strict'
+
 const express = require('express')
 const { graphqlHTTP } = require('express-graphql')
 const { execute, printSchema, subscribe } = require('graphql')

@@ -360,8 +360,8 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
         return listObjectType;
     }
     else {
-        throw new Error(`Cannot create list item object type '${itemsName}' in list
-    '${name}' with schema '${JSON.stringify(itemsSchema)}'`);
+        throw new Error(`Cannot create list item object type '${itemsName}' in list ` +
+            `'${name}' with schema '${JSON.stringify(itemsSchema)}'.`);
     }
 }
 /**
@@ -380,16 +380,25 @@ function createOrReuseEnum({ def, data }) {
     else {
         translationLog(`Create GraphQLEnumType '${def.graphQLTypeName}'`);
         const values = {};
-        const mapping = def.schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping] || {};
+        const extensionEnumMapping = def.schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping] || {};
         def.schema.enum.forEach((enumValue) => {
             const enumValueString = enumValue.toString();
-            const extensionEnumValue = mapping[enumValueString];
+            const extensionEnumValue = extensionEnumMapping[enumValueString];
+            if (!Oas3Tools.isSanitized(extensionEnumValue)) {
+                throw new Error(`Cannot create enum value "${extensionEnumValue}".\nYou ` +
+                    `provided "${extensionEnumValue}" in ` +
+                    `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it is not ` +
+                    `GraphQL-safe."`);
+            }
             const emumValue = extensionEnumValue ||
                 Oas3Tools.sanitize(enumValueString, !data.options.simpleEnumValues
                     ? Oas3Tools.CaseStyle.ALL_CAPS
                     : Oas3Tools.CaseStyle.simple);
             if (extensionEnumValue in values) {
-                throw new Error(`Cannot create enum value "${extensionEnumValue}".\nYou provided "${extensionEnumValue}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it conflicts with another value "${extensionEnumValue}"`);
+                throw new Error(`Cannot create enum value "${extensionEnumValue}".\nYou ` +
+                    `provided "${extensionEnumValue}" in ` +
+                    `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it ` +
+                    `conflicts with another value "${extensionEnumValue}".`);
             }
             values[emumValue] = { value: enumValue };
         });
@@ -423,8 +432,17 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
             const extensionFieldName = fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+            if (!Oas3Tools.isSanitized(extensionFieldName)) {
+                throw new Error(`Cannot create field with name "${extensionFieldName}".\nYou ` +
+                    `provided "${extensionFieldName}" in ` +
+                    `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it is not ` +
+                    `GraphQL-safe."`);
+            }
             if (extensionFieldName && extensionFieldName in fields) {
-                throw new Error(`Cannot create field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+                throw new Error(`Cannot create field with name "${extensionFieldName}".\nYou ` +
+                    `provided "${extensionFieldName}" in ` +
+                    `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
+                    `conflicts with another field named "${extensionFieldName}".`);
             }
             const saneFieldName = extensionFieldName ||
                 Oas3Tools.sanitize(fieldName, !data.options.simpleNames
@@ -458,7 +476,8 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                 utils_1.handleWarning({
                     mitigationType: utils_1.MitigationTypes.LINK_NAME_COLLISION,
                     message: `Cannot create link '${saneLinkKey}' because parent ` +
-                        `object type already contains a field with the same (sanitized) name.`,
+                        `object type already contains a field with the same ` +
+                        `(sanitized) name.`,
                     data,
                     log: translationLog
                 });

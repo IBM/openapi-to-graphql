@@ -1332,6 +1332,13 @@ export enum CaseStyle {
 }
 
 /**
+ * Checks to see if the provided string is GraphQL-safe
+ */
+export function isSanitized(str: string): boolean {
+  return /[a-zA-Z0-9_]/gi.test(str)
+}
+
+/**
  * First sanitizes given string and then also camelCases it.
  */
 export function sanitize(str: string, caseStyle: CaseStyle): string {
