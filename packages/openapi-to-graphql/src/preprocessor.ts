@@ -693,20 +693,24 @@ export function createDataDef<TSource, TContext, TArgs>(
     if (typeof links === 'object') {
       Object.keys(links).forEach((linkKey) => {
         const link = links[linkKey]
-        const fromExtension = link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
-        if (fromExtension in saneLinks) {
+
+        const extensionFieldName =
+          link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
+
+        if (extensionFieldName in saneLinks) {
           throw new Error(
-            `Cannot create link with name "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another link called "${fromExtension}"`
+            `Cannot create link field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`
           )
         }
-        const linkSaneName = Oas3Tools.sanitize(
-          fromExtension || linkKey,
+
+        const linkFieldName = Oas3Tools.sanitize(
+          extensionFieldName || linkKey,
           !data.options.simpleNames
             ? Oas3Tools.CaseStyle.camelCase
             : Oas3Tools.CaseStyle.simple
         )
 
-        saneLinks[linkSaneName] = link
+        saneLinks[linkFieldName] = link
       })
     }
 
@@ -874,13 +878,13 @@ export function createDataDef<TSource, TContext, TArgs>(
               itemsName = itemsSchema.$ref.split('/').pop()
             }
 
-            const fromExtension =
+            const extensionTypeName =
               collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
 
             const subDefinition = createDataDef(
               // Is this the correct classification for this name? It does not matter in the long run.
               { 
-                fromExtension,
+                fromExtension: extensionTypeName,
                 fromRef: itemsName 
               },
               itemsSchema as SchemaObject,
@@ -1027,7 +1031,7 @@ function getSchemaName(
 
     if (usedNames.includes(saneName)) {
       throw new Error(
-        `Cannot create Type with name "${saneName}".\nYou provided "${names.fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it conflicts with another Type called "${saneName}"`
+        `Cannot create type with name "${saneName}".\nYou provided "${names.fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it conflicts with another type named "${saneName}"`
       )
     }
 
@@ -1141,11 +1145,12 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
         propSchema = propSchemaOrRef as SchemaObject
       }
 
-      const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
+      const extensionTypeName =
+        propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
 
       const subDefinition = createDataDef(
         {
-          fromExtension,
+          fromExtension: extensionTypeName,
           fromRef: propSchemaName,
           fromSchema: propSchema.title // TODO: Redundant because of fromRef but arguably, propertyKey is a better field name and title is a better type name
         },
@@ -1488,8 +1493,12 @@ function createAnyOfObject<TSource, TContext, TArgs>(
         // Dereferenced by processing anyOfData
         const propertySchema = properties[propertyName] as SchemaObject
 
+        const extensionTypeName =
+          propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
+
         const subDefinition = createDataDef(
           {
+            fromExtension: extensionTypeName,
             fromRef: propertyName,
             fromSchema: propertySchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
           },
@@ -1563,12 +1572,12 @@ function createOneOfUnion<TSource, TContext, TArgs>(
       memberSchema = memberSchemaOrRef as SchemaObject
     }
 
-    const fromExtension =
+    const extensionTypeName =
       memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
 
     const subDefinition = createDataDef(
       {
-        fromExtension,
+        fromExtension: extensionTypeName,
         fromRef,
         fromSchema: memberSchema.title,
         fromPath: `${saneName}Member`

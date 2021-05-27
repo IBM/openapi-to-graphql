@@ -158,184 +158,39 @@ provideErrorExtensions, equivalentToMessages }) {
     // Add Query and Mutation fields
     Object.entries(data.operations).forEach(([operationId, operation]) => {
         translationLog(`Process operation '${operation.operationString}'...`);
-        const field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
-        const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
         // Check if the operation should be added as a Query or Mutation
         if (operation.operationType === graphql_1.GraphQLOperationType.Query) {
-            const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
-            if (extensionFieldName in queryFields) {
-                throw new Error(`Cannot create query with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another query called "${extensionFieldName}"`);
-            }
-            let fieldName = extensionFieldName ||
-                (!singularNames
-                    ? Oas3Tools.uncapitalize(operation.responseDefinition.graphQLTypeName)
-                    : Oas3Tools.sanitize(Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase));
-            if (operation.inViewer) {
-                for (let securityRequirement of operation.securityRequirements) {
-                    if (typeof authQueryFields[securityRequirement] !== 'object') {
-                        authQueryFields[securityRequirement] = {};
-                    }
-                    // Avoid overwriting fields that return the same data:
-                    if (fieldName in authQueryFields[securityRequirement] ||
-                        /**
-                         * If the option is set operationIdFieldNames, the fieldName is
-                         * forced to be the operationId
-                         */
-                        operationIdFieldNames) {
-                        fieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
-                    }
-                    if (fieldName in authQueryFields[securityRequirement]) {
-                        utils_1.handleWarning({
-                            mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
-                            message: `Multiple operations have the same name ` +
-                                `'${fieldName}' and security requirement ` +
-                                `'${securityRequirement}'. GraphQL field names must be ` +
-                                `unique so only one can be added to the authentication ` +
-                                `viewer. Operation '${operation.operationString}' will be ignored.`,
-                            data,
-                            log: translationLog
-                        });
-                    }
-                    else {
-                        authQueryFields[securityRequirement][fieldName] = field;
-                    }
-                }
-            }
-            else {
-                // Avoid overwriting fields that return the same data:
-                if (fieldName in queryFields ||
-                    /**
-                     * If the option is set operationIdFieldNames, the fieldName is
-                     * forced to be the operationId
-                     */
-                    operationIdFieldNames) {
-                    fieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
-                }
-                if (fieldName in queryFields) {
-                    utils_1.handleWarning({
-                        mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
-                        message: `Multiple operations have the same name ` +
-                            `'${fieldName}'. GraphQL field names must be ` +
-                            `unique so only one can be added to the Query object. ` +
-                            `Operation '${operation.operationString}' will be ignored.`,
-                        data,
-                        log: translationLog
-                    });
-                }
-                else {
-                    queryFields[fieldName] = field;
-                }
-            }
+            addQueryFields({
+                authQueryFields,
+                queryFields,
+                operationId,
+                operation,
+                options,
+                data
+            });
         }
-        else {
-            let saneFieldName;
-            const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
-            if (extensionFieldName) {
-                if (extensionFieldName in data.saneMap) {
-                    throw new Error(`Cannot create mutation with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another mutation called "${extensionFieldName}"`);
-                }
-                saneFieldName = extensionFieldName;
-            }
-            else if (!singularNames) {
-                /**
-                 * Use operationId to avoid problems differentiating operations with the
-                 * same path but differnet methods
-                 */
-                saneFieldName = Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
-            }
-            else {
-                const fieldName = `${operation.method}${Oas3Tools.inferResourceNameFromPath(operation.path)}`;
-                saneFieldName = Oas3Tools.storeSaneName(Oas3Tools.sanitize(fieldName, Oas3Tools.CaseStyle.camelCase), fieldName, data.saneMap);
-            }
-            if (operation.inViewer) {
-                for (let securityRequirement of operation.securityRequirements) {
-                    if (typeof authMutationFields[securityRequirement] !== 'object') {
-                        authMutationFields[securityRequirement] = {};
-                    }
-                    if (saneFieldName in authMutationFields[securityRequirement]) {
-                        utils_1.handleWarning({
-                            mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
-                            message: `Multiple operations have the same name ` +
-                                `'${saneFieldName}' and security requirement ` +
-                                `'${securityRequirement}'. GraphQL field names must be ` +
-                                `unique so only one can be added to the authentication ` +
-                                `viewer. Operation '${operation.operationString}' will be ignored.`,
-                            data,
-                            log: translationLog
-                        });
-                    }
-                    else {
-                        authMutationFields[securityRequirement][saneFieldName] = field;
-                    }
-                }
-            }
-            else {
-                if (saneFieldName in mutationFields) {
-                    utils_1.handleWarning({
-                        mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
-                        message: `Multiple operations have the same name ` +
-                            `'${saneFieldName}'. GraphQL field names must be ` +
-                            `unique so only one can be added to the Mutation object. ` +
-                            `Operation '${operation.operationString}' will be ignored.`,
-                        data,
-                        log: translationLog
-                    });
-                }
-                else {
-                    mutationFields[saneFieldName] = field;
-                }
-            }
+        else if (operation.operationType === graphql_1.GraphQLOperationType.Mutation) {
+            addMutationFields({
+                authMutationFields,
+                mutationFields,
+                operationId,
+                operation,
+                options,
+                data
+            });
         }
     });
     // Add Subscription fields
     Object.entries(data.callbackOperations).forEach(([operationId, operation]) => {
         translationLog(`Process operation '${operationId}'...`);
-        let field = getFieldForOperation(operation, options.baseUrl, data, requestOptions, connectOptions);
-        const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
-        const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
-        if (extensionFieldName && extensionFieldName in data.saneMap) {
-            throw new Error(`Cannot create subscription with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another subscription called "${extensionFieldName}"`);
-        }
-        const saneFieldName = extensionFieldName ||
-            Oas3Tools.storeSaneName(saneOperationId, operationId, data.saneMap);
-        if (operation.inViewer) {
-            for (let securityRequirement of operation.securityRequirements) {
-                if (typeof authSubscriptionFields[securityRequirement] !== 'object') {
-                    authSubscriptionFields[securityRequirement] = {};
-                }
-                if (saneFieldName in authSubscriptionFields[securityRequirement]) {
-                    utils_1.handleWarning({
-                        mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
-                        message: `Multiple operations have the same name ` +
-                            `'${saneFieldName}' and security requirement ` +
-                            `'${securityRequirement}'. GraphQL field names must be ` +
-                            `unique so only one can be added to the authentication ` +
-                            `viewer. Operation '${operation.operationString}' will be ignored.`,
-                        data,
-                        log: translationLog
-                    });
-                }
-                else {
-                    authSubscriptionFields[securityRequirement][saneFieldName] = field;
-                }
-            }
-        }
-        else {
-            if (saneFieldName in subscriptionFields) {
-                utils_1.handleWarning({
-                    mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
-                    message: `Multiple operations have the same name ` +
-                        `'${saneFieldName}'. GraphQL field names must be ` +
-                        `unique so only one can be added to the Mutation object. ` +
-                        `Operation '${operation.operationString}' will be ignored.`,
-                    data,
-                    log: translationLog
-                });
-            }
-            else {
-                subscriptionFields[saneFieldName] = field;
-            }
-        }
+        addSubscriptionFields({
+            authSubscriptionFields,
+            subscriptionFields,
+            operationId,
+            operation,
+            options,
+            data
+        });
     });
     // Sorting fields
     queryFields = utils_1.sortObject(queryFields);
@@ -354,17 +209,17 @@ provideErrorExtensions, equivalentToMessages }) {
         authSubscriptionFields[key] = utils_1.sortObject(authSubscriptionFields[key]);
     });
     // Count created Query, Mutation, and Subscription fields
-    options.report.numQueriesCreated =
+    report.numQueriesCreated =
         Object.keys(queryFields).length +
             Object.keys(authQueryFields).reduce((sum, key) => {
                 return sum + Object.keys(authQueryFields[key]).length;
             }, 0);
-    options.report.numMutationsCreated =
+    report.numMutationsCreated =
         Object.keys(mutationFields).length +
             Object.keys(authMutationFields).reduce((sum, key) => {
                 return sum + Object.keys(authMutationFields[key]).length;
             }, 0);
-    options.report.numSubscriptionsCreated =
+    report.numSubscriptionsCreated =
         Object.keys(subscriptionFields).length +
             Object.keys(authSubscriptionFields).reduce((sum, key) => {
                 return sum + Object.keys(authSubscriptionFields[key]).length;
@@ -415,7 +270,240 @@ provideErrorExtensions, equivalentToMessages }) {
         }
     });
     const schema = new graphql_2.GraphQLSchema(schemaConfig);
-    return { schema, report: options.report, data };
+    return { schema, report, data };
+}
+function addQueryFields({ authQueryFields, queryFields, operationId, operation, options, data }) {
+    const { operationIdFieldNames, singularNames, baseUrl, requestOptions, connectOptions } = options;
+    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions);
+    const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
+    // Field name provided by x-graphql-field-name OAS extension
+    const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+    const generatedFieldName = operationIdFieldNames
+        ? saneOperationId // Sanitized (generated) operationId
+        : singularNames
+            ? Oas3Tools.sanitize(
+            // Generated singular name
+            Oas3Tools.inferResourceNameFromPath(operation.path), Oas3Tools.CaseStyle.camelCase)
+            : Oas3Tools.uncapitalize(
+            // Generated type name (to be used as a field name)
+            operation.responseDefinition.graphQLTypeName);
+    /**
+     * The name of the field
+     *
+     * Priority order:
+     *  1. (extensionFieldName) if the field name is provided by
+     * x-graphql-field-name OAS extension, use it.
+     *
+     *  2. (operationIdFieldNames) if the operationIdFieldNames option is set
+     * to true, then use the sane operationId.
+     *
+     *  3. (singularNames) if the singularNames option is set to true, then
+     * generate a singular name and use it.
+     *
+     *  4. (default) use the generated type name and use it.
+     */
+    let fieldName = extensionFieldName || generatedFieldName;
+    // Generate viewer
+    if (operation.inViewer) {
+        for (let securityRequirement of operation.securityRequirements) {
+            if (typeof authQueryFields[securityRequirement] !== 'object') {
+                authQueryFields[securityRequirement] = {};
+            }
+            // Check for extensionFieldName because it can create conflicts
+            if (extensionFieldName &&
+                extensionFieldName in authQueryFields[securityRequirement]) {
+                throw new Error(`Cannot create query field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+            }
+            /**
+             * If using fieldName will cause a conflict, then try to use the
+             * operationId instead.
+             *
+             * For example, the default behavior is to use the type name as a
+             * field name and multiple operations can return the same type.
+             */
+            if (fieldName in authQueryFields[securityRequirement]) {
+                fieldName = saneOperationId;
+            }
+            // Final fieldName verification
+            if (fieldName in authQueryFields[securityRequirement]) {
+                utils_1.handleWarning({
+                    mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
+                    message: `Multiple operations have the same name ` +
+                        `'${fieldName}' and security requirement ` +
+                        `'${securityRequirement}'. GraphQL field names must be ` +
+                        `unique so only one can be added to the authentication ` +
+                        `viewer. Operation '${operation.operationString}' will be ignored.`,
+                    data,
+                    log: translationLog
+                });
+                return;
+            }
+            authQueryFields[securityRequirement][fieldName] = field;
+        }
+    }
+    else {
+        // Check for extensionFieldName because it can create conflicts
+        if (extensionFieldName && extensionFieldName in queryFields) {
+            throw new Error(`Cannot create query field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+        }
+        /**
+         * If using fieldName will cause a conflict, then try to use the
+         * operationId instead.
+         *
+         * For example, the default behavior is to use the type name as a
+         * field name and multiple operations can return the same type.
+         */
+        if (fieldName in queryFields) {
+            fieldName = saneOperationId;
+        }
+        // Final fieldName verification
+        if (fieldName in queryFields) {
+            utils_1.handleWarning({
+                mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
+                message: `Multiple operations have the same name ` +
+                    `'${fieldName}'. GraphQL field names must be ` +
+                    `unique so only one can be added to the Query object. ` +
+                    `Operation '${operation.operationString}' will be ignored.`,
+                data,
+                log: translationLog
+            });
+            return;
+        }
+        // Add field into Query
+        queryFields[fieldName] = field;
+    }
+}
+function addMutationFields({ authMutationFields, mutationFields, operationId, operation, options, data }) {
+    const { singularNames, baseUrl, requestOptions, connectOptions } = options;
+    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions);
+    const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
+    // Field name provided by x-graphql-field-name OAS extension
+    const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+    const generatedFieldName = singularNames
+        ? Oas3Tools.sanitize(
+        // Generated singular name with HTTP method
+        `${operation.method}${Oas3Tools.inferResourceNameFromPath(operation.path)}`, Oas3Tools.CaseStyle.camelCase)
+        : saneOperationId; // (Generated) operationId (for mutations, operationId is guaranteed unique)
+    /**
+     * The name of the field
+     *
+     * Priority order:
+     *  1. (extensionFieldName) if the field name is provided by
+     * x-graphql-field-name OAS extension, use it.
+     *
+     *  2. (singularNames) if the singularNames option is set to true, then
+     * generate a singular name with the HTTP method and use it.
+     *
+     *  3. (default) use the (generated) operationId.
+     */
+    const fieldName = extensionFieldName || generatedFieldName;
+    // Generate viewer
+    if (operation.inViewer) {
+        for (let securityRequirement of operation.securityRequirements) {
+            if (typeof authMutationFields[securityRequirement] !== 'object') {
+                authMutationFields[securityRequirement] = {};
+            }
+            // Check for extensionFieldName because it can create conflicts
+            if (extensionFieldName &&
+                extensionFieldName in authMutationFields[securityRequirement]) {
+                throw new Error(`Cannot create mutation field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+            }
+            // Final fieldName verification
+            if (fieldName in authMutationFields[securityRequirement]) {
+                utils_1.handleWarning({
+                    mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
+                    message: `Multiple operations have the same name ` +
+                        `'${fieldName}' and security requirement ` +
+                        `'${securityRequirement}'. GraphQL field names must be ` +
+                        `unique so only one can be added to the authentication ` +
+                        `viewer. Operation '${operation.operationString}' will be ignored.`,
+                    data,
+                    log: translationLog
+                });
+                return;
+            }
+            // Add field into viewer
+            authMutationFields[securityRequirement][fieldName] = field;
+        }
+        // No viewer
+    }
+    else {
+        // Check for extensionFieldName because it can create conflicts
+        if (extensionFieldName && extensionFieldName in mutationFields) {
+            throw new Error(`Cannot create mutation field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+        }
+        // Final fieldName verification
+        if (fieldName in mutationFields) {
+            utils_1.handleWarning({
+                mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
+                message: `Multiple operations have the same name ` +
+                    `'${fieldName}'. GraphQL field names must be ` +
+                    `unique so only one can be added to the Mutation object. ` +
+                    `Operation '${operation.operationString}' will be ignored.`,
+                data,
+                log: translationLog
+            });
+            return;
+        }
+        // Add field into Mutation
+        mutationFields[fieldName] = field;
+    }
+}
+function addSubscriptionFields({ authSubscriptionFields, subscriptionFields, operationId, operation, options, data }) {
+    const { baseUrl, requestOptions, connectOptions } = options;
+    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions);
+    const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
+    const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+    const fieldName = extensionFieldName || saneOperationId;
+    // Generate viewer
+    if (operation.inViewer) {
+        for (let securityRequirement of operation.securityRequirements) {
+            if (typeof authSubscriptionFields[securityRequirement] !== 'object') {
+                authSubscriptionFields[securityRequirement] = {};
+            }
+            if (extensionFieldName &&
+                extensionFieldName in authSubscriptionFields[securityRequirement]) {
+                throw new Error(`Cannot create subscription field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+            }
+            // Final fieldName verification
+            if (fieldName in authSubscriptionFields[securityRequirement]) {
+                utils_1.handleWarning({
+                    mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
+                    message: `Multiple operations have the same name ` +
+                        `'${fieldName}' and security requirement ` +
+                        `'${securityRequirement}'. GraphQL field names must be ` +
+                        `unique so only one can be added to the authentication ` +
+                        `viewer. Operation '${operation.operationString}' will be ignored.`,
+                    data,
+                    log: translationLog
+                });
+                return;
+            }
+            // Add field into viewer
+            authSubscriptionFields[securityRequirement][fieldName] = field;
+        }
+        // No viewer
+    }
+    else {
+        if (extensionFieldName && extensionFieldName in subscriptionFields) {
+            throw new Error(`Cannot create subscription field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
+        }
+        // Final fieldName verification
+        if (fieldName in subscriptionFields) {
+            utils_1.handleWarning({
+                mitigationType: utils_1.MitigationTypes.DUPLICATE_FIELD_NAME,
+                message: `Multiple operations have the same name ` +
+                    `'${fieldName}'. GraphQL field names must be ` +
+                    `unique so only one can be added to the Mutation object. ` +
+                    `Operation '${operation.operationString}' will be ignored.`,
+                data,
+                log: translationLog
+            });
+            return;
+        }
+        // Add field into Subscription
+        subscriptionFields[fieldName] = field;
+    }
 }
 /**
  * Creates the field object for the given operation.

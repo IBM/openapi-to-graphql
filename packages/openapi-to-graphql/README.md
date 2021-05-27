@@ -83,7 +83,7 @@ For example, let's say we have an API that has an operation called `GET /users/{
 
 If you define a link object, then OpenAPI-to-GraphQL will add a new field to your object type. In this case, the `User` object type will have not only an `currentEmployerId` field, but also an `employer` field. Then, you will be able to create nested GraphQL queries like the following:
 
-```
+```graphql
 query {
   user(userId: "Alan") {
     currentEmployerId
@@ -100,7 +100,7 @@ To create nested object types for arrays, you will need to keep the following in
 
 Continuing from the previous example, let's say that there is a third operation called `GET /friends/{userId}` which would return an array of users, specifically the friends of a particular user. Furthermore, let's say you wanted to run the following query, which would allow you to get all the employers of Alan's friends:
 
-```
+```graphql
 query {
   friends(userId: "Alan") {
     currentEmployerId
@@ -188,7 +188,7 @@ Resolver options:
 
 Authentication options:
 
-- `viewer` (type: `boolean`, default: `true`): The viewer object types (i.e. `QueryViewer` and `MutationViewer`) are artificial constructs that allow users to pass authentication credentials to OpenAPI-to-GraphQL. They are created when the OAS defines [security scheme objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#securitySchemeObject) and when operations adopt them through a [security requirement object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#securityRequirementObject). A viewer is created for each security scheme and each viewer contains authenticated operations that uses its respective security scheme. In addition, a special `AnyAuth` viewer, which can authenticate requests utilizing different security schemes, is created. Unfortunately, viewers are bulky so, depending on the API, it may be possible to send credentials through the `header`, `qs`, or `requestOptions` options. _Note: OAuth authentication is handled using the `tokenJSONpath` and `sendOAuthTokenInQuery` options._
+- `viewer` (type: `boolean`, default: `true`): The viewer object types (i.e. `QueryViewer` and `MutationViewer`) are artificial constructs that allow users to pass authentication credentials to OpenAPI-to-GraphQL. They are created when the OAS defines [security scheme objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#securitySchemeObject) and when operations adopt them through a [security requirement object](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#securityRequirementObject). A viewer is created for each security scheme and each viewer contains authenticated operations that uses its respective security scheme. In addition, a special `anyAuth` viewer, which can authenticate requests utilizing different security schemes, is created. Unfortunately, viewers are bulky so, depending on the API, it may be possible to send credentials through the `header`, `qs`, or `requestOptions` options. _Note: OAuth authentication is handled using the `tokenJSONpath` and `sendOAuthTokenInQuery` options._
 
 - `tokenJSONpath` (type: `string`): Used to pass the [JSONPath](http://goessner.net/articles/JsonPath/) of the OAuth token in the GraphQL context. To see more details, click [here](./README.md#authorization).
 
@@ -242,6 +242,72 @@ OpenAPI-to-GraphQL.createGraphQLSchema(oas, {
 })
 ```
 
+## Custom Type and Field Names and Enum Values
+
+The `x-graphql-type-name`, `x-graphql-field-name`, and `x-graphql-enum-mapping` OAS extensions can be used to configure the types and field names as well as enum values.
+
+The type and field names and enum values that OpenAPI-to-GraphQL generates may not be adequate or may not be consistent over different versions so this is a way to guarantee consistency.
+
+`x-graphql-type-name` and `x-graphql-field-name` can be added to JSON schema to change the type name as well as change a field name.
+
+```diff
+{
+  "type": "object",
++ "x-graphql-type-name": "Response",
+  "properties": {
+    "code": {
+      "type": "integer",
++     "x-graphql-field-name": "statusCode",
+    }
+  }
+}
+```
+
+`x-graphql-field-name` can be added to an [operation object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#operationObject) to change a field name under the top-level `Query`, `Mutation`, and `Subscription` types.
+
+```diff
+{
+  "/pet/findByStatus": {
+    "get": {
++     "x-graphql-field-name": "getPetsByStatus",
+      "parameters": [
+        ...
+      ],
+      "responses": {
+        ...
+      }
+    }
+  }
+}
+```
+
+`x-graphql-field-name` can be added to a [link object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md#linkObject) to change the name of a linked field (see section on [Nested Objects](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql#nested-objects)).
+
+```diff
+{
++ "x-graphql-field-name": "orderPet",
+  "operationId": "getPetById",
+  "parameters": {
+    "petId": "$response.body.petId"
+  },
+  "description": "Link from Order to Pet"
+}
+```
+
+`x-graphql-enum-mapping` can be added to a JSON schema to change the enum values. It is a mapping from the original enum values to the ones that should used in the GraphQL interface.
+
+```diff
+{
+  "type": "string",
+  "enum": ["available", "pending", "sold"],
++ "x-graphql-enum-mapping": {
++   "available": "INITIAL",
++   "pending": "IN_PROGRESS",
++   "sold": "SOLD"
++ }
+}
+```
+
 ## Authentication
 
 By default, OpenAPI-to-GraphQL will wrap API requests that need authentication in corresponding `viewers`, which allow the user to pass required credentials. OpenAPI-to-GraphQL currently supports viewers for basic authentication and API keys. For example, a query using an API key viewer is:
@@ -264,7 +330,7 @@ mutation {
 }
 ```
 
-OpenAPI-to-GraphQL further provides `anyAuth` viewers (for queries and mutations), which allow the user to simultaneously provide information for multiple authentication mechanisms. AnyAuth viewers allow OpenAPI-to-GraphQL to resolve nested queries and mutations that encompass API requests with different authentication mechanisms. For example, consider the following query:
+OpenAPI-to-GraphQL further provides `anyAuth` viewers (for queries and mutations), which allow the user to simultaneously provide information for multiple authentication mechanisms. `anyAuth` viewers allow OpenAPI-to-GraphQL to resolve nested queries and mutations that encompass API requests with different authentication mechanisms. For example, consider the following query:
 
 ```javascript
 {

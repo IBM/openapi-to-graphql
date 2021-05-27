@@ -482,14 +482,14 @@ function createDataDef(names, schemaOrRef, isInputObjectType, data, oas, links) 
         if (typeof links === 'object') {
             Object.keys(links).forEach((linkKey) => {
                 const link = links[linkKey];
-                const fromExtension = link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
-                if (fromExtension in saneLinks) {
-                    throw new Error(`Cannot create link with name "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another link called "${fromExtension}"`);
+                const extensionFieldName = link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+                if (extensionFieldName in saneLinks) {
+                    throw new Error(`Cannot create link field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
                 }
-                const linkSaneName = Oas3Tools.sanitize(fromExtension || linkKey, !data.options.simpleNames
+                const linkFieldName = Oas3Tools.sanitize(extensionFieldName || linkKey, !data.options.simpleNames
                     ? Oas3Tools.CaseStyle.camelCase
                     : Oas3Tools.CaseStyle.simple);
-                saneLinks[linkSaneName] = link;
+                saneLinks[linkFieldName] = link;
             });
         }
         // Determine the index of possible existing data definition
@@ -609,11 +609,11 @@ function createDataDef(names, schemaOrRef, isInputObjectType, data, oas, links) 
                         if ('$ref' in itemsSchema) {
                             itemsName = itemsSchema.$ref.split('/').pop();
                         }
-                        const fromExtension = collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
+                        const extensionTypeName = collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
                         const subDefinition = createDataDef(
                         // Is this the correct classification for this name? It does not matter in the long run.
                         {
-                            fromExtension,
+                            fromExtension: extensionTypeName,
                             fromRef: itemsName
                         }, itemsSchema, isInputObjectType, data, oas);
                         // Add list item reference
@@ -715,7 +715,7 @@ function getSchemaName(names, usedNames) {
     if (typeof names.fromExtension === 'string') {
         const saneName = Oas3Tools.sanitize(names.fromExtension, Oas3Tools.CaseStyle.PascalCase);
         if (usedNames.includes(saneName)) {
-            throw new Error(`Cannot create Type with name "${saneName}".\nYou provided "${names.fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it conflicts with another Type called "${saneName}"`);
+            throw new Error(`Cannot create type with name "${saneName}".\nYou provided "${names.fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName}, but it conflicts with another type named "${saneName}"`);
         }
         if (!usedNames.includes(saneName)) {
             schemaName = names.fromExtension;
@@ -794,9 +794,9 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
             else {
                 propSchema = propSchemaOrRef;
             }
-            const fromExtension = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
+            const extensionTypeName = propSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
             const subDefinition = createDataDef({
-                fromExtension,
+                fromExtension: extensionTypeName,
                 fromRef: propSchemaName,
                 fromSchema: propSchema.title // TODO: Redundant because of fromRef but arguably, propertyKey is a better field name and title is a better type name
             }, propSchema, isInputObjectType, data, oas);
@@ -1038,7 +1038,9 @@ function createAnyOfObject(saneName, saneInputName, collapsedSchema, isInputObje
             if (!incompatibleProperties.has(propertyName)) {
                 // Dereferenced by processing anyOfData
                 const propertySchema = properties[propertyName];
+                const extensionTypeName = propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
                 const subDefinition = createDataDef({
+                    fromExtension: extensionTypeName,
                     fromRef: propertyName,
                     fromSchema: propertySchema.title // TODO: Currently not utilized because of fromRef but arguably, propertyKey is a better field name and title is a better type name
                 }, propertySchema, isInputObjectType, data, oas);
@@ -1086,9 +1088,9 @@ function createOneOfUnion(saneName, saneInputName, collapsedSchema, isInputObjec
         else {
             memberSchema = memberSchemaOrRef;
         }
-        const fromExtension = memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
+        const extensionTypeName = memberSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName];
         const subDefinition = createDataDef({
-            fromExtension,
+            fromExtension: extensionTypeName,
             fromRef,
             fromSchema: memberSchema.title,
             fromPath: `${saneName}Member`

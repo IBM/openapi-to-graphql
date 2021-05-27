@@ -97,7 +97,7 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create Type with name "User".\nYou provided "User" in x-graphql-type-name, but it conflicts with another Type called "User"'
+          'Cannot create type with name "User".\nYou provided "User" in x-graphql-type-name, but it conflicts with another type named "User"'
         )
       )
     })
@@ -108,7 +108,7 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create field with name "name".\nYou provided "name" in x-graphql-field-name, but it conflicts with another field called "name"'
+          'Cannot create field with name "name".\nYou provided "name" in x-graphql-field-name, but it conflicts with another field named "name"'
         )
       )
     })
@@ -119,7 +119,7 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create query with name "user".\nYou provided "user" in x-graphql-field-name, but it conflicts with another query called "user"'
+          'Cannot create query field with name "user".\nYou provided "user" in x-graphql-field-name, but it conflicts with another field named "user"'
         )
       )
     })
@@ -130,7 +130,7 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create mutation with name "createUser".\nYou provided "createUser" in x-graphql-field-name, but it conflicts with another mutation called "createUser"'
+          'Cannot create mutation field with name "createUser".\nYou provided "createUser" in x-graphql-field-name, but it conflicts with another field named "createUser"'
         )
       )
     })
@@ -144,7 +144,7 @@ describe('GraphQL Extensions', () => {
         })
       ).rejects.toThrowError(
         new Error(
-          'Cannot create subscription with name "userEventListener".\nYou provided "userEventListener" in x-graphql-field-name, but it conflicts with another subscription called "userEventListener"'
+          'Cannot create subscription field with name "userEventListener".\nYou provided "userEventListener" in x-graphql-field-name, but it conflicts with another field named "userEventListener"'
         )
       )
     })
@@ -155,7 +155,7 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create link with name "group".\nYou provided "group" in x-graphql-field-name, but it conflicts with another link called "group"'
+          'Cannot create link field with name "group".\nYou provided "group" in x-graphql-field-name, but it conflicts with another field named "group"'
         )
       )
     })
@@ -166,7 +166,7 @@ describe('GraphQL Extensions', () => {
         openAPIToGraphQL.createGraphQLSchema(oas)
       ).rejects.toThrowError(
         new Error(
-          'Cannot create enum value "CONFLICT".\nYou provided "CONFLICT" in x-graphql-enum-mapping, but it conflicts with another enum value "CONFLICT"'
+          'Cannot create enum value "CONFLICT".\nYou provided "CONFLICT" in x-graphql-enum-mapping, but it conflicts with another value "CONFLICT"'
         )
       )
     })

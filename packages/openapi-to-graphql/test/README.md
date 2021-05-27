@@ -32,3 +32,4 @@ The following table summarizes the purposes of these tests.
 | `example_api5.test.ts` | `Example API 5` | The [`simpleNames` option](https://github.com/IBM/openapi-to-graphql/blob/master/packages/openapi-to-graphql/README.md#options) |
 | `example_api6.test.ts` | `Example API 6` | An assortment of other functionality and options |
 | `example_api7.test.ts` | `Example API 7` | [Subscription support](../docs/subscriptions.md) |
+| `extensions.test.ts`   | `Extensions`, `Extensions Error 1`, `Extensions Error 2`, `Extensions Error 3`, `Extensions Error 4`, `Extensions Error 5`, `Extensions Error 6`, `Extensions Error 7` | The [`x-graphql-field-name`, `x-graphql-type-name`, and `x-graphql-enum-mapping` extensions](https://github.com/IBM/openapi-to-graphql/tree/master/packages/openapi-to-graphql#custom-type-and-field-names-and-enum-values)

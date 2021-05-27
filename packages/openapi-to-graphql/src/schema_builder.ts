@@ -559,21 +559,23 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
       def.schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping] || {}
     def.schema.enum.forEach((enumValue) => {
       const enumValueString = enumValue.toString()
-      const fromExtension = mapping[enumValueString]
-      const saneEnumValue =
-        fromExtension ||
+
+      const extensionEnumValue = mapping[enumValueString]
+
+      const emumValue =
+        extensionEnumValue ||
         Oas3Tools.sanitize(
           enumValueString,
           !data.options.simpleEnumValues
             ? Oas3Tools.CaseStyle.ALL_CAPS
             : Oas3Tools.CaseStyle.simple
         )
-      if (fromExtension in values) {
+      if (extensionEnumValue in values) {
         throw new Error(
-          `Cannot create enum value "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it conflicts with another enum value "${fromExtension}"`
+          `Cannot create enum value "${extensionEnumValue}".\nYou provided "${extensionEnumValue}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it conflicts with another value "${extensionEnumValue}"`
         )
       }
-      values[saneEnumValue] = { value: enumValue }
+      values[emumValue] = { value: enumValue }
     })
 
     // Store newly created Enum Object Type
@@ -606,8 +608,8 @@ function createFields<TSource, TContext, TArgs>({
   }
 
   // Create fields for properties
-  for (let fieldTypeKey in fieldTypeDefinitions) {
-    const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey]
+  for (let fieldName in fieldTypeDefinitions) {
+    const fieldTypeDefinition = fieldTypeDefinitions[fieldName]
     const fieldSchema = fieldTypeDefinition.schema
 
     // Get object type describing the property
@@ -620,31 +622,31 @@ function createFields<TSource, TContext, TArgs>({
     })
 
     const requiredProperty =
-      typeof def.required === 'object' && def.required.includes(fieldTypeKey)
+      typeof def.required === 'object' && def.required.includes(fieldName)
 
     // Finally, add the object type to the fields (using sanitized field name)
     if (objectType) {
-      const fromExtension =
+      const extensionFieldName =
         fieldSchema?.[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
 
-      if (fromExtension && fromExtension in fields) {
+      if (extensionFieldName && extensionFieldName in fields) {
         throw new Error(
-          `Cannot create field with name "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field called "${fromExtension}"`
+          `Cannot create field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`
         )
       }
 
-      const saneFieldTypeKey =
-        fromExtension ||
+      const saneFieldName =
+        extensionFieldName ||
         Oas3Tools.sanitize(
-          fieldTypeKey,
+          fieldName,
           !data.options.simpleNames
             ? Oas3Tools.CaseStyle.camelCase
             : Oas3Tools.CaseStyle.simple
         )
 
       const sanePropName = Oas3Tools.storeSaneName(
-        saneFieldTypeKey,
-        fieldTypeKey,
+        saneFieldName,
+        fieldName,
         data.saneMap
       )
 
@@ -660,7 +662,7 @@ function createFields<TSource, TContext, TArgs>({
       handleWarning({
         mitigationType: MitigationTypes.CANNOT_GET_FIELD_TYPE,
         message:
-          `Cannot obtain GraphQL type for field '${fieldTypeKey}' in ` +
+          `Cannot obtain GraphQL type for field '${fieldName}' in ` +
           `GraphQL type '${JSON.stringify(def.schema)}'.`,
         data,
         log: translationLog

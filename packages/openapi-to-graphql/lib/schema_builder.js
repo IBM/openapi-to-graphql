@@ -383,15 +383,15 @@ function createOrReuseEnum({ def, data }) {
         const mapping = def.schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping] || {};
         def.schema.enum.forEach((enumValue) => {
             const enumValueString = enumValue.toString();
-            const fromExtension = mapping[enumValueString];
-            const saneEnumValue = fromExtension ||
+            const extensionEnumValue = mapping[enumValueString];
+            const emumValue = extensionEnumValue ||
                 Oas3Tools.sanitize(enumValueString, !data.options.simpleEnumValues
                     ? Oas3Tools.CaseStyle.ALL_CAPS
                     : Oas3Tools.CaseStyle.simple);
-            if (fromExtension in values) {
-                throw new Error(`Cannot create enum value "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it conflicts with another enum value "${fromExtension}"`);
+            if (extensionEnumValue in values) {
+                throw new Error(`Cannot create enum value "${extensionEnumValue}".\nYou provided "${extensionEnumValue}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.EnumMapping}, but it conflicts with another value "${extensionEnumValue}"`);
             }
-            values[saneEnumValue] = { value: enumValue };
+            values[emumValue] = { value: enumValue };
         });
         // Store newly created Enum Object Type
         def.graphQLType = new graphql_1.GraphQLEnumType({
@@ -408,8 +408,8 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
     let fields = {};
     const fieldTypeDefinitions = def.subDefinitions;
     // Create fields for properties
-    for (let fieldTypeKey in fieldTypeDefinitions) {
-        const fieldTypeDefinition = fieldTypeDefinitions[fieldTypeKey];
+    for (let fieldName in fieldTypeDefinitions) {
+        const fieldTypeDefinition = fieldTypeDefinitions[fieldName];
         const fieldSchema = fieldTypeDefinition.schema;
         // Get object type describing the property
         const objectType = getGraphQLType({
@@ -419,18 +419,18 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             iteration: iteration + 1,
             isInputObjectType
         });
-        const requiredProperty = typeof def.required === 'object' && def.required.includes(fieldTypeKey);
+        const requiredProperty = typeof def.required === 'object' && def.required.includes(fieldName);
         // Finally, add the object type to the fields (using sanitized field name)
         if (objectType) {
-            const fromExtension = fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
-            if (fromExtension && fromExtension in fields) {
-                throw new Error(`Cannot create field with name "${fromExtension}".\nYou provided "${fromExtension}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field called "${fromExtension}"`);
+            const extensionFieldName = fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
+            if (extensionFieldName && extensionFieldName in fields) {
+                throw new Error(`Cannot create field with name "${extensionFieldName}".\nYou provided "${extensionFieldName}" in ${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it conflicts with another field named "${extensionFieldName}"`);
             }
-            const saneFieldTypeKey = fromExtension ||
-                Oas3Tools.sanitize(fieldTypeKey, !data.options.simpleNames
+            const saneFieldName = extensionFieldName ||
+                Oas3Tools.sanitize(fieldName, !data.options.simpleNames
                     ? Oas3Tools.CaseStyle.camelCase
                     : Oas3Tools.CaseStyle.simple);
-            const sanePropName = Oas3Tools.storeSaneName(saneFieldTypeKey, fieldTypeKey, data.saneMap);
+            const sanePropName = Oas3Tools.storeSaneName(saneFieldName, fieldName, data.saneMap);
             fields[sanePropName] = {
                 type: requiredProperty
                     ? new graphql_1.GraphQLNonNull(objectType)
@@ -441,7 +441,7 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
         else {
             utils_1.handleWarning({
                 mitigationType: utils_1.MitigationTypes.CANNOT_GET_FIELD_TYPE,
-                message: `Cannot obtain GraphQL type for field '${fieldTypeKey}' in ` +
+                message: `Cannot obtain GraphQL type for field '${fieldName}' in ` +
                     `GraphQL type '${JSON.stringify(def.schema)}'.`,
                 data,
                 log: translationLog
