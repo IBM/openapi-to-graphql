@@ -87,8 +87,8 @@ describe('GraphQL Extensions', () => {
       expect(order.getFields().orderPet.type.toString()).toEqual('Pet')
     })
 
-    test('should rename Parameters with x-graphql-type-name', () => {
-      const renamedType = createdSchema.getType('Meta')
+    test('should rename input object type with x-graphql-type-name and append input at the end', () => {
+      const renamedType = createdSchema.getType('MetaInput')
       expect(renamedType).toBeInstanceOf(GraphQLInputObjectType)
       expect(createdSchema.getType('AdditionalMetadata')).toBeUndefined()
       expect(createdSchema.getType('AdditionalMetadataInput')).toBeUndefined()

@@ -224,7 +224,8 @@ function preprocessOas(oass, options) {
                     operation.callbacks) {
                     Object.entries(operation.callbacks).forEach(([callbackName, callbackObjectOrRef]) => {
                         let callback;
-                        if ('$ref' in callbackObjectOrRef && typeof callbackObjectOrRef.$ref === 'string') {
+                        if ('$ref' in callbackObjectOrRef &&
+                            typeof callbackObjectOrRef.$ref === 'string') {
                             callback = Oas3Tools.resolveRef(callbackObjectOrRef.$ref, oas);
                         }
                         else {
@@ -484,7 +485,11 @@ function createDataDef(names, schemaOrRef, isInputObjectType, data, oas, links) 
     if (index !== -1) {
         // Found existing data definition and fetch it
         const existingDataDef = data.defs[index];
-        collapseLinksIntoDataDefinition({ additionalLinks: saneLinks, existingDataDef, data });
+        collapseLinksIntoDataDefinition({
+            additionalLinks: saneLinks,
+            existingDataDef,
+            data
+        });
         return existingDataDef;
     }
     // There is no preexisting data definition, so create a new one
@@ -493,7 +498,7 @@ function createDataDef(names, schemaOrRef, isInputObjectType, data, oas, links) 
     let saneName;
     if (name === names.fromExtension) {
         saneName = name;
-        saneInputName = name;
+        saneInputName = name + 'Input';
     }
     else {
         // Store and sanitize the name
@@ -835,7 +840,8 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
             let propSchemaName = propertyKey;
             const propSchemaOrRef = schema.properties[propertyKey];
             let propSchema;
-            if ("$ref" in propSchemaOrRef && typeof propSchemaOrRef.$ref === 'string') {
+            if ('$ref' in propSchemaOrRef &&
+                typeof propSchemaOrRef.$ref === 'string') {
                 propSchemaName = propSchemaOrRef.$ref.split('/').pop();
                 propSchema = Oas3Tools.resolveRef(propSchemaOrRef.$ref, oas);
             }
@@ -870,7 +876,7 @@ function addObjectPropertiesToDataDef(def, schema, required, isInputObjectType, 
  */
 function resolveAllOf(schema, references, data, oas) {
     // Dereference schema
-    if ("$ref" in schema && typeof schema.$ref === 'string') {
+    if ('$ref' in schema && typeof schema.$ref === 'string') {
         if (schema.$ref in references) {
             return references[schema.$ref];
         }
@@ -970,7 +976,7 @@ function getMemberSchemaData(schemas, data, oas) {
     schemas.forEach((schemaOrRef) => {
         // Dereference schemas
         let schema;
-        if ("$ref" in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
+        if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
             schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas);
         }
         else {
@@ -1009,7 +1015,8 @@ function createAnyOfObject(saneName, saneInputName, collapsedSchema, isInputObje
     if ('properties' in collapsedSchema) {
         Object.entries(collapsedSchema.properties).forEach(([propertyName, propertyObjectOrRef]) => {
             let property;
-            if ('$ref' in propertyObjectOrRef && typeof propertyObjectOrRef.$ref === 'string') {
+            if ('$ref' in propertyObjectOrRef &&
+                typeof propertyObjectOrRef.$ref === 'string') {
                 property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas);
             }
             else {
@@ -1025,7 +1032,8 @@ function createAnyOfObject(saneName, saneInputName, collapsedSchema, isInputObje
     collapsedSchema.anyOf.forEach((memberSchemaOrRef) => {
         // Collapsed schema should already be recursively resolved
         let memberSchema;
-        if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
+        if ('$ref' in memberSchemaOrRef &&
+            typeof memberSchemaOrRef.$ref === 'string') {
             memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas);
         }
         else {
@@ -1035,7 +1043,8 @@ function createAnyOfObject(saneName, saneInputName, collapsedSchema, isInputObje
             const properties = {};
             Object.entries(memberSchema.properties).forEach(([propertyName, propertyObjectOrRef]) => {
                 let property;
-                if ('$ref' in propertyObjectOrRef && typeof propertyObjectOrRef.$ref === 'string') {
+                if ('$ref' in propertyObjectOrRef &&
+                    typeof propertyObjectOrRef.$ref === 'string') {
                     property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas);
                 }
                 else {
@@ -1129,7 +1138,8 @@ function createOneOfUnion(saneName, saneInputName, collapsedSchema, isInputObjec
         // Collapsed schema should already be recursively resolved
         let fromRef;
         let memberSchema;
-        if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
+        if ('$ref' in memberSchemaOrRef &&
+            typeof memberSchemaOrRef.$ref === 'string') {
             fromRef = memberSchemaOrRef.$ref.split('/').pop();
             memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas);
         }

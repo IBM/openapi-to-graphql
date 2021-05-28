@@ -717,7 +717,7 @@ export function createDataDef<TSource, TContext, TArgs>(
 
   if (name === names.fromExtension) {
     saneName = name
-    saneInputName = name
+    saneInputName = name + 'Input'
   } else {
     // Store and sanitize the name
     saneName = !data.options.simpleNames
