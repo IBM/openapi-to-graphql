@@ -248,7 +248,7 @@ The `x-graphql-type-name`, `x-graphql-field-name`, and `x-graphql-enum-mapping` 
 
 The type and field names and enum values that OpenAPI-to-GraphQL generates may not be adequate or may not be consistent over different versions so this is a way to guarantee consistency.
 
-`x-graphql-type-name` and `x-graphql-field-name` can be added to JSON schema to change the type name as well as change a field name.
+`x-graphql-type-name` and `x-graphql-field-name` can be added to JSON schema to change the type name as well as change a field name. OpenAPI-to-GraphQL will also use `x-graphql-type-name` to name input object types by appending `Input` to the end of the name.
 
 ```diff
 {
