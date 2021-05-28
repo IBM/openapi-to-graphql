@@ -347,11 +347,11 @@ export function preprocessOas<TSource, TContext, TArgs>(
               ([callbackName, callbackObjectOrRef]) => {
                 let callback: CallbackObject
 
-                if ('$ref' in callbackObjectOrRef && typeof callbackObjectOrRef.$ref === 'string') {
-                  callback = Oas3Tools.resolveRef(
-                    callbackObjectOrRef.$ref,
-                    oas
-                  )
+                if (
+                  '$ref' in callbackObjectOrRef &&
+                  typeof callbackObjectOrRef.$ref === 'string'
+                ) {
+                  callback = Oas3Tools.resolveRef(callbackObjectOrRef.$ref, oas)
                 } else {
                   callback = callbackObjectOrRef as CallbackObject
                 }
@@ -681,291 +681,236 @@ export function createDataDef<TSource, TContext, TArgs>(
       graphQLInputObjectTypeName: null,
       targetGraphQLType: TargetGraphQLType.json
     }
+  }
+
+  let schema: SchemaObject
+  if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
+    schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas)
   } else {
-    let schema: SchemaObject
-    if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
-      schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas)
-    } else {
-      schema = schemaOrRef as SchemaObject
-    }
+    schema = schemaOrRef as SchemaObject
+  }
 
-    const saneLinks: { [key: string]: LinkObject } = {}
-    if (typeof links === 'object') {
-      Object.keys(links).forEach((linkKey) => {
-        const link = links[linkKey]
+  // Sanitize link keys
+  const saneLinks = sanitizeLinks({ links, data })
 
-        const extensionFieldName =
-          link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
+  // Check for preexisting data definition
+  const index = getSchemaIndex(preferredName, schema, data.defs)
+  if (index !== -1) {
+    // Found existing data definition and fetch it
+    const existingDataDef = data.defs[index]
 
-        if (!Oas3Tools.isSanitized(extensionFieldName)) {
-          throw new Error(
-            `Cannot create link field with name ` +
-              `"${extensionFieldName}".\nYou provided "${extensionFieldName}" in ` +
-              `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it is not ` +
-              `GraphQL-safe."`
-          )
-        }
+    collapseLinksIntoDataDefinition({
+      additionalLinks: saneLinks,
+      existingDataDef,
+      data
+    })
 
-        if (extensionFieldName in saneLinks) {
-          throw new Error(
-            `Cannot create link field with name ` +
-              `"${extensionFieldName}".\nYou provided ` +
-              `"${extensionFieldName}" in ` +
-              `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
-              `conflicts with another field named "${extensionFieldName}".`
-          )
-        }
+    return existingDataDef
+  }
 
-        const linkFieldName = Oas3Tools.sanitize(
-          extensionFieldName || linkKey,
-          !data.options.simpleNames
-            ? Oas3Tools.CaseStyle.camelCase
-            : Oas3Tools.CaseStyle.simple
+  // There is no preexisting data definition, so create a new one
+
+  const name = getSchemaName(names, data.usedTypeNames)
+
+  let saneInputName: string
+  let saneName: string
+
+  if (name === names.fromExtension) {
+    saneName = name
+    saneInputName = name
+  } else {
+    // Store and sanitize the name
+    saneName = !data.options.simpleNames
+      ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
+      : Oas3Tools.capitalize(
+          Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple)
         )
+    saneInputName = Oas3Tools.capitalize(saneName + 'Input')
+  }
 
-        saneLinks[linkFieldName] = link
-      })
-    }
+  Oas3Tools.storeSaneName(saneName, name, data.saneMap)
 
-    // Determine the index of possible existing data definition
-    const index = getSchemaIndex(preferredName, schema, data.defs)
+  /**
+   * Recursively resolve allOf so type, properties, anyOf, oneOf, and
+   * required are resolved
+   */
+  const collapsedSchema = resolveAllOf(schema, {}, data, oas) as SchemaObject
 
-    // There is a preexisting data definition
-    if (index !== -1) {
-      // Found existing data definition and fetch it
-      const existingDataDef = data.defs[index]
+  const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(
+    collapsedSchema,
+    data,
+    oas
+  )
 
-      /**
-       * Collapse links if possible, i.e. if the current operation has links,
-       * combine them with the prexisting ones
-       */
-      if (typeof existingDataDef.links === 'object') {
-        // Check if there are any overlapping links
-        Object.keys(existingDataDef.links).forEach((saneLinkKey) => {
-          if (
-            !deepEqual(
-              existingDataDef.links[saneLinkKey],
-              saneLinks[saneLinkKey]
-            )
-          ) {
-            handleWarning({
-              mitigationType: MitigationTypes.DUPLICATE_LINK_KEY,
-              message:
-                `Multiple operations with the same response body share the same sanitized ` +
-                `link key '${saneLinkKey}' but have different link definitions ` +
-                `'${JSON.stringify(existingDataDef.links[saneLinkKey])}' and ` +
-                `'${JSON.stringify(saneLinks[saneLinkKey])}'.`,
-              data,
-              log: preprocessingLog
-            })
+  const def: DataDefinition = {
+    preferredName,
 
-            return
-          }
+    /**
+     * Note that schema may contain $ref or schema composition (e.g. allOf)
+     *
+     * TODO: the schema is used in getSchemaIndex, which allows us to check
+     * whether a dataDef has already been created for that particular
+     * schema and name pair. The look up should resolve references but
+     * currently, it does not.
+     */
+    schema,
+    required: [],
+    targetGraphQLType, // May change due to allOf and oneOf resolution
+    subDefinitions: undefined,
+    links: saneLinks,
+    graphQLTypeName: saneName,
+    graphQLInputObjectTypeName: saneInputName
+  }
+
+  // Used type names and defs of union and object types are pushed during creation
+  if (
+    targetGraphQLType === TargetGraphQLType.object ||
+    targetGraphQLType === TargetGraphQLType.list ||
+    targetGraphQLType === TargetGraphQLType.enum
+  ) {
+    data.usedTypeNames.push(saneName)
+    data.usedTypeNames.push(saneInputName)
+
+    // Add the def to the master list
+    data.defs.push(def)
+  }
+
+  switch (targetGraphQLType) {
+    case TargetGraphQLType.object:
+      def.subDefinitions = {}
+
+      if (
+        typeof collapsedSchema.properties === 'object' &&
+        Object.keys(collapsedSchema.properties).length > 0
+      ) {
+        addObjectPropertiesToDataDef(
+          def,
+          collapsedSchema,
+          def.required,
+          isInputObjectType,
+          data,
+          oas
+        )
+      } else {
+        handleWarning({
+          mitigationType: MitigationTypes.OBJECT_MISSING_PROPERTIES,
+          message:
+            `Schema ${JSON.stringify(schema)} does not have ` +
+            `any properties`,
+          data,
+          log: preprocessingLog
         })
 
+        def.targetGraphQLType = TargetGraphQLType.json
+      }
+
+      break
+
+    case TargetGraphQLType.list:
+      if (typeof collapsedSchema.items === 'object') {
+        // Break schema down into component parts
+        // I.e. if it is an list type, create a reference to the list item type
+        // Or if it is an object type, create references to all of the field types
+        let itemsSchema = collapsedSchema.items
+        let itemsName = `${name}ListItem`
+
+        if ('$ref' in itemsSchema) {
+          itemsName = itemsSchema.$ref.split('/').pop()
+        }
+
+        const extensionTypeName =
+          collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
+
+        const subDefinition = createDataDef(
+          // Is this the correct classification for this name? It does not matter in the long run.
+          {
+            fromExtension: extensionTypeName,
+            fromRef: itemsName
+          },
+          itemsSchema as SchemaObject,
+          isInputObjectType,
+          data,
+          oas
+        )
+
+        // Add list item reference
+        def.subDefinitions = subDefinition
+      }
+
+      break
+
+    case TargetGraphQLType.anyOfObject:
+      if (Array.isArray(collapsedSchema.anyOf)) {
         /**
-         * Collapse the links
+         * Sanity check
          *
-         * Avoid overwriting preexisting links
+         * Determining the targetGraphQLType should have checked the presence
+         * of anyOf
          */
-        existingDataDef.links = { ...saneLinks, ...existingDataDef.links }
+        createAnyOfObject(
+          saneName,
+          saneInputName,
+          collapsedSchema,
+          isInputObjectType,
+          def,
+          data,
+          oas
+        )
       } else {
-        // No preexisting links, so simply assign the links
-        existingDataDef.links = saneLinks
+        throw new Error(
+          `OpenAPI-to-GraphQL error: Cannot create object ` +
+            `from anyOf because there is no anyOf in ` +
+            `schema '${JSON.stringify(schemaOrRef, null, 2)}'`
+        )
       }
+      break
 
-      return existingDataDef
-
-      // There is no preexisting data definition, so create a new one
-    } else {
-      const name = getSchemaName(names, data.usedTypeNames)
-
-      let saneInputName: string
-      let saneName: string
-
-      if (name === names.fromExtension) {
-        saneName = name
-        saneInputName = name
-      } else {
-        // Store and sanitize the name
-        saneName = !data.options.simpleNames
-          ? Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.PascalCase)
-          : Oas3Tools.capitalize(
-              Oas3Tools.sanitize(name, Oas3Tools.CaseStyle.simple)
-            )
-        saneInputName = Oas3Tools.capitalize(saneName + 'Input')
-      }
-
-      Oas3Tools.storeSaneName(saneName, name, data.saneMap)
-
+    case TargetGraphQLType.oneOfUnion:
       /**
-       * Recursively resolve allOf so type, properties, anyOf, oneOf, and
-       * required are resolved
+       * Sanity check
+       *
+       * Determining the targetGraphQLType should have checked the presence
+       * of oneOf
        */
-      const collapsedSchema = resolveAllOf(
-        schema,
-        {},
+      if (Array.isArray(collapsedSchema.oneOf)) {
+        createOneOfUnion(
+          saneName,
+          saneInputName,
+          collapsedSchema,
+          isInputObjectType,
+          def,
+          data,
+          oas
+        )
+      } else {
+        throw new Error(
+          `OpenAPI-to-GraphQL error: Cannot create union ` +
+            `from oneOf because there is no oneOf in ` +
+            `schema '${JSON.stringify(schemaOrRef, null, 2)}'`
+        )
+      }
+      break
+
+    case TargetGraphQLType.json:
+      def.targetGraphQLType = TargetGraphQLType.json
+      break
+
+    case null:
+      // No target GraphQL type
+      handleWarning({
+        mitigationType: MitigationTypes.UNKNOWN_TARGET_TYPE,
+        message: `No GraphQL target type could be identified for schema '${JSON.stringify(
+          schema
+        )}'.`,
         data,
-        oas
-      ) as SchemaObject
+        log: preprocessingLog
+      })
 
-      const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(
-        collapsedSchema,
-        data,
-        oas
-      )
-
-      const def: DataDefinition = {
-        preferredName,
-
-        /**
-         * Note that schema may contain $ref or schema composition (e.g. allOf)
-         *
-         * TODO: the schema is used in getSchemaIndex, which allows us to check
-         * whether a dataDef has already been created for that particular
-         * schema and name pair. The look up should resolve references but
-         * currently, it does not.
-         */
-        schema,
-        required: [],
-        targetGraphQLType, // May change due to allOf and oneOf resolution
-        subDefinitions: undefined,
-        links: saneLinks,
-        graphQLTypeName: saneName,
-        graphQLInputObjectTypeName: saneInputName
-      }
-
-      // Used type names and defs of union and object types are pushed during creation
-      if (
-        targetGraphQLType === TargetGraphQLType.object ||
-        targetGraphQLType === TargetGraphQLType.list ||
-        targetGraphQLType === TargetGraphQLType.enum
-      ) {
-        data.usedTypeNames.push(saneName)
-        data.usedTypeNames.push(saneInputName)
-
-        // Add the def to the master list
-        data.defs.push(def)
-      }
-
-      switch (targetGraphQLType) {
-        case TargetGraphQLType.object:
-          def.subDefinitions = {}
-
-          if (
-            typeof collapsedSchema.properties === 'object' &&
-            Object.keys(collapsedSchema.properties).length > 0
-          ) {
-            addObjectPropertiesToDataDef(
-              def,
-              collapsedSchema,
-              def.required,
-              isInputObjectType,
-              data,
-              oas
-            )
-          } else {
-            handleWarning({
-              mitigationType: MitigationTypes.OBJECT_MISSING_PROPERTIES,
-              message:
-                `Schema ${JSON.stringify(schema)} does not have ` +
-                `any properties`,
-              data,
-              log: preprocessingLog
-            })
-
-            def.targetGraphQLType = TargetGraphQLType.json
-          }
-
-          break
-
-        case TargetGraphQLType.list:
-          if (typeof collapsedSchema.items === 'object') {
-            // Break schema down into component parts
-            // I.e. if it is an list type, create a reference to the list item type
-            // Or if it is an object type, create references to all of the field types
-            let itemsSchema = collapsedSchema.items
-            let itemsName = `${name}ListItem`
-
-            if ('$ref' in itemsSchema) {
-              itemsName = itemsSchema.$ref.split('/').pop()
-            }
-
-            const extensionTypeName =
-              collapsedSchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
-
-            const subDefinition = createDataDef(
-              // Is this the correct classification for this name? It does not matter in the long run.
-              { 
-                fromExtension: extensionTypeName,
-                fromRef: itemsName 
-              },
-              itemsSchema as SchemaObject,
-              isInputObjectType,
-              data,
-              oas
-            )
-
-            // Add list item reference
-            def.subDefinitions = subDefinition
-          }
-
-          break
-
-        case TargetGraphQLType.anyOfObject:
-          if (Array.isArray(collapsedSchema.anyOf)) {
-            createAnyOfObject(
-              saneName,
-              saneInputName,
-              collapsedSchema,
-              isInputObjectType,
-              def,
-              data,
-              oas
-            )
-          } else {
-            // Error
-          }
-          break
-
-        case TargetGraphQLType.oneOfUnion:
-          if (Array.isArray(collapsedSchema.oneOf)) {
-            createOneOfUnion(
-              saneName,
-              saneInputName,
-              collapsedSchema,
-              isInputObjectType,
-              def,
-              data,
-              oas
-            )
-          } else {
-            // Error
-          }
-          break
-
-        case TargetGraphQLType.json:
-          def.targetGraphQLType = TargetGraphQLType.json
-          break
-
-        case null:
-          // No target GraphQL type
-          handleWarning({
-            mitigationType: MitigationTypes.UNKNOWN_TARGET_TYPE,
-            message: `No GraphQL target type could be identified for schema '${JSON.stringify(
-              schema
-            )}'.`,
-            data,
-            log: preprocessingLog
-          })
-
-          def.targetGraphQLType = TargetGraphQLType.json
-          break
-      }
-
-      return def
-    }
+      def.targetGraphQLType = TargetGraphQLType.json
+      break
   }
+
+  return def
 }
 
 /**
@@ -1130,6 +1075,112 @@ function getSchemaName(
 }
 
 /**
+ * Sanitize the keys of a link object
+ */
+function sanitizeLinks<TSource, TContext, TArgs>({
+  links,
+  data
+}: {
+  links?: { [key: string]: LinkObject }
+  data: PreprocessingData<TSource, TContext, TArgs>
+}): { [key: string]: LinkObject } {
+  const saneLinks: { [key: string]: LinkObject } = {}
+  if (typeof links === 'object') {
+    Object.keys(links).forEach((linkKey) => {
+      const link = links[linkKey]
+
+      const extensionFieldName =
+        link[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName]
+
+      if (!Oas3Tools.isSanitized(extensionFieldName)) {
+        throw new Error(
+          `Cannot create link field with name ` +
+            `"${extensionFieldName}".\nYou provided "${extensionFieldName}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it is not ` +
+            `GraphQL-safe."`
+        )
+      }
+
+      if (extensionFieldName in saneLinks) {
+        throw new Error(
+          `Cannot create link field with name ` +
+            `"${extensionFieldName}".\nYou provided ` +
+            `"${extensionFieldName}" in ` +
+            `${Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName}, but it ` +
+            `conflicts with another field named "${extensionFieldName}".`
+        )
+      }
+
+      const linkFieldName = Oas3Tools.sanitize(
+        extensionFieldName || linkKey,
+        !data.options.simpleNames
+          ? Oas3Tools.CaseStyle.camelCase
+          : Oas3Tools.CaseStyle.simple
+      )
+
+      saneLinks[linkFieldName] = link
+    })
+  }
+
+  return saneLinks
+}
+
+/**
+ * Given an existing data definition, collapse the link object with the existing
+ * one captured in the data definition.
+ *
+ *
+ */
+function collapseLinksIntoDataDefinition<TSource, TContext, TArgs>({
+  additionalLinks,
+  existingDataDef,
+  data
+}: {
+  additionalLinks?: { [key: string]: LinkObject }
+  existingDataDef: DataDefinition
+  data: PreprocessingData<TSource, TContext, TArgs>
+}): void {
+  /**
+   * Collapse links if possible, i.e. if the current operation has links,
+   * combine them with the prexisting ones
+   */
+  if (typeof existingDataDef.links === 'object') {
+    // Check if there are any overlapping links
+    Object.keys(existingDataDef.links).forEach((saneLinkKey) => {
+      if (
+        !deepEqual(
+          existingDataDef.links[saneLinkKey],
+          additionalLinks[saneLinkKey]
+        )
+      ) {
+        handleWarning({
+          mitigationType: MitigationTypes.DUPLICATE_LINK_KEY,
+          message:
+            `Multiple operations with the same response body share the same sanitized ` +
+            `link key '${saneLinkKey}' but have different link definitions ` +
+            `'${JSON.stringify(existingDataDef.links[saneLinkKey])}' and ` +
+            `'${JSON.stringify(additionalLinks[saneLinkKey])}'.`,
+          data,
+          log: preprocessingLog
+        })
+
+        return
+      }
+    })
+
+    /**
+     * Collapse the links
+     *
+     * Avoid overwriting preexisting links
+     */
+    existingDataDef.links = { ...additionalLinks, ...existingDataDef.links }
+  } else {
+    // No preexisting links, so simply assign the links
+    existingDataDef.links = additionalLinks
+  }
+}
+
+/**
  * Recursively add all of the properties of an object to the data definition
  */
 function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
@@ -1158,12 +1209,12 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
       const propSchemaOrRef = schema.properties[propertyKey]
 
       let propSchema: SchemaObject
-      if ("$ref" in propSchemaOrRef && typeof propSchemaOrRef.$ref === 'string') {
+      if (
+        '$ref' in propSchemaOrRef &&
+        typeof propSchemaOrRef.$ref === 'string'
+      ) {
         propSchemaName = propSchemaOrRef.$ref.split('/').pop()
-        propSchema = Oas3Tools.resolveRef(
-          propSchemaOrRef.$ref,
-          oas
-        )
+        propSchema = Oas3Tools.resolveRef(propSchemaOrRef.$ref, oas)
       } else {
         propSchema = propSchemaOrRef as SchemaObject
       }
@@ -1213,7 +1264,7 @@ function resolveAllOf<TSource, TContext, TArgs>(
   oas: Oas3
 ): SchemaObject {
   // Dereference schema
-  if ("$ref" in schema && typeof schema.$ref === 'string') {
+  if ('$ref' in schema && typeof schema.$ref === 'string') {
     if (schema.$ref in references) {
       return references[schema.$ref]
     }
@@ -1352,7 +1403,7 @@ function getMemberSchemaData<TSource, TContext, TArgs>(
   schemas.forEach((schemaOrRef) => {
     // Dereference schemas
     let schema: SchemaObject
-    if ("$ref" in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
+    if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
       schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas) as SchemaObject
     } else {
       schema = schemaOrRef as SchemaObject
@@ -1408,17 +1459,22 @@ function createAnyOfObject<TSource, TContext, TArgs>(
   } = {}
 
   if ('properties' in collapsedSchema) {
-    Object.entries(collapsedSchema.properties).forEach(([propertyName, propertyObjectOrRef]) => {
-      let property: SchemaObject
+    Object.entries(collapsedSchema.properties).forEach(
+      ([propertyName, propertyObjectOrRef]) => {
+        let property: SchemaObject
 
-      if ('$ref' in propertyObjectOrRef && typeof propertyObjectOrRef.$ref === 'string') {
-        property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas)
-      } else {
-        property = propertyObjectOrRef as SchemaObject
+        if (
+          '$ref' in propertyObjectOrRef &&
+          typeof propertyObjectOrRef.$ref === 'string'
+        ) {
+          property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas)
+        } else {
+          property = propertyObjectOrRef as SchemaObject
+        }
+
+        allProperties[propertyName] = property
       }
-
-      allProperties[propertyName] = property
-    })
+    )
   }
 
   // Store the names of properties with conflicting contents
@@ -1432,7 +1488,10 @@ function createAnyOfObject<TSource, TContext, TArgs>(
   collapsedSchema.anyOf.forEach((memberSchemaOrRef) => {
     // Collapsed schema should already be recursively resolved
     let memberSchema: SchemaObject
-    if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
+    if (
+      '$ref' in memberSchemaOrRef &&
+      typeof memberSchemaOrRef.$ref === 'string'
+    ) {
       memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas)
     } else {
       memberSchema = memberSchemaOrRef as SchemaObject
@@ -1443,17 +1502,22 @@ function createAnyOfObject<TSource, TContext, TArgs>(
         [propertyName: string]: SchemaObject
       } = {}
 
-      Object.entries(memberSchema.properties).forEach(([propertyName, propertyObjectOrRef]) => {
-        let property: SchemaObject
-  
-        if ('$ref' in propertyObjectOrRef && typeof propertyObjectOrRef.$ref === 'string') {
-          property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas)
-        } else {
-          property = propertyObjectOrRef as SchemaObject
+      Object.entries(memberSchema.properties).forEach(
+        ([propertyName, propertyObjectOrRef]) => {
+          let property: SchemaObject
+
+          if (
+            '$ref' in propertyObjectOrRef &&
+            typeof propertyObjectOrRef.$ref === 'string'
+          ) {
+            property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas)
+          } else {
+            property = propertyObjectOrRef as SchemaObject
+          }
+
+          properties[propertyName] = property
         }
-  
-        properties[propertyName] = property
-      })
+      )
 
       memberProperties.push(properties)
     }
@@ -1585,12 +1649,12 @@ function createOneOfUnion<TSource, TContext, TArgs>(
     // Collapsed schema should already be recursively resolved
     let fromRef: string
     let memberSchema: SchemaObject
-    if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
+    if (
+      '$ref' in memberSchemaOrRef &&
+      typeof memberSchemaOrRef.$ref === 'string'
+    ) {
       fromRef = memberSchemaOrRef.$ref.split('/').pop()
-      memberSchema = Oas3Tools.resolveRef(
-        memberSchemaOrRef.$ref,
-        oas
-      )
+      memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas)
     } else {
       memberSchema = memberSchemaOrRef as SchemaObject
     }
