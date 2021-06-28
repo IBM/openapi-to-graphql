@@ -125,55 +125,47 @@ export function methodToHttpMethod(method: string): HTTP_METHODS {
   }
 }
 
+export function isOas2(spec: any): spec is Oas2 {
+  return typeof spec.swagger === 'string' && /^2/.test(spec.swagger)
+}
+
+export function isOas3(spec: any): spec is Oas3 {
+  return typeof spec.openapi === 'string' && /^3/.test(spec.openapi)
+}
+
 /**
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-export function getValidOAS3(
+export async function getValidOAS3(
   spec: Oas2 | Oas3,
   oasValidatorOptions: object,
   swagger2OpenAPIOptions: object
 ): Promise<Oas3> {
-  return new Promise((resolve, reject) => {
-    // CASE: translate
-    if (
-      typeof (spec as Oas2).swagger === 'string' &&
-      (spec as Oas2).swagger === '2.0'
-    ) {
-      preprocessingLog(
-        `Received Swagger - going to translate to OpenAPI Specification...`
+  // CASE: translate
+  if (isOas2(spec)) {
+    preprocessingLog(
+      `Received Swagger - going to translate to OpenAPI Specification...`
+    )
+    try {
+      const { openapi } = await Swagger2OpenAPI.convertObj(
+        spec,
+        swagger2OpenAPIOptions
       )
-
-      Swagger2OpenAPI.convertObj(spec, swagger2OpenAPIOptions)
-        .then((options) => resolve(options.openapi))
-        .catch((error) =>
-          reject(
-            `Could not convert Swagger '${
-              (spec as Oas2).info.title
-            }' to OpenAPI Specification. ${error.message}`
-          )
-        )
-
-      // CASE: validate
-    } else if (
-      typeof (spec as Oas3).openapi === 'string' &&
-      /^3/.test((spec as Oas3).openapi)
-    ) {
-      preprocessingLog(`Received OpenAPI Specification - going to validate...`)
-
-      OASValidator.validate(spec, oasValidatorOptions)
-        .then(() => resolve(spec as Oas3))
-        .catch((error) =>
-          reject(
-            `Could not validate OpenAPI Specification '${
-              (spec as Oas3).info.title
-            }'. ${error.message}`
-          )
-        )
-    } else {
-      reject(`Invalid specification provided`)
+      return openapi
+    } catch (error) {
+      throw new Error(
+        `Could not convert Swagger '${spec.info.title}' to OpenAPI Specification. ${error.message}`
+      )
     }
-  })
+    // CASE: validate
+  } else if (isOas3(spec)) {
+    preprocessingLog(`Received OpenAPI Specification - going to validate...`)
+    await OASValidator.validate(spec, oasValidatorOptions)
+  } else {
+    throw new Error(`Invalid specification provided`)
+  }
+  return spec
 }
 
 /**
@@ -419,7 +411,7 @@ export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
   oas: Oas3
 ): TargetGraphQLType | null {
   let schema: SchemaObject
-  if ("$ref" in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
+  if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
     schema = resolveRef(schemaOrRef.$ref, oas)
   } else {
     schema = schemaOrRef as SchemaObject
@@ -529,7 +521,10 @@ function hasNestedOneOfUsage(schema: SchemaObject, oas: Oas3): boolean {
     Array.isArray(schema.oneOf) &&
     schema.oneOf.some((memberSchemaOrRef) => {
       let memberSchema: SchemaObject
-      if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
+      if (
+        '$ref' in memberSchemaOrRef &&
+        typeof memberSchemaOrRef.$ref === 'string'
+      ) {
         memberSchema = resolveRef(memberSchemaOrRef.$ref, oas)
       } else {
         memberSchema = memberSchemaOrRef as SchemaObject
@@ -560,7 +555,10 @@ function hasNestedAnyOfUsage(schema: SchemaObject, oas: Oas3): boolean {
     schema.anyOf.some((memberSchemaOrRef) => {
       let memberSchema: SchemaObject
 
-      if ("$ref" in memberSchemaOrRef && typeof memberSchemaOrRef.$ref === 'string') {
+      if (
+        '$ref' in memberSchemaOrRef &&
+        typeof memberSchemaOrRef.$ref === 'string'
+      ) {
         memberSchema = resolveRef(memberSchemaOrRef.$ref, oas)
       } else {
         memberSchema = memberSchemaOrRef as SchemaObject
@@ -809,11 +807,11 @@ export function getRequestSchemaAndNames(
     requestBodyObjectOrRef !== null
   ) {
     // Resolve reference if applicable. Make sure we have a RequestBodyObject:
-    if ("$ref" in requestBodyObjectOrRef && typeof requestBodyObjectOrRef.$ref === 'string') {
-      requestBodyObject = resolveRef(
-        requestBodyObjectOrRef.$ref,
-        oas
-      )
+    if (
+      '$ref' in requestBodyObjectOrRef &&
+      typeof requestBodyObjectOrRef.$ref === 'string'
+    ) {
+      requestBodyObject = resolveRef(requestBodyObjectOrRef.$ref, oas)
     } else {
       requestBodyObject = requestBodyObjectOrRef as RequestBodyObject
     }
@@ -859,14 +857,11 @@ export function getRequestSchemaAndNames(
           ) {
             // Resolve payload schema reference if applicable
             if (
-              "$ref" in payloadSchemaOrRef &&
+              '$ref' in payloadSchemaOrRef &&
               typeof payloadSchemaOrRef.$ref === 'string'
             ) {
               fromRef = payloadSchemaOrRef.$ref.split('/').pop()
-              payloadSchema = resolveRef(
-                payloadSchemaOrRef.$ref,
-                oas
-              )
+              payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas)
             } else {
               payloadSchema = payloadSchemaOrRef as SchemaObject
             }
@@ -946,11 +941,11 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
   // Get response object
   const responseObjectOrRef = operation?.responses?.[statusCode]
   if (typeof responseObjectOrRef === 'object' && responseObjectOrRef !== null) {
-    if ("$ref" in responseObjectOrRef && typeof responseObjectOrRef.$ref === 'string') {
-      responseObject = resolveRef(
-        responseObjectOrRef.$ref,
-        oas
-      )
+    if (
+      '$ref' in responseObjectOrRef &&
+      typeof responseObjectOrRef.$ref === 'string'
+    ) {
+      responseObject = resolveRef(responseObjectOrRef.$ref, oas)
     } else {
       responseObject = responseObjectOrRef as ResponseObject
     }
@@ -984,14 +979,11 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
             responseObject?.content?.[responseContentType]?.schema
           // Resolve response schema reference if applicable
           if (
-            "$ref" in responseSchemaOrRef &&
+            '$ref' in responseSchemaOrRef &&
             typeof responseSchemaOrRef.$ref === 'string'
           ) {
             fromRef = responseSchemaOrRef.$ref.split('/').pop()
-            responseSchema = resolveRef(
-              responseSchemaOrRef.$ref,
-              oas
-            )
+            responseSchema = resolveRef(responseSchemaOrRef.$ref, oas)
           } else {
             responseSchema = responseSchemaOrRef as SchemaObject
           }
@@ -1121,11 +1113,11 @@ export function getLinks<TSource, TContext, TArgs>(
       const responseObjectOrRef = responses[statusCode]
 
       let response: ResponseObject
-      if ("$ref" in responseObjectOrRef && typeof responseObjectOrRef.$ref === 'string') {
-        response = resolveRef(
-          responseObjectOrRef.$ref,
-          oas
-        )
+      if (
+        '$ref' in responseObjectOrRef &&
+        typeof responseObjectOrRef.$ref === 'string'
+      ) {
+        response = resolveRef(responseObjectOrRef.$ref, oas)
       } else {
         response = responseObjectOrRef as ResponseObject
       }
@@ -1136,7 +1128,10 @@ export function getLinks<TSource, TContext, TArgs>(
           const linkObjectOrRef = epLinks[linkKey]
 
           let link: LinkObject
-          if ("$ref" in linkObjectOrRef && typeof linkObjectOrRef.$ref === 'string') {
+          if (
+            '$ref' in linkObjectOrRef &&
+            typeof linkObjectOrRef.$ref === 'string'
+          ) {
             link = resolveRef(linkObjectOrRef.$ref, oas)
           } else {
             link = linkObjectOrRef as LinkObject
@@ -1173,17 +1168,15 @@ export function getParameters(
   // First, consider parameters in Path Item Object:
   const pathParams = pathItem.parameters
   if (Array.isArray(pathParams)) {
-    const pathItemParameters: ParameterObject[] = pathParams.map(
-      (p) => {
-        if ("$ref" in p && typeof p.$ref === 'string') {
-          // Here we know we have a parameter object:
-          return resolveRef(p.$ref, oas) as ParameterObject
-        } else {
-          // Here we know we have a parameter object:
-          return p as ParameterObject
-        }
+    const pathItemParameters: ParameterObject[] = pathParams.map((p) => {
+      if ('$ref' in p && typeof p.$ref === 'string') {
+        // Here we know we have a parameter object:
+        return resolveRef(p.$ref, oas) as ParameterObject
+      } else {
+        // Here we know we have a parameter object:
+        return p as ParameterObject
       }
-    )
+    })
     parameters = parameters.concat(pathItemParameters)
   }
 
@@ -1192,7 +1185,7 @@ export function getParameters(
   if (Array.isArray(opObjectParameters)) {
     const operationParameters: ParameterObject[] = opObjectParameters.map(
       (p) => {
-        if ("$ref" in p && typeof p.$ref === 'string') {
+        if ('$ref' in p && typeof p.$ref === 'string') {
           // Here we know we have a parameter object:
           return resolveRef(p.$ref, oas)
         } else {
@@ -1262,12 +1255,12 @@ export function getSecuritySchemes(
       const securitySchemeOrRef = oas.components.securitySchemes[schemeKey]
 
       // Ensure we have actual SecuritySchemeObject:
-      if ("$ref" in securitySchemeOrRef && typeof securitySchemeOrRef.$ref === 'string') {
+      if (
+        '$ref' in securitySchemeOrRef &&
+        typeof securitySchemeOrRef.$ref === 'string'
+      ) {
         // Result of resolution will be SecuritySchemeObject:
-        securitySchemes[schemeKey] = resolveRef(
-          securitySchemeOrRef.$ref,
-          oas
-        )
+        securitySchemes[schemeKey] = resolveRef(securitySchemeOrRef.$ref, oas)
       } else {
         // We already have a SecuritySchemeObject:
         securitySchemes[schemeKey] = securitySchemeOrRef as SecuritySchemeObject

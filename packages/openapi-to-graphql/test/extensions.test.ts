@@ -13,8 +13,8 @@ import {
   GraphQLSchema
 } from 'graphql'
 
-import * as openAPIToGraphQL from '../lib/index'
-import { Oas3 } from '../lib/types/oas3'
+import * as openAPIToGraphQL from '../src/index'
+import { Oas3 } from '../src/types/oas3'
 
 /**
  * Set up the schema first

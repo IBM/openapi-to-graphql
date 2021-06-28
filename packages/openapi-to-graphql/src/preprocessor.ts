@@ -22,7 +22,7 @@ import {
 
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
-import * as deepEqual from 'deep-equal'
+import deepEqual from 'deep-equal'
 import debug from 'debug'
 import { handleWarning, getCommonPropertyNames, MitigationTypes } from './utils'
 import { GraphQLOperationType } from './types/graphql'

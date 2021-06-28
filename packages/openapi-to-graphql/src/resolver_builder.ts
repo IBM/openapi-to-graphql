@@ -13,13 +13,13 @@ import { ConnectOptions } from './types/options'
 import { TargetGraphQLType, Operation } from './types/operation'
 import { SubscriptionContext } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
-import * as NodeRequest from 'request'
+import NodeRequest from 'request'
 import { RequestOptions } from './types/options'
 
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
-import * as querystring from 'querystring'
-import * as JSONPath from 'jsonpath-plus'
+import querystring from 'querystring'
+import { JSONPath } from 'jsonpath-plus'
 import { debug } from 'debug'
 import { GraphQLError, GraphQLFieldResolver } from 'graphql'
 import formurlencoded from 'form-urlencoded'
@@ -776,9 +776,8 @@ export function getResolver<TSource, TContext, TArgs>({
                         )
                       }
 
-                      element[OPENAPI_TO_GRAPHQL].data[
-                        getIdentifier(info)
-                      ] = resolveData
+                      element[OPENAPI_TO_GRAPHQL].data[getIdentifier(info)] =
+                        resolveData
                     })
                   } else {
                     if (typeof saneData[OPENAPI_TO_GRAPHQL] === 'undefined') {
@@ -798,9 +797,8 @@ export function getResolver<TSource, TContext, TArgs>({
                       )
                     }
 
-                    saneData[OPENAPI_TO_GRAPHQL].data[
-                      getIdentifier(info)
-                    ] = resolveData
+                    saneData[OPENAPI_TO_GRAPHQL].data[getIdentifier(info)] =
+                      resolveData
                   }
                 }
 
@@ -894,9 +892,9 @@ function extractToken<TSource, TContext, TArgs>(
   context: TContext
 ) {
   const tokenJSONpath = data.options.tokenJSONpath
-  const tokens = JSONPath.JSONPath({
+  const tokens = JSONPath({
     path: tokenJSONpath,
-    json: (context as unknown) as object
+    json: context as unknown as object
   })
   if (Array.isArray(tokens) && tokens.length > 0) {
     const token = tokens[0]
@@ -925,9 +923,9 @@ function createOAuthHeader<TSource, TContext, TArgs>(
 
   // Extract token
   const tokenJSONpath = data.options.tokenJSONpath
-  const tokens = JSONPath.JSONPath({
+  const tokens = JSONPath({
     path: tokenJSONpath,
-    json: (context as unknown) as object
+    json: context as unknown as object
   })
   if (Array.isArray(tokens) && tokens.length > 0) {
     const token = tokens[0]
@@ -962,11 +960,8 @@ function getAuthOptions<TSource, TContext, TArgs>(
    * Determine if authentication is required, and which protocol (if any) we can
    * use
    */
-  const {
-    authRequired,
-    securityRequirement,
-    sanitizedSecurityRequirement
-  } = getAuthReqAndProtcolName(operation, _openAPIToGraphQL)
+  const { authRequired, securityRequirement, sanitizedSecurityRequirement } =
+    getAuthReqAndProtcolName(operation, _openAPIToGraphQL)
 
   // Possibly, we don't need to do anything:
   if (!authRequired) {
@@ -1099,7 +1094,7 @@ function resolveRuntimeExpression(
 
       // CASE: parameter in previous body
     } else if (value.startsWith('$request.body#')) {
-      const tokens = JSONPath.JSONPath({
+      const tokens = JSONPath({
         path: value.split('body#/')[1],
         json: resolveData.usedPayload
       })
@@ -1150,7 +1145,7 @@ function resolveRuntimeExpression(
 
       // CASE: parameter in body
     } else if (value.startsWith('$response.body#')) {
-      const tokens = JSONPath.JSONPath({
+      const tokens = JSONPath({
         path: value.split('body#/')[1],
         json: root
       })

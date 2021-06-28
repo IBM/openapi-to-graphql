@@ -1,7 +1,7 @@
 language: node_js
 node_js:
   - "10"
-  - "12"
+  - "16"
 
 os:
   - linux
@@ -10,11 +10,10 @@ os:
 dist: xenial
 
 install:
-  - npm install
-  - npm i -g typescript jest
-  - lerna bootstrap --ci
+  - npm i -g yarn
+  - yarn install --ignore-engines
 
-script: npm run test
+script: yarn test
 
 branches:
   only:

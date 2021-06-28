@@ -16,7 +16,7 @@ import {
 import { MQTTPubSub } from 'graphql-mqtt-subscriptions'
 import { connect } from 'mqtt'
 
-import * as openAPIToGraphQL from '../lib/index'
+import * as openAPIToGraphQL from '../src/index'
 import { startServers, stopServers } from './example_api7_server'
 
 const oas = require('./fixtures/example_oas7.json')

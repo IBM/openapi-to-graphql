@@ -8,7 +8,7 @@
 import { graphql } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
-import * as openAPIToGraphQL from '../lib/index'
+import * as openAPIToGraphQL from '../src/index'
 
 const oas = require('./fixtures/example_oas4.json')
 

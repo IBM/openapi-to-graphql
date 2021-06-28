@@ -8,10 +8,10 @@
 import { graphql, parse, validate } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
-import * as openAPIToGraphQL from '../lib/index'
-import { Options } from '../lib/types/options'
+import * as openAPIToGraphQL from '../src/index'
+import { Options } from '../src/types/options'
 import { startServer, stopServer } from './example_api_server'
-import { GraphQLOperationType } from '../lib/types/graphql'
+import { GraphQLOperationType } from '../src/types/graphql'
 
 const oas = require('./fixtures/example_oas.json')
 const PORT = 3002

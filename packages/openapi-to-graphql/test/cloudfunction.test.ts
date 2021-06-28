@@ -8,7 +8,7 @@
 import { graphql, parse, validate } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
-import * as openAPIToGraphQL from '../lib/index'
+import * as openAPIToGraphQL from '../src/index'
 
 const oas = require('./fixtures/cloudfunction.json')
 

@@ -2,10 +2,9 @@
   "name": "openapi-to-graphql-root",
   "private": true,
   "scripts": {
+    "transpile-ts": "tsc --project tsconfig.build.json",
+    "build": "yarn transpile-ts && bob build",
     "test": "cd packages/openapi-to-graphql/ && npm test"
-  },
-  "devDependencies": {
-    "lerna": "^3.22.1"
   },
   "engines": {
     "node": ">=8"
@@ -13,5 +12,14 @@
   "contributors": [
     "Alan Cha",
     "Erik Wittern"
-  ]
+  ],
+  "workspaces": {
+    "packages": [
+      "./packages/*"
+    ]
+  },
+  "devDependencies": {
+    "bob-the-bundler": "^1.4.1",
+    "typescript": "^4.3.4"
+  }
 }
