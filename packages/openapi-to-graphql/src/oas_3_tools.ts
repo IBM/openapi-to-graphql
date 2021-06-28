@@ -471,12 +471,8 @@ export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
 
   // Special edge cases involving the schema format
   if (typeof schema.format === 'string') {
-    /**
-     * CASE: 64 bit int - return number instead of integer, leading to use of
-     * GraphQLFloat, which can support 64 bits:
-     */
     if (schema.type === 'integer' && schema.format === 'int64') {
-      return TargetGraphQLType.float
+      return TargetGraphQLType.bigint
 
       // CASE: id
     } else if (
