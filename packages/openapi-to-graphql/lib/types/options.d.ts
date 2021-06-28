@@ -1,6 +1,6 @@
-import * as NodeRequest from 'request';
 import { GraphQLOperationType, SubscriptionContext } from './graphql';
 import { GraphQLFieldResolver, GraphQLResolveInfo } from 'graphql';
+import crossFetch from 'cross-fetch';
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
  */
@@ -30,9 +30,6 @@ export declare type OasTitlePathMethodObject<T> = {
         };
     };
 };
-export declare type Headers = {
-    [key: string]: string;
-};
 /**
  * Given a set parameters corresponding to a specific operation in the OAS,
  * provide the appropriate headers
@@ -42,7 +39,7 @@ export declare type RequestHeadersFunction<TSource, TContext, TArgs> = (method: 
     args: TArgs;
     context: TContext;
     info: GraphQLResolveInfo;
-}) => Headers;
+}) => HeadersInit;
 /**
  * We rely on the Request library in order to make resolver API calls.
  *
@@ -53,8 +50,9 @@ export declare type RequestHeadersFunction<TSource, TContext, TArgs> = (method: 
  *
  * Based on: https://github.com/request/request#requestoptions-callback
  */
-export declare type RequestOptions<TSource, TContext, TArgs> = Omit<NodeRequest.OptionsWithUrl, 'headers'> & {
-    headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>;
+export declare type RequestOptions<TSource, TContext, TArgs> = Omit<RequestInit, 'headers'> & {
+    headers?: HeadersInit | RequestHeadersFunction<TSource, TContext, TArgs>;
+    qs?: Record<string, string>;
 };
 export declare type Options<TSource, TContext, TArgs> = Partial<InternalOptions<TSource, TContext, TArgs>>;
 export declare type InternalOptions<TSource, TContext, TArgs> = {
@@ -157,7 +155,7 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
     /**
      * Custom headers to send with every request made by a resolve function.
      */
-    headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>;
+    headers?: HeadersInit | RequestHeadersFunction<TSource, TContext, TArgs>;
     /**
      * Custom query parameters to send with every reqeust by a resolve function.
      */
@@ -276,4 +274,8 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      * Will forgo the title is only one OAS is provided
      */
     equivalentToMessages: boolean;
+    /**
+     * Custom W3 Compatible `fetch` implementation
+     */
+    fetch: typeof crossFetch;
 };

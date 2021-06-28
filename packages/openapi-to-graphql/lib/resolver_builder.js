@@ -3,18 +3,26 @@
 // Node module: openapi-to-graphql
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.extractRequestDataFromArgs = exports.getResolver = exports.getPublishResolver = exports.getSubscribe = exports.OPENAPI_TO_GRAPHQL = void 0;
 const operation_1 = require("./types/operation");
-const NodeRequest = require("request");
 // Imports:
 const Oas3Tools = require("./oas_3_tools");
-const querystring = require("querystring");
 const JSONPath = require("jsonpath-plus");
 const debug_1 = require("debug");
 const graphql_1 = require("graphql");
 const form_urlencoded_1 = require("form-urlencoded");
 const graphql_subscriptions_1 = require("graphql-subscriptions");
+const urljoin = require("url-join");
 const pubsub = new graphql_subscriptions_1.PubSub();
 const translationLog = debug_1.debug('translation');
 const httpLog = debug_1.debug('http');
@@ -185,7 +193,7 @@ exports.getPublishResolver = getPublishResolver;
  * If the operation type is Query or Mutation, create and return a resolver
  * function that performs API requests for the given GraphQL query
  */
-function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl, requestOptions }) {
+function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl, requestOptions, fetch }) {
     // Determine the appropriate URL:
     if (typeof baseUrl === 'undefined') {
         baseUrl = Oas3Tools.getBaseUrl(operation);
@@ -203,7 +211,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         return customResolvers[title][path][method];
     }
     // Return resolve function:
-    return (source, args, context, info) => {
+    return (source, args, context, info) => __awaiter(this, void 0, void 0, function* () {
         /**
          * Fetch resolveData from possibly existing _openAPIToGraphQL
          *
@@ -286,7 +294,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         resolveData.usedParams = Object.assign(resolveData.usedParams, args);
         // Build URL (i.e., fill in path parameters):
         const { path, qs, headers } = extractRequestDataFromArgs(operation.path, operation.parameters, args, data);
-        const url = baseUrl + path;
+        const url = new URL(urljoin(baseUrl, path));
         /**
          * The Content-Type and Accept property should not be changed because the
          * object type has already been created and unlike these properties, it
@@ -306,10 +314,8 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                 : 'application/json';
         let options;
         if (requestOptions) {
-            options = Object.assign(Object.assign({}, requestOptions), { method: operation.method, url // Must be after the requestOptions spread as url is a mandatory field so undefined may be used
-             });
+            options = Object.assign(Object.assign({}, requestOptions), { method: operation.method, headers: {} });
             options.headers = {}; // Handle requestOptions.header later if applicable
-            options.qs = {}; // Handle requestOptions.qs later if applicable
             if (requestOptions.headers) {
                 // requestOptions.headers may be either an object or a function
                 if (typeof requestOptions.headers === 'object') {
@@ -323,26 +329,21 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
                         info
                     });
                     if (typeof headers === 'object') {
-                        Object.assign(options.headers, headers, headers);
+                        Object.assign(options.headers, headers);
                     }
                 }
             }
             else {
                 options.headers = headers;
             }
-            if (requestOptions.qs) {
-                Object.assign(options.qs, qs, requestOptions.qs);
-            }
-            else {
-                options.qs = qs;
+            if (typeof requestOptions.qs === 'object') {
+                Object.assign(qs, requestOptions.qs);
             }
         }
         else {
             options = {
                 method: operation.method,
-                url,
-                headers,
-                qs
+                headers
             };
         }
         /**
@@ -392,7 +393,7 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             }
             // Query string:
             if (typeof data.options.qs === 'object') {
-                Object.assign(options.qs, data.options.qs);
+                Object.assign(qs, data.options.qs);
             }
         }
         // Get authentication headers and query parameters
@@ -402,18 +403,17 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
             const { authHeaders, authQs, authCookie } = getAuthOptions(operation, source[exports.OPENAPI_TO_GRAPHQL], data);
             // ...and pass them to the options
             Object.assign(options.headers, authHeaders);
-            Object.assign(options.qs, authQs);
+            Object.assign(qs, authQs);
             // Add authentication cookie if created
             if (authCookie !== null) {
-                const j = NodeRequest.jar();
-                j.setCookie(authCookie, options.url);
-                options.jar = j;
+                const cookieHeaderName = 'cookie';
+                options.headers[cookieHeaderName] = authCookie;
             }
         }
         // Extract OAuth token from context (if available)
         if (data.options.sendOAuthTokenInQuery) {
             const oauthQueryObj = createOAuthQS(data, context);
-            Object.assign(options.qs, oauthQueryObj);
+            Object.assign(qs, oauthQueryObj);
         }
         else {
             const oauthHeader = createOAuthHeader(data, context);
@@ -421,177 +421,207 @@ function getResolver({ operation, argsFromLink = {}, payloadName, data, baseUrl,
         }
         resolveData.usedRequestOptions = options;
         resolveData.usedStatusCode = operation.statusCode;
+        const setSearchParams = (obj, path) => {
+            for (const key in obj) {
+                const val = obj[key];
+                const newPath = [...path, key];
+                if (typeof val === 'object') {
+                    setSearchParams(val, newPath);
+                }
+                else {
+                    const finalKey = newPath.reduce((acc, pathElem, i) => (i === 0 ? pathElem : `${acc}[${pathElem}]`), '');
+                    url.searchParams.set(finalKey, val);
+                }
+            }
+        };
+        setSearchParams(qs, []);
+        resolveData.url = url.toString().replace(url.search, '');
         // Make the call
-        httpLog(`Call ${options.method.toUpperCase()} ${options.url}?${querystring.stringify(options.qs)}\n` +
+        httpLog(`Call ${options.method.toUpperCase()} ${url.toString()}\n` +
             `headers: ${JSON.stringify(options.headers)}\n` +
             `request body: ${options.body}`);
-        return new Promise((resolve, reject) => {
-            NodeRequest(options, (err, response, body) => {
-                if (err) {
-                    httpLog(err);
-                    reject(err);
+        let response;
+        try {
+            response = yield fetch(url.toString(), options);
+        }
+        catch (err) {
+            httpLog(err);
+            throw err;
+        }
+        const body = yield response.text();
+        if (response.status < 200 || response.status > 299) {
+            httpLog(`${response.status} - ${Oas3Tools.trim(body, 100)}`);
+            const errorString = `Could not invoke operation ${operation.operationString}`;
+            if (data.options.provideErrorExtensions) {
+                let responseBody;
+                try {
+                    responseBody = JSON.parse(body);
                 }
-                else if (response.statusCode < 200 || response.statusCode > 299) {
-                    httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
-                    const errorString = `Could not invoke operation ${operation.operationString}`;
-                    if (data.options.provideErrorExtensions) {
+                catch (e) {
+                    responseBody = body;
+                }
+                const extensions = {
+                    method: operation.method,
+                    path: operation.path,
+                    url: url.toString(),
+                    statusText: response.statusText,
+                    statusCode: response.status,
+                    responseHeaders: headersToObject(response.headers),
+                    responseBody
+                };
+                throw graphQLErrorWithExtensions(errorString, extensions);
+            }
+            else {
+                throw new Error(errorString);
+            }
+            // Successful response code 200-299
+        }
+        else {
+            httpLog(`${response.status} - ${Oas3Tools.trim(body, 100)}`);
+            if (response.headers.get('content-type')) {
+                /**
+                 * Throw warning if the non-application/json content does not
+                 * match the OAS.
+                 *
+                 * Use an inclusion test in case of charset
+                 *
+                 * i.e. text/plain; charset=utf-8
+                 */
+                if (!(response.headers
+                    .get('content-type')
+                    .includes(operation.responseContentType) ||
+                    operation.responseContentType.includes(response.headers.get('content-type')))) {
+                    const errorString = `Operation ` +
+                        `${operation.operationString} ` +
+                        `should have a content-type '${operation.responseContentType}' ` +
+                        `but has '${response.headers.get('content-type')}' instead`;
+                    httpLog(errorString);
+                    throw new Error(errorString);
+                }
+                else {
+                    /**
+                     * If the response body is type JSON, then parse it
+                     *
+                     * content-type may not be necessarily 'application/json' it can be
+                     * 'application/json; charset=utf-8' for example
+                     */
+                    if (response.headers.get('content-type').includes('application/json')) {
                         let responseBody;
                         try {
                             responseBody = JSON.parse(body);
                         }
                         catch (e) {
-                            responseBody = body;
-                        }
-                        const extensions = {
-                            method: operation.method,
-                            path: operation.path,
-                            statusCode: response.statusCode,
-                            responseHeaders: response.headers,
-                            responseBody
-                        };
-                        reject(graphQLErrorWithExtensions(errorString, extensions));
-                    }
-                    else {
-                        reject(new Error(errorString));
-                    }
-                    // Successful response code 200-299
-                }
-                else {
-                    httpLog(`${response.statusCode} - ${Oas3Tools.trim(body, 100)}`);
-                    if (response.headers['content-type']) {
-                        /**
-                         * Throw warning if the non-application/json content does not
-                         * match the OAS.
-                         *
-                         * Use an inclusion test in case of charset
-                         *
-                         * i.e. text/plain; charset=utf-8
-                         */
-                        if (!(response.headers['content-type'].includes(operation.responseContentType) ||
-                            operation.responseContentType.includes(response.headers['content-type']))) {
-                            const errorString = `Operation ` +
-                                `${operation.operationString} ` +
-                                `should have a content-type '${operation.responseContentType}' ` +
-                                `but has '${response.headers['content-type']}' instead`;
+                            const errorString = `Cannot JSON parse response body of ` +
+                                `operation ${operation.operationString} ` +
+                                `even though it has content-type 'application/json'`;
                             httpLog(errorString);
-                            reject(errorString);
+                            throw new Error(errorString);
                         }
-                        else {
-                            /**
-                             * If the response body is type JSON, then parse it
-                             *
-                             * content-type may not be necessarily 'application/json' it can be
-                             * 'application/json; charset=utf-8' for example
-                             */
-                            if (response.headers['content-type'].includes('application/json')) {
-                                let responseBody;
-                                try {
-                                    responseBody = JSON.parse(body);
-                                }
-                                catch (e) {
-                                    const errorString = `Cannot JSON parse response body of ` +
-                                        `operation ${operation.operationString} ` +
-                                        `even though it has content-type 'application/json'`;
-                                    httpLog(errorString);
-                                    reject(errorString);
-                                }
-                                resolveData.responseHeaders = response.headers;
-                                // Deal with the fact that the server might send unsanitized data
-                                let saneData = Oas3Tools.sanitizeObjectKeys(responseBody, !data.options.simpleNames
-                                    ? Oas3Tools.CaseStyle.camelCase
-                                    : Oas3Tools.CaseStyle.simple);
-                                // Pass on _openAPIToGraphQL to subsequent resolvers
-                                if (saneData && typeof saneData === 'object') {
-                                    if (Array.isArray(saneData)) {
-                                        saneData.forEach((element) => {
-                                            if (typeof element[exports.OPENAPI_TO_GRAPHQL] === 'undefined') {
-                                                element[exports.OPENAPI_TO_GRAPHQL] = {
-                                                    data: {}
-                                                };
-                                            }
-                                            if (source &&
-                                                typeof source === 'object' &&
-                                                typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
-                                                Object.assign(element[exports.OPENAPI_TO_GRAPHQL], source[exports.OPENAPI_TO_GRAPHQL]);
-                                            }
-                                            element[exports.OPENAPI_TO_GRAPHQL].data[getIdentifier(info)] = resolveData;
-                                        });
+                        resolveData.responseHeaders = {};
+                        response.headers.forEach((val, key) => {
+                            resolveData.responseHeaders[key] = val;
+                        });
+                        // Deal with the fact that the server might send unsanitized data
+                        let saneData = Oas3Tools.sanitizeObjectKeys(responseBody, !data.options.simpleNames
+                            ? Oas3Tools.CaseStyle.camelCase
+                            : Oas3Tools.CaseStyle.simple);
+                        // Pass on _openAPIToGraphQL to subsequent resolvers
+                        if (saneData && typeof saneData === 'object') {
+                            if (Array.isArray(saneData)) {
+                                saneData.forEach((element) => {
+                                    if (typeof element[exports.OPENAPI_TO_GRAPHQL] === 'undefined') {
+                                        element[exports.OPENAPI_TO_GRAPHQL] = {
+                                            data: {}
+                                        };
                                     }
-                                    else {
-                                        if (typeof saneData[exports.OPENAPI_TO_GRAPHQL] === 'undefined') {
-                                            saneData[exports.OPENAPI_TO_GRAPHQL] = {
-                                                data: {}
-                                            };
-                                        }
-                                        if (source &&
-                                            typeof source === 'object' &&
-                                            typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
-                                            Object.assign(saneData[exports.OPENAPI_TO_GRAPHQL], source[exports.OPENAPI_TO_GRAPHQL]);
-                                        }
-                                        saneData[exports.OPENAPI_TO_GRAPHQL].data[getIdentifier(info)] = resolveData;
+                                    if (source &&
+                                        typeof source === 'object' &&
+                                        typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
+                                        Object.assign(element[exports.OPENAPI_TO_GRAPHQL], source[exports.OPENAPI_TO_GRAPHQL]);
                                     }
-                                }
-                                // Apply limit argument
-                                if (data.options.addLimitArgument &&
-                                    /**
-                                     * NOTE: Does not differentiate between autogenerated args and
-                                     * preexisting args
-                                     *
-                                     * Ensure that there is not preexisting 'limit' argument
-                                     */
-                                    !operation.parameters.find((parameter) => {
-                                        return parameter.name === 'limit';
-                                    }) &&
-                                    // Only array data
-                                    Array.isArray(saneData) &&
-                                    // Only array of objects/arrays
-                                    saneData.some((data) => {
-                                        return typeof data === 'object';
-                                    })) {
-                                    let arraySaneData = saneData;
-                                    if ('limit' in args) {
-                                        const limit = args['limit'];
-                                        if (limit >= 0) {
-                                            arraySaneData = arraySaneData.slice(0, limit);
-                                        }
-                                        else {
-                                            reject(new Error(`Auto-generated 'limit' argument must be greater than or equal to 0`));
-                                        }
-                                    }
-                                    else {
-                                        reject(new Error(`Cannot get value for auto-generated 'limit' argument`));
-                                    }
-                                    saneData = arraySaneData;
-                                }
-                                resolve(saneData);
+                                    element[exports.OPENAPI_TO_GRAPHQL].data[getIdentifier(info)] = resolveData;
+                                });
                             }
                             else {
-                                // TODO: Handle YAML
-                                resolve(body);
+                                if (typeof saneData[exports.OPENAPI_TO_GRAPHQL] === 'undefined') {
+                                    saneData[exports.OPENAPI_TO_GRAPHQL] = {
+                                        data: {}
+                                    };
+                                }
+                                if (source &&
+                                    typeof source === 'object' &&
+                                    typeof source[exports.OPENAPI_TO_GRAPHQL] === 'object') {
+                                    Object.assign(saneData[exports.OPENAPI_TO_GRAPHQL], source[exports.OPENAPI_TO_GRAPHQL]);
+                                }
+                                saneData[exports.OPENAPI_TO_GRAPHQL].data[getIdentifier(info)] = resolveData;
                             }
                         }
+                        // Apply limit argument
+                        if (data.options.addLimitArgument &&
+                            /**
+                             * NOTE: Does not differentiate between autogenerated args and
+                             * preexisting args
+                             *
+                             * Ensure that there is not preexisting 'limit' argument
+                             */
+                            !operation.parameters.find((parameter) => {
+                                return parameter.name === 'limit';
+                            }) &&
+                            // Only array data
+                            Array.isArray(saneData) &&
+                            // Only array of objects/arrays
+                            saneData.some((data) => {
+                                return typeof data === 'object';
+                            })) {
+                            let arraySaneData = saneData;
+                            if ('limit' in args) {
+                                const limit = args['limit'];
+                                if (limit >= 0) {
+                                    arraySaneData = arraySaneData.slice(0, limit);
+                                }
+                                else {
+                                    throw new Error(`Auto-generated 'limit' argument must be greater than or equal to 0`);
+                                }
+                            }
+                            else {
+                                throw new Error(`Cannot get value for auto-generated 'limit' argument`);
+                            }
+                            saneData = arraySaneData;
+                        }
+                        return saneData;
                     }
                     else {
-                        /**
-                         * Check to see if there is not supposed to be a response body,
-                         * if that is the case, that would explain why there is not
-                         * a content-type
-                         */
-                        if (typeof operation.responseContentType !== 'string') {
-                            resolve(null);
-                        }
-                        else {
-                            const errorString = 'Response does not have a Content-Type header';
-                            httpLog(errorString);
-                            reject(errorString);
-                        }
+                        // TODO: Handle YAML
+                        return body;
                     }
                 }
-            });
-        });
-    };
+            }
+            else {
+                /**
+                 * Check to see if there is not supposed to be a response body,
+                 * if that is the case, that would explain why there is not
+                 * a content-type
+                 */
+                if (typeof operation.responseContentType !== 'string') {
+                    return null;
+                }
+                else {
+                    const errorString = 'Response does not have a Content-Type header';
+                    httpLog(errorString);
+                    throw new Error(errorString);
+                }
+            }
+        }
+    });
 }
 exports.getResolver = getResolver;
+function headersToObject(headers) {
+    const headersObj = {};
+    headers.forEach((value, key) => {
+        headersObj[key] = value;
+    });
+    return headersObj;
+}
 /**
  * Attempts to create an object to become an OAuth query string by extracting an
  * OAuth token from the context based on the JSON path provided in the options.
@@ -681,7 +711,7 @@ function getAuthOptions(operation, _openAPIToGraphQL, data) {
                             authQs[security.def.name] = apiKey;
                         }
                         else if (security.def.in === 'cookie') {
-                            authCookie = NodeRequest.cookie(`${security.def.name}=${apiKey}`);
+                            authCookie = `${security.def.name}=${apiKey}`;
                         }
                     }
                     else {
@@ -747,7 +777,7 @@ function getAuthReqAndProtcolName(operation, _openAPIToGraphQL) {
  */
 function resolveRuntimeExpression(paramName, value, resolveData, root, args) {
     if (value === '$url') {
-        return resolveData.usedRequestOptions.url;
+        return resolveData.url;
     }
     else if (value === '$method') {
         return resolveData.usedRequestOptions.method;

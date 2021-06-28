@@ -53,7 +53,7 @@ const translationLog = debug_1.default('translation');
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
  */
-function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType = false }) {
+function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType = false, fetch }) {
     const name = isInputObjectType
         ? def.graphQLInputObjectTypeName
         : def.graphQLTypeName;
@@ -70,7 +70,8 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 operation,
                 data,
                 iteration,
-                isInputObjectType
+                isInputObjectType,
+                fetch
             });
         // CASE: union - create union type
         case operation_1.TargetGraphQLType.oneOfUnion:
@@ -78,7 +79,8 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 def,
                 operation,
                 data,
-                iteration
+                iteration,
+                fetch
             });
         // CASE: list - create list type
         case operation_1.TargetGraphQLType.list:
@@ -87,7 +89,8 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
                 operation,
                 data,
                 iteration,
-                isInputObjectType
+                isInputObjectType,
+                fetch
             });
         // CASE: enum - create enum type
         case operation_1.TargetGraphQLType.enum:
@@ -132,7 +135,7 @@ exports.getGraphQLType = getGraphQLType;
  *       resolve   // Optional function defining how to obtain this type
  *   })
  */
-function createOrReuseOt({ def, operation, data, iteration, isInputObjectType }) {
+function createOrReuseOt({ def, operation, data, iteration, isInputObjectType, fetch }) {
     // Try to reuse a preexisting (input) object type
     // CASE: query - reuse object type
     if (!isInputObjectType) {
@@ -174,7 +177,8 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
                     operation,
                     data,
                     iteration,
-                    isInputObjectType: false
+                    isInputObjectType: false,
+                    fetch
                 });
             }
         });
@@ -196,7 +200,8 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
                     operation,
                     data,
                     iteration,
-                    isInputObjectType: true
+                    isInputObjectType: true,
+                    fetch
                 });
             }
         });
@@ -206,7 +211,7 @@ function createOrReuseOt({ def, operation, data, iteration, isInputObjectType })
 /**
  * Creates a union type or return an existing one, and stores it in data
  */
-function createOrReuseUnion({ def, operation, data, iteration }) {
+function createOrReuseUnion({ def, operation, data, iteration, fetch }) {
     // Try to reuse existing union type
     if (typeof def.graphQLType !== 'undefined') {
         translationLog(`Reuse union type '${def.graphQLTypeName}'` +
@@ -231,7 +236,8 @@ function createOrReuseUnion({ def, operation, data, iteration }) {
                 operation,
                 data,
                 iteration: iteration + 1,
-                isInputObjectType: false
+                isInputObjectType: false,
+                fetch
             });
         });
         /**
@@ -316,7 +322,7 @@ function checkAmbiguousMemberTypes(def, types, data) {
 /**
  * Creates a list type or returns an existing one, and stores it in data
  */
-function createOrReuseList({ def, operation, iteration, isInputObjectType, data }) {
+function createOrReuseList({ def, operation, iteration, isInputObjectType, data, fetch }) {
     const name = isInputObjectType
         ? def.graphQLInputObjectTypeName
         : def.graphQLTypeName;
@@ -346,7 +352,8 @@ function createOrReuseList({ def, operation, iteration, isInputObjectType, data 
         data,
         operation,
         iteration: iteration + 1,
-        isInputObjectType
+        isInputObjectType,
+        fetch
     });
     if (itemsType !== null) {
         const listObjectType = new graphql_1.GraphQLList(itemsType);
@@ -413,7 +420,7 @@ function createOrReuseEnum({ def, data }) {
 /**
  * Creates the fields object to be used by an (input) object type
  */
-function createFields({ def, links, operation, data, iteration, isInputObjectType }) {
+function createFields({ def, links, operation, data, iteration, isInputObjectType, fetch }) {
     let fields = {};
     const fieldTypeDefinitions = def.subDefinitions;
     // Create fields for properties
@@ -426,7 +433,8 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
             operation,
             data,
             iteration: iteration + 1,
-            isInputObjectType
+            isInputObjectType,
+            fetch
         });
         const requiredProperty = typeof def.required === 'object' && def.required.includes(fieldName);
         // Finally, add the object type to the fields (using sanitized field name)
@@ -519,13 +527,15 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                         argsFromLink: argsFromLink,
                         data,
                         baseUrl: data.options.baseUrl,
-                        requestOptions: data.options.requestOptions
+                        requestOptions: data.options.requestOptions,
+                        fetch
                     });
                     // Get arguments for link
                     const args = getArgs({
                         parameters: dynamicParams,
                         operation: linkedOp,
-                        data
+                        data,
+                        fetch
                     });
                     // Get response object type
                     const resObjectType = linkedOp.responseDefinition.graphQLType !== undefined
@@ -535,7 +545,8 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
                             operation,
                             data,
                             iteration: iteration + 1,
-                            isInputObjectType: false
+                            isInputObjectType: false,
+                            fetch
                         });
                     let description = link.description;
                     if (data.options.equivalentToMessages && description) {
@@ -828,7 +839,7 @@ function skipArg(parameter, operation, data) {
  *
  * Arguments that are provided via options will be ignored
  */
-function getArgs({ requestPayloadDef, parameters, operation, data }) {
+function getArgs({ requestPayloadDef, parameters, operation, data, fetch }) {
     let args = {};
     // Handle params:
     parameters.forEach((parameter) => {
@@ -903,7 +914,8 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             operation,
             data,
             iteration: 0,
-            isInputObjectType: true
+            isInputObjectType: true,
+            fetch
         });
         /**
          * Sanitize the argument name
@@ -966,7 +978,8 @@ function getArgs({ requestPayloadDef, parameters, operation, data }) {
             def: requestPayloadDef,
             data,
             operation,
-            isInputObjectType: true // Request payloads will always be an input object type
+            isInputObjectType: true,
+            fetch
         });
         // Sanitize the argument name
         const saneName = data.options.genericPayloadArgName

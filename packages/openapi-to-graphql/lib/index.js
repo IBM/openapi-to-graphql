@@ -16,6 +16,7 @@ const Oas3Tools = require("./oas_3_tools");
 const auth_builder_1 = require("./auth_builder");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
+const cross_fetch_1 = require("cross-fetch");
 const translationLog = debug_1.default('translation');
 const DEFAULT_OPTIONS = {
     report: {
@@ -55,7 +56,8 @@ const DEFAULT_OPTIONS = {
     swagger2OpenAPIOptions: {},
     // Logging options
     provideErrorExtensions: true,
-    equivalentToMessages: true
+    equivalentToMessages: true,
+    fetch: cross_fetch_1.default
 };
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
@@ -106,7 +108,7 @@ viewer, tokenJSONpath, sendOAuthTokenInQuery,
 // Validation options
 oasValidatorOptions, swagger2OpenAPIOptions, 
 // Logging options
-provideErrorExtensions, equivalentToMessages }) {
+provideErrorExtensions, equivalentToMessages, fetch }) {
     const options = {
         strict,
         report,
@@ -138,7 +140,8 @@ provideErrorExtensions, equivalentToMessages }) {
         swagger2OpenAPIOptions,
         // Logging options
         provideErrorExtensions,
-        equivalentToMessages
+        equivalentToMessages,
+        fetch
     };
     translationLog(`Options: ${JSON.stringify(options)}`);
     /**
@@ -229,13 +232,13 @@ provideErrorExtensions, equivalentToMessages }) {
      * viewer objects.
      */
     if (Object.keys(authQueryFields).length > 0) {
-        Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, graphql_1.GraphQLOperationType.Query, data));
+        Object.assign(queryFields, auth_builder_1.createAndLoadViewer(authQueryFields, graphql_1.GraphQLOperationType.Query, data, fetch));
     }
     if (Object.keys(authMutationFields).length > 0) {
-        Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, graphql_1.GraphQLOperationType.Mutation, data));
+        Object.assign(mutationFields, auth_builder_1.createAndLoadViewer(authMutationFields, graphql_1.GraphQLOperationType.Mutation, data, fetch));
     }
     if (Object.keys(authSubscriptionFields).length > 0) {
-        Object.assign(subscriptionFields, auth_builder_1.createAndLoadViewer(authSubscriptionFields, graphql_1.GraphQLOperationType.Subscription, data));
+        Object.assign(subscriptionFields, auth_builder_1.createAndLoadViewer(authSubscriptionFields, graphql_1.GraphQLOperationType.Subscription, data, fetch));
     }
     // Build up the schema
     const schemaConfig = {
@@ -273,8 +276,8 @@ provideErrorExtensions, equivalentToMessages }) {
     return { schema, report, data };
 }
 function addQueryFields({ authQueryFields, queryFields, operationId, operation, options, data }) {
-    const { operationIdFieldNames, singularNames, baseUrl, requestOptions, connectOptions } = options;
-    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions);
+    const { operationIdFieldNames, singularNames, baseUrl, requestOptions, connectOptions, fetch } = options;
+    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions, fetch);
     const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
     // Field name provided by x-graphql-field-name OAS extension
     const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
@@ -386,8 +389,8 @@ function addQueryFields({ authQueryFields, queryFields, operationId, operation, 
     }
 }
 function addMutationFields({ authMutationFields, mutationFields, operationId, operation, options, data }) {
-    const { singularNames, baseUrl, requestOptions, connectOptions } = options;
-    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions);
+    const { singularNames, baseUrl, requestOptions, connectOptions, fetch } = options;
+    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions, fetch);
     const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
     // Field name provided by x-graphql-field-name OAS extension
     const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
@@ -474,8 +477,8 @@ function addMutationFields({ authMutationFields, mutationFields, operationId, op
     }
 }
 function addSubscriptionFields({ authSubscriptionFields, subscriptionFields, operationId, operation, options, data }) {
-    const { baseUrl, requestOptions, connectOptions } = options;
-    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions);
+    const { baseUrl, requestOptions, connectOptions, fetch } = options;
+    const field = getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions, fetch);
     const saneOperationId = Oas3Tools.sanitize(operationId, Oas3Tools.CaseStyle.camelCase);
     const extensionFieldName = operation.operation[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.FieldName];
     if (!Oas3Tools.isSanitized(extensionFieldName)) {
@@ -544,12 +547,13 @@ function addSubscriptionFields({ authSubscriptionFields, subscriptionFields, ope
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions) {
+function getFieldForOperation(operation, baseUrl, data, requestOptions, connectOptions, fetch) {
     // Create GraphQL Type for response:
     const type = schema_builder_1.getGraphQLType({
         def: operation.responseDefinition,
         data,
-        operation
+        operation,
+        fetch
     });
     const payloadSchemaName = operation.payloadDefinition
         ? operation.payloadDefinition.graphQLInputObjectTypeName
@@ -564,7 +568,8 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions, connectO
         requestPayloadDef: operation.payloadDefinition,
         parameters: operation.parameters,
         operation,
-        data
+        data,
+        fetch
     });
     // Get resolver and subscribe function for Subscription fields
     if (operation.operationType === graphql_1.GraphQLOperationType.Subscription) {
@@ -574,7 +579,8 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions, connectO
         const resolve = resolver_builder_1.getPublishResolver({
             operation,
             responseName: responseSchemaName,
-            data
+            data,
+            fetch
         });
         const subscribe = resolver_builder_1.getSubscribe({
             operation,
@@ -598,7 +604,8 @@ function getFieldForOperation(operation, baseUrl, data, requestOptions, connectO
             payloadName: payloadSchemaName,
             data,
             baseUrl,
-            requestOptions
+            requestOptions,
+            fetch
         });
         return {
             type,

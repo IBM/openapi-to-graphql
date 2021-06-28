@@ -1,4 +1,3 @@
-/// <reference types="node" />
 /**
  * Functions to create resolve functions.
  */
@@ -8,8 +7,8 @@ import { Operation } from './types/operation';
 import { SubscriptionContext } from './types/graphql';
 import { PreprocessingData } from './types/preprocessing_data';
 import { RequestOptions } from './types/options';
+import crossFetch from 'cross-fetch';
 import { GraphQLFieldResolver } from 'graphql';
-import { IncomingHttpHeaders } from 'http';
 export declare const OPENAPI_TO_GRAPHQL = "_openAPIToGraphQL";
 declare type GetResolverParams<TSource, TContext, TArgs> = {
     operation: Operation;
@@ -21,6 +20,7 @@ declare type GetResolverParams<TSource, TContext, TArgs> = {
     data: PreprocessingData<TSource, TContext, TArgs>;
     baseUrl?: string;
     requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>;
+    fetch: typeof crossFetch;
 };
 declare type GetSubscribeParams<TSource, TContext, TArgs> = {
     operation: Operation;
@@ -33,16 +33,12 @@ declare type GetSubscribeParams<TSource, TContext, TArgs> = {
     connectOptions?: ConnectOptions;
 };
 declare type ResolveData<TSource, TContext, TArgs> = {
-    /**
-     * TODO: Determine type
-     *
-     * Is it related to TArgs?
-     */
+    url: string;
     usedParams: any;
     usedPayload: any;
     usedRequestOptions: RequestOptions<TSource, TContext, TArgs>;
     usedStatusCode: string;
-    responseHeaders: IncomingHttpHeaders;
+    responseHeaders: HeadersInit;
 };
 declare type OpenAPIToGraphQLRoot<TSource, TContext, TArgs> = {
     data?: {
@@ -66,7 +62,7 @@ export declare function getPublishResolver<TSource, TContext, TArgs>({ operation
  * If the operation type is Query or Mutation, create and return a resolver
  * function that performs API requests for the given GraphQL query
  */
-export declare function getResolver<TSource, TContext, TArgs>({ operation, argsFromLink, payloadName, data, baseUrl, requestOptions }: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<TSource & OpenAPIToGraphQLSource<TSource, TContext, TArgs>, TContext, TArgs>;
+export declare function getResolver<TSource, TContext, TArgs>({ operation, argsFromLink, payloadName, data, baseUrl, requestOptions, fetch }: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<TSource & OpenAPIToGraphQLSource<TSource, TContext, TArgs>, TContext, TArgs>;
 /**
  * Extracts data from the GraphQL arguments of a particular field
  *

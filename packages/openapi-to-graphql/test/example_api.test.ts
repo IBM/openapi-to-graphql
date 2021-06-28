@@ -1237,7 +1237,9 @@ test('Error contains extension', () => {
       statusCode: 404,
       responseBody: {
         message: 'Wrong username'
-      }
+      },
+      statusText: 'Not Found',
+      url: 'http://localhost:3002/api/users/abcdef'
     })
   })
 })
@@ -2089,8 +2091,7 @@ test('Header arguments are not created when they are provided through requestOpt
       headers: {
         snack_type: 'chips',
         snack_size: 'large'
-      },
-      url: undefined // Mandatory for requestOptions type
+      }
     }
   }
 
@@ -2200,8 +2201,7 @@ test('Query string arguments are not created when they are provided through requ
     requestOptions: {
       qs: {
         limit: '10'
-      },
-      url: undefined // Mandatory for requestOptions type
+      }
     }
   }
 
@@ -2284,8 +2284,7 @@ test('Use requestOptions headers option as function', () => {
             snack_size: 'small'
           }
         }
-      },
-      url: undefined // Mandatory for requestOptions type
+      }
     }
   }
 

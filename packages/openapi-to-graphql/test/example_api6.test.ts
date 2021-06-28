@@ -66,7 +66,6 @@ test('Option requestOptions should work with links', () => {
 
   const options: Options<any, any, any> = {
     requestOptions: {
-      url: undefined,
       headers: {
         specialheader: 'requestOptions'
       }

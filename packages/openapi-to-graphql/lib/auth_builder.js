@@ -25,7 +25,7 @@ const translationLog = debug_1.default('translation');
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-function createAndLoadViewer(queryFields, operationType, data) {
+function createAndLoadViewer(queryFields, operationType, data, fetch) {
     const results = {};
     /**
      * To ensure that viewers have unique names, we add a numerical postfix.
@@ -99,7 +99,7 @@ function createAndLoadViewer(queryFields, operationType, data) {
             ? 'mutationViewerAnyAuth'
             : 'subscriptionViewerAnyAuth';
     // Add the AnyAuth object type to the specified root query object type
-    results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data);
+    results[anyAuthObjectName] = getViewerAnyAuthOT(anyAuthObjectName, anyAuthFields, data, fetch);
     return results;
 }
 exports.createAndLoadViewer = createAndLoadViewer;
@@ -165,7 +165,7 @@ function getViewerOT(name, protocolName, securityType, queryFields, data) {
  * Create an object containing an AnyAuth viewer, its resolve function,
  * and its args.
  */
-function getViewerAnyAuthOT(name, queryFields, data) {
+function getViewerAnyAuthOT(name, queryFields, data, fetch) {
     // Resolve function:
     const resolve = (source, args, context, info) => {
         return {
@@ -182,7 +182,8 @@ function getViewerAnyAuthOT(name, queryFields, data) {
         const type = schema_builder_1.getGraphQLType({
             def,
             data,
-            isInputObjectType: true
+            isInputObjectType: true,
+            fetch
         });
         const saneProtocolName = Oas3Tools.sanitize(protocolName, Oas3Tools.CaseStyle.camelCase);
         args[Oas3Tools.storeSaneName(saneProtocolName, protocolName, data.saneMap)] = { type };
