@@ -36,11 +36,6 @@
       "*.js"
     ]
   },
-  "main": "lib/index.js",
-  "scripts": {
-    "dev": "tsc -w",
-    "build": "tsc"
-  },
   "husky": {
     "hooks": {
       "pre-commit": "pretty-quick --staged"
@@ -63,10 +58,33 @@
     "pretty-quick": "^3.0.2",
     "standard": "^14.3.1",
     "tslint": "^6.1.3",
-    "tslint-config-standard": "^9.0.0",
-    "typescript": "^4.0.3"
+    "tslint-config-standard": "^9.0.0"
   },
   "bin": {
-    "openapi-to-graphql": "./lib/openapi-to-graphql.js"
+    "openapi-to-graphql": "./dist/openapi-to-graphql.js"
+  },
+  "sideEffects": false,
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "typings": "dist/index.d.ts",
+  "typescript": {
+    "definition": "dist/index.d.ts"
+  },
+  "exports": {
+    ".": {
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    },
+    "./*": {
+      "require": "./dist/*.js",
+      "import": "./dist/*.mjs"
+    }
+  },
+  "buildOptions": {
+    "bin": {
+      "openapi-to-graphql": {
+        "input": "src/index.ts"
+      }
+    }
   }
 }

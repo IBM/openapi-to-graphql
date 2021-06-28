@@ -1,0 +1,33 @@
+{
+    "compilerOptions": {
+        "incremental": true,
+        "outDir": "dist",
+        "baseUrl": ".",
+        "target": "es2018",
+        "module": "esnext",
+        "moduleResolution": "node",
+        "lib": [
+            "esnext"
+        ],
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "declaration": true,
+        "importHelpers": true,
+        "paths": {
+            "openapi-to-graphql": [
+                "packages/openapi-to-graphql/src/index.ts"
+            ],
+            "openapi-to-graphql-cli": [
+                "packages/openapi-to-graphql-cli/src/index.ts"
+            ]
+        }
+    },
+    "include": [
+        "packages"
+    ],
+    "exclude": [
+        "**/node_modules",
+        "**/dist"
+    ]
+}

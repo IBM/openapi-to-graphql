@@ -13,8 +13,8 @@ const {
   graphql
 } = require('graphql')
 
-import * as Oas3Tools from '../lib/oas_3_tools'
-import { PathItemObject } from '../lib/types/oas3'
+import * as Oas3Tools from '../src/oas_3_tools'
+import { PathItemObject } from '../src/types/oas3'
 
 test('Applying sanitize multiple times does not change outcome', () => {
   const str = 'this Super*annoying-string()'

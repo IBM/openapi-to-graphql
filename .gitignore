@@ -18,3 +18,7 @@ tmp
 
 # OS configuration
 *.DS_Store
+
+# Compiled JS files
+dist
+.bob

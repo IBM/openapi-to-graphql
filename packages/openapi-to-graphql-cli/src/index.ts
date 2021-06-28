@@ -1,19 +1,14 @@
-#!/usr/bin/env node
-
-import * as express from 'express'
+import express from 'express'
 import { graphqlHTTP } from 'express-graphql'
-import * as cors from 'cors'
-import * as path from 'path'
-import * as request from 'request'
-import * as fs from 'fs'
-import * as yaml from 'js-yaml'
+import cors from 'cors'
+import path from 'path'
+import request from 'request'
+import fs from 'fs'
+import yaml from 'js-yaml'
 import { printSchema } from 'graphql'
 import { Command } from 'commander'
 
-import { createGraphQLSchema } from 'openapi-to-graphql'
-import { Oas2 } from 'openapi-to-graphql/lib/types/oas2'
-import { Oas3 } from 'openapi-to-graphql/lib/types/oas3'
-import { Options } from 'openapi-to-graphql/lib/types/options'
+import { createGraphQLSchema, Oas2, Oas3, Options } from 'openapi-to-graphql'
 
 const app = express()
 

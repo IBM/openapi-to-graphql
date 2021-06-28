@@ -69,6 +69,9 @@ import { createAndLoadViewer } from './auth_builder'
 import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
 import { sortObject, handleWarning, MitigationTypes } from './utils'
+
+export { Oas2, Oas3, Options };
+
 const translationLog = debug('translation')
 
 type Result<TSource, TContext, TArgs> = {
@@ -127,53 +130,41 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export function createGraphQLSchema<TSource, TContext, TArgs>(
+export async function createGraphQLSchema<TSource, TContext, TArgs>(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options?: Options<TSource, TContext, TArgs>
 ): Promise<Result<TSource, TContext, TArgs>> {
-  return new Promise((resolve, reject) => {
-    // Setting default options
-    const internalOptions: InternalOptions<TSource, TContext, TArgs> = {
-      ...DEFAULT_OPTIONS,
-      ...options
-    }
+  // Setting default options
+  const internalOptions: InternalOptions<TSource, TContext, TArgs> = {
+    ...DEFAULT_OPTIONS,
+    ...options
+  }
 
-    if (Array.isArray(spec)) {
-      // Convert all non-OAS 3 into OAS 3
-      Promise.all(
-        spec.map((ele) => {
-          return Oas3Tools.getValidOAS3(
-            ele,
-            internalOptions.oasValidatorOptions,
-            internalOptions.swagger2OpenAPIOptions
-          )
-        })
+  if (Array.isArray(spec)) {
+    // Convert all non-OAS 3 into OAS 3
+    const oass = await Promise.all(
+      spec.map((ele) =>
+        Oas3Tools.getValidOAS3(
+          ele,
+          internalOptions.oasValidatorOptions,
+          internalOptions.swagger2OpenAPIOptions
+        )
       )
-        .then((oass) => {
-          resolve(translateOpenAPIToGraphQL(oass, internalOptions))
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    } else {
-      /**
-       * Check if the spec is a valid OAS 3
-       * If the spec is OAS 2.0, attempt to translate it into 3, then try to
-       * translate the spec into a GraphQL schema
-       */
-      Oas3Tools.getValidOAS3(
-        spec,
-        internalOptions.oasValidatorOptions,
-        internalOptions.swagger2OpenAPIOptions
-      )
-        .then((oas) => {
-          resolve(translateOpenAPIToGraphQL([oas], internalOptions))
-        })
-        .catch((error) => {
-          reject(error)
-        })
-    }
-  })
+    )
+    return translateOpenAPIToGraphQL(oass, internalOptions)
+  } else {
+    /**
+     * Check if the spec is a valid OAS 3
+     * If the spec is OAS 2.0, attempt to translate it into 3, then try to
+     * translate the spec into a GraphQL schema
+     */
+    const oas = await Oas3Tools.getValidOAS3(
+      spec,
+      internalOptions.oasValidatorOptions,
+      internalOptions.swagger2OpenAPIOptions
+    )
+    return translateOpenAPIToGraphQL([oas], internalOptions)
+  }
 }
 
 /**
@@ -438,9 +429,10 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
    */
   Object.entries(data.operations).forEach(([opId, operation]) => {
     if (typeof operation.responseDefinition.graphQLType === 'undefined') {
-      operation.responseDefinition.graphQLType = GraphQLTools.getEmptyObjectType(
-        operation.responseDefinition.graphQLTypeName
-      )
+      operation.responseDefinition.graphQLType =
+        GraphQLTools.getEmptyObjectType(
+          operation.responseDefinition.graphQLTypeName
+        )
     }
   })
 
