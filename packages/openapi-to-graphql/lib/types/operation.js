@@ -13,6 +13,7 @@ var TargetGraphQLType;
     TargetGraphQLType["float"] = "float";
     TargetGraphQLType["boolean"] = "boolean";
     TargetGraphQLType["id"] = "id";
+    TargetGraphQLType["bigint"] = "bigint";
     // JSON
     TargetGraphQLType["json"] = "json";
     // non-scalars

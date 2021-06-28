@@ -348,12 +348,8 @@ function getSchemaTargetGraphQLType(schemaOrRef, data, oas) {
     }
     // Special edge cases involving the schema format
     if (typeof schema.format === 'string') {
-        /**
-         * CASE: 64 bit int - return number instead of integer, leading to use of
-         * GraphQLFloat, which can support 64 bits:
-         */
         if (schema.type === 'integer' && schema.format === 'int64') {
-            return operation_1.TargetGraphQLType.float;
+            return operation_1.TargetGraphQLType.bigint;
             // CASE: id
         }
         else if (schema.type === 'string' &&

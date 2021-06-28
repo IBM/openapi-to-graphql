@@ -8,7 +8,7 @@ exports.getArgs = exports.getGraphQLType = void 0;
 const operation_1 = require("./types/operation");
 const graphql_1 = require("graphql");
 // Imports:
-const graphql_type_json_1 = require("graphql-type-json");
+const graphql_scalars_1 = require("graphql-scalars");
 const Oas3Tools = require("./oas_3_tools");
 const resolver_builder_1 = require("./resolver_builder");
 const preprocessor_1 = require("./preprocessor");
@@ -21,7 +21,7 @@ const utils_1 = require("./utils");
  * the API requests. Therefore, we need to change the serialize() function
  * in the GraphQLJSON type.
  */
-const CleanGraphQLJSON = new graphql_1.GraphQLScalarType(Object.assign(Object.assign({}, graphql_type_json_1.default.toConfig()), { serialize: (value) => {
+const CleanGraphQLJSON = new graphql_1.GraphQLScalarType(Object.assign(Object.assign({}, graphql_scalars_1.GraphQLJSON.toConfig()), { serialize: (value) => {
         let cleanValue;
         /**
          * If the value is an object and contains the _openAPIToGraphQL,
@@ -47,7 +47,7 @@ const CleanGraphQLJSON = new graphql_1.GraphQLScalarType(Object.assign(Object.as
             cleanValue = value;
         }
         // Use original serialize() function but with clean value
-        return graphql_type_json_1.default.serialize(cleanValue);
+        return graphql_scalars_1.GraphQLJSON.serialize(cleanValue);
     } }));
 const translationLog = debug_1.default('translation');
 /**
@@ -113,6 +113,9 @@ function getGraphQLType({ def, operation, data, iteration = 0, isInputObjectType
             return def.graphQLType;
         case operation_1.TargetGraphQLType.json:
             def.graphQLType = CleanGraphQLJSON;
+            return def.graphQLType;
+        case operation_1.TargetGraphQLType.bigint:
+            def.graphQLType = graphql_scalars_1.GraphQLBigInt;
             return def.graphQLType;
     }
 }

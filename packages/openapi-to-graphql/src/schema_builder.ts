@@ -38,7 +38,7 @@ import {
 } from 'graphql'
 
 // Imports:
-import GraphQLJSON from 'graphql-type-json'
+import { GraphQLBigInt, GraphQLJSON } from 'graphql-scalars'
 import * as Oas3Tools from './oas_3_tools'
 import { getResolver, OPENAPI_TO_GRAPHQL } from './resolver_builder'
 import { createDataDef } from './preprocessor'
@@ -209,6 +209,10 @@ export function getGraphQLType<TSource, TContext, TArgs>({
 
     case TargetGraphQLType.json:
       def.graphQLType = CleanGraphQLJSON
+      return def.graphQLType
+
+    case TargetGraphQLType.bigint:
+      def.graphQLType = GraphQLBigInt
       return def.graphQLType
   }
 }

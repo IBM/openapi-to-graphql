@@ -12,6 +12,7 @@ export declare enum TargetGraphQLType {
     float = "float",
     boolean = "boolean",
     id = "id",
+    bigint = "bigint",
     json = "json",
     object = "object",
     list = "list",
