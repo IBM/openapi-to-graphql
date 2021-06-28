@@ -52,7 +52,6 @@ import {
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLFieldConfig,
-  GraphQLFieldConfigMap
 } from 'graphql'
 
 // Imports:
@@ -66,13 +65,13 @@ import * as GraphQLTools from './graphql_tools'
 import { preprocessOas } from './preprocessor'
 import * as Oas3Tools from './oas_3_tools'
 import { createAndLoadViewer } from './auth_builder'
-import debug from 'debug'
 import { GraphQLSchemaConfig } from 'graphql/type/schema'
 import { sortObject, handleWarning, MitigationTypes } from './utils'
-
-export { Oas2, Oas3, Options };
-
+import crossFetch from 'cross-fetch'
+import debug from 'debug'
 const translationLog = debug('translation')
+
+export { Oas2, Oas3, Options }
 
 type Result<TSource, TContext, TArgs> = {
   schema: GraphQLSchema
@@ -124,7 +123,9 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
 
   // Logging options
   provideErrorExtensions: true,
-  equivalentToMessages: true
+  equivalentToMessages: true,
+
+  fetch: crossFetch
 }
 
 /**
@@ -208,7 +209,9 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
     // Logging options
     provideErrorExtensions,
-    equivalentToMessages
+    equivalentToMessages,
+
+    fetch
   }: InternalOptions<TSource, TContext, TArgs>
 ): Result<TSource, TContext, TArgs> {
   const options = {
@@ -247,7 +250,9 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
     // Logging options
     provideErrorExtensions,
-    equivalentToMessages
+    equivalentToMessages,
+
+    fetch
   }
   translationLog(`Options: ${JSON.stringify(options)}`)
 
@@ -370,7 +375,12 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
   if (Object.keys(authQueryFields).length > 0) {
     Object.assign(
       queryFields,
-      createAndLoadViewer(authQueryFields, GraphQLOperationType.Query, data)
+      createAndLoadViewer(
+        authQueryFields,
+        GraphQLOperationType.Query,
+        data,
+        fetch
+      )
     )
   }
 
@@ -380,7 +390,8 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
       createAndLoadViewer(
         authMutationFields,
         GraphQLOperationType.Mutation,
-        data
+        data,
+        fetch
       )
     )
   }
@@ -391,7 +402,8 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
       createAndLoadViewer(
         authSubscriptionFields,
         GraphQLOperationType.Subscription,
-        data
+        data,
+        fetch
       )
     )
   }
@@ -465,7 +477,8 @@ function addQueryFields<TSource, TContext, TArgs>({
     singularNames,
     baseUrl,
     requestOptions,
-    connectOptions
+    connectOptions,
+    fetch
   } = options
 
   const field = getFieldForOperation(
@@ -473,7 +486,8 @@ function addQueryFields<TSource, TContext, TArgs>({
     baseUrl,
     data,
     requestOptions,
-    connectOptions
+    connectOptions,
+    fetch
   )
 
   const saneOperationId = Oas3Tools.sanitize(
@@ -636,14 +650,21 @@ function addMutationFields<TSource, TContext, TArgs>({
   options: InternalOptions<TSource, TContext, TArgs>
   data: PreprocessingData<TSource, TContext, TArgs>
 }) {
-  const { singularNames, baseUrl, requestOptions, connectOptions } = options
+  const {
+    singularNames,
+    baseUrl,
+    requestOptions,
+    connectOptions,
+    fetch
+  } = options
 
   const field = getFieldForOperation(
     operation,
     baseUrl,
     data,
     requestOptions,
-    connectOptions
+    connectOptions,
+    fetch
   )
 
   const saneOperationId = Oas3Tools.sanitize(
@@ -781,14 +802,15 @@ function addSubscriptionFields<TSource, TContext, TArgs>({
   options: InternalOptions<TSource, TContext, TArgs>
   data: PreprocessingData<TSource, TContext, TArgs>
 }) {
-  const { baseUrl, requestOptions, connectOptions } = options
+  const { baseUrl, requestOptions, connectOptions, fetch } = options
 
   const field = getFieldForOperation(
     operation,
     baseUrl,
     data,
     requestOptions,
-    connectOptions
+    connectOptions,
+    fetch
   )
 
   const saneOperationId = Oas3Tools.sanitize(
@@ -890,13 +912,15 @@ function getFieldForOperation<TSource, TContext, TArgs>(
   baseUrl: string,
   data: PreprocessingData<TSource, TContext, TArgs>,
   requestOptions: Partial<RequestOptions<TSource, TContext, TArgs>>,
-  connectOptions: ConnectOptions
+  connectOptions: ConnectOptions,
+  fetch: typeof crossFetch
 ): GraphQLFieldConfig<TSource, TContext | SubscriptionContext, TArgs> {
   // Create GraphQL Type for response:
   const type = getGraphQLType({
     def: operation.responseDefinition,
     data,
-    operation
+    operation,
+    fetch
   }) as GraphQLOutputType
 
   const payloadSchemaName = operation.payloadDefinition
@@ -913,7 +937,8 @@ function getFieldForOperation<TSource, TContext, TArgs>(
     requestPayloadDef: operation.payloadDefinition,
     parameters: operation.parameters,
     operation,
-    data
+    data,
+    fetch
   })
 
   // Get resolver and subscribe function for Subscription fields
@@ -925,7 +950,8 @@ function getFieldForOperation<TSource, TContext, TArgs>(
     const resolve = getPublishResolver({
       operation,
       responseName: responseSchemaName,
-      data
+      data,
+      fetch
     })
 
     const subscribe = getSubscribe({
@@ -951,7 +977,8 @@ function getFieldForOperation<TSource, TContext, TArgs>(
       payloadName: payloadSchemaName,
       data,
       baseUrl,
-      requestOptions
+      requestOptions,
+      fetch
     })
 
     return {

@@ -152,8 +152,7 @@ test('Get project using API key passed in the requestOptions - viewer is disable
     requestOptions: {
       headers: {
         access_token: 'abcdef'
-      },
-      url: undefined // Mandatory for requestOptions type
+      }
     }
   })
   const query = `{
@@ -299,8 +298,7 @@ test('Get project using API key 3 passed in the requestOptions - viewer is disab
     requestOptions: {
       headers: {
         cookie: 'access_token=abcdef'
-      },
-      url: undefined // Mandatory for requestOptions type
+      }
     }
   })
   const query = `{

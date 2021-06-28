@@ -81,6 +81,7 @@
     "testRegex": "/test/.*\\.test\\.(ts|tsx|js)$"
   },
   "dependencies": {
+    "cross-fetch": "^3.1.4",
     "debug": "^4.2.0",
     "deep-equal": "^2.0.5",
     "form-urlencoded": "^6.0.4",
@@ -90,9 +91,9 @@
     "jsonpath-plus": "^4.0.0",
     "oas-validator": "^5.0.2",
     "pluralize": "^8.0.0",
-    "request": "^2.88.0",
     "swagger2openapi": "^7.0.2",
-    "tslib": "^2.3.0"
+    "tslib": "^2.3.0",
+    "url-join": "4.0.1"
   },
   "peerDependencies": {
     "graphql": "^14.0.0 || ^15.0.0"
@@ -101,8 +102,8 @@
     "@types/graphql": "^14.0.3",
     "@types/jest": "^26.0.14",
     "@types/node": "^14.11.2",
-    "@types/request": "^2.48.1",
     "@types/deep-equal": "^1.0.1",
+    "@types/url-join": "4.0.0",
     "aedes": "^0.42.6",
     "aedes-persistence": "^8.1.1",
     "body-parser": "^1.18.3",
