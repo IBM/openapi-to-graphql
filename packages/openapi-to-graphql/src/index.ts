@@ -171,7 +171,7 @@ export async function createGraphQLSchema<TSource, TContext, TArgs>(
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3
  */
-function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
+export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
   oass: Oas3[],
   {
     strict,
