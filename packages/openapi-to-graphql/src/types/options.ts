@@ -4,9 +4,9 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import * as NodeRequest from 'request'
 import { GraphQLOperationType, SubscriptionContext } from './graphql'
 import { GraphQLFieldResolver, GraphQLResolveInfo } from 'graphql'
+import crossFetch from 'cross-fetch'
 
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
@@ -42,8 +42,6 @@ export type OasTitlePathMethodObject<T> = {
   }
 }
 
-export type Headers = { [key: string]: string }
-
 /**
  * Given a set parameters corresponding to a specific operation in the OAS,
  * provide the appropriate headers
@@ -58,7 +56,7 @@ export type RequestHeadersFunction<TSource, TContext, TArgs> = (
     context: TContext
     info: GraphQLResolveInfo
   }
-) => Headers
+) => HeadersInit
 
 /**
  * We rely on the Request library in order to make resolver API calls.
@@ -71,10 +69,11 @@ export type RequestHeadersFunction<TSource, TContext, TArgs> = (
  * Based on: https://github.com/request/request#requestoptions-callback
  */
 export type RequestOptions<TSource, TContext, TArgs> = Omit<
-  NodeRequest.OptionsWithUrl,
+  RequestInit,
   'headers'
 > & {
-  headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>
+  headers?: HeadersInit | RequestHeadersFunction<TSource, TContext, TArgs>
+  qs?: Record<string, string>
 }
 
 export type Options<TSource, TContext, TArgs> = Partial<
@@ -201,7 +200,7 @@ export type InternalOptions<TSource, TContext, TArgs> = {
   /**
    * Custom headers to send with every request made by a resolve function.
    */
-  headers?: Headers | RequestHeadersFunction<TSource, TContext, TArgs>
+  headers?: HeadersInit | RequestHeadersFunction<TSource, TContext, TArgs>
 
   /**
    * Custom query parameters to send with every reqeust by a resolve function.
@@ -339,4 +338,9 @@ export type InternalOptions<TSource, TContext, TArgs> = {
    * Will forgo the title is only one OAS is provided
    */
   equivalentToMessages: boolean
+
+  /**
+   * Custom W3 Compatible `fetch` implementation
+   */
+  fetch: typeof crossFetch
 }

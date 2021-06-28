@@ -44,12 +44,14 @@ import { getResolver, OPENAPI_TO_GRAPHQL } from './resolver_builder'
 import { createDataDef } from './preprocessor'
 import debug from 'debug'
 import { handleWarning, sortObject, MitigationTypes } from './utils'
+import crossFetch from 'cross-fetch'
 
 type GetArgsParams<TSource, TContext, TArgs> = {
   requestPayloadDef?: DataDefinition
   parameters: ParameterObject[]
   operation?: Operation
   data: PreprocessingData<TSource, TContext, TArgs>
+  fetch: typeof crossFetch
 }
 
 type CreateOrReuseComplexTypeParams<TSource, TContext, TArgs> = {
@@ -58,6 +60,7 @@ type CreateOrReuseComplexTypeParams<TSource, TContext, TArgs> = {
   iteration?: number // Count of recursions used to create type
   isInputObjectType?: boolean // Does not require isInputObjectType because unions must be composed of objects
   data: PreprocessingData<TSource, TContext, TArgs> // Data produced by preprocessing
+  fetch: typeof crossFetch
 }
 
 type CreateOrReuseSimpleTypeParams<TSource, TContext, TArgs> = {
@@ -72,6 +75,7 @@ type CreateFieldsParams<TSource, TContext, TArgs> = {
   iteration: number
   isInputObjectType: boolean
   data: PreprocessingData<TSource, TContext, TArgs>
+  fetch: typeof crossFetch
 }
 
 type LinkOpRefToOpIdParams<TSource, TContext, TArgs> = {
@@ -135,7 +139,8 @@ export function getGraphQLType<TSource, TContext, TArgs>({
   operation,
   data,
   iteration = 0,
-  isInputObjectType = false
+  isInputObjectType = false,
+  fetch
 }: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>):
   | GraphQLOutputType
   | GraphQLInputType {
@@ -157,7 +162,8 @@ export function getGraphQLType<TSource, TContext, TArgs>({
         operation,
         data,
         iteration,
-        isInputObjectType
+        isInputObjectType,
+        fetch
       })
 
     // CASE: union - create union type
@@ -166,7 +172,8 @@ export function getGraphQLType<TSource, TContext, TArgs>({
         def,
         operation,
         data,
-        iteration
+        iteration,
+        fetch
       })
 
     // CASE: list - create list type
@@ -176,7 +183,8 @@ export function getGraphQLType<TSource, TContext, TArgs>({
         operation,
         data,
         iteration,
-        isInputObjectType
+        isInputObjectType,
+        fetch
       })
 
     // CASE: enum - create enum type
@@ -233,7 +241,8 @@ function createOrReuseOt<TSource, TContext, TArgs>({
   operation,
   data,
   iteration,
-  isInputObjectType
+  isInputObjectType,
+  fetch
 }: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>):
   | GraphQLObjectType
   | GraphQLInputObjectType {
@@ -292,7 +301,8 @@ function createOrReuseOt<TSource, TContext, TArgs>({
           operation,
           data,
           iteration,
-          isInputObjectType: false
+          isInputObjectType: false,
+          fetch
         }) as GraphQLFieldConfigMap<TSource, TContext>
       }
     })
@@ -318,7 +328,8 @@ function createOrReuseOt<TSource, TContext, TArgs>({
           operation,
           data,
           iteration,
-          isInputObjectType: true
+          isInputObjectType: true,
+          fetch
         }) as GraphQLInputFieldConfigMap
       }
     })
@@ -334,7 +345,8 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
   def,
   operation,
   data,
-  iteration
+  iteration,
+  fetch
 }: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>): GraphQLUnionType {
   // Try to reuse existing union type
   if (typeof def.graphQLType !== 'undefined') {
@@ -369,7 +381,8 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
           operation,
           data,
           iteration: iteration + 1,
-          isInputObjectType: false
+          isInputObjectType: false,
+          fetch
         }) as GraphQLObjectType
       }
     )
@@ -478,7 +491,8 @@ function createOrReuseList<TSource, TContext, TArgs>({
   operation,
   iteration,
   isInputObjectType,
-  data
+  data,
+  fetch
 }: CreateOrReuseComplexTypeParams<TSource, TContext, TArgs>): GraphQLList<any> {
   const name = isInputObjectType
     ? def.graphQLInputObjectTypeName
@@ -517,7 +531,8 @@ function createOrReuseList<TSource, TContext, TArgs>({
     data,
     operation,
     iteration: iteration + 1,
-    isInputObjectType
+    isInputObjectType,
+    fetch
   })
 
   if (itemsType !== null) {
@@ -614,7 +629,8 @@ function createFields<TSource, TContext, TArgs>({
   operation,
   data,
   iteration,
-  isInputObjectType
+  isInputObjectType,
+  fetch
 }: CreateFieldsParams<TSource, TContext, TArgs>):
   | GraphQLFieldConfigMap<any, any>
   | GraphQLInputFieldConfigMap {
@@ -635,7 +651,8 @@ function createFields<TSource, TContext, TArgs>({
       operation,
       data,
       iteration: iteration + 1,
-      isInputObjectType
+      isInputObjectType,
+      fetch
     })
 
     const requiredProperty =
@@ -758,14 +775,16 @@ function createFields<TSource, TContext, TArgs>({
             argsFromLink: argsFromLink as { [key: string]: string },
             data,
             baseUrl: data.options.baseUrl,
-            requestOptions: data.options.requestOptions
+            requestOptions: data.options.requestOptions,
+            fetch
           })
 
           // Get arguments for link
           const args = getArgs({
             parameters: dynamicParams,
             operation: linkedOp,
-            data
+            data,
+            fetch
           })
 
           // Get response object type
@@ -777,7 +796,8 @@ function createFields<TSource, TContext, TArgs>({
                   operation,
                   data,
                   iteration: iteration + 1,
-                  isInputObjectType: false
+                  isInputObjectType: false,
+                  fetch
                 }) as GraphQLOutputType)
 
           let description = link.description
@@ -1148,7 +1168,8 @@ export function getArgs<TSource, TContext, TArgs>({
   requestPayloadDef,
   parameters,
   operation,
-  data
+  data,
+  fetch
 }: GetArgsParams<TSource, TContext, TArgs>): Args {
   let args = {}
 
@@ -1238,7 +1259,8 @@ export function getArgs<TSource, TContext, TArgs>({
       operation,
       data,
       iteration: 0,
-      isInputObjectType: true
+      isInputObjectType: true,
+      fetch
     })
 
     /**
@@ -1312,7 +1334,8 @@ export function getArgs<TSource, TContext, TArgs>({
       def: requestPayloadDef,
       data,
       operation,
-      isInputObjectType: true // Request payloads will always be an input object type
+      isInputObjectType: true, // Request payloads will always be an input object type,
+      fetch
     })
 
     // Sanitize the argument name

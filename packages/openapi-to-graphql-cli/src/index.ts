@@ -2,7 +2,6 @@ import express from 'express'
 import { graphqlHTTP } from 'express-graphql'
 import cors from 'cors'
 import path from 'path'
-import request from 'request'
 import fs from 'fs'
 import yaml from 'js-yaml'
 import { printSchema } from 'graphql'
@@ -210,39 +209,28 @@ function readFile(path): Oas3 {
  * reads a remote file content using http protocol
  * @param {string} url specifies a valid URL path including the port number
  */
-function getRemoteFileSpec(uri): Promise<Oas3> {
-  return new Promise<Oas3>((resolve, reject) => {
-    request(
-      {
-        uri
-      },
-      (err, res, body) => {
-        if (err) {
-          reject(err)
-        } else if (res.statusCode < 200 && res.statusCode <= 300) {
-          reject(
-            new Error(
-              `Could not retrieve file. Received unsuccessful status code '${res.statusCode}.`
-            )
-          )
-        } else {
-          if (typeof body === 'string') {
-            try {
-              resolve(JSON.parse(body))
-            } catch (e) {
-              try {
-                resolve(yaml.safeLoad(body))
-              } catch (f) {
-                console.error(`JSON parse error: ${e}\nYAML parse error: ${f}`)
-              }
-            }
-          }
-
-          reject(new Error(`Cannot parse remote file`))
+async function getRemoteFileSpec(uri): Promise<Oas3> {
+  const res = await fetch(uri)
+  const body = await res.text()
+  if (res.status < 200 && res.status <= 300) {
+    throw new Error(
+      `Could not retrieve file. Received unsuccessful status code '${res.status}.`
+    )
+  } else {
+    if (typeof body === 'string') {
+      try {
+        return JSON.parse(body)
+      } catch (e) {
+        try {
+          return yaml.safeLoad(body)
+        } catch (f) {
+          console.error(`JSON parse error: ${e}\nYAML parse error: ${f}`)
         }
       }
-    )
-  })
+    }
+
+    throw new Error(`Cannot parse remote file`)
+  }
 }
 
 /**
