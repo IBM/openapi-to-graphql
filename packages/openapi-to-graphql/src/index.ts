@@ -116,7 +116,6 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
   sendOAuthTokenInQuery: false,
 
   // Validation options
-  oasValidatorOptions: {},
   swagger2OpenAPIOptions: {},
 
   // Logging options
@@ -144,7 +143,6 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
         spec.map((ele) => {
           return Oas3Tools.getValidOAS3(
             ele,
-            internalOptions.oasValidatorOptions,
             internalOptions.swagger2OpenAPIOptions
           )
         })
@@ -161,11 +159,7 @@ export function createGraphQLSchema<TSource, TContext, TArgs>(
        * If the spec is OAS 2.0, attempt to translate it into 3, then try to
        * translate the spec into a GraphQL schema
        */
-      Oas3Tools.getValidOAS3(
-        spec,
-        internalOptions.oasValidatorOptions,
-        internalOptions.swagger2OpenAPIOptions
-      )
+      Oas3Tools.getValidOAS3(spec, internalOptions.swagger2OpenAPIOptions)
         .then((oas) => {
           resolve(translateOpenAPIToGraphQL([oas], internalOptions))
         })
@@ -212,7 +206,6 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     sendOAuthTokenInQuery,
 
     // Validation options
-    oasValidatorOptions,
     swagger2OpenAPIOptions,
 
     // Logging options
@@ -251,7 +244,6 @@ function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     sendOAuthTokenInQuery,
 
     // Validation options
-    oasValidatorOptions,
     swagger2OpenAPIOptions,
 
     // Logging options

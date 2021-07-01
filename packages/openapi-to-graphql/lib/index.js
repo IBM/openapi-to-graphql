@@ -51,7 +51,6 @@ const DEFAULT_OPTIONS = {
     viewer: true,
     sendOAuthTokenInQuery: false,
     // Validation options
-    oasValidatorOptions: {},
     swagger2OpenAPIOptions: {},
     // Logging options
     provideErrorExtensions: true,
@@ -67,7 +66,7 @@ function createGraphQLSchema(spec, options) {
         if (Array.isArray(spec)) {
             // Convert all non-OAS 3 into OAS 3
             Promise.all(spec.map((ele) => {
-                return Oas3Tools.getValidOAS3(ele, internalOptions.oasValidatorOptions, internalOptions.swagger2OpenAPIOptions);
+                return Oas3Tools.getValidOAS3(ele, internalOptions.swagger2OpenAPIOptions);
             }))
                 .then((oass) => {
                 resolve(translateOpenAPIToGraphQL(oass, internalOptions));
@@ -82,7 +81,7 @@ function createGraphQLSchema(spec, options) {
              * If the spec is OAS 2.0, attempt to translate it into 3, then try to
              * translate the spec into a GraphQL schema
              */
-            Oas3Tools.getValidOAS3(spec, internalOptions.oasValidatorOptions, internalOptions.swagger2OpenAPIOptions)
+            Oas3Tools.getValidOAS3(spec, internalOptions.swagger2OpenAPIOptions)
                 .then((oas) => {
                 resolve(translateOpenAPIToGraphQL([oas], internalOptions));
             })
@@ -104,7 +103,7 @@ headers, qs, requestOptions, connectOptions, baseUrl, customResolvers, customSub
 // Authentication options
 viewer, tokenJSONpath, sendOAuthTokenInQuery, 
 // Validation options
-oasValidatorOptions, swagger2OpenAPIOptions, 
+swagger2OpenAPIOptions, 
 // Logging options
 provideErrorExtensions, equivalentToMessages }) {
     const options = {
@@ -134,7 +133,6 @@ provideErrorExtensions, equivalentToMessages }) {
         tokenJSONpath,
         sendOAuthTokenInQuery,
         // Validation options
-        oasValidatorOptions,
         swagger2OpenAPIOptions,
         // Logging options
         provideErrorExtensions,

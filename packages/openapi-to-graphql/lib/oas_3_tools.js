@@ -8,7 +8,7 @@ exports.generateOperationId = exports.uncapitalize = exports.capitalize = export
 const operation_1 = require("./types/operation");
 // Imports:
 const Swagger2OpenAPI = require("swagger2openapi");
-const OASValidator = require("oas-validator");
+const spectral_1 = require("@stoplight/spectral");
 const debug_1 = require("debug");
 const utils_1 = require("./utils");
 const jsonptr = require("json-ptr");
@@ -62,7 +62,7 @@ exports.methodToHttpMethod = methodToHttpMethod;
  * Resolves on a validated OAS 3 for the given spec (OAS 2 or OAS 3), or rejects
  * if errors occur.
  */
-function getValidOAS3(spec, oasValidatorOptions, swagger2OpenAPIOptions) {
+function getValidOAS3(spec, swagger2OpenAPIOptions) {
     return new Promise((resolve, reject) => {
         // CASE: translate
         if (typeof spec.swagger === 'string' &&
@@ -76,8 +76,19 @@ function getValidOAS3(spec, oasValidatorOptions, swagger2OpenAPIOptions) {
         else if (typeof spec.openapi === 'string' &&
             /^3/.test(spec.openapi)) {
             preprocessingLog(`Received OpenAPI Specification - going to validate...`);
-            OASValidator.validate(spec, oasValidatorOptions)
-                .then(() => resolve(spec))
+            const validator = new spectral_1.Spectral();
+            validator.registerFormat("oas3", spectral_1.isOpenApiv3);
+            validator
+                .loadRuleset("spectral:oas")
+                .then(() => validator.run(spec))
+                .then((results) => {
+                for (const result of results) {
+                    if (result.severity < 1) {
+                        return reject(`Invalid OpenAPI Specification '${spec.info.title}'. [${result.path.join('.')}] ${result.message}`);
+                    }
+                }
+                resolve(spec);
+            })
                 .catch((error) => reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${error.message}`));
         }
         else {
