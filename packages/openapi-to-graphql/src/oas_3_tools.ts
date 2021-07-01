@@ -37,8 +37,8 @@ import { InternalOptions } from './types/options'
 import * as Swagger2OpenAPI from 'swagger2openapi'
 import {
   Spectral as OASValidator,
-  isOpenApiv2,
-  isOpenApiv3
+  isOpenApiv3,
+  isOpenApiv3_1
 } from '@stoplight/spectral'
 import debug from 'debug'
 import { handleWarning, MitigationTypes } from './utils'
@@ -166,12 +166,22 @@ export function getValidOAS3(
 
       const validator = new OASValidator()
       validator.registerFormat('oas3', isOpenApiv3)
+      validator.registerFormat('oas3_1', isOpenApiv3_1)
 
       validator
         .loadRuleset('spectral:oas')
         .then(() => validator.run(spec))
         .then((results) => {
           for (const result of results) {
+            // Ensure there are no errors about no format being matched
+            if (result.code === 'unrecognized-format') {
+              return reject(
+                `Could not validate OpenAPI Specification '${
+                  (spec as Oas3).info.title
+                }'. ${result.message}`
+              )
+            }
+
             if (result.severity < 1) {
               return reject(
                 `Invalid OpenAPI Specification '${

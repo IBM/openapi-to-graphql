@@ -992,20 +992,14 @@ exports.getArgs = getArgs;
  *
  * For example, name reference, file path, web-hosted OAS link, etc.
  */
-// FIXME: Technically 'title' type does not exist, it should be file.
-// operationRef follows the same guidelines as $ref
-// https://swagger.io/docs/specification/using-ref/
-// FIXED!
 function getLinkLocationType(linkLocation) {
-    if (linkLocation.startsWith('../') || linkLocation.startsWith('./')) {
-        return 'file';
-    }
-    else if (linkLocation.startsWith('http://') || linkLocation.startsWith('https://') || linkLocation.startsWith('//')) {
+    if (linkLocation.startsWith('http://') ||
+        linkLocation.startsWith('https://') ||
+        linkLocation.startsWith('//')) {
         // TODO: Should probably use new (require('url').URL)(linkLocation) to check link validity
         return 'url';
     }
-    // return 'title'
-    return 'unknown';
+    return 'file';
 }
 /**
  * Used in the context of links, specifically those using an external operationRef

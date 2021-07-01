@@ -78,11 +78,17 @@ function getValidOAS3(spec, swagger2OpenAPIOptions) {
             preprocessingLog(`Received OpenAPI Specification - going to validate...`);
             const validator = new spectral_1.Spectral();
             validator.registerFormat('oas3', spectral_1.isOpenApiv3);
+            validator.registerFormat('oas3_1', spectral_1.isOpenApiv3_1);
             validator
                 .loadRuleset('spectral:oas')
                 .then(() => validator.run(spec))
                 .then((results) => {
                 for (const result of results) {
+                    console.warn(result);
+                    // Ensure there are no errors about no format being matched
+                    if (result.code === 'unrecognized-format') {
+                        return reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${result.message}`);
+                    }
                     if (result.severity < 1) {
                         return reject(`Invalid OpenAPI Specification '${spec.info.title}'. [${result.path.join('.')}] ${result.message}`);
                     }
