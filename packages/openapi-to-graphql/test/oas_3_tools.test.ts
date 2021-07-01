@@ -216,3 +216,41 @@ test('Handle encoded JSON pointer references', () => {
     }
   }
 })
+
+test('Validate 3.1.0 openapi', async () => {
+  const oas = {
+    openapi: '3.1.0',
+    info: {
+      title: 'test',
+      version: '0.0.1',
+      license: {
+        identifier: 'UNLICENSED', // This is 3.1.0+ only
+        name: 'test'
+      }
+    },
+    paths: {}
+  }
+
+  const result = await Oas3Tools.getValidOAS3(oas, {})
+
+  expect(result.openapi).toBe('3.1.0')
+})
+
+test('Invalid 3.0.0 openapi', async () => {
+  const oas = {
+    openapi: '3.0.0',
+    info: {
+      title: 'test',
+      version: '0.0.1',
+      license: {
+        identifier: 'UNLICENSED', // This is invalid
+        name: 'test'
+      }
+    },
+    paths: {}
+  }
+
+  await expect(Oas3Tools.getValidOAS3(oas, {})).rejects.toMatch(
+    'info.license.identifier'
+  )
+})

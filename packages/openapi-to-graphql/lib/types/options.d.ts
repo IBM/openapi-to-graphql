@@ -241,14 +241,6 @@ export declare type InternalOptions<TSource, TContext, TArgs> = {
      */
     sendOAuthTokenInQuery: boolean;
     /**
-     * We use the oas-validator library to validate Swaggers/OASs.
-     *
-     * We expose the options so that users can have more control over validation.
-     *
-     * Based on: https://github.com/Mermade/oas-kit/blob/master/docs/options.md
-     */
-    oasValidatorOptions: object;
-    /**
      * We use the swagger2graphql library to translate Swaggers to OASs.
      *
      * We expose the options so that users can have more control over translation.

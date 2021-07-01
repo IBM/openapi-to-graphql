@@ -993,8 +993,13 @@ exports.getArgs = getArgs;
  * For example, name reference, file path, web-hosted OAS link, etc.
  */
 function getLinkLocationType(linkLocation) {
-    // TODO: currently we only support the title as a link location
-    return 'title';
+    if (linkLocation.startsWith('http://') ||
+        linkLocation.startsWith('https://') ||
+        linkLocation.startsWith('//')) {
+        // TODO: Should probably use new (require('url').URL)(linkLocation) to check link validity
+        return 'url';
+    }
+    return 'file';
 }
 /**
  * Used in the context of links, specifically those using an external operationRef
@@ -1002,43 +1007,30 @@ function getLinkLocationType(linkLocation) {
  */
 function getOasFromLinkLocation(linkLocation, link, data) {
     // May be an external reference
-    switch (getLinkLocationType(linkLocation)) {
-        case 'title':
-            // Get the possible
-            const possibleOass = data.oass.filter((oas) => {
-                return oas.info.title === linkLocation;
+    const locationType = getLinkLocationType(linkLocation);
+    let possibleOass;
+    switch (locationType) {
+        // FIXME: This is really the wrong way to do this. We are throwing away all path information and hoping we can just use the filename.
+        case 'file':
+            // Reduce path of the reference to just the filename
+            let filename = linkLocation.substring(linkLocation.lastIndexOf('/') + 1);
+            // Find all OAS documents with that filename
+            possibleOass = data.oass.filter((oas) => {
+                return oas.info['x-filename'] === filename;
             });
-            // Check if there are an ambiguous OASs
-            if (possibleOass.length === 1) {
-                // No ambiguity
-                return possibleOass[0];
-            }
-            else if (possibleOass.length > 1) {
-                // Some ambiguity
-                utils_1.handleWarning({
-                    mitigationType: utils_1.MitigationTypes.AMBIGUOUS_LINK,
-                    message: `The operationRef '${link.operationRef}' references an ` +
-                        `OAS '${linkLocation}' but multiple OASs share the same title`,
-                    data,
-                    log: translationLog
-                });
-            }
-            else {
-                // No OAS had the expected title
+            if (possibleOass.length === 0) {
                 utils_1.handleWarning({
                     mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
                     message: `The operationRef '${link.operationRef}' references an ` +
-                        `OAS '${linkLocation}' but no such OAS was provided`,
+                        `OAS '${linkLocation}' but no OAS with a info.x-filename matching '${filename}' was found`,
                     data,
                     log: translationLog
                 });
+                return undefined;
             }
             break;
         // // TODO
         // case 'url':
-        //   break
-        // // TODO
-        // case 'file':
         //   break
         // TODO: should title be default?
         // In cases of names like api.io
@@ -1051,6 +1043,31 @@ function getOasFromLinkLocation(linkLocation, link, data) {
                 data,
                 log: translationLog
             });
+    }
+    // Check if there are an ambiguous OASs
+    if (possibleOass.length === 1) {
+        // No ambiguity
+        return possibleOass[0];
+    }
+    else if (possibleOass.length > 1) {
+        // Some ambiguity
+        utils_1.handleWarning({
+            mitigationType: utils_1.MitigationTypes.AMBIGUOUS_LINK,
+            message: `The operationRef '${link.operationRef}' references an ` +
+                `OAS '${linkLocation}' but multiple OASs were matched`,
+            data,
+            log: translationLog
+        });
+    }
+    else {
+        // No OAS matches were found
+        utils_1.handleWarning({
+            mitigationType: utils_1.MitigationTypes.UNRESOLVABLE_LINK,
+            message: `The operationRef '${link.operationRef}' references an ` +
+                `OAS '${linkLocation}' but no matching OAS was provided`,
+            data,
+            log: translationLog
+        });
     }
 }
 //# sourceMappingURL=schema_builder.js.map

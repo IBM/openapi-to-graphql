@@ -93,7 +93,7 @@ function startServer(PORT) {
   const authMiddleware = (req, res, next) => {
     if (req.headers.authorization) {
       let encoded = req.headers.authorization.split(' ')[1]
-      let decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
+      let decoded = Buffer.from(encoded, 'base64').toString('utf8').split(':')
 
       if (decoded.length === 2) {
         let credentials = {
@@ -154,7 +154,7 @@ function startServer(PORT) {
     res.send(NextWorks[req.params.authorId])
   })
 
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     server = app.listen(PORT, () => {
       console.log(`Example API accessible on port ${PORT}`)
       resolve()
@@ -166,7 +166,7 @@ function startServer(PORT) {
  * Stops server.
  */
 function stopServer() {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     server.close(() => {
       console.log(`Stopped API server`)
       resolve()
