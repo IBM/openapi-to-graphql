@@ -301,7 +301,7 @@ function startServer(PORT) {
   const authMiddleware = (req, res, next) => {
     if (req.headers.authorization) {
       const encoded = req.headers.authorization.split(' ')[1]
-      const decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
+      const decoded = Buffer.from(encoded, 'base64').toString('utf8').split(':')
 
       if (decoded.length === 2) {
         const credentials = {
