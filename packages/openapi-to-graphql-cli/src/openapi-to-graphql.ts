@@ -290,7 +290,11 @@ function startGraphQLServer<TSource, TContext, TArgs>(
       }
     })
     .catch((err) => {
-      console.log('OpenAPI-to-GraphQL creation event error:', err.message)
+      if (typeof err === 'string') {
+        console.log('OpenAPI-to-GraphQL creation event error:', err)
+      } else {
+        console.log('OpenAPI-to-GraphQL creation event error:', err.message)
+      }
     })
 }
 
