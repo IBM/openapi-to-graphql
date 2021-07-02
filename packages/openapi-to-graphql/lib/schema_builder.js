@@ -420,6 +420,14 @@ function createFields({ def, links, operation, data, iteration, isInputObjectTyp
     for (let fieldName in fieldTypeDefinitions) {
         const fieldTypeDefinition = fieldTypeDefinitions[fieldName];
         const fieldSchema = fieldTypeDefinition.schema;
+        // readOnly fields should not be included for Input types
+        if (isInputObjectType && (fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema.readOnly)) {
+            continue;
+        }
+        // writeOnly fields should not be included for non-Input types
+        if (!isInputObjectType && (fieldSchema === null || fieldSchema === void 0 ? void 0 : fieldSchema.writeOnly)) {
+            continue;
+        }
         // Get object type describing the property
         const objectType = getGraphQLType({
             def: fieldTypeDefinition,

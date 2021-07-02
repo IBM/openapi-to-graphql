@@ -177,6 +177,10 @@
         "type": "object",
         "description": "A device is an object connected to the network",
         "properties": {
+          "id": {
+            "type": "string",
+            "readOnly": true
+          },
           "name": {
             "type": "string",
             "description": "The device name in the network"

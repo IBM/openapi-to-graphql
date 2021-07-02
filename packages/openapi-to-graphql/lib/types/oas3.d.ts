@@ -24,6 +24,8 @@ export declare type SchemaObject = {
     anyOf?: (SchemaObject | ReferenceObject)[];
     oneOf?: (SchemaObject | ReferenceObject)[];
     not?: (SchemaObject | ReferenceObject)[];
+    readOnly?: boolean;
+    writeOnly?: boolean;
 };
 export declare type ReferenceObject = {
     $ref: string;
