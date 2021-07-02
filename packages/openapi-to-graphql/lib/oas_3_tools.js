@@ -84,7 +84,6 @@ function getValidOAS3(spec, swagger2OpenAPIOptions) {
                 .then(() => validator.run(spec))
                 .then((results) => {
                 for (const result of results) {
-                    console.warn(result);
                     // Ensure there are no errors about no format being matched
                     if (result.code === 'unrecognized-format') {
                         return reject(`Could not validate OpenAPI Specification '${spec.info.title}'. ${result.message}`);
