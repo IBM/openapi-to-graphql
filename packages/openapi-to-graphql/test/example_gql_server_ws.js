@@ -12,7 +12,7 @@ const { createServer } = require('http')
 const { SubscriptionServer } = require('subscriptions-transport-ws')
 const { MQTTPubSub } = require('graphql-mqtt-subscriptions')
 const { connect } = require('mqtt')
-const openAPIToGraphQL = require('../src/index')
+const openAPIToGraphQL = require('../dist/index')
 
 const oas5 = require('./fixtures/example_oas5.json')
 
