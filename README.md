@@ -96,8 +96,6 @@ Here are some guides to further help you get started:
 
 ## Development
 
-OpenAPI-to-GraphQL uses the [Lerna](https://github.com/lerna/lerna) monorepo management system. After cloning the entire monorepo repository, you can install Lerna with the command `npm install` and then install the dependencies for all of the packages with `lerna bootstrap`.
-
 OpenAPI-to-GraphQL is written in [TypeScript](http://www.typescriptlang.org/). Within each of OpenAPI-to-GraphQL's packages, all source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
 
 ## Research
