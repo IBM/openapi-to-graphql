@@ -1,5 +1,4 @@
 ![GitHub last commit](https://img.shields.io/github/last-commit/ibm/openapi-to-graphql.svg?style=flat)
-![Travis (.org)](https://img.shields.io/travis/ibm/openapi-to-graphql.svg?style=flat)
 [![Join the chat at https://gitter.im/IBM/openapi-to-graphql](https://badges.gitter.im/IBM/openapi-to-graphql.svg?style=flat)](https://gitter.im/IBM/openapi-to-graphql?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 # OpenAPI-to-GraphQL

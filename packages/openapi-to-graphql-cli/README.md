@@ -1,4 +1,3 @@
-![Travis (.org)](https://img.shields.io/travis/ibm/openapi-to-graphql.svg?style=flat)
 [![npm](https://img.shields.io/npm/v/openapi-to-graphql-cli.svg?style=flat)](https://www.npmjs.com/package/openapi-to-graphql-cli)
 [![Join the chat at https://gitter.im/IBM/openapi-to-graphql](https://badges.gitter.im/IBM/openapi-to-graphql.svg?style=flat)](https://gitter.im/IBM/openapi-to-graphql?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
