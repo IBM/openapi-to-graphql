@@ -92,43 +92,6 @@ program
   )
   .parse(process.argv)
 
-// Select the port on which to host the GraphQL server
-const portNumber: number = program.port ? program.port : 3000
-
-/**
- * Assemble headers so that they are in the proper format for the
- * OpenAPI-to-GraphQL library
- */
-const headers: { [key: string]: string } = parseKeyValuePairs(program.header)
-const qs: { [key: string]: string } = parseKeyValuePairs(program.queryString)
-
-const options: Options<any, any, any> = {
-  strict: program.strict,
-
-  // Resolver options
-  baseUrl: program.url,
-
-  // Schema options
-  operationIdFieldNames: program.operationIdFieldNames,
-  fillEmptyResponses: program.fillEmptyResponses,
-  addLimitArgument: program.addLimitArgument,
-  genericPayloadArgName: program.genericPayloadArgName,
-  simpleNames: program.simpleNames,
-  simpleEnumValues: program.simpleEnumValues,
-  singularNames: program.singularNames,
-
-  // Resolver options
-  headers,
-  qs,
-
-  // Authentication options
-  viewer: program.viewer,
-
-  // Logging options
-  provideErrorExtensions: program.extensions,
-  equivalentToMessages: program.equivalentToMessages
-}
-
 const filePaths: string[] = program.args
 
 if (typeof filePaths === 'undefined' || filePaths.length === 0) {
@@ -169,6 +132,22 @@ Promise.all(
   })
 )
   .then((oass) => {
+    // Select the port on which to host the GraphQL server
+    const portNumber: number = program.port ? program.port : 3000
+
+    const options: Options<any, any, any> = {
+      ...program.opts(),
+
+      /**
+       * Assemble headers and query strings so that they are in the proper format
+       * for the OpenAPI-to-GraphQL library
+       */
+      ...{
+        headers: parseKeyValuePairs(program.header),
+        qs: parseKeyValuePairs(program.queryString)
+      }
+    }
+
     startGraphQLServer(oass, options, portNumber)
   })
   .catch((error) => {

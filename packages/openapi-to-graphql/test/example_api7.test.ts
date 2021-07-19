@@ -15,6 +15,7 @@ import {
 } from 'subscriptions-transport-ws'
 import { MQTTPubSub } from 'graphql-mqtt-subscriptions'
 import { connect } from 'mqtt'
+import ws from 'ws'
 
 import * as openAPIToGraphQL from '../src/index'
 import { startServers, stopServers } from './example_api7_server'
@@ -134,7 +135,7 @@ test('Receive data from the subscription after creating a new instance', () => {
 
   return new Promise<void>((resolve, reject) => {
     const client = new SubscriptionClient(
-      `ws://localhost:${TEST_PORT}/subscriptions`
+      `ws://localhost:${TEST_PORT}/subscriptions`, {}, ws
     )
 
     client.onError((e) => reject(e))
