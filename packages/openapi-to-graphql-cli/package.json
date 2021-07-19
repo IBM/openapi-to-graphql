@@ -61,7 +61,7 @@
     "tslint-config-standard": "^9.0.0"
   },
   "bin": {
-    "openapi-to-graphql": "./dist/openapi-to-graphql.js"
+    "openapi-to-graphql": "./dist/index.js"
   },
   "sideEffects": false,
   "main": "dist/index.js",
@@ -80,11 +80,8 @@
       "import": "./dist/*.mjs"
     }
   },
-  "buildOptions": {
-    "bin": {
-      "openapi-to-graphql": {
-        "input": "src/index.ts"
-      }
-    }
+  "scripts": {
+    "dev": "tsc -w",
+    "build": "tsc --project ../../tsconfig.build.json"
   }
 }
