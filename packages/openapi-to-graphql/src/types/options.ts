@@ -274,6 +274,12 @@ export type InternalOptions<TSource, TContext, TArgs> = {
     subscribe: GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>
     resolve: GraphQLFieldResolver<TSource, TContext, TArgs>
   }>
+  
+  /**
+  * Enable http errors (<200 or >299) interception by graphqpl wrapper
+  * when disabled it leave status code and body as served by the openapi server.
+  */
+  interceptHttpErrors: boolean
 
   // Authentication options
 
