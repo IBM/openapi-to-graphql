@@ -660,7 +660,7 @@ export function getResolver<TSource, TContext, TArgs>({
     }
 
     const body = await response.text()
-    if (response.status < 200 || response.status > 299) {
+    if (data.options.interceptHttpErrors && (response.status < 200 || response.status > 299)) {
       httpLog(`${response.status} - ${Oas3Tools.trim(body, 100)}`)
 
       const errorString = `Could not invoke operation ${operation.operationString}`
