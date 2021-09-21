@@ -112,6 +112,7 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
   requestOptions: {},
   customResolvers: {},
   customSubscriptionResolvers: {},
+  interceptHttpErrors: true,
 
   // Authentication options
   viewer: true,
