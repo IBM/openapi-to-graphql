@@ -270,6 +270,132 @@ export function resolveRef<T = any>(ref: string, oas: Oas3): T {
 }
 
 /**
+ * Recursively traverse a schema and resolve allOf by appending the data to the
+ * parent schema
+ */
+export function resolveAllOf<TSource, TContext, TArgs>(
+  schema: SchemaObject | ReferenceObject,
+  references: { [reference: string]: SchemaObject },
+  data: PreprocessingData<TSource, TContext, TArgs>,
+  oas: Oas3
+): SchemaObject {
+  // Dereference schema
+  if ('$ref' in schema && typeof schema.$ref === 'string') {
+    if (schema.$ref in references) {
+      return references[schema.$ref]
+    }
+
+    const reference = schema.$ref
+
+    schema = resolveRef(schema.$ref, oas) as SchemaObject
+    references[reference] = schema
+  }
+
+  /**
+   * TODO: Is there a better method to copy the schema?
+   *
+   * Copy the schema
+   */
+  const collapsedSchema: SchemaObject = JSON.parse(JSON.stringify(schema))
+
+  // Resolve allOf
+  if (Array.isArray(collapsedSchema.allOf)) {
+    collapsedSchema.allOf.forEach((memberSchema) => {
+      const collapsedMemberSchema = resolveAllOf(
+        memberSchema,
+        references,
+        data,
+        oas
+      )
+
+      // Collapse type if applicable
+      if (collapsedMemberSchema.type) {
+        if (!collapsedSchema.type) {
+          collapsedSchema.type = collapsedMemberSchema.type
+
+          // Check for incompatible schema type
+        } else if (collapsedSchema.type !== collapsedMemberSchema.type) {
+          handleWarning({
+            mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
+            message:
+              `Resolving 'allOf' field in schema '${JSON.stringify(
+                collapsedSchema
+              )}' ` + `results in incompatible schema type.`,
+            data,
+            log: preprocessingLog
+          })
+        }
+      }
+
+      // Collapse properties if applicable
+      if ('properties' in collapsedMemberSchema) {
+        if (!('properties' in collapsedSchema)) {
+          collapsedSchema.properties = {}
+        }
+
+        Object.entries(collapsedMemberSchema.properties).forEach(
+          ([propertyName, property]) => {
+            if (!(propertyName in collapsedSchema.properties)) {
+              collapsedSchema.properties[propertyName] = property
+
+              // Conflicting property
+            } else {
+              handleWarning({
+                mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
+                message:
+                  `Resolving 'allOf' field in schema '${JSON.stringify(
+                    collapsedSchema
+                  )}' ` +
+                  `results in incompatible property field '${propertyName}'.`,
+                data,
+                log: preprocessingLog
+              })
+            }
+          }
+        )
+      }
+
+      // Collapse oneOf if applicable
+      if ('oneOf' in collapsedMemberSchema) {
+        if (!('oneOf' in collapsedSchema)) {
+          collapsedSchema.oneOf = []
+        }
+
+        collapsedMemberSchema.oneOf.forEach((oneOfProperty) => {
+          collapsedSchema.oneOf.push(oneOfProperty)
+        })
+      }
+
+      // Collapse anyOf if applicable
+      if ('anyOf' in collapsedMemberSchema) {
+        if (!('anyOf' in collapsedSchema)) {
+          collapsedSchema.anyOf = []
+        }
+
+        collapsedMemberSchema.anyOf.forEach((anyOfProperty) => {
+          collapsedSchema.anyOf.push(anyOfProperty)
+        })
+      }
+
+      // Collapse required if applicable
+      if ('required' in collapsedMemberSchema) {
+        if (!('required' in collapsedSchema)) {
+          collapsedSchema.required = []
+        }
+
+        collapsedMemberSchema.required.forEach((requiredProperty) => {
+          if (!collapsedSchema.required.includes(requiredProperty)) {
+            collapsedSchema.required.push(requiredProperty)
+          }
+        })
+      }
+    })
+  }
+
+  return collapsedSchema
+}
+
+/**
  * Returns the base URL to use for the given operation.
  */
 export function getBaseUrl(operation: Operation): string {
@@ -650,7 +776,8 @@ function GetOneOfTargetGraphQLType<TSource, TContext, TArgs>(
   // Target GraphQL types of all the member schemas
   const memberTargetTypes: TargetGraphQLType[] = []
   schema.oneOf.forEach((memberSchema) => {
-    const memberTargetType = getSchemaTargetGraphQLType(memberSchema, data, oas)
+    const collapsedMemberSchema = resolveAllOf(memberSchema, {}, data, oas);
+    const memberTargetType = getSchemaTargetGraphQLType(collapsedMemberSchema, data, oas)
 
     if (memberTargetType !== null) {
       memberTargetTypes.push(memberTargetType)

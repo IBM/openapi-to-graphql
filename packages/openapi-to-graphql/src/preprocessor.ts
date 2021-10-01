@@ -699,11 +699,23 @@ export function createDataDef<TSource, TContext, TArgs>(
     // Found existing data definition and fetch it
     const existingDataDef = data.defs[index]
 
-    collapseLinksIntoDataDefinition({
-      additionalLinks: saneLinks,
-      existingDataDef,
-      data
-    })
+    if (existingDataDef.targetGraphQLType === TargetGraphQLType.oneOfUnion && Array.isArray(existingDataDef.subDefinitions) // Special handling for oneOf. Sub definitions are always an array (see createOneOfUnion)
+    ) {
+      existingDataDef.subDefinitions.forEach((def) => {
+          collapseLinksIntoDataDefinition({
+            additionalLinks: saneLinks,
+            existingDataDef: def,
+            data,
+          })
+        }
+      )
+    } else {
+      collapseLinksIntoDataDefinition({
+        additionalLinks: saneLinks,
+        existingDataDef,
+        data,
+      })
+    }
 
     return existingDataDef
   }
@@ -734,7 +746,7 @@ export function createDataDef<TSource, TContext, TArgs>(
    * Recursively resolve allOf so type, properties, anyOf, oneOf, and
    * required are resolved
    */
-  const collapsedSchema = resolveAllOf(schema, {}, data, oas) as SchemaObject
+  const collapsedSchema = Oas3Tools.resolveAllOf(schema, {}, data, oas) as SchemaObject
 
   const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(
     collapsedSchema,
@@ -1251,132 +1263,6 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
       })
     }
   }
-}
-
-/**
- * Recursively traverse a schema and resolve allOf by appending the data to the
- * parent schema
- */
-function resolveAllOf<TSource, TContext, TArgs>(
-  schema: SchemaObject | ReferenceObject,
-  references: { [reference: string]: SchemaObject },
-  data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
-): SchemaObject {
-  // Dereference schema
-  if ('$ref' in schema && typeof schema.$ref === 'string') {
-    if (schema.$ref in references) {
-      return references[schema.$ref]
-    }
-
-    const reference = schema.$ref
-
-    schema = Oas3Tools.resolveRef(schema.$ref, oas) as SchemaObject
-    references[reference] = schema
-  }
-
-  /**
-   * TODO: Is there a better method to copy the schema?
-   *
-   * Copy the schema
-   */
-  const collapsedSchema: SchemaObject = JSON.parse(JSON.stringify(schema))
-
-  // Resolve allOf
-  if (Array.isArray(collapsedSchema.allOf)) {
-    collapsedSchema.allOf.forEach((memberSchema) => {
-      const collapsedMemberSchema = resolveAllOf(
-        memberSchema,
-        references,
-        data,
-        oas
-      )
-
-      // Collapse type if applicable
-      if (collapsedMemberSchema.type) {
-        if (!collapsedSchema.type) {
-          collapsedSchema.type = collapsedMemberSchema.type
-
-          // Check for incompatible schema type
-        } else if (collapsedSchema.type !== collapsedMemberSchema.type) {
-          handleWarning({
-            mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
-            message:
-              `Resolving 'allOf' field in schema '${JSON.stringify(
-                collapsedSchema
-              )}' ` + `results in incompatible schema type.`,
-            data,
-            log: preprocessingLog
-          })
-        }
-      }
-
-      // Collapse properties if applicable
-      if ('properties' in collapsedMemberSchema) {
-        if (!('properties' in collapsedSchema)) {
-          collapsedSchema.properties = {}
-        }
-
-        Object.entries(collapsedMemberSchema.properties).forEach(
-          ([propertyName, property]) => {
-            if (!(propertyName in collapsedSchema.properties)) {
-              collapsedSchema.properties[propertyName] = property
-
-              // Conflicting property
-            } else {
-              handleWarning({
-                mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
-                message:
-                  `Resolving 'allOf' field in schema '${JSON.stringify(
-                    collapsedSchema
-                  )}' ` +
-                  `results in incompatible property field '${propertyName}'.`,
-                data,
-                log: preprocessingLog
-              })
-            }
-          }
-        )
-      }
-
-      // Collapse oneOf if applicable
-      if ('oneOf' in collapsedMemberSchema) {
-        if (!('oneOf' in collapsedSchema)) {
-          collapsedSchema.oneOf = []
-        }
-
-        collapsedMemberSchema.oneOf.forEach((oneOfProperty) => {
-          collapsedSchema.oneOf.push(oneOfProperty)
-        })
-      }
-
-      // Collapse anyOf if applicable
-      if ('anyOf' in collapsedMemberSchema) {
-        if (!('anyOf' in collapsedSchema)) {
-          collapsedSchema.anyOf = []
-        }
-
-        collapsedMemberSchema.anyOf.forEach((anyOfProperty) => {
-          collapsedSchema.anyOf.push(anyOfProperty)
-        })
-      }
-
-      // Collapse required if applicable
-      if ('required' in collapsedMemberSchema) {
-        if (!('required' in collapsedSchema)) {
-          collapsedSchema.required = []
-        }
-
-        collapsedMemberSchema.required.forEach((requiredProperty) => {
-          if (!collapsedSchema.required.includes(requiredProperty)) {
-            collapsedSchema.required.push(requiredProperty)
-          }
-        })
-      }
-    })
-  }
-
-  return collapsedSchema
 }
 
 type MemberSchemaData = {
