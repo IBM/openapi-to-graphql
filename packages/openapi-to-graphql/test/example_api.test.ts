@@ -2411,3 +2411,32 @@ test('Non-nullable properties from nested allOf', () => {
     })
   })
 })
+
+test('it formats the request url appropriate when style and explode is set to true', async () => {
+  const LIMIT = 10
+  const OFFSET = 0
+
+  const query = `
+    query {
+      fetchAllOfficesWithFormStyleAndExplodeTrue(parameters: { limit: ${LIMIT}, offset: ${OFFSET} }) {
+        roomNumber
+        company {
+          id
+        }
+      }
+    }
+  `
+
+  await graphql(createdSchema, query).then((result) => {
+    // target error field because the corresponding server url is not implemented,
+    // also we get the full request url as in failed request errors
+    result.errors.forEach((error) => {
+      const url = new URL(error.extensions.url)
+
+      expect(url.searchParams.has('limit')).toBe(true)
+      expect(url.searchParams.get('limit')).toBe(String(LIMIT))
+      expect(url.searchParams.has('offset')).toBe(true)
+      expect(url.searchParams.get('offset')).toBe(String(OFFSET))
+    })
+  })
+})
