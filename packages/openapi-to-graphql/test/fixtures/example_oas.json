@@ -471,6 +471,46 @@
         }
       }
     },
+    "/offices": {
+      "get": {
+        "x-graphql-field-name": "fetchAllOfficesWithFormStyleAndExplodeTrue",
+        "operationId": "returnAllOffices",
+        "description": "returns all offices",
+        "parameters": [{
+          "name": "parameters",
+          "in": "query",
+          "required": true,
+          "style": "form",
+          "explode": true,
+          "schema": {
+            "type": "object",
+            "properties": {
+              "limit": {
+                "type": "integer"
+              },
+              "offset": {
+                "type": "integer"
+              }
+            }
+          }
+        }],
+        "responses": {
+          "200": {
+            "description": "A list of users.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/office"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/offices/{id}": {
       "get": {
         "operationId": "getOffice",
