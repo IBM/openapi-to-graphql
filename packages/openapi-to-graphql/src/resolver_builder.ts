@@ -1292,7 +1292,23 @@ export function extractRequestDataFromArgs<TSource, TContext, TArgs>(
 
         // Query parameters
         case 'query':
-          qs[param.name] = args[saneParamName]
+          // setting param style as form assumes explode is true by default
+          if (param.style === 'form' && Object.prototype.toString.call(args[saneParamName]) === '[object Object]') {
+            if (param.explode === false) {
+              qs[param.name] = Object.entries(args[saneParamName]).reduce((acc, val) => {
+                acc += val.join(',')
+                return acc
+              }, '')
+            } else {
+              Object.entries(args[saneParamName]).forEach(([key, value]) => {
+                qs[key] = value
+              })
+            }
+          } else if (Array.isArray(args[saneParamName]) && param.style === 'form' && param.explode !== false) {
+            qs[param.name] = args[saneParamName].join(',')
+          } else {
+            qs[param.name] = args[saneParamName]
+          }
           break
 
         // Header parameters
