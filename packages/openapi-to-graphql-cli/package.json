@@ -83,5 +83,12 @@
   "scripts": {
     "dev": "tsc -w",
     "build": "tsc --project ../../tsconfig.build.json"
+  },
+  "buildOptions": {
+    "bin": {
+      "openapi-to-graphql": {
+        "input": "src/index.ts"
+      }
+    }
   }
 }
