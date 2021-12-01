@@ -36,6 +36,7 @@ import {
   GraphQLInputType,
   GraphQLInputFieldConfigMap
 } from 'graphql'
+import { GraphQLUpload } from 'graphql-upload'
 
 // Imports:
 import { GraphQLBigInt, GraphQLJSON } from 'graphql-scalars'
@@ -221,6 +222,10 @@ export function getGraphQLType<TSource, TContext, TArgs>({
 
     case TargetGraphQLType.bigint:
       def.graphQLType = GraphQLBigInt
+      return def.graphQLType
+
+    case TargetGraphQLType.upload:
+      def.graphQLType = GraphQLUpload
       return def.graphQLType
   }
 }

@@ -473,7 +473,9 @@ export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
   if (typeof schema.format === 'string') {
     if (schema.type === 'integer' && schema.format === 'int64') {
       return TargetGraphQLType.bigint
-
+      // CASE: file upload
+    } else if (schema.type === 'string' && schema.format === 'binary') {
+      return TargetGraphQLType.upload
       // CASE: id
     } else if (
       schema.type === 'string' &&
@@ -840,7 +842,8 @@ export function getRequestSchemaAndNames(
         if (
           payloadContentType === 'application/json' ||
           payloadContentType === '*/*' ||
-          payloadContentType === 'application/x-www-form-urlencoded'
+          payloadContentType === 'application/x-www-form-urlencoded' ||
+            payloadContentType === 'multipart/form-data'
         ) {
           // Name extracted from a reference, if applicable
           let fromRef: string
