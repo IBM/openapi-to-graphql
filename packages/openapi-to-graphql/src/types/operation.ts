@@ -38,6 +38,7 @@ export enum TargetGraphQLType {
   boolean = 'boolean',
   id = 'id',
   bigint = 'bigint',
+  upload = 'upload',
 
   // JSON
   json = 'json',
