@@ -87,6 +87,7 @@
     "form-urlencoded": "^6.0.4",
     "graphql-scalars": "^1.10.0",
     "graphql-subscriptions": "^1.1.0",
+    "graphql-upload": "^13.0.0",
     "json-ptr": "^2.2.0",
     "jsonpath-plus": "^6.0.1",
     "oas-validator": "^5.0.2",
