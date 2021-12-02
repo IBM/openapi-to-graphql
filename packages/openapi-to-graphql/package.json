@@ -84,6 +84,7 @@
     "cross-fetch": "^3.1.4",
     "debug": "^4.2.0",
     "deep-equal": "^2.0.5",
+    "form-data": "^4.0.0",
     "form-urlencoded": "^6.0.4",
     "graphql-scalars": "^1.10.0",
     "graphql-subscriptions": "^1.1.0",
@@ -103,6 +104,7 @@
   "devDependencies": {
     "@types/deep-equal": "^1.0.1",
     "@types/graphql": "^14.0.3",
+    "@types/graphql-upload": "^8.0.7",
     "@types/jest": "^26.0.14",
     "@types/node": "^16.3.3",
     "@types/url-join": "^4.0.1",
