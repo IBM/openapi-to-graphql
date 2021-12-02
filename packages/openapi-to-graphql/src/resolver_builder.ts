@@ -15,6 +15,7 @@ import { SubscriptionContext } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
 import { RequestOptions } from './types/options'
 import crossFetch from 'cross-fetch'
+import { FileUpload } from 'graphql-upload'
 
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
@@ -24,6 +25,7 @@ import { GraphQLError, GraphQLFieldResolver } from 'graphql'
 import formurlencoded from 'form-urlencoded'
 import { PubSub } from 'graphql-subscriptions'
 import urljoin from 'url-join'
+import FormData from 'form-data'
 
 const pubsub = new PubSub()
 
@@ -554,6 +556,7 @@ export function getResolver<TSource, TContext, TArgs>({
      * GraphQL produces sanitized payload names, so we have to sanitize before
      * lookup here
      */
+    let form
     resolveData.usedPayload = undefined
     if (typeof payloadName === 'string') {
       // The option genericPayloadArgName will change the payload name to "requestBody"
@@ -572,6 +575,18 @@ export function getResolver<TSource, TContext, TArgs>({
         rawPayload = formurlencoded(
           Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
         )
+      } else if (operation.payloadContentType === 'multipart/form-data') {
+        form = new FormData()
+
+        Object.entries(args[sanePayloadName]).forEach(([key, value]) => {
+          // if (typeof value === 'object' && (value as Partial<FileUpload>).createReadStream) {
+          //   form.append(key, (value as FileUpload).createReadStream())
+          // }
+
+          form.append(key, value)
+        })
+
+        rawPayload = form
       } else {
         // Payload is not an object
         rawPayload = args[sanePayloadName]
@@ -597,6 +612,10 @@ export function getResolver<TSource, TContext, TArgs>({
 
         if (typeof headers === 'object') {
           Object.assign(options.headers, headers)
+        }
+
+        if (form) {
+          Object.assign(options.headers, form.getHeaders())
         }
       }
 
