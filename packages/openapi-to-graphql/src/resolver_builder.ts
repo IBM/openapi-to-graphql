@@ -18,6 +18,7 @@ import crossFetch from 'cross-fetch'
 import { FileUpload } from 'graphql-upload'
 
 // Imports:
+import stream from 'stream'
 import * as Oas3Tools from './oas_3_tools'
 import { JSONPath } from 'jsonpath-plus'
 import { debug } from 'debug'
@@ -32,6 +33,7 @@ const pubsub = new PubSub()
 const translationLog = debug('translation')
 const httpLog = debug('http')
 const pubsubLog = debug('pubsub')
+const uploadLog = debug('fileUpload')
 
 // OAS runtime expression reference locations
 const RUNTIME_REFERENCES = ['header.', 'query.', 'path.', 'body']
@@ -325,7 +327,7 @@ export function getPublishResolver<TSource, TContext, TArgs>({
  * If the operation type is Query or Mutation, create and return a resolver
  * function that performs API requests for the given GraphQL query
  */
-export function getResolver<TSource, TContext, TArgs>({
+export function getResolver<TSource, TContext, TArgs> ({
   operation,
   argsFromLink = {},
   payloadName,
@@ -578,13 +580,40 @@ export function getResolver<TSource, TContext, TArgs>({
       } else if (operation.payloadContentType === 'multipart/form-data') {
         form = new FormData()
 
-        Object.entries(args[sanePayloadName]).forEach(([key, value]) => {
-          // if (typeof value === 'object' && (value as Partial<FileUpload>).createReadStream) {
-          //   form.append(key, (value as FileUpload).createReadStream())
-          // }
+        const formFieldsPayloadEntries = Object.entries(args[sanePayloadName]);
 
-          form.append(key, value)
-        })
+        (await Promise.all(formFieldsPayloadEntries.map(([_, v]) => v)))
+            .forEach((fieldValue, idx) => {
+              const fieldName = formFieldsPayloadEntries[idx][0]
+
+              if (typeof fieldValue === 'object' && Boolean((fieldValue as Partial<FileUpload>).createReadStream)) {
+                const uploadingFile = fieldValue as FileUpload
+                const originalFileStream = uploadingFile.createReadStream()
+                const filePassThrough = new stream.PassThrough()
+
+                originalFileStream.on('readable', function () {
+                  let data
+                  // tslint:disable-next-line:no-conditional-assignment
+                  while (data = this.read()) {
+                    filePassThrough.write(data)
+                  }
+                })
+
+                originalFileStream.on('end', () => {
+                  uploadLog(`Upload for received file ${uploadingFile.filename} completed`)
+                  filePassThrough.end()
+                })
+
+                uploadLog(`Queuing upload for received file ${uploadingFile.filename}`)
+
+                form.append(fieldName, filePassThrough, {
+                  filename: uploadingFile.filename,
+                  contentType: uploadingFile.mimetype
+                })
+              } else {
+                form.append(fieldName, fieldValue)
+              }
+            })
 
         rawPayload = form
       } else {
@@ -672,6 +701,11 @@ export function getResolver<TSource, TContext, TArgs>({
 
     let response: Response
     try {
+      // if is form, remove default content type and
+      // let fetch compute appropriate header content-type based off of form data
+      if (form) {
+        delete options.headers['content-type']
+      }
       response = await fetch(url.toString(), options)
     } catch (err) {
       httpLog(err)
