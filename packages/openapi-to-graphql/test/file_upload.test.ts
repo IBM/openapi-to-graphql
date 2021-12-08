@@ -4,8 +4,13 @@ import { afterAll, beforeAll, expect, test } from '@jest/globals'
 import * as openAPIToGraphQL from '../src/index'
 import * as Oas3Tools from '../src/oas_3_tools'
 
-import { startServer, stopServer } from './file_upload_server'
+import { Volume } from 'memfs'
+import FormData from 'form-data'
+import { createServer } from 'http'
+import fetch from 'cross-fetch'
 import { graphql } from 'graphql'
+import { GraphQLOperation, processRequest } from 'graphql-upload'
+import { startServer as startAPIServer, stopServer as stopAPIServer } from './file_upload_api_server'
 
 /**
  * Set up the schema first
@@ -21,14 +26,14 @@ let createdSchema
 beforeAll(async () => {
   const [{ schema }] = await Promise.all([
     openAPIToGraphQL.createGraphQLSchema(oas),
-    startServer(PORT)
+    startAPIServer(PORT)
   ])
 
   createdSchema = schema
 })
 
 afterAll(async () => {
-  await stopServer()
+  await stopAPIServer()
 })
 
 test('All mutation endpoints are found to be present', () => {
@@ -68,6 +73,13 @@ test('introspection for mutations returns a mutation matching the custom field s
       mutationType {
         fields {
           name
+          args {
+            name
+            type {
+              name
+              kind
+            }
+          }
           type {
             name
             kind
@@ -78,17 +90,84 @@ test('introspection for mutations returns a mutation matching the custom field s
   }`
 
   const result = await graphql(createdSchema, query)
+
   expect(result).toEqual({
     data: {
       __schema: {
         mutationType: {
           fields: expect.arrayContaining([
             expect.objectContaining({
-              name: 'fileUploadTest'
+              name: 'fileUploadTest',
+              args: expect.arrayContaining([
+                expect.objectContaining({
+                  name: 'uploadInput'
+                })
+              ])
             })
           ])
         }
       }
     }
   })
+})
+
+test('upload completes without any error', async () => {
+  // setup graphql for integration test
+  const graphqlServer = createServer(async (req, res) => {
+    try {
+      const operation = await processRequest(req, res) as GraphQLOperation
+      const result = await graphql(createdSchema, operation.query, null, null, operation.variables)
+      res.end(JSON.stringify(result))
+    } catch (e) {
+      console.log(e)
+    }
+  })
+
+  const { port: graphqlServerPort, close: closeGraphQLServer } = await new Promise((resolve, reject) => {
+    graphqlServer.listen(function (err) {
+      if (err) {
+        return reject(err)
+      }
+
+      return resolve({
+        port: this.address().port,
+        close: () => this.close()
+      })
+    })
+  })
+
+  const vol = new Volume()
+
+  // create mocked in memory file for upload
+  vol.fromJSON({
+    './README.md': '1'
+  }, '/app')
+
+  // prepare request to match graphql multipart request spec
+  // https://github.com/jaydenseric/graphql-multipart-request-spec
+  const form = new FormData()
+  const query = `
+    mutation FileUploadTest($file: Upload!) {
+      fileUploadTest(uploadInput: { file: $file }) {
+        id
+        url
+      }
+    }
+  `
+  form.append('operations', JSON.stringify({ query, variables: { file: null } }))
+  form.append('map', JSON.stringify({ 0: ['variables.file'] }))
+  form.append('0', vol.createReadStream('/app/README.md'), {
+    filename: 'readme.md',
+    filepath: '/app'
+  })
+
+  // @ts-ignore
+  const uploadResult = await fetch(`http://localhost:${graphqlServerPort}`, { method: 'POST', body: form })
+      .then(res => res.json())
+
+  expect(uploadResult.errors).not.toBeDefined()
+  expect(uploadResult.data).toBeDefined()
+  expect(uploadResult.data.fileUploadTest).toBeDefined()
+
+  closeGraphQLServer()
 })
