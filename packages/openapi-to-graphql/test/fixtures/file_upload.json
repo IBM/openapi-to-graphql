@@ -21,6 +21,7 @@
   "paths": {
     "/upload": {
       "post": {
+        "x-graphql-field-name": "fileUploadTest",
         "requestBody": {
           "content": {
             "multipart/form-data": {

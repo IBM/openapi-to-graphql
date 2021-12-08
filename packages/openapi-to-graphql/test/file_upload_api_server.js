@@ -13,8 +13,8 @@ function startServer (PORT) {
   const bodyParser = require('body-parser')
   app.use(bodyParser.json())
 
-  app.get('/api/upload', (req, res) => {
-    res.send({
+  app.post('/api/upload', (req, res) => {
+    res.json({
       id: '1234567098',
       url: 'https://some-random-url.domain/assets/upload-file.ext'
     })
