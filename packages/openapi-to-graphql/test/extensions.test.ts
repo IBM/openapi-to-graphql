@@ -16,10 +16,6 @@ import {
 import * as openAPIToGraphQL from '../src/index'
 import { Oas3 } from '../src/types/oas3'
 
-/**
- * Set up the schema first
- */
-
 describe('GraphQL Extensions', () => {
   describe('Schema output', () => {
     let oas: Oas3

@@ -5,7 +5,7 @@
 
 'use strict'
 
-import { graphql } from 'graphql'
+import { graphql, GraphQLSchema } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../src/index'
@@ -18,11 +18,9 @@ oas.servers[0].variables.port.default = String(PORT)
 
 // Testing the simpleNames option
 
-let createdSchema
+let createdSchema: GraphQLSchema
 
-/**
- * Set up the schema first and run example API server
- */
+// Set up the schema first and run example API server
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
@@ -36,9 +34,7 @@ beforeAll(() => {
   ])
 })
 
-/**
- * Shut down API server
- */
+// Shut down API server
 afterAll(() => {
   return stopServer()
 })

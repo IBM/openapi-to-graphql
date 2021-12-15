@@ -328,14 +328,14 @@ export function getPublishResolver<TSource, TContext, TArgs>({
  * If the operation type is Query or Mutation, create and return a resolver
  * function that performs API requests for the given GraphQL query
  */
-export function getResolver<TSource, TContext, TArgs> ({
+export function getResolver<TSource, TContext, TArgs>({
   operation,
   argsFromLink = {},
   payloadName,
   data,
   baseUrl,
   requestOptions,
-    fileUploadOptions,
+  fileUploadOptions,
   fetch
 }: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<
   TSource & OpenAPIToGraphQLSource<TSource, TContext, TArgs>,
@@ -560,7 +560,7 @@ export function getResolver<TSource, TContext, TArgs> ({
      * GraphQL produces sanitized payload names, so we have to sanitize before
      * lookup here
      */
-    let form
+    let form: FormData
     resolveData.usedPayload = undefined
     if (typeof payloadName === 'string') {
       // The option genericPayloadArgName will change the payload name to "requestBody"
@@ -595,7 +595,7 @@ export function getResolver<TSource, TContext, TArgs> ({
 
                 originalFileStream.on('readable', function () {
                   let data
-                  // tslint:disable-next-line:no-conditional-assignment
+
                   while (data = this.read()) {
                     const canReadNext = filePassThrough.write(data)
                     if (!canReadNext) {
@@ -621,7 +621,7 @@ export function getResolver<TSource, TContext, TArgs> ({
                   contentType: uploadingFile.mimetype
                 })
               } else if (typeof fieldValue !== 'string') {
-                // handle all other primitives that aren't strings as strings the way the web server would expect it
+                // Handle all other primitives that aren't strings as strings the way the web server would expect it
                 form.append(fieldName, JSON.stringify(fieldValue))
               } else {
                 form.append(fieldName, fieldValue)
@@ -657,9 +657,13 @@ export function getResolver<TSource, TContext, TArgs> ({
         }
 
         if (form) {
+          /**
+           * When there is a form, remove default content type and leave 
+           * computation of content-type header to fetch
+           * 
+           * See https://github.com/github/fetch/issues/505#issuecomment-293064470
+           */
           Object.assign(options.headers, form.getHeaders())
-          // when is form, remove default content type and leave computation of content-type header to fetch
-          // see https://github.com/github/fetch/issues/505#issuecomment-293064470
           delete options.headers['content-type']
         }
       }

@@ -5,7 +5,7 @@
 
 'use strict'
 
-import { graphql } from 'graphql'
+import { graphql, GraphQLObjectType, GraphQLSchema } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../src/index'
@@ -16,7 +16,7 @@ const PORT = 3004
 // Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 
-let createdSchema
+let createdSchema: GraphQLSchema
 
 /**
  * This test suite is used to verify the behavior of the operationIdFieldNames
@@ -26,9 +26,7 @@ let createdSchema
  * have operationIDs.
  */
 
-/**
- * Set up the schema first and run example API server
- */
+// Set up the schema first and run example API server
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
@@ -40,9 +38,7 @@ beforeAll(() => {
   ])
 })
 
-/**
- * Shut down API server
- */
+// Shut down API server
 afterAll(() => {
   return stopServer()
 })
@@ -62,7 +58,7 @@ test('The option operationIdFieldNames should allow both operations to be presen
     }
   }
 
-  const gqlTypes = Object.keys(createdSchema._typeMap.Query.getFields()).length
+  const gqlTypes = Object.keys((createdSchema.getTypeMap().Query as GraphQLObjectType).getFields()).length
   expect(gqlTypes).toEqual(oasGetCount)
 })
 

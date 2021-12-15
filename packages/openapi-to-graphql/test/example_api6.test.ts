@@ -5,7 +5,7 @@
 
 'use strict'
 
-import { graphql, parse, validate } from 'graphql'
+import { graphql, GraphQLSchema, parse, validate } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../src/index'
@@ -17,11 +17,9 @@ const PORT = 3008
 // Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 
-let createdSchema
+let createdSchema: GraphQLSchema
 
-/**
- * Set up the schema first and run example API server
- */
+// Set up the schema first and run example API server
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL.createGraphQLSchema(oas).then(({ schema, report }) => {
@@ -31,15 +29,13 @@ beforeAll(() => {
   ])
 })
 
-/**
- * Shut down API server
- */
+// Shut down API server
 afterAll(() => {
   return stopServer()
 })
 
 test('Option requestOptions should work with links', () => {
-  // Verifying the behavior of the link by itself
+  // Verify the behavior of the link by itself
   const query = `{
     object {
       object2Link {

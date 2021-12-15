@@ -6,15 +6,14 @@
 'use strict'
 
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
+import { GraphQLObjectType, GraphQLSchema } from 'graphql'
 
 import * as openAPIToGraphQL from '../src/index'
 
-/**
- * Set up the schema first
- */
+// Set up the schema first
 const oas = require('./fixtures/instagram.json')
 
-let createdSchema
+let createdSchema: GraphQLSchema
 beforeAll(() => {
   return openAPIToGraphQL
     .createGraphQLSchema(oas)
@@ -31,7 +30,7 @@ test('All Instagram query endpoints present', () => {
     }
   }
   const gqlTypes = Object.keys(
-    createdSchema._typeMap.Query.getFields().viewerAnyAuth.type.getFields()
+    ((createdSchema.getTypeMap().Query as GraphQLObjectType).getFields().viewerAnyAuth.type as GraphQLObjectType).getFields()
   ).length
   expect(gqlTypes).toEqual(oasGetCount)
 })

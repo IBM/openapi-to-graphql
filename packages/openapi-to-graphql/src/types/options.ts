@@ -291,7 +291,7 @@ export type InternalOptions<TSource, TContext, TArgs> = {
    * Allows one to define config for the form data that will be used in streaming
    * the uploaded file from the client to the intending endpoint
    *
-   * Based on https://github.com/form-data/form-data#custom-options
+   * Based on: https://github.com/form-data/form-data#custom-options
    */
   fileUploadOptions?: FileUploadOptions
 
