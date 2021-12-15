@@ -13,7 +13,7 @@ import { ConnectOptions } from './types/options'
 import { TargetGraphQLType, Operation } from './types/operation'
 import { SubscriptionContext } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
-import { RequestOptions } from './types/options'
+import { RequestOptions, FileUploadOptions } from './types/options'
 import crossFetch from 'cross-fetch'
 import { FileUpload } from 'graphql-upload'
 
@@ -61,6 +61,7 @@ type GetResolverParams<TSource, TContext, TArgs> = {
   data: PreprocessingData<TSource, TContext, TArgs>
   baseUrl?: string
   requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>
+  fileUploadOptions?: FileUploadOptions
   fetch: typeof crossFetch
 }
 
@@ -334,6 +335,7 @@ export function getResolver<TSource, TContext, TArgs> ({
   data,
   baseUrl,
   requestOptions,
+    fileUploadOptions,
   fetch
 }: GetResolverParams<TSource, TContext, TArgs>): GraphQLFieldResolver<
   TSource & OpenAPIToGraphQLSource<TSource, TContext, TArgs>,
@@ -578,7 +580,7 @@ export function getResolver<TSource, TContext, TArgs> ({
           Oas3Tools.desanitizeObjectKeys(args[sanePayloadName], data.saneMap)
         )
       } else if (operation.payloadContentType === 'multipart/form-data') {
-        form = new FormData()
+        form = new FormData(fileUploadOptions)
 
         const formFieldsPayloadEntries = Object.entries(args[sanePayloadName]);
 
