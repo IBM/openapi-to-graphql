@@ -647,6 +647,9 @@ export function getResolver<TSource, TContext, TArgs> ({
 
         if (form) {
           Object.assign(options.headers, form.getHeaders())
+          // when is form, remove default content type and leave computation of content-type header to fetch
+          // see https://github.com/github/fetch/issues/505#issuecomment-293064470
+          delete options.headers['content-type']
         }
       }
 
@@ -703,11 +706,6 @@ export function getResolver<TSource, TContext, TArgs> ({
 
     let response: Response
     try {
-      // if is form, remove default content type and
-      // let fetch compute appropriate header content-type based off of form data
-      if (form) {
-        delete options.headers['content-type']
-      }
       response = await fetch(url.toString(), options)
     } catch (err) {
       httpLog(err)
