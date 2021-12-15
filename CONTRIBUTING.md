@@ -1,10 +1,10 @@
 # Contributing to OpenAPI-to-GraphQL
 
-This document lists the differences between the contribution guidelines for this repository and the general [**Contributing to LoopBack**](http://loopback.io/doc/en/contrib/index.html) guidelines.
+This document lists the differences between the contribution guidelines for this repository.
 
 ### Developer Certificate of Origin
 
-This repository uses a [Developer Certificate of Origin (DCO)](https://developercertificate.org/) instead of a [Contributor License Agreement](https://cla.strongloop.com/agreements/strongloop/loopback.io) like most other LoopBack repositories. DCO is an easier process to adhere to. [Full text of DCO](https://developercertificate.org/) can be found below, formatted for readability.
+This repository uses a [Developer Certificate of Origin (DCO)](https://developercertificate.org/). DCO is an easier process to adhere to. [Full text of DCO](https://developercertificate.org/) can be found below, formatted for readability.
 
 > By making a contribution to this project, I certify that:
 >
