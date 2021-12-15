@@ -5,20 +5,18 @@
 
 'use strict'
 
-import { graphql } from 'graphql'
+import { graphql, GraphQLSchema } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../src/index'
 
 const oas = require('./fixtures/example_oas4.json')
 
+let createdSchema: GraphQLSchema
+
 // This test suite is used to verify the behavior of anyOf and oneOf handling
 
-let createdSchema
-
-/**
- * Set up the schema
- */
+// Set up the schema
 beforeAll(() => {
   return openAPIToGraphQL
     .createGraphQLSchema(oas)

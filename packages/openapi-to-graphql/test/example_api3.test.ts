@@ -5,7 +5,7 @@
 
 'use strict'
 
-import { graphql, parse, validate } from 'graphql'
+import { graphql, GraphQLSchema, parse, validate } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../src/index'
@@ -22,16 +22,14 @@ const PORT2 = 3006
 oas.servers[0].variables.port.default = String(PORT)
 oas3.servers[0].variables.port.default = String(PORT2)
 
+let createdSchema: GraphQLSchema
+
 /**
  * This test suite is used to verify the behavior of interOAS links, i.e.
  * links across different OASs
  */
 
-let createdSchema
-
-/**
- * Set up the schema first and run example API server
- */
+// Set up the schema first and run example API server
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
@@ -44,9 +42,7 @@ beforeAll(() => {
   ])
 })
 
-/**
- * Shut down API server
- */
+// Shut down API server
 afterAll(() => {
   return Promise.all([api.stopServer(), api2.stopServer()])
 })

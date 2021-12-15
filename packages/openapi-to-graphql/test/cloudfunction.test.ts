@@ -5,14 +5,14 @@
 
 'use strict'
 
-import { graphql, parse, validate } from 'graphql'
+import { graphql, GraphQLSchema, parse, validate } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../src/index'
 
 const oas = require('./fixtures/cloudfunction.json')
 
-let createdSchema
+let createdSchema: GraphQLSchema
 
 beforeAll(async () => {
   const { schema } = await openAPIToGraphQL.createGraphQLSchema(oas)

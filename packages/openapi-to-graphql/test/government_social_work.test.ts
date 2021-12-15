@@ -5,18 +5,16 @@
 
 'use strict'
 
-import { graphql, parse, validate } from 'graphql'
+import { graphql, GraphQLObjectType, GraphQLSchema, parse, validate } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 const openAPIToGraphQL = require('../src/index')
 const Oas3Tools = require('../src/oas_3_tools')
 
-/**
- * Set up the schema first
- */
+// Set up the schema first
 const oas = require('./fixtures/government_social_work.json')
 
-let createdSchema
+let createdSchema: GraphQLSchema
 beforeAll(() => {
   return openAPIToGraphQL
     .createGraphQLSchema(oas)
@@ -32,7 +30,7 @@ test('All query endpoints present', () => {
       if (method === 'get') oasGetCount++
     }
   }
-  const gqlTypes = Object.keys(createdSchema._typeMap.Query.getFields()).length
+  const gqlTypes = Object.keys((createdSchema.getTypeMap().Query as GraphQLObjectType).getFields()).length
   expect(gqlTypes).toEqual(oasGetCount)
 })
 
@@ -43,7 +41,7 @@ test('All mutation endpoints present', () => {
       if (Oas3Tools.isHttpMethod(method) && method !== 'get') oasMutCount++
     }
   }
-  const gqlTypes = Object.keys(createdSchema._typeMap.Mutation.getFields())
+  const gqlTypes = Object.keys((createdSchema.getTypeMap().Mutation as GraphQLObjectType).getFields())
     .length
   expect(gqlTypes).toEqual(oasMutCount)
 })

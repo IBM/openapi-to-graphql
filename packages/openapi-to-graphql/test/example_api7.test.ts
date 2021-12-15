@@ -5,7 +5,7 @@
 
 'use strict'
 
-import { graphql, parse, validate, execute, subscribe } from 'graphql'
+import { graphql, parse, validate, execute, subscribe, GraphQLSchema } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import { createServer } from 'http'
@@ -29,14 +29,12 @@ const MQTT_PORT = 1885
 oas.servers[0].variables.port.default = String(HTTP_PORT)
 oas.servers[1].variables.port.default = String(MQTT_PORT)
 
-let createdSchema
+let createdSchema: GraphQLSchema
 let wsServer
 let mqttClient
 let subscriptionServer
 
-/**
- * Set up the schema first and run example API servers
- */
+// Set up the schema first and run example API servers
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL

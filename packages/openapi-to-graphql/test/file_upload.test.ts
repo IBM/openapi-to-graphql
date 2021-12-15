@@ -1,3 +1,8 @@
+// Copyright IBM Corp. 2017,2018. All Rights Reserved.
+// Node module: openapi-to-graphql
+// This file is licensed under the MIT License.
+// License text available at https://opensource.org/licenses/MIT
+
 'use strict'
 
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
@@ -8,20 +13,19 @@ import { Volume } from 'memfs'
 import FormData from 'form-data'
 import { createServer } from 'http'
 import fetch from 'cross-fetch'
-import { graphql } from 'graphql'
+import { graphql, GraphQLObjectType, GraphQLSchema } from 'graphql'
 import { GraphQLOperation, processRequest } from 'graphql-upload'
 import { startServer as startAPIServer, stopServer as stopAPIServer } from './file_upload_api_server'
 
-/**
- * Set up the schema first
- */
+// Set up the schema first
 const oas = require('./fixtures/file_upload.json')
+
 const PORT = 3010
 
 // Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 
-let createdSchema
+let createdSchema: GraphQLSchema
 
 beforeAll(async () => {
   const [{ schema }] = await Promise.all([
@@ -43,12 +47,11 @@ test('All mutation endpoints are found to be present', () => {
       if (Oas3Tools.isHttpMethod(method) && method !== 'get') oasMutCount++
     }
   }
-  const gqlTypes = Object.keys(createdSchema._typeMap.Mutation.getFields())
-        .length
+  const gqlTypes = Object.keys((createdSchema.getTypeMap().Mutation as GraphQLObjectType).getFields()).length
   expect(gqlTypes).toEqual(oasMutCount)
 })
 
-test('registers the graphql-upload Upload scalar type', async () => {
+test('Registers the graphql-upload Upload scalar type', async () => {
   const query = `{
     __type(name: "Upload") {
       name
@@ -67,7 +70,7 @@ test('registers the graphql-upload Upload scalar type', async () => {
   })
 })
 
-test('introspection for mutations returns a mutation matching the custom field specified for the multipart API definition', async () => {
+test('Introspection for mutations returns a mutation matching the custom field specified for the multipart API definition', async () => {
   const query = `{
     __schema {
       mutationType {
@@ -111,8 +114,8 @@ test('introspection for mutations returns a mutation matching the custom field s
   })
 })
 
-test('upload completes without any error', async () => {
-  // setup graphql for integration test
+test('Upload completes without any error', async () => {
+  // Setup GraphQL for integration test
   const graphqlServer = createServer(async (req, res) => {
     try {
       const operation = await processRequest(req, res) as GraphQLOperation
@@ -138,13 +141,13 @@ test('upload completes without any error', async () => {
 
   const vol = new Volume()
 
-  // create mocked in memory file for upload
+  // Create mocked in memory file for upload
   vol.fromJSON({
     './README.md': '1'
   }, '/app')
 
-  // prepare request to match graphql multipart request spec
-  // https://github.com/jaydenseric/graphql-multipart-request-spec
+  // Prepare request to match GraphQL multipart request spec
+  // Reference: https://github.com/jaydenseric/graphql-multipart-request-spec
   const form = new FormData()
   const query = `
     mutation FileUploadTest($file: Upload!) {

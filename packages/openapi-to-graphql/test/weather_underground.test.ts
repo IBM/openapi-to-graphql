@@ -6,15 +6,14 @@
 'use strict'
 
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
+import { GraphQLObjectType, GraphQLSchema } from 'graphql'
 
 import * as openAPIToGraphQL from '../src/index'
 
-/**
- * Set up the schema first
- */
+// Set up the schema first
 const oas = require('./fixtures/weather_underground.json')
 
-let createdSchema
+let createdSchema: GraphQLSchema
 beforeAll(() => {
   return openAPIToGraphQL
     .createGraphQLSchema(oas)
@@ -30,6 +29,6 @@ test('All Weather Underground query endpoints present', () => {
       if (method === 'get') oasGetCount++
     }
   }
-  const gqlTypes = Object.keys(createdSchema._typeMap.Query.getFields()).length
+  const gqlTypes = Object.keys((createdSchema.getTypeMap().Query as GraphQLObjectType).getFields()).length
   expect(gqlTypes).toEqual(oasGetCount)
 })

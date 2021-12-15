@@ -5,7 +5,7 @@
 
 'use strict'
 
-import { graphql, parse, validate } from 'graphql'
+import { graphql, GraphQLInputObjectType, GraphQLInputObjectTypeConfig, GraphQLObjectTypeConfig, GraphQLSchema, parse, validate } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import * as openAPIToGraphQL from '../src/index'
@@ -18,11 +18,9 @@ const PORT = 3002
 // Update PORT for this test case:
 oas.servers[0].variables.port.default = String(PORT)
 
-let createdSchema
+let createdSchema: GraphQLSchema
 
-/**
- * Set up the schema first and run example API server
- */
+// Set up the schema first and run example API server
 beforeAll(() => {
   return Promise.all([
     openAPIToGraphQL
@@ -36,9 +34,7 @@ beforeAll(() => {
   ])
 })
 
-/**
- * Shut down API server
- */
+// Shut down API server
 afterAll(() => {
   return stopServer()
 })
@@ -1959,10 +1955,10 @@ test('Required properties for input object types', () => {
   const userInputType = createdSchema.getType('UserInput')
 
   // The exclamation mark shows that it is a required (non-nullable) property
-  expect(userInputType.toConfig().fields.address.type.toString()).toEqual(
+  expect((userInputType.toConfig() as GraphQLInputObjectTypeConfig).fields['address'].type.toString()).toEqual(
     'AddressInput!'
   )
-  expect(userInputType.toConfig().fields.address2.type.toString()).toEqual(
+  expect((userInputType.toConfig() as GraphQLInputObjectTypeConfig).fields['address2'].type.toString()).toEqual(
     'AddressInput'
   )
 })
@@ -2312,8 +2308,8 @@ test('Non-nullable properties for object types', () => {
   const coordinates = createdSchema.getType('Coordinates')
 
   // The exclamation mark shows that it is a required (non-nullable) property
-  expect(coordinates.toConfig().fields.lat.type.toString()).toEqual('Float!')
-  expect(coordinates.toConfig().fields.long.type.toString()).toEqual('Float!')
+  expect((coordinates.toConfig() as GraphQLObjectTypeConfig<any, any>).fields['lat'].type.toString()).toEqual('Float!')
+  expect((coordinates.toConfig() as GraphQLObjectTypeConfig<any, any>).fields['long'].type.toString()).toEqual('Float!')
 })
 
 test('Option genericPayloadArgName', () => {
