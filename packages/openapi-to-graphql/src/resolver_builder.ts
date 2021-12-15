@@ -597,21 +597,32 @@ export function getResolver<TSource, TContext, TArgs> ({
                   let data
                   // tslint:disable-next-line:no-conditional-assignment
                   while (data = this.read()) {
-                    filePassThrough.write(data)
+                    const canReadNext = filePassThrough.write(data)
+                    if (!canReadNext) {
+                      this.pause()
+                      filePassThrough.once('drain', () => this.resume())
+                    }
                   }
                 })
 
+                originalFileStream.on('error', () => {
+                  uploadLog('Encountered an error while uploading the file %s', uploadingFile.filename)
+                })
+
                 originalFileStream.on('end', () => {
-                  uploadLog(`Upload for received file ${uploadingFile.filename} completed`)
+                  uploadLog('Upload for received file %s completed', uploadingFile.filename)
                   filePassThrough.end()
                 })
 
-                uploadLog(`Queuing upload for received file ${uploadingFile.filename}`)
+                uploadLog('Queuing upload for received file %s', uploadingFile.filename)
 
                 form.append(fieldName, filePassThrough, {
                   filename: uploadingFile.filename,
                   contentType: uploadingFile.mimetype
                 })
+              } else if (typeof fieldValue !== 'string') {
+                // handle all other primitives that aren't strings as strings the way the web server would expect it
+                form.append(fieldName, JSON.stringify(fieldValue))
               } else {
                 form.append(fieldName, fieldValue)
               }
