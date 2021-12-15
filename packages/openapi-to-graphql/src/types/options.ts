@@ -7,6 +7,7 @@
 import { GraphQLOperationType, SubscriptionContext } from './graphql'
 import { GraphQLFieldResolver, GraphQLResolveInfo } from 'graphql'
 import crossFetch from 'cross-fetch'
+import FormData from 'form-data'
 
 /**
  * Type definition of the options that users can pass to OpenAPI-to-GraphQL.
@@ -75,6 +76,17 @@ export type RequestOptions<TSource, TContext, TArgs> = Omit<
   headers?: HeadersInit | RequestHeadersFunction<TSource, TContext, TArgs>
   qs?: Record<string, string>
 }
+
+/**
+ * We use the form-data library to prepare multipart requests within the resolver API calls,
+ * also it provides support for handling file as streams this way the file upload has a minimal memory footprint,
+ * unlike the situation where the entire file in memory initially.
+ *
+ * Provides accommodation to allow overrides or add options for how the form data representation for multipart requests is generated
+ *
+ * Based on: https://github.com/form-data/form-data#custom-options
+ */
+export type FileUploadOptions = ConstructorParameters<typeof FormData>[0]
 
 export type Options<TSource, TContext, TArgs> = Partial<
   InternalOptions<TSource, TContext, TArgs>
@@ -274,6 +286,14 @@ export type InternalOptions<TSource, TContext, TArgs> = {
     subscribe: GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>
     resolve: GraphQLFieldResolver<TSource, TContext, TArgs>
   }>
+
+  /**
+   * Allows one to define config for the form data that will be used in streaming
+   * the uploaded file from the client to the intending endpoint
+   *
+   * Based on https://github.com/form-data/form-data#custom-options
+   */
+  fileUploadOptions?: FileUploadOptions
 
   // Authentication options
 
