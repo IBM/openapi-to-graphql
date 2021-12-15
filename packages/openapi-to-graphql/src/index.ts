@@ -36,7 +36,8 @@ import {
   InternalOptions,
   Report,
   ConnectOptions,
-  RequestOptions
+  RequestOptions,
+  FileUploadOptions
 } from './types/options'
 import { Oas3 } from './types/oas3'
 import { Oas2 } from './types/oas2'
@@ -112,6 +113,7 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
   requestOptions: {},
   customResolvers: {},
   customSubscriptionResolvers: {},
+  fileUploadOptions: {},
 
   // Authentication options
   viewer: true,
@@ -193,6 +195,7 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     headers,
     qs,
     requestOptions,
+    fileUploadOptions,
     connectOptions,
     baseUrl,
     customResolvers,
@@ -234,6 +237,7 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     headers,
     qs,
     requestOptions,
+    fileUploadOptions,
     connectOptions,
     baseUrl,
     customResolvers,
@@ -477,6 +481,7 @@ function addQueryFields<TSource, TContext, TArgs>({
     singularNames,
     baseUrl,
     requestOptions,
+      fileUploadOptions,
     connectOptions,
     fetch
   } = options
@@ -486,6 +491,7 @@ function addQueryFields<TSource, TContext, TArgs>({
     baseUrl,
     data,
     requestOptions,
+    fileUploadOptions,
     connectOptions,
     fetch
   )
@@ -654,6 +660,7 @@ function addMutationFields<TSource, TContext, TArgs>({
     singularNames,
     baseUrl,
     requestOptions,
+      fileUploadOptions,
     connectOptions,
     fetch
   } = options
@@ -663,6 +670,7 @@ function addMutationFields<TSource, TContext, TArgs>({
     baseUrl,
     data,
     requestOptions,
+    fileUploadOptions,
     connectOptions,
     fetch
   )
@@ -802,13 +810,14 @@ function addSubscriptionFields<TSource, TContext, TArgs>({
   options: InternalOptions<TSource, TContext, TArgs>
   data: PreprocessingData<TSource, TContext, TArgs>
 }) {
-  const { baseUrl, requestOptions, connectOptions, fetch } = options
+  const { baseUrl, requestOptions, connectOptions, fetch, fileUploadOptions } = options
 
   const field = getFieldForOperation(
     operation,
     baseUrl,
     data,
     requestOptions,
+    fileUploadOptions,
     connectOptions,
     fetch
   )
@@ -912,6 +921,7 @@ function getFieldForOperation<TSource, TContext, TArgs>(
   baseUrl: string,
   data: PreprocessingData<TSource, TContext, TArgs>,
   requestOptions: Partial<RequestOptions<TSource, TContext, TArgs>>,
+  fileUploadOptions: FileUploadOptions,
   connectOptions: ConnectOptions,
   fetch: typeof crossFetch
 ): GraphQLFieldConfig<TSource, TContext | SubscriptionContext, TArgs> {
@@ -978,6 +988,7 @@ function getFieldForOperation<TSource, TContext, TArgs>(
       data,
       baseUrl,
       requestOptions,
+      fileUploadOptions,
       fetch
     })
 

@@ -785,6 +785,7 @@ function createFields<TSource, TContext, TArgs>({
             data,
             baseUrl: data.options.baseUrl,
             requestOptions: data.options.requestOptions,
+            fileUploadOptions: data.options.fileUploadOptions,
             fetch
           })
 
