@@ -95,7 +95,7 @@ Here are some guides to further help you get started:
 
 ## Development
 
-OpenAPI-to-GraphQL is written in [TypeScript](http://www.typescriptlang.org/). Within each of OpenAPI-to-GraphQL's packages, all source code is contained in the `src` folder. Use `npm run build` or `npm test` to transpile the source files into the final library in the `lib` folder. Entry-point for the library is `index.js` in `lib`.
+OpenAPI-to-GraphQL is written in [TypeScript](http://www.typescriptlang.org/). Within each of OpenAPI-to-GraphQL's packages, all source code is contained in the `src` folder. Use `yarn build` or `yarn test` to transpile the source files into the final library in the `dist` folder. Entry-point for the library is `index.js` in `dist`.
 
 ## Research
 
