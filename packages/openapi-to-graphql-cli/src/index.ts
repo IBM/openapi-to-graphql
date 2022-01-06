@@ -6,6 +6,7 @@ import fs from 'fs'
 import yaml from 'js-yaml'
 import { printSchema } from 'graphql'
 import { Command } from 'commander'
+import { fetch } from 'cross-fetch'
 
 import { createGraphQLSchema, Oas2, Oas3, Options } from 'openapi-to-graphql'
 
