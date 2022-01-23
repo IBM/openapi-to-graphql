@@ -325,6 +325,38 @@ export function getPublishResolver<TSource, TContext, TArgs>({
 }
 
 /**
+ *  Returns values for link arguments, also covers the cases for
+ * if the link parameter contains constants that are appended to the link parameter
+ *
+ * e.g. instead of:
+ * $response.body#/employerId
+ *
+ * it could be:
+ * abc_{$response.body#/employerId}
+ */
+function inferLinkArguments (paramName, value, resolveData, source, args) {
+  if (Object.prototype.toString.call(value) === '[object Object]') {
+    return Object.entries(value).reduce((acc, [key, value]) => {
+      acc[key] = inferLinkArguments(paramName, value, resolveData, source, args)
+      return acc
+    }, {})
+  }
+
+  if (value.search(/{|}/) === -1) {
+    return isRuntimeExpression(value)
+        ? resolveRuntimeExpression(paramName, value, resolveData, source, args)
+        : value
+  } else {
+    // Replace link parameters with appropriate values
+    const linkParams = value.match(/{([^}]*)}/g)
+    linkParams.forEach((linkParam) => {
+      value = value.replace(linkParam, resolveRuntimeExpression(paramName, linkParam.substring(1, linkParam.length - 1), resolveData, source, args))
+    })
+    return value
+  }
+}
+
+/**
  * If the operation type is Query or Mutation, create and return a resolver
  * function that performs API requests for the given GraphQL query
  */
@@ -444,43 +476,7 @@ export function getResolver<TSource, TContext, TArgs>({
 
       let value = argsFromLink[paramName]
 
-      /**
-       * see if the link parameter contains constants that are appended to the link parameter
-       *
-       * e.g. instead of:
-       * $response.body#/employerId
-       *
-       * it could be:
-       * abc_{$response.body#/employerId}
-       */
-      if (value.search(/{|}/) === -1) {
-        args[saneParamName] = isRuntimeExpression(value)
-          ? resolveRuntimeExpression(
-              paramName,
-              value,
-              resolveData,
-              source,
-              args
-            )
-          : value
-      } else {
-        // Replace link parameters with appropriate values
-        const linkParams = value.match(/{([^}]*)}/g)
-        linkParams.forEach((linkParam) => {
-          value = value.replace(
-            linkParam,
-            resolveRuntimeExpression(
-              paramName,
-              linkParam.substring(1, linkParam.length - 1),
-              resolveData,
-              source,
-              args
-            )
-          )
-        })
-
-        args[saneParamName] = value
-      }
+      args[saneParamName] = inferLinkArguments(paramName, value, resolveData, source, args)
     }
 
     // Stored used parameters to future requests:
