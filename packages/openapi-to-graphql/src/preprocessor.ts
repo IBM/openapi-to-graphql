@@ -960,6 +960,8 @@ function getPreferredName(names: Oas3Tools.SchemaNames): string {
     return Oas3Tools.sanitize(names.fromSchema, Oas3Tools.CaseStyle.PascalCase) // CASE: name from schema (i.e., "title" property in schema)
   } else if (typeof names.fromPath === 'string') {
     return Oas3Tools.sanitize(names.fromPath, Oas3Tools.CaseStyle.PascalCase) // CASE: name from path
+  } else if(typeof names.fromExtension === 'string') {
+    return Oas3Tools.sanitize(names.fromExtension, Oas3Tools.CaseStyle.PascalCase) // CASE: name from Extension
   } else {
     return 'PlaceholderName' // CASE: placeholder name
   }
