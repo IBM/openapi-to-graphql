@@ -952,7 +952,9 @@ function getSchemaIndex(
  * been taken.
  */
 function getPreferredName(names: Oas3Tools.SchemaNames): string {
-  if (typeof names.preferred === 'string') {
+  if(typeof names.fromExtension === 'string') {
+    return Oas3Tools.sanitize(names.fromExtension, Oas3Tools.CaseStyle.PascalCase) // CASE: name from Extension
+  } else if (typeof names.preferred === 'string') {
     return Oas3Tools.sanitize(names.preferred, Oas3Tools.CaseStyle.PascalCase) // CASE: preferred name already known
   } else if (typeof names.fromRef === 'string') {
     return Oas3Tools.sanitize(names.fromRef, Oas3Tools.CaseStyle.PascalCase) // CASE: name from reference
@@ -960,8 +962,6 @@ function getPreferredName(names: Oas3Tools.SchemaNames): string {
     return Oas3Tools.sanitize(names.fromSchema, Oas3Tools.CaseStyle.PascalCase) // CASE: name from schema (i.e., "title" property in schema)
   } else if (typeof names.fromPath === 'string') {
     return Oas3Tools.sanitize(names.fromPath, Oas3Tools.CaseStyle.PascalCase) // CASE: name from path
-  } else if(typeof names.fromExtension === 'string') {
-    return Oas3Tools.sanitize(names.fromExtension, Oas3Tools.CaseStyle.PascalCase) // CASE: name from Extension
   } else {
     return 'PlaceholderName' // CASE: placeholder name
   }
