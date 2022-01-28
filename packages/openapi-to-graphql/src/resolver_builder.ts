@@ -55,7 +55,7 @@ type AuthOptions = {
 
 type GetResolverParams<TSource, TContext, TArgs> = {
   operation: Operation
-  argsFromLink?: { [key: string]: string }
+  argsFromLink?: { [key: string]: any }
   payloadName?: string
   responseName?: string
   data: PreprocessingData<TSource, TContext, TArgs>
@@ -63,6 +63,14 @@ type GetResolverParams<TSource, TContext, TArgs> = {
   requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>
   fileUploadOptions?: FileUploadOptions
   fetch: typeof crossFetch
+}
+
+type inferLinkArgumentsParam<TSource, TContext, TArgs> = {
+  paramName: string
+  value: any
+  resolveData: Partial<ResolveData<TSource, TContext, TArgs>>
+  source: TSource
+  args: TArgs
 }
 
 type GetSubscribeParams<TSource, TContext, TArgs> = {
@@ -325,7 +333,7 @@ export function getPublishResolver<TSource, TContext, TArgs>({
 }
 
 /**
- *  Returns values for link arguments, also covers the cases for
+ * Returns values for link arguments, also covers the cases for
  * if the link parameter contains constants that are appended to the link parameter
  *
  * e.g. instead of:
@@ -334,15 +342,23 @@ export function getPublishResolver<TSource, TContext, TArgs>({
  * it could be:
  * abc_{$response.body#/employerId}
  */
-function inferLinkArguments (paramName, value, resolveData, source, args) {
+function inferLinkArguments<TSource, TContext, TArgs>({
+  paramName,
+  value,
+  resolveData,
+  source,
+  args
+}: inferLinkArgumentsParam<TSource, TContext, TArgs>)  {
   if (Object.prototype.toString.call(value) === '[object Object]') {
     return Object.entries(value).reduce((acc, [key, value]) => {
-      acc[key] = inferLinkArguments(paramName, value, resolveData, source, args)
+      acc[key] = inferLinkArguments({paramName, value, resolveData, source, args})
       return acc
     }, {})
   }
 
-  if (value.search(/{|}/) === -1) {
+  if (typeof value !== 'string') {
+    return value
+  } else if (value.search(/{|}/) === -1) {
     return isRuntimeExpression(value)
         ? resolveRuntimeExpression(paramName, value, resolveData, source, args)
         : value
@@ -476,7 +492,7 @@ export function getResolver<TSource, TContext, TArgs>({
 
       let value = argsFromLink[paramName]
 
-      args[saneParamName] = inferLinkArguments(paramName, value, resolveData, source, args)
+      args[saneParamName] = inferLinkArguments({paramName, value, resolveData, source, args})
     }
 
     // Stored used parameters to future requests:
