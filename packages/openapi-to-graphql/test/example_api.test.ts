@@ -2412,7 +2412,7 @@ test('Non-nullable properties from nested allOf', () => {
   })
 })
 
-test('it formats the request url appropriate when style and explode is set to true', async () => {
+test('Format the query params appropriately when style and explode are set to true', async () => {
   const LIMIT = 10
   const OFFSET = 0
 
