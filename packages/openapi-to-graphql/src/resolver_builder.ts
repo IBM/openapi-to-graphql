@@ -349,7 +349,7 @@ function inferLinkArguments<TSource, TContext, TArgs>({
   source,
   args
 }: inferLinkArgumentsParam<TSource, TContext, TArgs>)  {
-  if (Object.prototype.toString.call(value) === '[object Object]') {
+  if (typeof value === 'object') {
     return Object.entries(value).reduce((acc, [key, value]) => {
       acc[key] = inferLinkArguments({paramName, value, resolveData, source, args})
       return acc
@@ -1373,7 +1373,7 @@ export function extractRequestDataFromArgs<TSource, TContext, TArgs>(
         // Query parameters
         case 'query':
           // setting param style as form assumes explode is true by default
-          if (param.style === 'form' && Object.prototype.toString.call(args[saneParamName]) === '[object Object]') {
+          if (param.style === 'form' && typeof args[saneParamName] === 'object') {
             if (param.explode === false) {
               qs[param.name] = Object.entries(args[saneParamName]).reduce((acc, val) => {
                 acc += val.join(',')
