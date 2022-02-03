@@ -90,6 +90,19 @@ function startServer(PORT) {
     res.set('Content-Type', 'text/plain').send('Hello world')
   })
 
+  app.get('/api/returnNumber', (req, res) => {
+    res.set('Content-Type', 'text/plain').send(req.headers.number)
+  })
+
+  app.get('/api/testLinkWithNonStringParam', (req, res) => {
+    res.send({"hello": "world"})
+  })
+
+  app.get('/api/testLinkwithNestedParam', (req, res) => {
+    res.send({"nesting1": {"nesting2": 5} })
+  })
+
+
   return new Promise((resolve) => {
     server = app.listen(PORT, () => {
       console.log(`Example API accessible on port ${PORT}`)

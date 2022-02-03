@@ -21,6 +21,7 @@ import { FileUpload } from 'graphql-upload'
 import stream from 'stream'
 import * as Oas3Tools from './oas_3_tools'
 import { JSONPath } from 'jsonpath-plus'
+import * as JSONPointer from 'jsonpointer'
 import { debug } from 'debug'
 import { GraphQLError, GraphQLFieldResolver } from 'graphql'
 import formurlencoded from 'form-urlencoded'
@@ -1157,26 +1158,26 @@ function getAuthReqAndProtcolName<TSource, TContext, TArgs>(
  */
 function resolveRuntimeExpression(
   paramName: string,
-  value: string,
+  runtimeExpression: string,
   resolveData: any,
   root: any,
   args: any
 ): any {
-  if (value === '$url') {
+  if (runtimeExpression === '$url') {
     return resolveData.url
-  } else if (value === '$method') {
+  } else if (runtimeExpression === '$method') {
     return resolveData.usedRequestOptions.method
-  } else if (value === '$statusCode') {
+  } else if (runtimeExpression === '$statusCode') {
     return resolveData.usedStatusCode
-  } else if (value.startsWith('$request.')) {
+  } else if (runtimeExpression.startsWith('$request.')) {
     // CASE: parameter is previous body
-    if (value === '$request.body') {
+    if (runtimeExpression === '$request.body') {
       return resolveData.usedPayload
 
       // CASE: parameter in previous body
-    } else if (value.startsWith('$request.body#')) {
+    } else if (runtimeExpression.startsWith('$request.body#')) {
       const tokens = JSONPath({
-        path: value.split('body#/')[1],
+        path: runtimeExpression.split('body#/')[1],
         json: resolveData.usedPayload
       })
       if (Array.isArray(tokens) && tokens.length > 0) {
@@ -1186,28 +1187,28 @@ function resolveRuntimeExpression(
       }
 
       // CASE: parameter in previous query parameter
-    } else if (value.startsWith('$request.query')) {
+    } else if (runtimeExpression.startsWith('$request.query')) {
       return resolveData.usedParams[
         Oas3Tools.sanitize(
-          value.split('query.')[1],
+          runtimeExpression.split('query.')[1],
           Oas3Tools.CaseStyle.camelCase
         )
       ]
 
       // CASE: parameter in previous path parameter
-    } else if (value.startsWith('$request.path')) {
+    } else if (runtimeExpression.startsWith('$request.path')) {
       return resolveData.usedParams[
         Oas3Tools.sanitize(
-          value.split('path.')[1],
+          runtimeExpression.split('path.')[1],
           Oas3Tools.CaseStyle.camelCase
         )
       ]
 
       // CASE: parameter in previous header parameter
-    } else if (value.startsWith('$request.header')) {
-      return resolveData.usedRequestOptions.headers[value.split('header.')[1]]
+    } else if (runtimeExpression.startsWith('$request.header')) {
+      return resolveData.usedRequestOptions.headers[runtimeExpression.split('header.')[1]]
     }
-  } else if (value.startsWith('$response.')) {
+  } else if (runtimeExpression.startsWith('$response.')) {
     /**
      * CASE: parameter is body
      *
@@ -1215,7 +1216,7 @@ function resolveRuntimeExpression(
      * return a JSON object and OpenAPI-to-GraphQL does not create GraphQL
      * objects for non-JSON data and links can only exists between objects.
      */
-    if (value === '$response.body') {
+    if (runtimeExpression === '$response.body') {
       const result = JSON.parse(JSON.stringify(root))
       /**
        * _openAPIToGraphQL contains data used by OpenAPI-to-GraphQL to create the GraphQL interface
@@ -1225,45 +1226,37 @@ function resolveRuntimeExpression(
       return result
 
       // CASE: parameter in body
-    } else if (value.startsWith('$response.body#')) {
-      const tokens = JSONPath({
-        path: value.split('body#/')[1],
-        json: root
-      })
-      if (Array.isArray(tokens) && tokens.length > 0) {
-        return tokens[0]
-      } else {
-        httpLog(`Warning: could not extract parameter '${paramName}' from link`)
-      }
+    } else if (runtimeExpression.startsWith('$response.body#')) {
+      return JSONPointer.get(root, runtimeExpression.split('body#')[1])
 
       // CASE: parameter in query parameter
-    } else if (value.startsWith('$response.query')) {
+    } else if (runtimeExpression.startsWith('$response.query')) {
       // NOTE: handled the same way $request.query is handled
       return resolveData.usedParams[
         Oas3Tools.sanitize(
-          value.split('query.')[1],
+          runtimeExpression.split('query.')[1],
           Oas3Tools.CaseStyle.camelCase
         )
       ]
 
       // CASE: parameter in path parameter
-    } else if (value.startsWith('$response.path')) {
+    } else if (runtimeExpression.startsWith('$response.path')) {
       // NOTE: handled the same way $request.path is handled
       return resolveData.usedParams[
         Oas3Tools.sanitize(
-          value.split('path.')[1],
+          runtimeExpression.split('path.')[1],
           Oas3Tools.CaseStyle.camelCase
         )
       ]
 
       // CASE: parameter in header parameter
-    } else if (value.startsWith('$response.header')) {
-      return resolveData.responseHeaders[value.split('header.')[1]]
+    } else if (runtimeExpression.startsWith('$response.header')) {
+      return resolveData.responseHeaders[runtimeExpression.split('header.')[1]]
     }
   }
 
   throw new Error(
-    `Cannot create link because '${value}' is an invalid runtime expression.`
+    `Cannot resolve link because '${runtimeExpression}' is an invalid runtime expression.`
   )
 }
 
