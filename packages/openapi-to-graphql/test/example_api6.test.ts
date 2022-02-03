@@ -347,3 +347,52 @@ test('Handle no response schema', () => {
     })
   })
 })
+
+
+/**
+ * GET /testLinkWithNonStringParam has a link object that has a non-string 
+ * parameter
+ */
+ test('Handle no response schema', () => {
+  const query = `{
+    testLinkWithNonStringParam {
+      hello
+      return5
+    }
+  }`
+
+  return graphql(createdSchema, query).then((result) => {
+    expect(result.data).toEqual({
+      testLinkWithNonStringParam: {
+        hello: "world",
+        return5: "5"
+      }
+    })
+  })
+})
+
+/**
+ * GET /testLinkwithNestedParam has a link object that has a nested 
+ * parameter
+ */
+ test('Handle no response schema', () => {
+  const query = `{
+    testLinkwithNestedParam{
+      nesting1 {
+        nesting2
+      }
+      returnNestedNumber
+    }
+  }`
+
+  return graphql(createdSchema, query).then((result) => {
+    expect(result.data).toEqual({
+      testLinkwithNestedParam: {
+        nesting1: {
+          nesting2: 5
+        },
+        returnNestedNumber: "5"
+      }
+    })
+  })
+})

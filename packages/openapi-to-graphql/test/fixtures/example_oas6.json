@@ -326,6 +326,96 @@
           }
         }
       }
+    },
+    "/returnNumber": {
+      "get": {
+        "operationId": "returnNumber",
+        "description": "Return a number from the request header.",
+        "parameters": [
+          {
+            "name": "number",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "number"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/testLinkWithNonStringParam": {
+      "get": {
+        "description": "Test link object with non-string parameter.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "hello": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            },
+            "links": {
+              "return5": {
+                "$ref": "#/components/links/Return5"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/testLinkwithNestedParam": {
+      "get": {
+        "description": "Test link object with nested parameter.",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nesting1": {
+                      "type": "object",
+                      "properties": {
+                        "nesting2": {
+                          "type": "number"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "links": {
+              "returnNestedNumber": {
+                "operationId": "returnNumber",
+                "parameters": {
+                  "number": "$response.body#/nesting1/nesting2"
+                }              
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -374,6 +464,14 @@
           "nestedDoll": {
             "$ref": "#/components/schemas/russianDoll"
           }
+        }
+      }
+    },
+    "links": {
+      "Return5": {
+        "operationId": "returnNumber",
+        "parameters": {
+          "number": 5
         }
       }
     }

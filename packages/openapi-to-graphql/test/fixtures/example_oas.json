@@ -475,7 +475,7 @@
       "get": {
         "x-graphql-field-name": "fetchAllOfficesWithFormStyleAndExplodeTrue",
         "operationId": "returnAllOffices",
-        "description": "returns all offices",
+        "description": "Used to test query parameters with form style and explode",
         "parameters": [{
           "name": "parameters",
           "in": "query",
