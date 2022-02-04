@@ -812,8 +812,12 @@ function createFields<TSource, TContext, TArgs>({
 
           let description = link.description
 
-          if (data.options.equivalentToMessages && description) {
-            description += `\n\nEquivalent to ${linkedOp.operationString}`
+          if (data.options.equivalentToMessages) {
+            if (typeof description !== 'string') {
+              description = `Equivalent to ${linkedOp.operationString}`
+            } else {
+              description += `\n\nEquivalent to ${linkedOp.operationString}`
+            }
           }
 
           // Finally, add the object type to the fields (using sanitized field name)
