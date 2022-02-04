@@ -87,10 +87,10 @@ function processOperation<TSource, TContext, TArgs>(
     if (data.options.equivalentToMessages) {
       // Description may not exist
       if (typeof description !== 'string') {
-        description = ''
+        description = `Equivalent to ${operationString}`
+      } else {
+        description += `\n\nEquivalent to ${operationString}`
       }
-
-      description += `\n\nEquivalent to ${operationString}`
     }
 
     // Tags
@@ -699,7 +699,13 @@ export function createDataDef<TSource, TContext, TArgs>(
     // Found existing data definition and fetch it
     const existingDataDef = data.defs[index]
 
-    if (existingDataDef.targetGraphQLType === TargetGraphQLType.oneOfUnion && Array.isArray(existingDataDef.subDefinitions) // Special handling for oneOf. Sub definitions are always an array (see createOneOfUnion)
+    /**
+     * Special handling for oneOf. Subdefinitions are always an array 
+     * (see createOneOfUnion)
+     */
+    if (
+      existingDataDef.targetGraphQLType === TargetGraphQLType.oneOfUnion && 
+      Array.isArray(existingDataDef.subDefinitions) 
     ) {
       existingDataDef.subDefinitions.forEach((def) => {
           collapseLinksIntoDataDefinition({
@@ -1140,8 +1146,6 @@ function sanitizeLinks<TSource, TContext, TArgs>({
 /**
  * Given an existing data definition, collapse the link object with the existing
  * one captured in the data definition.
- *
- *
  */
 function collapseLinksIntoDataDefinition<TSource, TContext, TArgs>({
   additionalLinks,
@@ -1558,7 +1562,8 @@ function createOneOfUnion<TSource, TContext, TArgs>(
       memberSchema,
       isInputObjectType,
       data,
-      oas
+      oas,
+      def.links
     )
     ;(def.subDefinitions as DataDefinition[]).push(subDefinition)
   })

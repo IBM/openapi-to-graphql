@@ -506,6 +506,47 @@
           }
         }
       }
+    },
+    "/testLink": {
+      "get": {
+        "operationId": "testLink",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/oneOfWithAllOfsAndLink": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Return a user.\n\nEquivalent to GET /oneOfWithAllOfsAndLink",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OneOfWithAllOfsAndLink"
+                }
+              }
+            },
+            "links": {
+              "testLink": {
+                "operationId": "testLink",
+                "parameters": {
+                  "someId": "$request.path.id"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -533,6 +574,60 @@
             "type": "string"
           }
         }
+      },
+      "OneOfWithAllOfsAndLink": {
+        "oneOf": [
+          {
+            "$ref": "#/components/schemas/One"
+          },
+          {
+            "$ref": "#/components/schemas/Two"
+          }
+        ]
+      },
+      "Abstract": {
+        "type": "object",
+        "properties": {
+          "commonProp": {
+            "type": "string"
+          }
+        }
+      },
+      "OneProps": {
+        "type": "object",
+        "properties": {
+          "differentOneProp": {
+            "type": "string"
+          }
+        }
+      },
+      "TwoProps": {
+        "type": "object",
+        "properties": {
+          "differentTwoProp": {
+            "type": "string"
+          }
+        }
+      },
+      "One": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Abstract"
+          },
+          {
+            "$ref": "#/components/schemas/OneProps"
+          }
+        ]
+      },
+      "Two": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Abstract"
+          },
+          {
+            "$ref": "#/components/schemas/TwoProps"
+          }
+        ]
       }
     }
   }

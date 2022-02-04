@@ -676,3 +676,70 @@ test('oneOf test with allOf, requiring oneOf collapse\n\nEquivalent to GET /oneO
     })
   })
 })
+
+/**
+ * oneOf contains two member schemas, each with allOf
+ * 
+ * oneOf also contains a link object
+ *
+ * Resolving the oneOf and allOfs should correctly create a union of two object
+ * types, each object type with a link field from the oneOf schema
+ */
+ test('oneOf test with allOfs, requiring oneOf collapse\n\nEquivalent to GET /OneOfWithAllOfsAndLink', () => {
+  return graphql(createdSchema, oneOfQuery).then((result) => {
+    expect(
+      result.data['__schema'].queryType.fields.find((field) => {
+        return field.name === 'oneOfWithAllOfsAndLink'
+      })
+    ).toEqual({
+      "name": "oneOfWithAllOfsAndLink",
+      "description": "Equivalent to GET /oneOfWithAllOfsAndLink",
+      "type": {
+        "name": "OneOfWithAllOfsAndLink",
+        "kind": "UNION",
+        "possibleTypes": [
+          {
+            "name": "One",
+            "fields": [
+              {
+                "type": {
+                  "name": "String"
+                }
+              },
+              {
+                "type": {
+                  "name": "String"
+                }
+              },
+              {
+                "type": {
+                  "name": "String"
+                }
+              }
+            ]
+          },
+          {
+            "name": "Two",
+            "fields": [
+              {
+                "type": {
+                  "name": "String"
+                }
+              },
+              {
+                "type": {
+                  "name": "String"
+                }
+              },
+              {
+                "type": {
+                  "name": "String"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    })
+  })
+})
