@@ -772,7 +772,7 @@ export function getResolver<TSource, TContext, TArgs>({
     } else {
       httpLog(`${response.status} - ${Oas3Tools.trim(body, 100)}`)
 
-      if (response.headers.get('content-type')) {
+      if (response.headers.get('content-type') && operation.responseContentType) {
         /**
          * Throw warning if the non-application/json content does not
          * match the OAS.
