@@ -115,6 +115,23 @@ const CleanGraphQLJSON = new GraphQLScalarType({
       cleanValue = { ...value }
 
       delete cleanValue[OPENAPI_TO_GRAPHQL]
+    } else if (
+      /**
+       * As an exception to the above case an object may be an array defined as an object
+       * where the array members contain an arbitrary JSON and *do* have the
+       * _openAPIToGraphQL field which must be removed
+       */
+      value &&
+      typeof value === 'object' &&
+      value.length > 0 &&
+      typeof value[0] == 'object' &&
+      typeof value[0][OPENAPI_TO_GRAPHQL] === 'object'
+    ) {
+      cleanValue = value.map((member) => {
+        const cleanmember = { ...member }
+        delete cleanmember[OPENAPI_TO_GRAPHQL]
+        return cleanmember
+      })
 
       /**
        * As a GraphQLJSON type, the value can also be a scalar or array or
