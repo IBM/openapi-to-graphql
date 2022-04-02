@@ -57,6 +57,13 @@ function startServer(PORT) {
     }
   )
 
+  app.get(
+    '/api/arrayInQueryParameters',
+    (req, res) => {
+      res.send(req.originalUrl.split('?')[1])
+    }
+  )
+
   function stringifyRussianDolls(russianDoll) {
     if (!typeof russianDoll.name === 'string') {
       return ''

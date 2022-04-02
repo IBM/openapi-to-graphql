@@ -94,6 +94,7 @@
     "jsonpointer": "^5.0.0",
     "oas-validator": "^5.0.2",
     "pluralize": "^8.0.0",
+    "query-string": "^7.1.1",
     "swagger2openapi": "^7.0.2",
     "tslib": "^2.3.0",
     "url-join": "4.0.1",
@@ -105,7 +106,7 @@
   "devDependencies": {
     "@types/deep-equal": "^1.0.1",
     "@types/graphql": "^14.0.3",
-    "@types/graphql-upload": "^8.0.7",
+    "@types/graphql-upload": "8.0.7",
     "@types/jest": "^26.0.14",
     "@types/node": "^16.3.3",
     "@types/url-join": "^4.0.1",

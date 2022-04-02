@@ -416,6 +416,36 @@
           }
         }
       }
+    },
+    "/arrayInQueryParameters": {
+      "get": {
+        "description": "Takes an array as GET query parameter",
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "ids",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
     }
   },
   "components": {

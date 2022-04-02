@@ -396,3 +396,41 @@ test('Handle no response schema', () => {
     })
   })
 })
+
+/**
+ * GET /arrayInQueryParameters with and without the useQueryString requestOption
+ *
+ * The default behaviour is to add indexed parameters, i.e. a[0]=x&a[1]=y.
+ * The querystring behaviour (which can be made configurable in the future) is a=x&a=y
+ */
+test('Optionally use queryString', () => {
+  const query = `{
+    arrayInQueryParameters(ids: ["a", "b"])
+  }`
+
+  // Use default settings
+  const promise = graphql(createdSchema, query).then((result) => {
+    expect(result.data).toEqual({
+      arrayInQueryParameters: encodeURI('ids[0]=a&ids[1]=b')
+    })
+  })
+
+  // Set useQueryString to true
+  const options: Options<any, any, any> = {
+    requestOptions: {
+      useQueryString: true
+    }
+  }
+
+  const promise2 = openAPIToGraphQL
+    .createGraphQLSchema(oas, options)
+    .then(({ schema, report }) => {
+      return graphql(schema, query).then((result) => {
+        expect(result.data).toEqual({
+          arrayInQueryParameters: encodeURI('ids=a&ids=b')
+        })
+      })
+    })
+
+  return Promise.all([promise, promise2])
+})
