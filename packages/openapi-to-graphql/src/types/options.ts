@@ -185,6 +185,15 @@ export type InternalOptions<TSource, TContext, TArgs> = {
   simpleEnumValues: boolean
 
   /**
+   * By default, field names are sanitized to conform with GraphQL conventions,
+   * i.e. fields should only contain alphanumeric characters.
+   *
+   * This option will prevent OpenAPI-to-GraphQL from sanitizing objects falling
+   * under the provided keys.
+   */
+  nonSanitizableObjectKeys?: string[]
+
+  /**
    * Experimental feature that will try to create more meaningful names from
    * the operation path than the response object by leveraging common
    * conventions.
