@@ -85,6 +85,10 @@ export function createAndLoadViewer<TSource, TContext, TArgs>(
           viewerType = 'basicAuth'
           break
 
+        case 'bearer':
+          viewerType = 'bearerAuth'
+          break
+
         default:
           handleWarning({
             mitigationType: MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,

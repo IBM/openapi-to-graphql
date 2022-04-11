@@ -584,6 +584,27 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
             }
             break
 
+            case 'bearer':
+              description = `Bearer auth credentials for security protocol '${schemeKey}'`
+
+              parameters = {
+                token: Oas3Tools.sanitize(
+                  `${schemeKey}_token`,
+                  Oas3Tools.CaseStyle.camelCase
+                )
+              }
+
+              schema = {
+                type: 'object',
+                description,
+                properties: {
+                  token: {
+                    type: 'string'
+                  }
+                }
+              }
+              break
+
           default:
             handleWarning({
               mitigationType: MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
@@ -700,12 +721,12 @@ export function createDataDef<TSource, TContext, TArgs>(
     const existingDataDef = data.defs[index]
 
     /**
-     * Special handling for oneOf. Subdefinitions are always an array 
+     * Special handling for oneOf. Subdefinitions are always an array
      * (see createOneOfUnion)
      */
     if (
-      existingDataDef.targetGraphQLType === TargetGraphQLType.oneOfUnion && 
-      Array.isArray(existingDataDef.subDefinitions) 
+      existingDataDef.targetGraphQLType === TargetGraphQLType.oneOfUnion &&
+      Array.isArray(existingDataDef.subDefinitions)
     ) {
       existingDataDef.subDefinitions.forEach((def) => {
           collapseLinksIntoDataDefinition({
