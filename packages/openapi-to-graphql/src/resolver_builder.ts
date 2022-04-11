@@ -671,9 +671,9 @@ export function getResolver<TSource, TContext, TArgs>({
 
         if (form) {
           /**
-           * When there is a form, remove default content type and leave 
+           * When there is a form, remove default content type and leave
            * computation of content-type header to fetch
-           * 
+           *
            * See https://github.com/github/fetch/issues/505#issuecomment-293064470
            */
           Object.assign(options.headers, form.getHeaders())
@@ -1089,6 +1089,11 @@ function getAuthOptions<TSource, TContext, TArgs>(
             authHeaders['Authorization'] = `Basic ${Buffer.from(
               credentials
             ).toString('base64')}`
+            break
+          case 'bearer':
+            const token =
+              _openAPIToGraphQL.security[sanitizedSecurityRequirement].token
+            authHeaders['Authorization'] = `Bearer ${token}`
             break
           default:
             throw new Error(
