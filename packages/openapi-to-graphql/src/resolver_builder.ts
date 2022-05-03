@@ -28,6 +28,7 @@ import formurlencoded from 'form-urlencoded'
 import { PubSub } from 'graphql-subscriptions'
 import urljoin from 'url-join'
 import FormData from 'form-data'
+import * as querystring from 'query-string';
 
 const pubsub = new PubSub()
 
@@ -722,7 +723,11 @@ export function getResolver<TSource, TContext, TArgs>({
 
     resolveData.usedRequestOptions = options
     resolveData.usedStatusCode = operation.statusCode
-    setSearchParamsFromObj(url, qs, [])
+    if (requestOptions.useQueryString) {
+      setSearchFromObj(url, qs)
+    } else {
+      setSearchParamsFromObj(url, qs, [])
+    }
     resolveData.url = url.toString().replace(url.search, '')
 
     // Make the call
@@ -1414,6 +1419,12 @@ export function extractRequestDataFromArgs<TSource, TContext, TArgs>(
   }
 
   return { path, qs, headers }
+}
+
+// This can be extended in the future to take an optional object which controls 
+// the stringify options as listed here https://github.com/sindresorhus/query-string#stringifyobject-options
+const setSearchFromObj = (url: URL, obj: any) => {
+  url.search = querystring.stringify(obj);
 }
 
 const setSearchParamsFromObj = (url: URL, obj: any, path: string[]) => {

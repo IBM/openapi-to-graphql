@@ -68,6 +68,8 @@ export type RequestHeadersFunction<TSource, TContext, TArgs> = (
  * function.
  *
  * Based on: https://github.com/request/request#requestoptions-callback
+ * 
+ * useQueryString is an optional parameter to use a the query-string library
  */
 export type RequestOptions<TSource, TContext, TArgs> = Omit<
   RequestInit,
@@ -75,6 +77,7 @@ export type RequestOptions<TSource, TContext, TArgs> = Omit<
 > & {
   headers?: HeadersInit | RequestHeadersFunction<TSource, TContext, TArgs>
   qs?: Record<string, string>
+  useQueryString?: boolean
 }
 
 /**
