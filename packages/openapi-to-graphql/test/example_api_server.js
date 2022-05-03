@@ -5,6 +5,8 @@
 
 'use strict'
 
+const { printLocation } = require('graphql')
+
 let server // holds server object for shutdown
 
 /**
@@ -299,65 +301,75 @@ function startServer(PORT) {
   }
 
   const authMiddleware = (req, res, next) => {
-    if (req.headers.authorization) {
-      const encoded = req.headers.authorization.split(' ')[1]
-      const decoded = new Buffer(encoded, 'base64').toString('utf8').split(':')
+    if ('authorization' in req.headers) {
+      const tokenizedAuth = req.headers.authorization.split(' ')
 
-      if (decoded.length === 2) {
-        const credentials = {
-          username: decoded[0],
-          password: decoded[1]
-        }
-        for (let user in Auth) {
-          if (
-            Auth[user].username === credentials.username &&
-            Auth[user].password === credentials.password
-          ) {
+      if (tokenizedAuth.length == 2) {
+        const authType = tokenizedAuth[0]
+        const authValue = tokenizedAuth[1]
+
+        if (authType == 'Basic') {
+          // Decode username and password
+          const decoded = new Buffer.from(authValue, 'base64').toString('utf8').split(':')
+  
+          if (decoded.length === 2) {
+            const credentials = {
+              username: decoded[0],
+              password: decoded[1]
+            }
+  
+            for (let user in Auth) {
+              if (
+                Auth[user].username === credentials.username &&
+                Auth[user].password === credentials.password
+              ) {
+                return next()
+              }
+            }
+          } else {
+            res.status(401).send({
+              message: 'Basic Auth expects a single username and a single password'
+            })
+          }
+  
+        } else if (authType == 'Bearer') {
+
+          if (authValue == 'master-bearer-token') {
             return next()
           }
         }
-        res.status(401).send({
-          message: 'Incorrect credentials'
-        })
-      } else {
-        res.status(401).send({
-          message: 'Basic Auth expects a single username and a single password'
-        })
       }
+      
     } else if ('access_token' in req.headers) {
       for (let user in Auth) {
         if (Auth[user].accessToken === req.headers.access_token) {
           return next()
         }
       }
-      res.status(401).send({
-        message: 'Incorrect credentials'
-      })
-      return false
+
     } else if ('cookie' in req.headers) {
       for (let user in Auth) {
         if (Auth[user].accessToken === req.headers.cookie.split('=')[1]) {
           return next()
         }
       }
-      res.status(401).send({
-        message: 'Incorrect credentials'
-      })
-      return false
+
     } else if ('access_token' in req.query) {
       for (let user in Auth) {
         if (Auth[user].accessToken === req.query.access_token) {
           return next()
         }
       }
-      res.status(401).send({
-        message: 'Incorrect credentials'
-      })
+
     } else {
       res.status(401).send({
         message: 'Unknown/missing credentials'
       })
     }
+
+    res.status(401).send({
+      message: 'Incorrect credentials'
+    })
   }
 
   app.get('/api/users', (req, res) => {

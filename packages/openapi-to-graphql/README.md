@@ -315,9 +315,25 @@ The type and field names and enum values that OpenAPI-to-GraphQL generates may n
 
 ## Authentication
 
-By default, OpenAPI-to-GraphQL will wrap API requests that need authentication in corresponding `viewers`, which allow the user to pass required credentials. OpenAPI-to-GraphQL currently supports viewers for basic authentication and API keys. For example, a query using an API key viewer is:
+By default, OpenAPI-to-GraphQL will wrap API requests that need authentication in corresponding `viewers`, which allow the user to pass required credentials. OpenAPI-to-GraphQL currently supports viewers for basic authentication, bearer tokens, and API keys. For example, a query using an API key viewer is:
 
-```javascript
+```graphql
+{
+  viewerBasicAuth (username: "user", password: "secret") {
+    ...  // query for authenticated data here
+  }
+}
+```
+
+```graphql
+{
+  viewerBearerAuth (token: "bearer_token_here") {
+    ...  // query for authenticated data here
+  }
+}
+```
+
+```graphql
 {
   viewerApiKey (apiKey: "api_key_here") {
     ...  // query for authenticated data here
@@ -327,7 +343,7 @@ By default, OpenAPI-to-GraphQL will wrap API requests that need authentication i
 
 OpenAPI-to-GraphQL uses dedicated viewers for mutations. For example, a mutation using a basic authentication viewer is:
 
-```javascript
+```graphql
 mutation {
   mutationViewerBasic (username: "user", password: "secret") {
     ...  // mutate authenticated data here
@@ -337,7 +353,7 @@ mutation {
 
 OpenAPI-to-GraphQL further provides `anyAuth` viewers (for queries and mutations), which allow the user to simultaneously provide information for multiple authentication mechanisms. `anyAuth` viewers allow OpenAPI-to-GraphQL to resolve nested queries and mutations that encompass API requests with different authentication mechanisms. For example, consider the following query:
 
-```javascript
+```graphql
 {
   viewerAnyAuth (
     exampleApiKeyProtocol: {apiKey: "a1p2i3k4e5y"}

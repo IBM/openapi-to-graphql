@@ -766,13 +766,16 @@
         },
         "security": [
           {
-            "example_api_basic_protocol": []
-          },
-          {
             "example_api_key_protocol_2": []
           },
           {
             "example_api_key_protocol_3": []
+          },
+          {
+            "example_api_basic_protocol": []
+          },
+          {
+            "example_api_bearer_protocol": []
           }
         ]
       }
@@ -1640,6 +1643,10 @@
       "example_api_basic_protocol": {
         "type": "http",
         "scheme": "basic"
+      },
+      "example_api_bearer_protocol": {
+        "type": "http",
+        "scheme": "bearer"
       }
     },
     "parameters": {
