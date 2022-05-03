@@ -54,6 +54,27 @@ test('Get patent using basic auth', () => {
   })
 })
 
+test('Get patent using bearer token', () => {
+  const query = `{
+    viewerBearerAuth(token: "master-bearer-token") {
+      patentWithId (patentId: "100") {
+        patentId
+      }
+    }
+  }`
+  return graphql(createdSchema, query, null, {}).then((result) => {
+    expect(result).toEqual({
+      data: {
+        viewerBearerAuth: {
+          patentWithId: {
+            patentId: '100'
+          }
+        }
+      }
+    })
+  })
+})
+
 test('Get patent using API key', () => {
   const query = `{
     viewerApiKey2 (apiKey: "abcdef") {
