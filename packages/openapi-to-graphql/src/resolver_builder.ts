@@ -9,11 +9,10 @@
 
 // Type imports:
 import { SchemaObject, ParameterObject } from './types/oas3'
-import { ConnectOptions } from './types/options'
+import { ConnectOptions, RequestOptions, FileUploadOptions } from './types/options'
 import { TargetGraphQLType, Operation } from './types/operation'
 import { SubscriptionContext } from './types/graphql'
 import { PreprocessingData } from './types/preprocessing_data'
-import { RequestOptions, FileUploadOptions } from './types/options'
 import crossFetch from 'cross-fetch'
 import { FileUpload } from 'graphql-upload'
 
@@ -22,7 +21,7 @@ import stream from 'stream'
 import * as Oas3Tools from './oas_3_tools'
 import { JSONPath } from 'jsonpath-plus'
 import * as JSONPointer from 'jsonpointer'
-import { debug } from 'debug'
+import debug from 'debug'
 import { GraphQLError, GraphQLFieldResolver } from 'graphql'
 import formurlencoded from 'form-urlencoded'
 import { PubSub } from 'graphql-subscriptions'
