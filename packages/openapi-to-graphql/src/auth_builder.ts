@@ -30,6 +30,7 @@ import debug from 'debug'
 import { handleWarning, sortObject, MitigationTypes } from './utils'
 import { createDataDef } from './preprocessor'
 import crossFetch from 'cross-fetch'
+import {InternalOptions} from './types/options';
 
 const translationLog = debug('translation')
 
@@ -43,7 +44,8 @@ export function createAndLoadViewer<TSource, TContext, TArgs>(
   queryFields: object,
   operationType: GraphQLOperationType,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  fetch: typeof crossFetch
+  fetch: typeof crossFetch,
+  options: InternalOptions<TSource, TContext, TArgs>
 ): { [key: string]: GraphQLFieldConfig<TSource, TContext, TArgs> } {
   const results = {}
   /**
@@ -153,7 +155,8 @@ export function createAndLoadViewer<TSource, TContext, TArgs>(
     anyAuthObjectName,
     anyAuthFields,
     data,
-    fetch
+    fetch,
+    options,
   )
 
   return results
@@ -252,7 +255,8 @@ function getViewerAnyAuthOT<TSource, TContext, TArgs>(
   name: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  fetch: typeof crossFetch
+  fetch: typeof crossFetch,
+  options: InternalOptions<TSource, TContext, TArgs>
 ): GraphQLFieldConfig<TSource, TContext, TArgs> {
   // Resolve function:
   const resolve: GraphQLFieldResolver<TSource, TContext, TArgs> = (
@@ -277,14 +281,16 @@ function getViewerAnyAuthOT<TSource, TContext, TArgs>(
       data.security[protocolName].schema,
       true,
       data,
-      data.security[protocolName].oas
+      data.security[protocolName].oas,
+        options,
     )
 
     const type = getGraphQLType({
       def,
       data,
       isInputObjectType: true,
-      fetch
+      fetch,
+      options
     })
 
     const saneProtocolName = Oas3Tools.sanitize(

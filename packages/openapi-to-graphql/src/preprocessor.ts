@@ -118,7 +118,8 @@ function processOperation<TSource, TContext, TArgs>(
             payloadSchema as SchemaObject,
             true,
             data,
-            oas
+            oas,
+            options
           )
         : undefined
 
@@ -132,6 +133,7 @@ function processOperation<TSource, TContext, TArgs>(
       false,
       data,
       oas,
+      options,
       links
     )
 
@@ -675,6 +677,7 @@ export function createDataDef<TSource, TContext, TArgs>(
   isInputObjectType: boolean,
   data: PreprocessingData<TSource, TContext, TArgs>,
   oas: Oas3,
+  options: InternalOptions<TSource, TContext, TArgs>,
   links?: { [key: string]: LinkObject }
 ): DataDefinition {
   const preferredName = getPreferredName(names)
@@ -746,6 +749,8 @@ export function createDataDef<TSource, TContext, TArgs>(
 
     return existingDataDef
   }
+
+  names = Object.fromEntries(Object.entries(names).map(([key, value]) => [key, value ? options.graphQLSchemaPrefix + '-' + value : value]))
 
   // There is no preexisting data definition, so create a new one
 
@@ -828,7 +833,8 @@ export function createDataDef<TSource, TContext, TArgs>(
           def.required,
           isInputObjectType,
           data,
-          oas
+          oas,
+          options
         )
       } else {
         handleWarning({
@@ -869,7 +875,8 @@ export function createDataDef<TSource, TContext, TArgs>(
           itemsSchema as SchemaObject,
           isInputObjectType,
           data,
-          oas
+          oas,
+          options
         )
 
         // Add list item reference
@@ -893,7 +900,8 @@ export function createDataDef<TSource, TContext, TArgs>(
           isInputObjectType,
           def,
           data,
-          oas
+          oas,
+          options
         )
       } else {
         throw new Error(
@@ -919,7 +927,8 @@ export function createDataDef<TSource, TContext, TArgs>(
           isInputObjectType,
           def,
           data,
-          oas
+          oas,
+          options
         )
       } else {
         throw new Error(
@@ -1226,7 +1235,8 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
   required: string[],
   isInputObjectType: boolean,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: Oas3,
+  options: InternalOptions<TSource, TContext, TArgs>
 ) {
   /**
    * Resolve all required properties
@@ -1268,7 +1278,8 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
         propSchema,
         isInputObjectType,
         data,
-        oas
+        oas,
+        options
       )
 
       // Add field type references
@@ -1351,7 +1362,8 @@ function createAnyOfObject<TSource, TContext, TArgs>(
   isInputObjectType: boolean,
   def: DataDefinition,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: Oas3,
+  options: InternalOptions<TSource, TContext, TArgs>
 ) {
   /**
    * Used to find incompatible properties
@@ -1481,7 +1493,8 @@ function createAnyOfObject<TSource, TContext, TArgs>(
       def.required,
       isInputObjectType,
       data,
-      oas
+      oas,
+      options
     )
   }
 
@@ -1503,7 +1516,8 @@ function createAnyOfObject<TSource, TContext, TArgs>(
           propertySchema,
           isInputObjectType,
           data,
-          oas
+          oas,
+          options,
         )
 
         /**
@@ -1540,7 +1554,8 @@ function createOneOfUnion<TSource, TContext, TArgs>(
   isInputObjectType: boolean,
   def: DataDefinition,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: Oas3,
+  options: InternalOptions<TSource, TContext, TArgs>
 ) {
   if (isInputObjectType) {
     handleWarning({
@@ -1584,6 +1599,7 @@ function createOneOfUnion<TSource, TContext, TArgs>(
       isInputObjectType,
       data,
       oas,
+      options,
       def.links
     )
     ;(def.subDefinitions as DataDefinition[]).push(subDefinition)
