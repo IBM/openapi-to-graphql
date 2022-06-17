@@ -750,16 +750,24 @@ export function createDataDef<TSource, TContext, TArgs>(
     return existingDataDef
   }
 
-  names = Object.fromEntries(Object.entries(names).map(([key, value]) => [key, value ? options.graphQLSchemaPrefix + '-' + value : value]))
+  let namesFormSchema: Oas3Tools.SchemaNames = names
+  // Add the prefix to the name
+  if (options.graphQLSchemaPrefix) {
+    namesFormSchema = Object.fromEntries(
+        Object.entries(names).map(([key, value]) =>
+            [key, value ? options.graphQLSchemaPrefix + '-' + value : value]
+        )
+    )
+  }
 
   // There is no preexisting data definition, so create a new one
 
-  const name = getSchemaName(names, data.usedTypeNames)
+  const name = getSchemaName(namesFormSchema, data.usedTypeNames)
 
   let saneInputName: string
   let saneName: string
 
-  if (name === names.fromExtension) {
+  if (name === namesFormSchema.fromExtension) {
     saneName = name
     saneInputName = name + 'Input'
   } else {

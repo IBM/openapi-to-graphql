@@ -129,7 +129,8 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
 
   fetch: crossFetch,
 
-  graphQLSchemaPrefix: '',
+  // Add prefix for each schema generated
+  graphQLSchemaPrefix: ''
 }
 
 /**
