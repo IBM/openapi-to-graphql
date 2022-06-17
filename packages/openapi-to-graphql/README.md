@@ -171,6 +171,7 @@ Schema options:
 
 - `createSubscriptionsFromCallbacks` (type: `boolean`, default: `false`): Generates subscription fields from [callback objects](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#CallbackObject). The keys ([runtime expressions](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.2.md#runtimeExpression)) of the callback objects will be interpolated as the topic of a publish/subscription connection using [graphql-subscriptions](https://github.com/apollographql/graphql-subscriptions). Read the [doc](./docs/subscriptions.md) for explanations and examples regarding its usage.
 
+- `graphQLSchemaPrefix` (type: `string`, default: `''`): For add a constants prefix for each generated GraphQL schema, i.e. passing `CustomName` for this option, generated `Product` type will be change to `CustomNameProduct`.
 ***
 
 Resolver options:
