@@ -36,7 +36,7 @@ import {
   GraphQLInputType,
   GraphQLInputFieldConfigMap
 } from 'graphql'
-import { GraphQLUpload } from 'graphql-upload'
+import GraphQLUpload from 'graphql-upload/GraphQLUpload'
 
 // Imports:
 import { GraphQLBigInt, GraphQLJSON } from 'graphql-scalars'
@@ -432,7 +432,7 @@ function createOrReuseUnion<TSource, TContext, TArgs>({
           }
 
           return false
-        })
+        })?.name
       }
     })
 
@@ -707,7 +707,7 @@ function createFields<TSource, TContext, TArgs>({
 
       fields[sanePropName] = {
         type: requiredProperty
-          ? new GraphQLNonNull(objectType)
+          ? new GraphQLNonNull(objectType as GraphQLOutputType)
           : (objectType as GraphQLOutputType),
 
         description:

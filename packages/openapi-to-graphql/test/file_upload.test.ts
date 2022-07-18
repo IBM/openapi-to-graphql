@@ -13,8 +13,8 @@ import { Volume } from 'memfs'
 import FormData from 'form-data'
 import { createServer } from 'http'
 import fetch from 'cross-fetch'
-import { graphql, GraphQLObjectType, GraphQLSchema } from 'graphql'
-import { GraphQLOperation, processRequest } from 'graphql-upload'
+import { graphql, GraphQLArgs, GraphQLObjectType, GraphQLSchema } from 'graphql'
+import processRequest from 'graphql-upload/processRequest'
 import { startServer as startAPIServer, stopServer as stopAPIServer } from './file_upload_api_server'
 
 // Set up the schema first
@@ -59,7 +59,7 @@ test('Registers the graphql-upload Upload scalar type', async () => {
     }
   }`
 
-  const result = await graphql(createdSchema, query)
+  const result = await graphql({ schema: createdSchema, source: query })
   expect(result).toEqual({
     data: {
       __type: {
@@ -92,7 +92,7 @@ test('Introspection for mutations returns a mutation matching the custom field s
     }
   }`
 
-  const result = await graphql(createdSchema, query)
+  const result = await graphql({ schema: createdSchema, source: query })
 
   expect(result).toEqual({
     data: {
@@ -118,8 +118,8 @@ test('Upload completes without any error', async () => {
   // Setup GraphQL for integration test
   const graphqlServer = createServer(async (req, res) => {
     try {
-      const operation = await processRequest(req, res) as GraphQLOperation
-      const result = await graphql(createdSchema, operation.query, null, null, operation.variables)
+      const operation = await processRequest(req, res)
+      const result = await graphql({ schema: createdSchema, source: operation.query, variableValues: operation.variables as GraphQLArgs['variableValues'] })
       res.end(JSON.stringify(result))
     } catch (e) {
       console.log(e)

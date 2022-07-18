@@ -7,7 +7,7 @@
     "test": "cd packages/openapi-to-graphql/ && npm test"
   },
   "engines": {
-    "node": ">=8"
+    "node": ">=14"
   },
   "contributors": [
     "Alan Cha",
