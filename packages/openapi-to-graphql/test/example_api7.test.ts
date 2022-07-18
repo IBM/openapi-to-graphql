@@ -5,7 +5,7 @@
 
 'use strict'
 
-import { graphql, parse, validate, execute, subscribe, GraphQLSchema } from 'graphql'
+import { graphql, parse, validate, execute, subscribe, GraphQLSchema, DocumentNode } from 'graphql'
 import { afterAll, beforeAll, expect, test } from '@jest/globals'
 
 import { createServer } from 'http'
@@ -68,8 +68,8 @@ beforeAll(() => {
 
         subscriptionServer = new SubscriptionServer(
           {
-            execute,
-            subscribe,
+            execute: (schema: GraphQLSchema, document: DocumentNode) => execute({ schema, document }),
+            subscribe: (schema: GraphQLSchema, document: DocumentNode) => subscribe({ schema, document }),
             schema,
             onConnect: (params, socket, context) => {
               // Add pubsub to subscribe context
@@ -170,13 +170,13 @@ test('Receive data from the subscription after creating a new instance', () => {
       })
 
     setTimeout(() => {
-      graphql(createdSchema, query2, null, null, {
+      graphql({ schema: createdSchema, source: query2, variableValues: {
         deviceInput: {
           name: `${deviceName}`,
           userName: `${userName}`,
           status: false
         }
-      })
+      } })
         .then((res) => {
           if (!res.data) {
             reject(new Error('Failed mutation'))
