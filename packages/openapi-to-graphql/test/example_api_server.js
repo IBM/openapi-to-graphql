@@ -547,7 +547,7 @@ function startServer(PORT) {
       typeof req.query['product-tag'] !== 'undefined'
     ) {
       const product = {
-        product_id: req.params['id'],
+        'product-id': req.params['id'],
         'product-tag': req.query['product-tag'],
         'product-name': 'Super Product'
       }
