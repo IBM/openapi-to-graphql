@@ -8,12 +8,16 @@
  */
 
 // Type imports:
-import { SchemaObject, ParameterObject } from './types/oas3'
-import { ConnectOptions } from './types/options'
-import { TargetGraphQLType, Operation } from './types/operation'
-import { SubscriptionContext } from './types/graphql'
-import { PreprocessingData } from './types/preprocessing_data'
-import { RequestOptions, FileUploadOptions } from './types/options'
+import type { OpenAPIV3 } from 'openapi-types';
+import {
+  ConnectOptions,
+  FileUploadOptions,
+  Operation,
+  PreprocessingData,
+  RequestOptions, 
+  SubscriptionContext,
+  TargetGraphQLType,
+} from './types'
 import crossFetch from 'cross-fetch'
 import { FileUpload } from 'graphql-upload'
 
@@ -466,14 +470,14 @@ export function getResolver<TSource, TContext, TArgs>({
       ) {
         const schemaOrRef = param.schema
 
-        let schema: SchemaObject
+        let schema: OpenAPIV3.SchemaObject
         if ('$ref' in schemaOrRef) {
-          schema = Oas3Tools.resolveRef<SchemaObject>(
+          schema = Oas3Tools.resolveRef<OpenAPIV3.SchemaObject>(
             schemaOrRef.$ref,
             operation.oas
           )
         } else {
-          schema = schemaOrRef as SchemaObject
+          schema = schemaOrRef as OpenAPIV3.SchemaObject
         }
 
         if (schema && schema.default && typeof schema.default !== 'undefined') {
@@ -1110,7 +1114,7 @@ function getAuthOptions<TSource, TContext, TArgs>(
         break
 
       default:
-        throw new Error(`Cannot recognize security type '${security.def.type}'`)
+        throw new Error(`Cannot recognize security type '${(security.def as {type: string}).type}'`)
     }
   }
   return { authHeaders, authQs, authCookie }
@@ -1341,7 +1345,7 @@ function graphQLErrorWithExtensions(
  */
 export function extractRequestDataFromArgs<TSource, TContext, TArgs>(
   path: string,
-  parameters: ParameterObject[],
+  parameters: OpenAPIV3.ParameterObject[],
   args: TArgs, // NOTE: argument keys are sanitized!
   data: PreprocessingData<TSource, TContext, TArgs>
 ): {

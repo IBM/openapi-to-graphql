@@ -31,32 +31,31 @@
  */
 
 // Type imports:
-import {
-  Options,
-  InternalOptions,
-  Report,
-  ConnectOptions,
-  RequestOptions,
-  FileUploadOptions
-} from './types/options'
-import { Oas3 } from './types/oas3'
-import { Oas2 } from './types/oas2'
-import {
+import type { OpenAPIV3, OpenAPIV2 } from 'openapi-types';
+import { Headers } from '@whatwg-node/fetch';
+import type {
   Args,
-  GraphQLOperationType,
-  SubscriptionContext
-} from './types/graphql'
-import { Operation } from './types/operation'
-import { PreprocessingData } from './types/preprocessing_data'
+  ConnectOptions,
+  FileUploadOptions,
+  InternalOptions,
+  OpenAPILoaderOptions,
+  Operation,
+  Options,
+  PreprocessingData,
+  Report,
+  RequestOptions,
+  SubscriptionContext,
+} from './types'
+import {GraphQLOperationType} from './types'
 import {
   GraphQLSchema,
   GraphQLObjectType,
   GraphQLOutputType,
   GraphQLFieldConfig,
 } from 'graphql'
+import { loadGraphQLSchemaFromJSONSchemas } from '@omnigraph/json-schema';
 
 // Imports:
-import { getGraphQLType, getArgs } from './schema_builder'
 import {
   getResolver,
   getSubscribe,
@@ -70,7 +69,11 @@ import { GraphQLSchemaConfig } from 'graphql/type/schema'
 import { sortObject, handleWarning, MitigationTypes } from './utils'
 import crossFetch from 'cross-fetch'
 import debug from 'debug'
+import { getJSONSchemaOptions } from './getJSONSchemaOptions'
 const translationLog = debug('translation')
+
+type Oas2 = OpenAPIV2.Document;
+type Oas3 = OpenAPIV3.Document;
 
 export { Oas2, Oas3, Options }
 
@@ -130,51 +133,118 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
   fetch: crossFetch
 }
 
+async function optionsTranslator<TSource, TContext, TArgs>(originOptions: Options<TSource, TContext, TArgs>, oas: OpenAPIV3.Document): Promise<OpenAPILoaderOptions> {
+  /**
+   * Ignored openapi-to-graphql options:
+   * - strict: boolean
+   * - report: Report
+   * - operationIdFieldNames: boolean
+   * - fillEmptyResponses: boolean
+   * - addLimitArgument: boolean
+   * - idFormats?: string[]
+   * - selectQueryOrMutationField?: OasTitlePathMethodObject<GraphQLOperationType>
+   * - genericPayloadArgName: boolean
+   * - simpleNames: boolean
+   * - simpleEnumValues: boolean
+   * - singularNames: boolean
+   * - createSubscriptionsFromCallbacks: boolean
+   * - requestOptions?: Partial<RequestOptions<TSource, TContext, TArgs>>
+   * - connectOptions?: ConnectOptions
+   * - customResolvers?: OasTitlePathMethodObject<GraphQLFieldResolver<TSource, TContext, TArgs>
+   * - customSubscriptionResolvers?: OasTitlePathMethodObject<{ subscribe: GraphQLFieldResolver<TSource, SubscriptionContext, TArgs>, resolve: GraphQLFieldResolver<TSource, TContext, TArgs> }>
+   * - fileUploadOptions?: FileUploadOptions
+   * - viewer: boolean
+   * - tokenJSONpath?: string
+   * - sendOAuthTokenInQuery: boolean
+   * - oasValidatorOptions: object
+   * - swagger2OpenAPIOptions: object
+   * - provideErrorExtensions: boolean
+   * - equivalentToMessages: boolean
+   */
+
+  const options: OpenAPILoaderOptions = {
+    baseUrl: originOptions.baseUrl,
+    fetch: originOptions.fetch,
+    queryParams: originOptions.qs,
+    source: oas,
+  }
+  /**
+   * Not used config options:
+   * - selectQueryOrMutationField?: OpenAPILoaderSelectQueryOrMutationFieldConfig[];
+   * - operations: JSONSchemaOperationConfig[],
+   * - errorMessage?: string,
+   * - logger?: Logger,
+   * - pubsub?: MeshPubSub,
+   * - ignoreErrorResponses?: boolean,
+   * - queryStringOptions?: IStringifyOptions,
+   */
+
+  // transform headers
+  if (originOptions.headers) {
+    if (originOptions.headers instanceof Function) {
+      // Differences between headers function here and over MESH prevents it from being supported currently
+      console.error('headers as a function is not supported');
+    } else {
+      options.operationHeaders = {};
+      if (Array.isArray(originOptions.headers)) {
+        originOptions.headers.forEach(header => {
+          options.operationHeaders[header[0]] = header[1];
+        });
+      } else if (originOptions.headers instanceof Headers) {
+        originOptions.headers.forEach((value, key) => {
+          options.operationHeaders[key] = value;
+        });
+      } else {
+        options.operationHeaders = originOptions.headers;
+      }
+    }
+  }
+
+  return options;
+}
+
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
 export async function createGraphQLSchema<TSource, TContext, TArgs>(
-  spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
+  spec: OpenAPIV3.Document | OpenAPIV2.Document,
   options?: Options<TSource, TContext, TArgs>
 ): Promise<Result<TSource, TContext, TArgs>> {
-  // Setting default options
-  const internalOptions: InternalOptions<TSource, TContext, TArgs> = {
+  const internalOptions = {
     ...DEFAULT_OPTIONS,
     ...options
   }
+  // Convert non-OAS 3 into OAS 3
+  const oas = await Oas3Tools.getValidOAS3(
+    spec,
+    internalOptions.oasValidatorOptions,
+    internalOptions.swagger2OpenAPIOptions
+  )
 
-  if (Array.isArray(spec)) {
-    // Convert all non-OAS 3 into OAS 3
-    const oass = await Promise.all(
-      spec.map((ele) =>
-        Oas3Tools.getValidOAS3(
-          ele,
-          internalOptions.oasValidatorOptions,
-          internalOptions.swagger2OpenAPIOptions
-        )
-      )
-    )
-    return translateOpenAPIToGraphQL(oass, internalOptions)
-  } else {
-    /**
-     * Check if the spec is a valid OAS 3
-     * If the spec is OAS 2.0, attempt to translate it into 3, then try to
-     * translate the spec into a GraphQL schema
-     */
-    const oas = await Oas3Tools.getValidOAS3(
-      spec,
-      internalOptions.oasValidatorOptions,
-      internalOptions.swagger2OpenAPIOptions
-    )
-    return translateOpenAPIToGraphQL([oas], internalOptions)
-  }
+  // Setting default options
+  const meshOptions = await optionsTranslator({
+    ...DEFAULT_OPTIONS,
+    ...options
+  }, oas);
+
+  const name = oas.info.title;
+
+  const extraJSONSchemaOptions = await getJSONSchemaOptions(meshOptions);
+  
+  const schema = await loadGraphQLSchemaFromJSONSchemas(name, {
+    ...meshOptions,
+    ...extraJSONSchemaOptions,
+  });
+
+  // TODO: replace this
+  return translateOpenAPIToGraphQL([oas], internalOptions, schema)
 }
 
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3
  */
 export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
-  oass: Oas3[],
+  oass: OpenAPIV3.Document[],
   {
     strict,
     report,
@@ -215,7 +285,8 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
     equivalentToMessages,
 
     fetch
-  }: InternalOptions<TSource, TContext, TArgs>
+  }: InternalOptions<TSource, TContext, TArgs>,
+  meshSchema: GraphQLSchema
 ): Result<TSource, TContext, TArgs> {
   const options = {
     strict,
@@ -258,7 +329,7 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
     fetch
   }
-  translationLog(`Options: ${JSON.stringify(options)}`)
+  // translationLog(`Options: ${JSON.stringify(options)}`)
 
   /**
    * Extract information from the OASs and put it inside a data structure that
@@ -454,7 +525,7 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
 
   const schema = new GraphQLSchema(schemaConfig)
 
-  return { schema, report, data }
+  return { schema: meshSchema, report, data }
 }
 
 function addQueryFields<TSource, TContext, TArgs>({
@@ -485,16 +556,6 @@ function addQueryFields<TSource, TContext, TArgs>({
     connectOptions,
     fetch
   } = options
-
-  const field = getFieldForOperation(
-    operation,
-    baseUrl,
-    data,
-    requestOptions,
-    fileUploadOptions,
-    connectOptions,
-    fetch
-  )
 
   const saneOperationId = Oas3Tools.sanitize(
     operationId,
@@ -591,8 +652,6 @@ function addQueryFields<TSource, TContext, TArgs>({
 
         return
       }
-
-      authQueryFields[securityRequirement][fieldName] = field
     }
   } else {
     // Check for extensionFieldName because it can create conflicts
@@ -631,9 +690,6 @@ function addQueryFields<TSource, TContext, TArgs>({
 
       return
     }
-
-    // Add field into Query
-    queryFields[fieldName] = field
   }
 }
 
@@ -664,16 +720,6 @@ function addMutationFields<TSource, TContext, TArgs>({
     connectOptions,
     fetch
   } = options
-
-  const field = getFieldForOperation(
-    operation,
-    baseUrl,
-    data,
-    requestOptions,
-    fileUploadOptions,
-    connectOptions,
-    fetch
-  )
 
   const saneOperationId = Oas3Tools.sanitize(
     operationId,
@@ -753,9 +799,6 @@ function addMutationFields<TSource, TContext, TArgs>({
 
         return
       }
-
-      // Add field into viewer
-      authMutationFields[securityRequirement][fieldName] = field
     }
 
     // No viewer
@@ -785,9 +828,6 @@ function addMutationFields<TSource, TContext, TArgs>({
 
       return
     }
-
-    // Add field into Mutation
-    mutationFields[fieldName] = field
   }
 }
 
@@ -811,16 +851,6 @@ function addSubscriptionFields<TSource, TContext, TArgs>({
   data: PreprocessingData<TSource, TContext, TArgs>
 }) {
   const { baseUrl, requestOptions, connectOptions, fetch, fileUploadOptions } = options
-
-  const field = getFieldForOperation(
-    operation,
-    baseUrl,
-    data,
-    requestOptions,
-    fileUploadOptions,
-    connectOptions,
-    fetch
-  )
 
   const saneOperationId = Oas3Tools.sanitize(
     operationId,
@@ -876,9 +906,6 @@ function addSubscriptionFields<TSource, TContext, TArgs>({
 
         return
       }
-
-      // Add field into viewer
-      authSubscriptionFields[securityRequirement][fieldName] = field
     }
 
     // No viewer
@@ -906,97 +933,6 @@ function addSubscriptionFields<TSource, TContext, TArgs>({
       })
 
       return
-    }
-
-    // Add field into Subscription
-    subscriptionFields[fieldName] = field
-  }
-}
-
-/**
- * Creates the field object for the given operation.
- */
-function getFieldForOperation<TSource, TContext, TArgs>(
-  operation: Operation,
-  baseUrl: string,
-  data: PreprocessingData<TSource, TContext, TArgs>,
-  requestOptions: Partial<RequestOptions<TSource, TContext, TArgs>>,
-  fileUploadOptions: FileUploadOptions,
-  connectOptions: ConnectOptions,
-  fetch: typeof crossFetch
-): GraphQLFieldConfig<TSource, TContext | SubscriptionContext, TArgs> {
-  // Create GraphQL Type for response:
-  const type = getGraphQLType({
-    def: operation.responseDefinition,
-    data,
-    operation,
-    fetch
-  }) as GraphQLOutputType
-
-  const payloadSchemaName = operation.payloadDefinition
-    ? operation.payloadDefinition.graphQLInputObjectTypeName
-    : null
-
-  const args: Args = getArgs({
-    /**
-     * Even though these arguments seems redundent because of the operation
-     * argument, the function cannot be refactored because it is also used to
-     * create arguments for links. The operation argument is really used to pass
-     * data to other functions.
-     */
-    requestPayloadDef: operation.payloadDefinition,
-    parameters: operation.parameters,
-    operation,
-    data,
-    fetch
-  })
-
-  // Get resolver and subscribe function for Subscription fields
-  if (operation.operationType === GraphQLOperationType.Subscription) {
-    const responseSchemaName = operation.responseDefinition
-      ? operation.responseDefinition.graphQLTypeName
-      : null
-
-    const resolve = getPublishResolver({
-      operation,
-      responseName: responseSchemaName,
-      data,
-      fetch
-    })
-
-    const subscribe = getSubscribe({
-      operation,
-      payloadName: payloadSchemaName,
-      data,
-      baseUrl,
-      connectOptions
-    })
-
-    return {
-      type,
-      resolve,
-      subscribe,
-      args,
-      description: operation.description
-    }
-
-    // Get resolver for Query and Mutation fields
-  } else {
-    const resolve = getResolver({
-      operation,
-      payloadName: payloadSchemaName,
-      data,
-      baseUrl,
-      requestOptions,
-      fileUploadOptions,
-      fetch
-    })
-
-    return {
-      type,
-      resolve,
-      args,
-      description: operation.description
     }
   }
 }

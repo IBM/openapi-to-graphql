@@ -3,6 +3,8 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
+import type { OpenAPIV2 } from 'openapi-types';
+
 /**
  * Type definitions for the OpenAPI specification 2.0 (Swagger).
  *
@@ -10,7 +12,4 @@
  * translate it to Oas3 immediately anyways.
  */
 
-export type Oas2 = {
-  swagger: string
-  [key: string]: any
-}
+export type Oas2 = OpenAPIV2.Document;

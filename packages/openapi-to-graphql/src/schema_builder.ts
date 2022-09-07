@@ -8,16 +8,14 @@
  */
 
 // Type imports:
-import { PreprocessingData } from './types/preprocessing_data'
-import { Operation, DataDefinition, TargetGraphQLType } from './types/operation'
+import type { OpenAPIV3 } from 'openapi-types';
 import {
-  Oas3,
-  SchemaObject,
-  ParameterObject,
-  ReferenceObject,
-  LinkObject
-} from './types/oas3'
-import { Args } from './types/graphql'
+  Args,
+  DataDefinition,
+  Operation,
+  PreprocessingData,
+  TargetGraphQLType
+} from './types'
 import {
   GraphQLScalarType,
   GraphQLObjectType,
@@ -49,7 +47,7 @@ import crossFetch from 'cross-fetch'
 
 type GetArgsParams<TSource, TContext, TArgs> = {
   requestPayloadDef?: DataDefinition
-  parameters: ParameterObject[]
+  parameters: OpenAPIV3.ParameterObject[]
   operation?: Operation
   data: PreprocessingData<TSource, TContext, TArgs>
   fetch: typeof crossFetch
@@ -71,7 +69,7 @@ type CreateOrReuseSimpleTypeParams<TSource, TContext, TArgs> = {
 
 type CreateFieldsParams<TSource, TContext, TArgs> = {
   def: DataDefinition
-  links: { [key: string]: LinkObject }
+  links: { [key: string]: OpenAPIV3.LinkObject }
   operation: Operation
   iteration: number
   isInputObjectType: boolean
@@ -80,7 +78,7 @@ type CreateFieldsParams<TSource, TContext, TArgs> = {
 }
 
 type LinkOpRefToOpIdParams<TSource, TContext, TArgs> = {
-  links: { [key: string]: LinkObject }
+  links: { [key: string]: OpenAPIV3.LinkObject }
   linkKey: string
   operation: Operation
   data: PreprocessingData<TSource, TContext, TArgs>
@@ -1101,7 +1099,7 @@ function linkOpRefToOpId<TSource, TContext, TArgs>({
  * provided through the options
  */
 function skipArg<TSource, TContext, TArgs>(
-  parameter: ParameterObject,
+  parameter: OpenAPIV3.ParameterObject,
   operation: Operation,
   data: PreprocessingData<TSource, TContext, TArgs>
 ): boolean {
@@ -1213,7 +1211,7 @@ export function getArgs<TSource, TContext, TArgs>({
      * The type of the parameter can either be contained in the "schema" field
      * or the "content" field (but not both)
      */
-    let schema: SchemaObject | ReferenceObject
+    let schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
     if (typeof parameter.schema === 'object') {
       schema = parameter.schema
     } else if (typeof parameter.content === 'object') {
@@ -1262,7 +1260,7 @@ export function getArgs<TSource, TContext, TArgs>({
         fromSchema: parameter.name,
         fromExtension: schema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
       },
-      schema as SchemaObject,
+      schema as OpenAPIV3.SchemaObject,
       true,
       data,
       operation.oas
@@ -1295,7 +1293,7 @@ export function getArgs<TSource, TContext, TArgs>({
     if (typeof parameter.schema === 'object') {
       let schema = parameter.schema
       if ('$ref' in schema) {
-        schema = Oas3Tools.resolveRef<SchemaObject>(schema.$ref, operation.oas)
+        schema = Oas3Tools.resolveRef<OpenAPIV3.SchemaObject>(schema.$ref, operation.oas)
       }
       if (typeof schema.default !== 'undefined') {
         hasDefault = true
@@ -1391,9 +1389,9 @@ function getLinkLocationType(linkLocation: string): string {
  */
 function getOasFromLinkLocation<TSource, TContext, TArgs>(
   linkLocation: string,
-  link: LinkObject,
+  link: OpenAPIV3.LinkObject,
   data: PreprocessingData<TSource, TContext, TArgs>
-): Oas3 {
+): OpenAPIV3.Document {
   // May be an external reference
   switch (getLinkLocationType(linkLocation)) {
     case 'title':

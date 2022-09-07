@@ -4,21 +4,15 @@
 // License text available at https://opensource.org/licenses/MIT
 
 // Type imports:
-import {
-  Oas3,
-  CallbackObject,
-  LinkObject,
-  OperationObject,
-  ReferenceObject,
-  SchemaObject,
-  PathItemObject
-} from './types/oas3'
-import { InternalOptions } from './types/options'
-import { Operation, DataDefinition, TargetGraphQLType } from './types/operation'
-import {
+import type { OpenAPIV3 } from 'openapi-types';
+import type {
+  DataDefinition,
+  InternalOptions,
+  Operation,
   PreprocessingData,
   ProcessedSecurityScheme
-} from './types/preprocessing_data'
+} from './types'
+import { TargetGraphQLType } from './types'
 
 // Imports:
 import * as Oas3Tools from './oas_3_tools'
@@ -49,9 +43,9 @@ function processOperation<TSource, TContext, TArgs>(
   method: Oas3Tools.HTTP_METHODS,
   operationString: string,
   operationType: GraphQLOperationType,
-  operation: OperationObject,
-  pathItem: PathItemObject,
-  oas: Oas3,
+  operation: OpenAPIV3.OperationObject,
+  pathItem: OpenAPIV3.PathItemObject,
+  oas: OpenAPIV3.Document,
   data: PreprocessingData<TSource, TContext, TArgs>,
   options: InternalOptions<TSource, TContext, TArgs>
 ): Operation {
@@ -115,7 +109,7 @@ function processOperation<TSource, TContext, TArgs>(
       payloadSchema && typeof payloadSchema !== 'undefined'
         ? createDataDef(
             payloadSchemaNames,
-            payloadSchema as SchemaObject,
+            payloadSchema as OpenAPIV3.SchemaObject,
             true,
             data,
             oas
@@ -128,7 +122,7 @@ function processOperation<TSource, TContext, TArgs>(
     // Response data definition
     const responseDefinition = createDataDef(
       responseSchemaNames,
-      responseSchema as SchemaObject,
+      responseSchema as OpenAPIV3.SchemaObject,
       false,
       data,
       oas,
@@ -195,7 +189,7 @@ function processOperation<TSource, TContext, TArgs>(
  * is easier for OpenAPI-to-GraphQL to use
  */
 export function preprocessOas<TSource, TContext, TArgs>(
-  oass: Oas3[],
+  oass: OpenAPIV3.Document[],
   options: InternalOptions<TSource, TContext, TArgs>
 ): PreprocessingData<TSource, TContext, TArgs> {
   const data: PreprocessingData<TSource, TContext, TArgs> = {
@@ -251,7 +245,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
     for (let path in oas.paths) {
       const pathItem =
         typeof oas.paths[path].$ref === 'string'
-          ? (Oas3Tools.resolveRef(oas.paths[path].$ref, oas) as PathItemObject)
+          ? (Oas3Tools.resolveRef(oas.paths[path].$ref, oas) as OpenAPIV3.PathItemObject)
           : oas.paths[path]
 
       Object.keys(pathItem)
@@ -284,7 +278,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
             return
           }
 
-          const operation = pathItem[httpMethod] as OperationObject
+          const operation = pathItem[httpMethod] as OpenAPIV3.OperationObject
 
           let operationType =
             httpMethod === Oas3Tools.HTTP_METHODS.get
@@ -345,7 +339,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
           ) {
             Object.entries(operation.callbacks).forEach(
               ([callbackName, callbackObjectOrRef]) => {
-                let callback: CallbackObject
+                let callback: OpenAPIV3.CallbackObject
 
                 if (
                   '$ref' in callbackObjectOrRef &&
@@ -353,7 +347,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
                 ) {
                   callback = Oas3Tools.resolveRef(callbackObjectOrRef.$ref, oas)
                 } else {
-                  callback = callbackObjectOrRef as CallbackObject
+                  callback = callbackObjectOrRef as OpenAPIV3.CallbackObject
                 }
 
                 Object.entries(callback).forEach(
@@ -510,7 +504,7 @@ export function preprocessOas<TSource, TContext, TArgs>(
  * }
  */
 function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
-  oas: Oas3,
+  oas: OpenAPIV3.Document,
   data: PreprocessingData<TSource, TContext, TArgs>
 ): { [key: string]: ProcessedSecurityScheme } {
   const result = {}
@@ -647,7 +641,7 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
           mitigationType: MitigationTypes.UNSUPPORTED_HTTP_SECURITY_SCHEME,
           message:
             `Unsupported HTTP authentication protocol` +
-            `type '${securityScheme.type}' in OAS '${oas.info.title}'`,
+            `type '${(securityScheme as {type: string}).type}' in OAS '${oas.info.title}'`,
           data,
           log: preprocessingLog
         })
@@ -671,11 +665,11 @@ function getProcessedSecuritySchemes<TSource, TContext, TArgs>(
  */
 export function createDataDef<TSource, TContext, TArgs>(
   names: Oas3Tools.SchemaNames,
-  schemaOrRef: SchemaObject | ReferenceObject,
+  schemaOrRef: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
   isInputObjectType: boolean,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3,
-  links?: { [key: string]: LinkObject }
+  oas: OpenAPIV3.Document,
+  links?: { [key: string]: OpenAPIV3.LinkObject }
 ): DataDefinition {
   const preferredName = getPreferredName(names)
 
@@ -704,11 +698,11 @@ export function createDataDef<TSource, TContext, TArgs>(
     }
   }
 
-  let schema: SchemaObject
+  let schema: OpenAPIV3.SchemaObject
   if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
     schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas)
   } else {
-    schema = schemaOrRef as SchemaObject
+    schema = schemaOrRef as OpenAPIV3.SchemaObject
   }
 
   // Sanitize link keys
@@ -773,7 +767,7 @@ export function createDataDef<TSource, TContext, TArgs>(
    * Recursively resolve allOf so type, properties, anyOf, oneOf, and
    * required are resolved
    */
-  const collapsedSchema = Oas3Tools.resolveAllOf(schema, {}, data, oas) as SchemaObject
+  const collapsedSchema = Oas3Tools.resolveAllOf(schema, {}, data, oas) as OpenAPIV3.SchemaObject
 
   const targetGraphQLType = Oas3Tools.getSchemaTargetGraphQLType(
     collapsedSchema,
@@ -834,7 +828,10 @@ export function createDataDef<TSource, TContext, TArgs>(
         handleWarning({
           mitigationType: MitigationTypes.OBJECT_MISSING_PROPERTIES,
           message:
-            `Schema ${JSON.stringify(schema)} does not have ` +
+            `Schema ${JSON.stringify(
+              // schema
+              {}
+              )} does not have ` +
             `any properties`,
           data,
           log: preprocessingLog
@@ -846,7 +843,7 @@ export function createDataDef<TSource, TContext, TArgs>(
       break
 
     case TargetGraphQLType.list:
-      if (typeof collapsedSchema.items === 'object') {
+      if ('items' in collapsedSchema && typeof collapsedSchema.items === 'object') {
         // Break schema down into component parts
         // I.e. if it is an list type, create a reference to the list item type
         // Or if it is an object type, create references to all of the field types
@@ -866,7 +863,7 @@ export function createDataDef<TSource, TContext, TArgs>(
             fromExtension: extensionTypeName,
             fromRef: itemsName
           },
-          itemsSchema as SchemaObject,
+          itemsSchema as OpenAPIV3.SchemaObject,
           isInputObjectType,
           data,
           oas
@@ -959,7 +956,7 @@ export function createDataDef<TSource, TContext, TArgs>(
  */
 function getSchemaIndex(
   preferredName: string,
-  schema: SchemaObject,
+  schema: OpenAPIV3.SchemaObject,
   dataDefs: DataDefinition[]
 ): number {
   /**
@@ -1120,10 +1117,10 @@ function sanitizeLinks<TSource, TContext, TArgs>({
   links,
   data
 }: {
-  links?: { [key: string]: LinkObject }
+  links?: { [key: string]: OpenAPIV3.LinkObject }
   data: PreprocessingData<TSource, TContext, TArgs>
-}): { [key: string]: LinkObject } {
-  const saneLinks: { [key: string]: LinkObject } = {}
+}): { [key: string]: OpenAPIV3.LinkObject } {
+  const saneLinks: { [key: string]: OpenAPIV3.LinkObject } = {}
   if (typeof links === 'object') {
     Object.keys(links).forEach((linkKey) => {
       const link = links[linkKey]
@@ -1173,7 +1170,7 @@ function collapseLinksIntoDataDefinition<TSource, TContext, TArgs>({
   existingDataDef,
   data
 }: {
-  additionalLinks?: { [key: string]: LinkObject }
+  additionalLinks?: { [key: string]: OpenAPIV3.LinkObject }
   existingDataDef: DataDefinition
   data: PreprocessingData<TSource, TContext, TArgs>
 }): void {
@@ -1222,11 +1219,11 @@ function collapseLinksIntoDataDefinition<TSource, TContext, TArgs>({
  */
 function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
   def: DataDefinition,
-  schema: SchemaObject,
+  schema: OpenAPIV3.SchemaObject,
   required: string[],
   isInputObjectType: boolean,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: OpenAPIV3.Document
 ) {
   /**
    * Resolve all required properties
@@ -1245,7 +1242,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
 
       const propSchemaOrRef = schema.properties[propertyKey]
 
-      let propSchema: SchemaObject
+      let propSchema: OpenAPIV3.SchemaObject
       if (
         '$ref' in propSchemaOrRef &&
         typeof propSchemaOrRef.$ref === 'string'
@@ -1253,7 +1250,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
         propSchemaName = propSchemaOrRef.$ref.split('/').pop()
         propSchema = Oas3Tools.resolveRef(propSchemaOrRef.$ref, oas)
       } else {
-        propSchema = propSchemaOrRef as SchemaObject
+        propSchema = propSchemaOrRef as OpenAPIV3.SchemaObject
       }
 
       const extensionTypeName =
@@ -1292,7 +1289,7 @@ function addObjectPropertiesToDataDef<TSource, TContext, TArgs>(
 
 type MemberSchemaData = {
   allTargetGraphQLTypes: TargetGraphQLType[]
-  allProperties: { [key: string]: SchemaObject | ReferenceObject }[]
+  allProperties: { [key: string]: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject }[]
   allRequired: string[]
 }
 
@@ -1301,9 +1298,9 @@ type MemberSchemaData = {
  * collect data on certain aspects so it is all in one place for processing.
  */
 function getMemberSchemaData<TSource, TContext, TArgs>(
-  schemas: (SchemaObject | ReferenceObject)[],
+  schemas: (OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject)[],
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: OpenAPIV3.Document
 ): MemberSchemaData {
   const result: MemberSchemaData = {
     allTargetGraphQLTypes: [], // Contains the target GraphQL types of all the member schemas
@@ -1313,11 +1310,11 @@ function getMemberSchemaData<TSource, TContext, TArgs>(
 
   schemas.forEach((schemaOrRef) => {
     // Dereference schemas
-    let schema: SchemaObject
+    let schema: OpenAPIV3.SchemaObject
     if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
-      schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas) as SchemaObject
+      schema = Oas3Tools.resolveRef(schemaOrRef.$ref, oas) as OpenAPIV3.SchemaObject
     } else {
-      schema = schemaOrRef as SchemaObject
+      schema = schemaOrRef as OpenAPIV3.SchemaObject
     }
 
     // Consolidate target GraphQL type
@@ -1347,11 +1344,11 @@ function getMemberSchemaData<TSource, TContext, TArgs>(
 function createAnyOfObject<TSource, TContext, TArgs>(
   saneName: string,
   saneInputName: string,
-  collapsedSchema: SchemaObject,
+  collapsedSchema: OpenAPIV3.SchemaObject,
   isInputObjectType: boolean,
   def: DataDefinition,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: OpenAPIV3.Document
 ) {
   /**
    * Used to find incompatible properties
@@ -1366,13 +1363,13 @@ function createAnyOfObject<TSource, TContext, TArgs>(
    * properties; if not, do nothing.
    */
   const allProperties: {
-    [propertyName: string]: SchemaObject | ReferenceObject
+    [propertyName: string]: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject
   } = {}
 
   if ('properties' in collapsedSchema) {
     Object.entries(collapsedSchema.properties).forEach(
       ([propertyName, propertyObjectOrRef]) => {
-        let property: SchemaObject
+        let property: OpenAPIV3.SchemaObject
 
         if (
           '$ref' in propertyObjectOrRef &&
@@ -1380,7 +1377,7 @@ function createAnyOfObject<TSource, TContext, TArgs>(
         ) {
           property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas)
         } else {
-          property = propertyObjectOrRef as SchemaObject
+          property = propertyObjectOrRef as OpenAPIV3.SchemaObject
         }
 
         allProperties[propertyName] = property
@@ -1393,29 +1390,29 @@ function createAnyOfObject<TSource, TContext, TArgs>(
 
   // An array containing the properties of all member schemas
   const memberProperties: {
-    [propertyName: string]: SchemaObject
+    [propertyName: string]: OpenAPIV3.SchemaObject
   }[] = []
 
   collapsedSchema.anyOf.forEach((memberSchemaOrRef) => {
     // Collapsed schema should already be recursively resolved
-    let memberSchema: SchemaObject
+    let memberSchema: OpenAPIV3.SchemaObject
     if (
       '$ref' in memberSchemaOrRef &&
       typeof memberSchemaOrRef.$ref === 'string'
     ) {
       memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas)
     } else {
-      memberSchema = memberSchemaOrRef as SchemaObject
+      memberSchema = memberSchemaOrRef as OpenAPIV3.SchemaObject
     }
 
     if (memberSchema.properties) {
       const properties: {
-        [propertyName: string]: SchemaObject
+        [propertyName: string]: OpenAPIV3.SchemaObject
       } = {}
 
       Object.entries(memberSchema.properties).forEach(
         ([propertyName, propertyObjectOrRef]) => {
-          let property: SchemaObject
+          let property: OpenAPIV3.SchemaObject
 
           if (
             '$ref' in propertyObjectOrRef &&
@@ -1423,7 +1420,7 @@ function createAnyOfObject<TSource, TContext, TArgs>(
           ) {
             property = Oas3Tools.resolveRef(propertyObjectOrRef.$ref, oas)
           } else {
-            property = propertyObjectOrRef as SchemaObject
+            property = propertyObjectOrRef as OpenAPIV3.SchemaObject
           }
 
           properties[propertyName] = property
@@ -1489,7 +1486,7 @@ function createAnyOfObject<TSource, TContext, TArgs>(
     Object.keys(properties).forEach((propertyName) => {
       if (!incompatibleProperties.has(propertyName)) {
         // Dereferenced by processing anyOfData
-        const propertySchema = properties[propertyName] as SchemaObject
+        const propertySchema = properties[propertyName] as OpenAPIV3.SchemaObject
 
         const extensionTypeName =
           propertySchema[Oas3Tools.OAS_GRAPHQL_EXTENSIONS.TypeName]
@@ -1536,11 +1533,11 @@ function createAnyOfObject<TSource, TContext, TArgs>(
 function createOneOfUnion<TSource, TContext, TArgs>(
   saneName: string,
   saneInputName: string,
-  collapsedSchema: SchemaObject,
+  collapsedSchema: OpenAPIV3.SchemaObject,
   isInputObjectType: boolean,
   def: DataDefinition,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: OpenAPIV3.Document
 ) {
   if (isInputObjectType) {
     handleWarning({
@@ -1559,7 +1556,7 @@ function createOneOfUnion<TSource, TContext, TArgs>(
   collapsedSchema.oneOf.forEach((memberSchemaOrRef) => {
     // Collapsed schema should already be recursively resolved
     let fromRef: string
-    let memberSchema: SchemaObject
+    let memberSchema: OpenAPIV3.SchemaObject
     if (
       '$ref' in memberSchemaOrRef &&
       typeof memberSchemaOrRef.$ref === 'string'
@@ -1567,7 +1564,7 @@ function createOneOfUnion<TSource, TContext, TArgs>(
       fromRef = memberSchemaOrRef.$ref.split('/').pop()
       memberSchema = Oas3Tools.resolveRef(memberSchemaOrRef.$ref, oas)
     } else {
-      memberSchema = memberSchemaOrRef as SchemaObject
+      memberSchema = memberSchemaOrRef as OpenAPIV3.SchemaObject
     }
 
     const extensionTypeName =

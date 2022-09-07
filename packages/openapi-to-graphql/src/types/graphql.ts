@@ -14,7 +14,7 @@ import {
   GraphQLList,
   GraphQLEnumType,
   GraphQLUnionType,
-  GraphQLFieldResolver
+  GraphQLFieldResolver,
 } from 'graphql'
 
 export enum GraphQLOperationType {

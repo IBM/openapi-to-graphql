@@ -9,6 +9,7 @@
  */
 
 // Type imports:
+import type { OpenAPIV3 } from 'openapi-types';
 import {
   GraphQLString,
   GraphQLObjectType,
@@ -17,14 +18,13 @@ import {
   GraphQLFieldResolver,
   GraphQLFieldConfig
 } from 'graphql'
-import { Args, GraphQLOperationType } from './types/graphql'
-import {
+import { GraphQLOperationType } from './types/graphql'
+import type {
   PreprocessingData,
   ProcessedSecurityScheme
-} from './types/preprocessing_data'
+} from './types'
 
 // Imports:
-import { getGraphQLType } from './schema_builder'
 import * as Oas3Tools from './oas_3_tools'
 import debug from 'debug'
 import { handleWarning, sortObject, MitigationTypes } from './utils'
@@ -79,7 +79,7 @@ export function createAndLoadViewer<TSource, TContext, TArgs>(
      * authentication)
      */
     if (securityType === 'http') {
-      let scheme = data.security[protocolName].def.scheme
+      let scheme = (data.security[protocolName].def as OpenAPIV3.HttpSecurityScheme).scheme
       switch (scheme) {
         case 'basic':
           viewerType = 'basicAuth'
@@ -223,7 +223,7 @@ function getViewerOT<TSource, TContext, TArgs>(
   let description =
     securityType === 'http'
       ? `A viewer that wraps all operations authenticated via security scheme ` +
-        `'${protocolName}', which is of type 'http' '${scheme.def.scheme}'`
+        `'${protocolName}', which is of type 'http' '${(scheme.def as OpenAPIV3.HttpSecurityScheme).scheme}'`
       : `A viewer that wraps all operations authenticated via security scheme ` +
         `'${protocolName}', which is of type '${securityType}'`
 
@@ -280,20 +280,10 @@ function getViewerAnyAuthOT<TSource, TContext, TArgs>(
       data.security[protocolName].oas
     )
 
-    const type = getGraphQLType({
-      def,
-      data,
-      isInputObjectType: true,
-      fetch
-    })
-
     const saneProtocolName = Oas3Tools.sanitize(
       protocolName,
       Oas3Tools.CaseStyle.camelCase
     )
-    args[
-      Oas3Tools.storeSaneName(saneProtocolName, protocolName, data.saneMap)
-    ] = { type }
   }
   args = sortObject(args)
 

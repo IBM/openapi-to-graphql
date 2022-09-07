@@ -7,13 +7,13 @@
  * Type definitions for the data created during preprocessing.
  */
 
+import type { OpenAPIV3 } from 'openapi-types';
 import { Operation, DataDefinition } from './operation'
 import { InternalOptions } from './options'
-import { SecuritySchemeObject, SchemaObject, Oas3, LinkObject } from './oas3'
 
 export type ProcessedSecurityScheme = {
   rawName: string
-  def: SecuritySchemeObject
+  def: OpenAPIV3.SecuritySchemeObject
 
   /**
    * Stores the names of the authentication credentials
@@ -26,12 +26,12 @@ export type ProcessedSecurityScheme = {
   /**
    * JSON schema to create the viewer for this security scheme from.
    */
-  schema: SchemaObject
+  schema: OpenAPIV3.SchemaObject
 
   /**
    * The OAS which this operation originated from
    */
-  oas: Oas3
+  oas: OpenAPIV3.Document
 }
 
 export type PreprocessingData<TSource, TContext, TArgs> = {
@@ -76,5 +76,5 @@ export type PreprocessingData<TSource, TContext, TArgs> = {
   /**
    * All of the provided OASs
    */
-  oass: Oas3[]
+  oass: OpenAPIV3.Document[]
 }

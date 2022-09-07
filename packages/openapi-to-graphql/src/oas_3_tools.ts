@@ -8,32 +8,17 @@
  */
 
 // Type imports:
-import { Oas2 } from './types/oas2'
-import { TargetGraphQLType, Operation } from './types/operation'
-import {
-  Oas3,
-  ServerObject,
-  ParameterObject,
-  SchemaObject,
-  OperationObject,
-  ResponsesObject,
-  ResponseObject,
-  PathItemObject,
-  RequestBodyObject,
-  ReferenceObject,
-  LinksObject,
-  LinkObject,
-  MediaTypesObject,
-  SecuritySchemeObject,
-  SecurityRequirementObject
-} from './types/oas3'
-import {
+import type { OpenAPIV3, OpenAPIV2 } from 'openapi-types';
+import type {
+  InternalOptions,
+  Operation,
   PreprocessingData,
-  ProcessedSecurityScheme
-} from './types/preprocessing_data'
-import { InternalOptions } from './types/options'
+  ProcessedSecurityScheme,
+} from './types'
+import { TargetGraphQLType } from './types'
 
 // Imports:
+import {cloneDeep} from "lodash";
 import * as Swagger2OpenAPI from 'swagger2openapi'
 import * as OASValidator from 'oas-validator'
 import debug from 'debug'
@@ -58,14 +43,14 @@ export type SchemaNames = {
 
 export type RequestSchemaAndNames = {
   payloadContentType?: string
-  payloadSchema?: SchemaObject
+  payloadSchema?: OpenAPIV3.SchemaObject
   payloadSchemaNames?: SchemaNames
   payloadRequired: boolean
 }
 
 export type ResponseSchemaAndNames = {
   responseContentType?: string
-  responseSchema?: SchemaObject
+  responseSchema?: OpenAPIV3.SchemaObject
   responseSchemaNames?: SchemaNames
   statusCode?: string
 }
@@ -125,11 +110,11 @@ export function methodToHttpMethod(method: string): HTTP_METHODS {
   }
 }
 
-export function isOas2(spec: any): spec is Oas2 {
+export function isOas2(spec: any): spec is OpenAPIV2.Document {
   return typeof spec.swagger === 'string' && /^2/.test(spec.swagger)
 }
 
-export function isOas3(spec: any): spec is Oas3 {
+export function isOas3(spec: any): spec is OpenAPIV3.Document {
   return typeof spec.openapi === 'string' && /^3/.test(spec.openapi)
 }
 
@@ -138,10 +123,10 @@ export function isOas3(spec: any): spec is Oas3 {
  * if errors occur.
  */
 export async function getValidOAS3(
-  spec: Oas2 | Oas3,
+  spec: OpenAPIV2.Document | OpenAPIV3.Document,
   oasValidatorOptions: object,
   swagger2OpenAPIOptions: object
-): Promise<Oas3> {
+): Promise<OpenAPIV3.Document> {
   // CASE: translate
   if (isOas2(spec)) {
     preprocessingLog(
@@ -171,7 +156,7 @@ export async function getValidOAS3(
 /**
  * Counts the number of operations in an OAS.
  */
-export function countOperations(oas: Oas3): number {
+export function countOperations(oas: OpenAPIV3.Document): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -194,7 +179,7 @@ export function countOperations(oas: Oas3): number {
 /**
  * Counts the number of operations that translate to queries in an OAS.
  */
-export function countOperationsQuery(oas: Oas3): number {
+export function countOperationsQuery(oas: OpenAPIV3.Document): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -209,7 +194,7 @@ export function countOperationsQuery(oas: Oas3): number {
 /**
  * Counts the number of operations that translate to mutations in an OAS.
  */
-export function countOperationsMutation(oas: Oas3): number {
+export function countOperationsMutation(oas: OpenAPIV3.Document): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -224,7 +209,7 @@ export function countOperationsMutation(oas: Oas3): number {
 /**
  * Counts the number of operations that translate to subscriptions in an OAS.
  */
-export function countOperationsSubscription(oas: Oas3): number {
+export function countOperationsSubscription(oas: OpenAPIV3.Document): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -247,7 +232,7 @@ export function countOperationsSubscription(oas: Oas3): number {
 /**
  * Counts the number of operations with a payload definition in an OAS.
  */
-export function countOperationsWithPayload(oas: Oas3): number {
+export function countOperationsWithPayload(oas: OpenAPIV3.Document): number {
   let numOps = 0
   for (let path in oas.paths) {
     for (let method in oas.paths[path]) {
@@ -265,7 +250,7 @@ export function countOperationsWithPayload(oas: Oas3): number {
 /**
  * Resolves the given reference in the given object.
  */
-export function resolveRef<T = any>(ref: string, oas: Oas3): T {
+export function resolveRef<T = any>(ref: string, oas: OpenAPIV3.Document): T {
   return jsonptr.JsonPointer.get(oas, ref) as T
 }
 
@@ -274,11 +259,11 @@ export function resolveRef<T = any>(ref: string, oas: Oas3): T {
  * parent schema
  */
 export function resolveAllOf<TSource, TContext, TArgs>(
-  schema: SchemaObject | ReferenceObject,
-  references: { [reference: string]: SchemaObject },
+  schema: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
+  references: { [reference: string]: OpenAPIV3.SchemaObject },
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
-): SchemaObject {
+  oas: OpenAPIV3.Document
+): OpenAPIV3.SchemaObject {
   // Dereference schema
   if ('$ref' in schema && typeof schema.$ref === 'string') {
     if (schema.$ref in references) {
@@ -287,16 +272,14 @@ export function resolveAllOf<TSource, TContext, TArgs>(
 
     const reference = schema.$ref
 
-    schema = resolveRef(schema.$ref, oas) as SchemaObject
+    schema = resolveRef(schema.$ref, oas) as OpenAPIV3.SchemaObject
     references[reference] = schema
   }
 
   /**
-   * TODO: Is there a better method to copy the schema?
-   *
    * Copy the schema
    */
-  const collapsedSchema: SchemaObject = JSON.parse(JSON.stringify(schema))
+  const collapsedSchema: OpenAPIV3.SchemaObject = cloneDeep(schema);
 
   // Resolve allOf
   if (Array.isArray(collapsedSchema.allOf)) {
@@ -319,7 +302,8 @@ export function resolveAllOf<TSource, TContext, TArgs>(
             mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
             message:
               `Resolving 'allOf' field in schema '${JSON.stringify(
-                collapsedSchema
+                // collapsedSchema
+                {}
               )}' ` + `results in incompatible schema type.`,
             data,
             log: preprocessingLog
@@ -344,7 +328,8 @@ export function resolveAllOf<TSource, TContext, TArgs>(
                 mitigationType: MitigationTypes.UNRESOLVABLE_SCHEMA,
                 message:
                   `Resolving 'allOf' field in schema '${JSON.stringify(
-                    collapsedSchema
+                    // collapsedSchema
+                    {}
                   )}' ` +
                   `results in incompatible property field '${propertyName}'.`,
                 data,
@@ -396,6 +381,41 @@ export function resolveAllOf<TSource, TContext, TArgs>(
 }
 
 /**
+ * Returns the base URL to use for the given schema.
+ */
+export function getOasBaseUrl(oas: OpenAPIV3.Document): string {
+  // Check for servers:
+  if (!Array.isArray(oas.servers) || oas.servers.length === 0) {
+    throw new Error(
+      `No servers defined'`
+    )
+  }
+
+  // Check for local servers
+  if (Array.isArray(oas.servers) && oas.servers.length > 0) {
+    const url = buildUrl(oas.servers[0])
+
+    if (Array.isArray(oas.servers) && oas.servers.length > 1) {
+      httpLog(`Warning: Randomly selected first server '${url}'`)
+    }
+
+    return url.replace(/\/$/, '')
+  }
+
+  if (Array.isArray(oas.servers) && oas.servers.length > 0) {
+    const url = buildUrl(oas.servers[0])
+
+    if (Array.isArray(oas.servers) && oas.servers.length > 1) {
+      httpLog(`Warning: Randomly selected first server '${url}'`)
+    }
+
+    return url.replace(/\/$/, '')
+  }
+
+  throw new Error('Cannot find a server to call')
+}
+
+/**
  * Returns the base URL to use for the given operation.
  */
 export function getBaseUrl(operation: Operation): string {
@@ -435,7 +455,7 @@ export function getBaseUrl(operation: Operation): string {
 /**
  * Returns the default URL for a given OAS server object.
  */
-function buildUrl(server: ServerObject): string {
+function buildUrl(server: OpenAPIV3.ServerObject): string {
   let url = server.url
 
   // Replace with variable defaults, if applicable
@@ -532,15 +552,15 @@ export function desanitizeObjectKeys(
  * Returns the GraphQL type that the provided schema should be made into
  */
 export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
-  schemaOrRef: SchemaObject | ReferenceObject,
+  schemaOrRef: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: OpenAPIV3.Document
 ): TargetGraphQLType | null {
-  let schema: SchemaObject
+  let schema: OpenAPIV3.SchemaObject
   if ('$ref' in schemaOrRef && typeof schemaOrRef.$ref === 'string') {
     schema = resolveRef(schemaOrRef.$ref, oas)
   } else {
-    schema = schemaOrRef as SchemaObject
+    schema = schemaOrRef as OpenAPIV3.SchemaObject
   }
 
   // TODO: Need to resolve allOf here as well.
@@ -639,19 +659,19 @@ export function getSchemaTargetGraphQLType<TSource, TContext, TArgs>(
  *
  * We currently cannot handle complex cases of oneOf and anyOf
  */
-function hasNestedOneOfUsage(schema: SchemaObject, oas: Oas3): boolean {
+function hasNestedOneOfUsage(schema: OpenAPIV3.SchemaObject, oas: OpenAPIV3.Document): boolean {
   // TODO: Should also consider if the member schema contains type data
   return (
     Array.isArray(schema.oneOf) &&
     schema.oneOf.some((memberSchemaOrRef) => {
-      let memberSchema: SchemaObject
+      let memberSchema: OpenAPIV3.SchemaObject
       if (
         '$ref' in memberSchemaOrRef &&
         typeof memberSchemaOrRef.$ref === 'string'
       ) {
         memberSchema = resolveRef(memberSchemaOrRef.$ref, oas)
       } else {
-        memberSchema = memberSchemaOrRef as SchemaObject
+        memberSchema = memberSchemaOrRef as OpenAPIV3.SchemaObject
       }
 
       return (
@@ -672,12 +692,12 @@ function hasNestedOneOfUsage(schema: SchemaObject, oas: Oas3): boolean {
  *
  * We currently cannot handle complex cases of oneOf and anyOf
  */
-function hasNestedAnyOfUsage(schema: SchemaObject, oas: Oas3): boolean {
+function hasNestedAnyOfUsage(schema: OpenAPIV3.SchemaObject, oas: OpenAPIV3.Document): boolean {
   // TODO: Should also consider if the member schema contains type data
   return (
     Array.isArray(schema.anyOf) &&
     schema.anyOf.some((memberSchemaOrRef) => {
-      let memberSchema: SchemaObject
+      let memberSchema: OpenAPIV3.SchemaObject
 
       if (
         '$ref' in memberSchemaOrRef &&
@@ -685,7 +705,7 @@ function hasNestedAnyOfUsage(schema: SchemaObject, oas: Oas3): boolean {
       ) {
         memberSchema = resolveRef(memberSchemaOrRef.$ref, oas)
       } else {
-        memberSchema = memberSchemaOrRef as SchemaObject
+        memberSchema = memberSchemaOrRef as OpenAPIV3.SchemaObject
       }
 
       return (
@@ -697,9 +717,9 @@ function hasNestedAnyOfUsage(schema: SchemaObject, oas: Oas3): boolean {
 }
 
 function GetAnyOfTargetGraphQLType<TSource, TContext, TArgs>(
-  schema: SchemaObject,
+  schema: OpenAPIV3.SchemaObject,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: OpenAPIV3.Document
 ): TargetGraphQLType {
   // Identify the type of the base schema, meaning ignoring the anyOf
   const schemaWithNoAnyOf = { ...schema }
@@ -760,9 +780,9 @@ function GetAnyOfTargetGraphQLType<TSource, TContext, TArgs>(
 }
 
 function GetOneOfTargetGraphQLType<TSource, TContext, TArgs>(
-  schema: SchemaObject,
+  schema: OpenAPIV3.SchemaObject,
   data: PreprocessingData<TSource, TContext, TArgs>,
-  oas: Oas3
+  oas: OpenAPIV3.Document
 ): TargetGraphQLType {
   // Identify the type of the base schema, meaning ignoring the oneOf
   const schemaWithNoOneOf = { ...schema }
@@ -916,12 +936,12 @@ export function inferResourceNameFromPath(path: string): string {
 export function getRequestSchemaAndNames(
   path: string,
   method: HTTP_METHODS,
-  operation: OperationObject,
-  oas: Oas3
+  operation: OpenAPIV3.OperationObject,
+  oas: OpenAPIV3.Document
 ): RequestSchemaAndNames {
   let payloadContentType: string // randomly selected content-type, prioritizing application/json
-  let requestBodyObject: RequestBodyObject // request object
-  let payloadSchema: SchemaObject // request schema with given content-type
+  let requestBodyObject: OpenAPIV3.RequestBodyObject // request object
+  let payloadSchema: OpenAPIV3.SchemaObject // request schema with given content-type
   let payloadSchemaNames: SchemaNames // dictionary of names
   let payloadRequired = false
 
@@ -931,14 +951,14 @@ export function getRequestSchemaAndNames(
     typeof requestBodyObjectOrRef === 'object' &&
     requestBodyObjectOrRef !== null
   ) {
-    // Resolve reference if applicable. Make sure we have a RequestBodyObject:
+    // Resolve reference if applicable. Make sure we have a OpenAPIV3.RequestBodyObject:
     if (
       '$ref' in requestBodyObjectOrRef &&
       typeof requestBodyObjectOrRef.$ref === 'string'
     ) {
       requestBodyObject = resolveRef(requestBodyObjectOrRef.$ref, oas)
     } else {
-      requestBodyObject = requestBodyObjectOrRef as RequestBodyObject
+      requestBodyObject = requestBodyObjectOrRef as OpenAPIV3.RequestBodyObject
     }
 
     if (typeof requestBodyObject === 'object' && requestBodyObject !== null) {
@@ -949,7 +969,7 @@ export function getRequestSchemaAndNames(
           : false
 
       // Determine content-type
-      const content: MediaTypesObject = requestBodyObject?.content
+      const content: OpenAPIV3.MediaTypeObject = requestBodyObject?.content
       if (
         typeof content === 'object' &&
         content !== null &&
@@ -989,7 +1009,7 @@ export function getRequestSchemaAndNames(
               fromRef = payloadSchemaOrRef.$ref.split('/').pop()
               payloadSchema = resolveRef(payloadSchemaOrRef.$ref, oas)
             } else {
-              payloadSchema = payloadSchemaOrRef as SchemaObject
+              payloadSchema = payloadSchemaOrRef as OpenAPIV3.SchemaObject
             }
           }
 
@@ -1052,14 +1072,14 @@ export function getRequestSchemaAndNames(
 export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
   path: string,
   method: HTTP_METHODS,
-  operation: OperationObject,
-  oas: Oas3,
+  operation: OpenAPIV3.OperationObject,
+  oas: OpenAPIV3.Document,
   data: PreprocessingData<TSource, TContext, TArgs>,
   options: InternalOptions<TSource, TContext, TArgs>
 ): ResponseSchemaAndNames {
   let responseContentType: string // randomly selected content-type, prioritizing application/json
-  let responseObject: ResponseObject // response object
-  let responseSchema: SchemaObject // response schema with given content-type
+  let responseObject: OpenAPIV3.ResponseObject // response object
+  let responseSchema: OpenAPIV3.SchemaObject // response schema with given content-type
   let responseSchemaNames: SchemaNames // dictionary of names
 
   const statusCode = getResponseStatusCode(path, method, operation, oas, data)
@@ -1073,12 +1093,12 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
     ) {
       responseObject = resolveRef(responseObjectOrRef.$ref, oas)
     } else {
-      responseObject = responseObjectOrRef as ResponseObject
+      responseObject = responseObjectOrRef as OpenAPIV3.ResponseObject
     }
 
     // Determine content-type
     if (typeof responseObject === 'object' && responseObject !== null) {
-      const content: MediaTypesObject = responseObject?.content
+      const content: OpenAPIV3.MediaTypeObject = responseObject?.content
       if (
         typeof content === 'object' &&
         content !== null &&
@@ -1111,7 +1131,7 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
             fromRef = responseSchemaOrRef.$ref.split('/').pop()
             responseSchema = resolveRef(responseSchemaOrRef.$ref, oas)
           } else {
-            responseSchema = responseSchemaOrRef as SchemaObject
+            responseSchema = responseSchemaOrRef as OpenAPIV3.SchemaObject
           }
 
           // Determine possible schema names
@@ -1181,8 +1201,8 @@ export function getResponseSchemaAndNames<TSource, TContext, TArgs>(
 export function getResponseStatusCode<TSource, TContext, TArgs>(
   path: string,
   method: string,
-  operation: OperationObject,
-  oas: Oas3,
+  operation: OpenAPIV3.OperationObject,
+  oas: OpenAPIV3.Document,
   data: PreprocessingData<TSource, TContext, TArgs>
 ): string {
   if (typeof operation.responses === 'object' && operation.responses !== null) {
@@ -1223,10 +1243,10 @@ export function getResponseStatusCode<TSource, TContext, TArgs>(
 export function getLinks<TSource, TContext, TArgs>(
   path: string,
   method: HTTP_METHODS,
-  operation: OperationObject,
-  oas: Oas3,
+  operation: OpenAPIV3.OperationObject,
+  oas: OpenAPIV3.Document,
   data: PreprocessingData<TSource, TContext, TArgs>
-): { [key: string]: LinkObject } {
+): { [key: string]: OpenAPIV3.LinkObject } {
   const links = {}
   const statusCode = getResponseStatusCode(path, method, operation, oas, data)
   if (!statusCode) {
@@ -1234,33 +1254,33 @@ export function getLinks<TSource, TContext, TArgs>(
   }
 
   if (typeof operation.responses === 'object') {
-    const responses: ResponsesObject = operation.responses
+    const responses: OpenAPIV3.ResponsesObject = operation.responses
     if (typeof responses[statusCode] === 'object') {
       const responseObjectOrRef = responses[statusCode]
 
-      let response: ResponseObject
+      let response: OpenAPIV3.ResponseObject
       if (
         '$ref' in responseObjectOrRef &&
         typeof responseObjectOrRef.$ref === 'string'
       ) {
         response = resolveRef(responseObjectOrRef.$ref, oas)
       } else {
-        response = responseObjectOrRef as ResponseObject
+        response = responseObjectOrRef as OpenAPIV3.ResponseObject
       }
 
       if (typeof response.links === 'object') {
-        const epLinks: LinksObject = response.links
+        const epLinks: OpenAPIV3.LinkObject = response.links
         for (let linkKey in epLinks) {
           const linkObjectOrRef = epLinks[linkKey]
 
-          let link: LinkObject
+          let link: OpenAPIV3.LinkObject
           if (
             '$ref' in linkObjectOrRef &&
             typeof linkObjectOrRef.$ref === 'string'
           ) {
             link = resolveRef(linkObjectOrRef.$ref, oas)
           } else {
-            link = linkObjectOrRef as LinkObject
+            link = linkObjectOrRef as OpenAPIV3.LinkObject
           }
 
           links[linkKey] = link
@@ -1277,10 +1297,10 @@ export function getLinks<TSource, TContext, TArgs>(
 export function getParameters(
   path: string,
   method: HTTP_METHODS,
-  operation: OperationObject,
-  pathItem: PathItemObject,
-  oas: Oas3
-): ParameterObject[] {
+  operation: OpenAPIV3.OperationObject,
+  pathItem: OpenAPIV3.PathItemObject,
+  oas: OpenAPIV3.Document
+): OpenAPIV3.ParameterObject[] {
   let parameters = []
 
   if (!isHttpMethod(method)) {
@@ -1294,13 +1314,13 @@ export function getParameters(
   // First, consider parameters in Path Item Object:
   const pathParams = pathItem.parameters
   if (Array.isArray(pathParams)) {
-    const pathItemParameters: ParameterObject[] = pathParams.map((p) => {
+    const pathItemParameters: OpenAPIV3.ParameterObject[] = pathParams.map((p) => {
       if ('$ref' in p && typeof p.$ref === 'string') {
         // Here we know we have a parameter object:
-        return resolveRef(p.$ref, oas) as ParameterObject
+        return resolveRef(p.$ref, oas) as OpenAPIV3.ParameterObject
       } else {
         // Here we know we have a parameter object:
-        return p as ParameterObject
+        return p as OpenAPIV3.ParameterObject
       }
     })
     parameters = parameters.concat(pathItemParameters)
@@ -1309,14 +1329,14 @@ export function getParameters(
   // Second, consider parameters in Operation Object:
   const opObjectParameters = operation.parameters
   if (Array.isArray(opObjectParameters)) {
-    const operationParameters: ParameterObject[] = opObjectParameters.map(
+    const operationParameters: OpenAPIV3.ParameterObject[] = opObjectParameters.map(
       (p) => {
         if ('$ref' in p && typeof p.$ref === 'string') {
           // Here we know we have a parameter object:
           return resolveRef(p.$ref, oas)
         } else {
           // Here we know we have a parameter object:
-          return p as ParameterObject
+          return p as OpenAPIV3.ParameterObject
         }
       }
     )
@@ -1333,10 +1353,10 @@ export function getParameters(
  * default.
  */
 export function getServers(
-  operation: OperationObject,
-  pathItem: PathItemObject,
-  oas: Oas3
-): ServerObject[] {
+  operation: OpenAPIV3.OperationObject,
+  pathItem: OpenAPIV3.PathItemObject,
+  oas: OpenAPIV3.Document
+): OpenAPIV3.ServerObject[] {
   let servers = []
   // Global server definitions:
   if (Array.isArray(oas.servers) && oas.servers.length > 0) {
@@ -1355,7 +1375,7 @@ export function getServers(
 
   // Default, in case there is no server:
   if (servers.length === 0) {
-    let server: ServerObject = {
+    let server: OpenAPIV3.ServerObject = {
       url: '/' // TODO: avoid double-slashes
     }
     servers.push(server)
@@ -1369,10 +1389,10 @@ export function getServers(
  * possible references.
  */
 export function getSecuritySchemes(
-  oas: Oas3
-): { [schemeKey: string]: SecuritySchemeObject } {
+  oas: OpenAPIV3.Document
+): { [schemeKey: string]: OpenAPIV3.SecuritySchemeObject } {
   // Collect all security schemes:
-  const securitySchemes: { [schemeKey: string]: SecuritySchemeObject } = {}
+  const securitySchemes: { [schemeKey: string]: OpenAPIV3.SecuritySchemeObject } = {}
   if (
     typeof oas.components === 'object' &&
     typeof oas.components.securitySchemes === 'object'
@@ -1380,16 +1400,16 @@ export function getSecuritySchemes(
     for (let schemeKey in oas.components.securitySchemes) {
       const securitySchemeOrRef = oas.components.securitySchemes[schemeKey]
 
-      // Ensure we have actual SecuritySchemeObject:
+      // Ensure we have actual OpenAPIV3.SecuritySchemeObject:
       if (
         '$ref' in securitySchemeOrRef &&
         typeof securitySchemeOrRef.$ref === 'string'
       ) {
-        // Result of resolution will be SecuritySchemeObject:
+        // Result of resolution will be OpenAPIV3.SecuritySchemeObject:
         securitySchemes[schemeKey] = resolveRef(securitySchemeOrRef.$ref, oas)
       } else {
-        // We already have a SecuritySchemeObject:
-        securitySchemes[schemeKey] = securitySchemeOrRef as SecuritySchemeObject
+        // We already have a OpenAPIV3.SecuritySchemeObject:
+        securitySchemes[schemeKey] = securitySchemeOrRef as OpenAPIV3.SecuritySchemeObject
       }
     }
   }
@@ -1401,14 +1421,14 @@ export function getSecuritySchemes(
  * required by the operation at the given path and method.
  */
 export function getSecurityRequirements(
-  operation: OperationObject,
+  operation: OpenAPIV3.OperationObject,
   securitySchemes: { [key: string]: ProcessedSecurityScheme },
-  oas: Oas3
+  oas: OpenAPIV3.Document
 ): string[] {
   const results: string[] = []
 
   // First, consider global requirements
-  const globalSecurity: SecurityRequirementObject[] = oas.security
+  const globalSecurity: OpenAPIV3.SecurityRequirementObject[] = oas.security
   if (globalSecurity && typeof globalSecurity !== 'undefined') {
     for (let secReq of globalSecurity) {
       for (let schemaKey in secReq) {
@@ -1424,7 +1444,7 @@ export function getSecurityRequirements(
   }
 
   // Second, consider operation requirements
-  const localSecurity: SecurityRequirementObject[] = operation.security
+  const localSecurity: OpenAPIV3.SecurityRequirementObject[] = operation.security
   if (localSecurity && typeof localSecurity !== 'undefined') {
     for (let secReq of localSecurity) {
       for (let schemaKey in secReq) {
