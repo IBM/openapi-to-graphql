@@ -126,7 +126,7 @@ test('Upload completes without any error', async () => {
     }
   })
 
-  const { port: graphqlServerPort, close: closeGraphQLServer } = await new Promise((resolve, reject) => {
+  const { port: graphqlServerPort, close: closeGraphQLServer }: any = await new Promise((resolve, reject) => {
     graphqlServer.listen(function (err) {
       if (err) {
         return reject(err)

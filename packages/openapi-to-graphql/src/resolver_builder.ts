@@ -116,7 +116,7 @@ type OpenAPIToGraphQLSource<TSource, TContext, TArgs> = {
  * that contains subscribe to perform subscription and resolve to execute
  * payload transformation
  */
-export function getSubscribe<TSource, TContext, TArgs>({
+export function getSubscribe<TSource, TContext, TArgs extends object>({
   operation,
   payloadName,
   data,
@@ -377,7 +377,7 @@ function inferLinkArguments<TSource, TContext, TArgs>({
  * If the operation type is Query or Mutation, create and return a resolver
  * function that performs API requests for the given GraphQL query
  */
-export function getResolver<TSource, TContext, TArgs>({
+export function getResolver<TSource, TContext, TArgs extends object>({
   operation,
   argsFromLink = {},
   payloadName,
@@ -904,7 +904,7 @@ export function getResolver<TSource, TContext, TArgs>({
               let arraySaneData = saneData
 
               if ('limit' in args) {
-                const limit = args['limit']
+                const limit = args['limit'] as number
 
                 if (limit >= 0) {
                   arraySaneData = arraySaneData.slice(0, limit)
@@ -1339,7 +1339,7 @@ function graphQLErrorWithExtensions(
  * Replaces the path parameter in the given path with values in the given args.
  * Furthermore adds the query parameters for a request.
  */
-export function extractRequestDataFromArgs<TSource, TContext, TArgs>(
+export function extractRequestDataFromArgs<TSource, TContext, TArgs extends object>(
   path: string,
   parameters: ParameterObject[],
   args: TArgs, // NOTE: argument keys are sanitized!

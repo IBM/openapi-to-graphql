@@ -133,7 +133,7 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification (2 or 3).
  */
-export async function createGraphQLSchema<TSource, TContext, TArgs>(
+export async function createGraphQLSchema<TSource, TContext, TArgs extends object>(
   spec: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options?: Options<TSource, TContext, TArgs>
 ): Promise<Result<TSource, TContext, TArgs>> {
@@ -173,7 +173,7 @@ export async function createGraphQLSchema<TSource, TContext, TArgs>(
 /**
  * Creates a GraphQL interface from the given OpenAPI Specification 3
  */
-export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
+export function translateOpenAPIToGraphQL<TSource, TContext, TArgs extends object>(
   oass: Oas3[],
   {
     strict,
@@ -457,7 +457,7 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs>(
   return { schema, report, data }
 }
 
-function addQueryFields<TSource, TContext, TArgs>({
+function addQueryFields<TSource, TContext, TArgs extends object>({
   authQueryFields,
   queryFields,
   operationId,
@@ -637,7 +637,7 @@ function addQueryFields<TSource, TContext, TArgs>({
   }
 }
 
-function addMutationFields<TSource, TContext, TArgs>({
+function addMutationFields<TSource, TContext, TArgs extends object>({
   authMutationFields,
   mutationFields,
   operationId,
@@ -791,7 +791,7 @@ function addMutationFields<TSource, TContext, TArgs>({
   }
 }
 
-function addSubscriptionFields<TSource, TContext, TArgs>({
+function addSubscriptionFields<TSource, TContext, TArgs extends object>({
   authSubscriptionFields,
   subscriptionFields,
   operationId,
@@ -916,7 +916,7 @@ function addSubscriptionFields<TSource, TContext, TArgs>({
 /**
  * Creates the field object for the given operation.
  */
-function getFieldForOperation<TSource, TContext, TArgs>(
+function getFieldForOperation<TSource, TContext, TArgs extends object>(
   operation: Operation,
   baseUrl: string,
   data: PreprocessingData<TSource, TContext, TArgs>,
