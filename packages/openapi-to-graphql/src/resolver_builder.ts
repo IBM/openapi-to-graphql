@@ -1371,7 +1371,7 @@ export function extractRequestDataFromArgs<TSource, TContext, TArgs extends obje
         // Query parameters
         case 'query':
           // setting param style as form assumes explode is true by default
-          if (param.style === 'form' && typeof args[saneParamName] === 'object') {
+          if (param.style === 'form' && typeof args[saneParamName] === 'object' && args[saneParamName] !== null) {
             if (param.explode === false) {
               qs[param.name] = Object.entries(args[saneParamName]).reduce((acc, val) => {
                 acc += val.join(',')
