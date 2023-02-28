@@ -903,7 +903,7 @@ export function getResolver<TSource, TContext, TArgs extends object>({
             ) {
               let arraySaneData = saneData
 
-              if ('limit' in args) {
+              if ('limit' in args && typeof(args['limit']) === 'number') {
                 const limit = args['limit'] as number
 
                 if (limit >= 0) {
