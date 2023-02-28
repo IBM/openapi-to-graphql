@@ -39,7 +39,7 @@ const translationLog = debug('translation')
  * i.e. inside either rootQueryFields/rootMutationFields or inside
  * rootQueryFields/rootMutationFields for further processing
  */
-export function createAndLoadViewer<TSource, TContext, TArgs>(
+export function createAndLoadViewer<TSource, TContext, TArgs extends object>(
   queryFields: object,
   operationType: GraphQLOperationType,
   data: PreprocessingData<TSource, TContext, TArgs>,
@@ -248,7 +248,7 @@ function getViewerOT<TSource, TContext, TArgs>(
  * Create an object containing an AnyAuth viewer, its resolve function,
  * and its args.
  */
-function getViewerAnyAuthOT<TSource, TContext, TArgs>(
+function getViewerAnyAuthOT<TSource, TContext, TArgs extends object>(
   name: string,
   queryFields: GraphQLFieldConfigMap<any, any>,
   data: PreprocessingData<TSource, TContext, TArgs>,

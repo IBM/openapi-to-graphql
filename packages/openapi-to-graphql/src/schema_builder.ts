@@ -135,7 +135,7 @@ const translationLog = debug('translation')
 /**
  * Creates and returns a GraphQL type for the given JSON schema.
  */
-export function getGraphQLType<TSource, TContext, TArgs>({
+export function getGraphQLType<TSource, TContext, TArgs extends object>({
   def,
   operation,
   data,
@@ -245,7 +245,7 @@ export function getGraphQLType<TSource, TContext, TArgs>({
  *       resolve   // Optional function defining how to obtain this type
  *   })
  */
-function createOrReuseOt<TSource, TContext, TArgs>({
+function createOrReuseOt<TSource, TContext, TArgs extends object>({
   def,
   operation,
   data,
@@ -350,7 +350,7 @@ function createOrReuseOt<TSource, TContext, TArgs>({
 /**
  * Creates a union type or return an existing one, and stores it in data
  */
-function createOrReuseUnion<TSource, TContext, TArgs>({
+function createOrReuseUnion<TSource, TContext, TArgs extends object>({
   def,
   operation,
   data,
@@ -495,7 +495,7 @@ function checkAmbiguousMemberTypes<TSource, TContext, TArgs>(
 /**
  * Creates a list type or returns an existing one, and stores it in data
  */
-function createOrReuseList<TSource, TContext, TArgs>({
+function createOrReuseList<TSource, TContext, TArgs extends object>({
   def,
   operation,
   iteration,
@@ -632,7 +632,7 @@ function createOrReuseEnum<TSource, TContext, TArgs>({
 /**
  * Creates the fields object to be used by an (input) object type
  */
-function createFields<TSource, TContext, TArgs>({
+function createFields<TSource, TContext, TArgs extends object>({
   def,
   links,
   operation,
@@ -1178,7 +1178,7 @@ function skipArg<TSource, TContext, TArgs>(
  *
  * Arguments that are provided via options will be ignored
  */
-export function getArgs<TSource, TContext, TArgs>({
+export function getArgs<TSource, TContext, TArgs extends object>({
   requestPayloadDef,
   parameters,
   operation,
