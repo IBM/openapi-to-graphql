@@ -68,8 +68,39 @@ beforeAll(() => {
 
         subscriptionServer = new SubscriptionServer(
           {
-            execute: (schema: GraphQLSchema, document: DocumentNode) => execute({ schema, document }),
-            subscribe: (schema: GraphQLSchema, document: DocumentNode) => subscribe({ schema, document }),
+            execute: (
+              schema,
+              document,
+              rootValue,
+              contextValue,
+              variableValues,
+              operationName
+            ) =>
+              execute({
+                schema,
+                document,
+                rootValue,
+                contextValue,
+                variableValues,
+                operationName
+              }),
+            subscribe: (
+              schema,
+              document,
+              rootValue,
+              contextValue,
+              variableValues,
+              operationName
+            ) => {
+              return subscribe({
+                schema,
+                document,
+                rootValue,
+                contextValue,
+                variableValues,
+                operationName
+              })
+            },
             schema,
             onConnect: (params, socket, context) => {
               // Add pubsub to subscribe context
