@@ -23,16 +23,17 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Link checker
-        id: lc
-        # You may pin to the exact commit or the version.
-        # uses: peter-evans/link-checker@41c97244bb50a4a1b273d60abf5b5862b09f0c2d
-        uses: peter-evans/link-checker@v1.2.2
+        id: lychee
+        uses: lycheeverse/lychee-action@v1.6.1
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         with:
-          args: -r -v *.md packages/openapi-to-graphql/*.md packages/openapi-to-graphql/test/*.md packages/openapi-to-graphql-cli/*.md
+          args: -v *.md packages/openapi-to-graphql/*.md packages/openapi-to-graphql/test/*.md packages/openapi-to-graphql-cli/*.md
 
       - name: Create issue from file
-        uses: peter-evans/create-issue-from-file@v2
+        if: env.lychee_exit_code != 0
+        uses: peter-evans/create-issue-from-file@v4
         with:
           title: Link checker report
-          content-filepath: ./link-checker/out.md
+          content-filepath: ./lychee/out.md
           labels: report, automated issue
