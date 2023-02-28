@@ -218,7 +218,7 @@ async function getRemoteFileSpec(uri): Promise<Oas3> {
  * @param {object} oas the OAS specification file
  * @param {number} port the port number to listen on on this server
  */
-function startGraphQLServer<TSource, TContext, TArgs>(
+function startGraphQLServer<TSource, TContext, TArgs extends object>(
   oas: Oas3 | Oas2 | (Oas3 | Oas2)[],
   options: Options<TSource, TContext, TArgs>,
   port: number
@@ -241,7 +241,7 @@ function startGraphQLServer<TSource, TContext, TArgs>(
         app.use(
           '/graphql',
           graphqlHTTP({
-            schema: schema,
+            schema,
             graphiql: true
           })
         )
