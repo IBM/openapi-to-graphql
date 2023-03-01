@@ -104,7 +104,7 @@
   },
   "devDependencies": {
     "@types/deep-equal": "^1.0.1",
-    "@types/graphql-upload": "^8.0.7",
+    "@types/graphql-upload": "^15.0.2",
     "@types/jest": "^27.1.5",
     "@types/node": "^16.3.3",
     "@types/url-join": "^4.0.1",
