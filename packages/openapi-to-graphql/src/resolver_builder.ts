@@ -1370,8 +1370,9 @@ export function extractRequestDataFromArgs<TSource, TContext, TArgs extends obje
 
         // Query parameters
         case 'query':
-          // setting param style as form assumes explode is true by default
-          if (param.style === 'form' && typeof args[saneParamName] === 'object') {
+          if (Array.isArray(args[saneParamName]) && param.style === 'form' && param.explode !== false) {
+            qs[param.name] = args[saneParamName].join(',')
+          } else if (param.style === 'form' && typeof args[saneParamName] === 'object') {
             if (param.explode === false) {
               qs[param.name] = Object.entries(args[saneParamName]).reduce((acc, val) => {
                 acc += val.join(',')
@@ -1382,8 +1383,6 @@ export function extractRequestDataFromArgs<TSource, TContext, TArgs extends obje
                 qs[key] = value
               })
             }
-          } else if (Array.isArray(args[saneParamName]) && param.style === 'form' && param.explode !== false) {
-            qs[param.name] = args[saneParamName].join(',')
           } else {
             qs[param.name] = args[saneParamName]
           }
