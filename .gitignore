@@ -7,6 +7,15 @@ packages/openapi-to-graphql/APIs
 # Dependency directories
 node_modules
 
+# Yarn
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
 # Optional npm cache directory
 .npm
 
