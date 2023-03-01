@@ -21,5 +21,6 @@
   "devDependencies": {
     "bob-the-bundler": "^1.4.1",
     "typescript": "^4.3.4"
-  }
+  },
+  "packageManager": "yarn@3.4.1"
 }
