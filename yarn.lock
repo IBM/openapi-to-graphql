@@ -979,15 +979,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/graphql-upload@npm:^8.0.7":
-  version: 8.0.12
-  resolution: "@types/graphql-upload@npm:8.0.12"
+"@types/graphql-upload@npm:^15.0.2":
+  version: 15.0.2
+  resolution: "@types/graphql-upload@npm:15.0.2"
   dependencies:
     "@types/express": "*"
     "@types/koa": "*"
     fs-capacitor: ^8.0.0
     graphql: 0.13.1 - 16
-  checksum: 394d5e05f4d5a205dc53f66670af28de73bc73b0910e68907e6d01348caeeb27478621cfdb238a71668f0cca7347ed362c2f1a68266da4b823707dc4daba92ee
+  checksum: 3e88a03082ce1e1de39b414a096fbd47cf1f97b6027c93cc71a216229bdfb248f54f1afc209e970e1ae3856153c20cf40d458febe348b287be237f62ea84ffc0
   languageName: node
   linkType: hard
 
@@ -4762,14 +4762,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"graphql@npm:0.13.1 - 16":
-  version: 15.8.0
-  resolution: "graphql@npm:15.8.0"
-  checksum: 423325271db8858428641b9aca01699283d1fe5b40ef6d4ac622569ecca927019fce8196208b91dd1d8eb8114f00263fe661d241d0eb40c10e5bfd650f86ec5e
-  languageName: node
-  linkType: hard
-
-"graphql@npm:^16.5.0":
+"graphql@npm:0.13.1 - 16, graphql@npm:^16.5.0":
   version: 16.6.0
   resolution: "graphql@npm:16.6.0"
   checksum: bf1d9e3c1938ce3c1a81e909bd3ead1ae4707c577f91cff1ca2eca474bfbc7873d5d7b942e1e9777ff5a8304421dba57a4b76d7a29eb19de8711cb70e3c2415e
@@ -7439,7 +7432,7 @@ __metadata:
   resolution: "openapi-to-graphql@workspace:packages/openapi-to-graphql"
   dependencies:
     "@types/deep-equal": ^1.0.1
-    "@types/graphql-upload": ^8.0.7
+    "@types/graphql-upload": ^15.0.2
     "@types/jest": ^27.1.5
     "@types/node": ^16.3.3
     "@types/url-join": ^4.0.1
@@ -9946,11 +9939,11 @@ __metadata:
 
 "typescript@patch:typescript@^4.3.4#~builtin<compat/typescript>":
   version: 4.9.5
-  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=ad5954"
+  resolution: "typescript@patch:typescript@npm%3A4.9.5#~builtin<compat/typescript>::version=4.9.5&hash=23ec76"
   bin:
     tsc: bin/tsc
     tsserver: bin/tsserver
-  checksum: 8f6260acc86b56bfdda6004bc53f32ea548f543e8baef7071c8e34d29d292f3e375c8416556c8de10b24deef6933cd1c16a8233dc84a3dd43a13a13265d0faab
+  checksum: ab417a2f398380c90a6cf5a5f74badd17866adf57f1165617d6a551f059c3ba0a3e4da0d147b3ac5681db9ac76a303c5876394b13b3de75fdd5b1eaa06181c9d
   languageName: node
   linkType: hard
 
