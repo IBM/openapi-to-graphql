@@ -58,7 +58,8 @@
     "pretty-quick": "^3.0.2",
     "standard": "^14.3.1",
     "tslint": "^6.1.3",
-    "tslint-config-standard": "^9.0.0"
+    "tslint-config-standard": "^9.0.0",
+    "typescript": "^4.3.4"
   },
   "bin": {
     "openapi-to-graphql": "./dist/index.js"
