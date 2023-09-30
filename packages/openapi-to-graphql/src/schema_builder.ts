@@ -709,7 +709,7 @@ function createFields<TSource, TContext, TArgs extends object>({
         type: requiredProperty
           ? new GraphQLNonNull(objectType as GraphQLOutputType)
           : (objectType as GraphQLOutputType),
-
+        deprecationReason: fieldSchema?.deprecated ? 'No longer supported' : undefined,
         description:
           typeof fieldSchema === 'object' ? fieldSchema.description : null
       }
@@ -1305,6 +1305,7 @@ export function getArgs<TSource, TContext, TArgs extends object>({
 
     args[saneName] = {
       type: paramRequired ? new GraphQLNonNull(type) : type,
+      deprecationReason: parameter.deprecated ? 'No longer supported' : undefined,
       description: parameter.description // Might be undefined
     }
   })
