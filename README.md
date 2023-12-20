@@ -1,3 +1,5 @@
+# Development on OpenAPI-to-GraphQL has paused. [GraphQL Mesh](https://the-guild.dev/graphql/mesh) is maintaining an [OpenAPI/Swagger handler](https://github.com/ardatan/graphql-mesh/tree/39e8e083cdb5b6e0746a9bdab7cc71555fb40220/packages/loaders/openapi), which is fork of OpenAPI-to-GraphQL. Please find them [here](https://the-guild.dev/graphql/mesh/docs/handlers/openapi).
+
 ![GitHub last commit](https://img.shields.io/github/last-commit/ibm/openapi-to-graphql.svg?style=flat)
 [![Join the chat at https://gitter.im/IBM/openapi-to-graphql](https://badges.gitter.im/IBM/openapi-to-graphql.svg?style=flat)](https://gitter.im/IBM/openapi-to-graphql?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
