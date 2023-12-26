@@ -3963,7 +3963,7 @@ onetime@^5.1.0, onetime@^5.1.2:
     openapi-to-graphql "^3.0.0"
 
 openapi-to-graphql@^3.0.0, "openapi-to-graphql@file:/Users/alan/Documents/Work/openapi-to-graphql/packages/openapi-to-graphql":
-  version "3.0.6"
+  version "3.0.7"
   resolved "file:packages/openapi-to-graphql"
   dependencies:
     cross-fetch "^3.1.4"
