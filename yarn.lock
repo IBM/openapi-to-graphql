@@ -3950,7 +3950,7 @@ onetime@^5.1.0, onetime@^5.1.2:
     mimic-fn "^2.1.0"
 
 "openapi-to-graphql-cli@file:/Users/alan/Documents/Work/openapi-to-graphql/packages/openapi-to-graphql-cli":
-  version "3.0.5"
+  version "3.0.6"
   resolved "file:packages/openapi-to-graphql-cli"
   dependencies:
     commander "^6.1.0"
