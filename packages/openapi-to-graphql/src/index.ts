@@ -951,6 +951,8 @@ function getFieldForOperation<TSource, TContext, TArgs extends object>(
     fetch
   })
 
+  const deprecationReason = operation.operation.deprecated ? 'No longer supported' : undefined
+
   // Get resolver and subscribe function for Subscription fields
   if (operation.operationType === GraphQLOperationType.Subscription) {
     const responseSchemaName = operation.responseDefinition
@@ -977,6 +979,7 @@ function getFieldForOperation<TSource, TContext, TArgs extends object>(
       resolve,
       subscribe,
       args,
+      deprecationReason,
       description: operation.description
     }
 
@@ -996,6 +999,7 @@ function getFieldForOperation<TSource, TContext, TArgs extends object>(
       type,
       resolve,
       args,
+      deprecationReason,
       description: operation.description
     }
   }

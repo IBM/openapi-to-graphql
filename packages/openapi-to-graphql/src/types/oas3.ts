@@ -31,6 +31,7 @@ export type SchemaObject = {
   anyOf?: (SchemaObject | ReferenceObject)[]
   oneOf?: (SchemaObject | ReferenceObject)[]
   not?: (SchemaObject | ReferenceObject)[]
+  deprecated?: boolean
 }
 
 export type ReferenceObject = {
