@@ -127,7 +127,10 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
   provideErrorExtensions: true,
   equivalentToMessages: true,
 
-  fetch: crossFetch
+  fetch: crossFetch,
+
+  // Add prefix for each schema generated
+  graphQLSchemaPrefix: ''
 }
 
 /**
@@ -214,7 +217,9 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs extends objec
     provideErrorExtensions,
     equivalentToMessages,
 
-    fetch
+    fetch,
+
+    graphQLSchemaPrefix
   }: InternalOptions<TSource, TContext, TArgs>
 ): Result<TSource, TContext, TArgs> {
   const options = {
@@ -256,7 +261,9 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs extends objec
     provideErrorExtensions,
     equivalentToMessages,
 
-    fetch
+    fetch,
+
+    graphQLSchemaPrefix,
   }
   translationLog(`Options: ${JSON.stringify(options)}`)
 
@@ -383,7 +390,8 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs extends objec
         authQueryFields,
         GraphQLOperationType.Query,
         data,
-        fetch
+        fetch,
+        options
       )
     )
   }
@@ -395,7 +403,8 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs extends objec
         authMutationFields,
         GraphQLOperationType.Mutation,
         data,
-        fetch
+        fetch,
+        options
       )
     )
   }
@@ -407,7 +416,8 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs extends objec
         authSubscriptionFields,
         GraphQLOperationType.Subscription,
         data,
-        fetch
+        fetch,
+        options
       )
     )
   }
@@ -493,7 +503,8 @@ function addQueryFields<TSource, TContext, TArgs extends object>({
     requestOptions,
     fileUploadOptions,
     connectOptions,
-    fetch
+    fetch,
+    options
   )
 
   const saneOperationId = Oas3Tools.sanitize(
@@ -672,7 +683,8 @@ function addMutationFields<TSource, TContext, TArgs extends object>({
     requestOptions,
     fileUploadOptions,
     connectOptions,
-    fetch
+    fetch,
+    options,
   )
 
   const saneOperationId = Oas3Tools.sanitize(
@@ -819,7 +831,8 @@ function addSubscriptionFields<TSource, TContext, TArgs extends object>({
     requestOptions,
     fileUploadOptions,
     connectOptions,
-    fetch
+    fetch,
+    options
   )
 
   const saneOperationId = Oas3Tools.sanitize(
@@ -923,14 +936,16 @@ function getFieldForOperation<TSource, TContext, TArgs extends object>(
   requestOptions: Partial<RequestOptions<TSource, TContext, TArgs>>,
   fileUploadOptions: FileUploadOptions,
   connectOptions: ConnectOptions,
-  fetch: typeof crossFetch
+  fetch: typeof crossFetch,
+  options: InternalOptions<TSource, TContext, TArgs>
 ): GraphQLFieldConfig<TSource, TContext | SubscriptionContext, TArgs> {
   // Create GraphQL Type for response:
   const type = getGraphQLType({
     def: operation.responseDefinition,
     data,
     operation,
-    fetch
+    fetch,
+    options
   }) as GraphQLOutputType
 
   const payloadSchemaName = operation.payloadDefinition
@@ -948,7 +963,8 @@ function getFieldForOperation<TSource, TContext, TArgs extends object>(
     parameters: operation.parameters,
     operation,
     data,
-    fetch
+    fetch,
+    options
   })
 
   // Get resolver and subscribe function for Subscription fields
