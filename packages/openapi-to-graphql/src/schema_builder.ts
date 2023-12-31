@@ -396,13 +396,6 @@ function createOrReuseUnion<TSource, TContext, TArgs extends object>({
       }
     )
 
-    /**
-     * Check for ambiguous member types
-     *
-     * i.e. member types that can be confused with each other.
-     */
-    checkAmbiguousMemberTypes(def, types, data)
-
     def.graphQLType = new GraphQLUnionType({
       name: def.graphQLTypeName,
       description,
@@ -435,6 +428,13 @@ function createOrReuseUnion<TSource, TContext, TArgs extends object>({
         })?.name
       }
     })
+
+    /**
+     * Check for ambiguous member types
+     *
+     * i.e. member types that can be confused with each other.
+     */
+    checkAmbiguousMemberTypes(def, types, data)
 
     return def.graphQLType
   }
