@@ -39,7 +39,7 @@ import * as OASValidator from 'oas-validator'
 import debug from 'debug'
 import { handleWarning, MitigationTypes } from './utils'
 import * as jsonptr from 'json-ptr'
-import * as pluralize from 'pluralize'
+import pluralize from 'pluralize'
 
 // Type definitions & exports:
 export type SchemaNames = {
