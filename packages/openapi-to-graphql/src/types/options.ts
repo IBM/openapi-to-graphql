@@ -93,6 +93,7 @@ export type Options<TSource, TContext, TArgs> = Partial<
 >
 
 export type InternalOptions<TSource, TContext, TArgs> = {
+  graphQLSchemaPrefix: string;
   /*
    * Adhere to the OAS as closely as possible. If set to true, any deviation
    * from the OAS will lead OpenAPI-to-GraphQL to throw.
