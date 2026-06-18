@@ -75,6 +75,26 @@ test('Sanitize object keys when given an array', () => {
   ])
 })
 
+test('Sanitize object keys with exceptions', () => {
+  const obj = [
+    {
+      properties: {
+        5353535353: 'test',
+        '££$£$': 'fine'
+      }
+    }
+  ]
+  const clean = Oas3Tools.sanitizeObjectKeys(obj, Oas3Tools.CaseStyle.camelCase, ["properties"])
+  expect(clean).toEqual([
+    {
+      properties: {
+        5353535353: 'test',
+        '££$£$': 'fine'
+      }
+    }
+  ])
+})
+
 const mapping = {
   productId: 'product-id',
   productName: 'product-name',

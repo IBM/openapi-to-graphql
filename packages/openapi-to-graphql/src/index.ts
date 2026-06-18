@@ -104,6 +104,7 @@ const DEFAULT_OPTIONS: InternalOptions<any, any, any> = {
   genericPayloadArgName: false,
   simpleNames: false,
   simpleEnumValues: false,
+  nonSanitizableObjectKeys: [],
   singularNames: false,
   createSubscriptionsFromCallbacks: false,
 
@@ -188,6 +189,7 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs extends objec
     genericPayloadArgName,
     simpleNames,
     simpleEnumValues,
+    nonSanitizableObjectKeys,
     singularNames,
     createSubscriptionsFromCallbacks,
 
@@ -230,6 +232,7 @@ export function translateOpenAPIToGraphQL<TSource, TContext, TArgs extends objec
     genericPayloadArgName,
     simpleNames,
     simpleEnumValues,
+    nonSanitizableObjectKeys,
     singularNames,
     createSubscriptionsFromCallbacks,
 

@@ -396,3 +396,31 @@ test('Handle no response schema', () => {
     })
   })
 })
+
+/**
+ * Get /testDynamicallyKeyedObject has an object with a key we don't want
+ * to desanitize.
+ */
+test('Properties present', () => {
+  const query = `{
+    dynamicallyKeyedObject{
+      name
+      dynamic
+    }
+  }`
+
+  const options: Options<any, any, any> = {
+    nonSanitizableObjectKeys: ["dynamic"]
+  }
+
+  return openAPIToGraphQL
+    .createGraphQLSchema(oas, options)
+    .then(({ schema, report }) => {
+      return graphql(schema, query).then((result) => {
+        expect(result.data.dynamicallyKeyedObject).toEqual({
+          name: 'Mr Dynamic',
+          dynamic: { 'ぁ': '56', '1234567': 'legit' },
+        })
+      })
+    })
+})

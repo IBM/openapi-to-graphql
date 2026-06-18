@@ -869,7 +869,8 @@ export function getResolver<TSource, TContext, TArgs extends object>({
               responseBody,
               !data.options.simpleNames
                 ? Oas3Tools.CaseStyle.camelCase
-                : Oas3Tools.CaseStyle.simple
+                : Oas3Tools.CaseStyle.simple,
+              data.options.nonSanitizableObjectKeys
             )
 
             // Pass on _openAPIToGraphQL to subsequent resolvers

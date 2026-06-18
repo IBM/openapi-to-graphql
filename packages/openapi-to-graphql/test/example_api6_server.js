@@ -102,6 +102,12 @@ function startServer(PORT) {
     res.send({"nesting1": {"nesting2": 5} })
   })
 
+  app.get('/api/testDynamicallyKeyedObject', (req, res) => {
+    res.send({
+      name: 'Mr Dynamic',
+      dynamic: { 'ぁ': '56', '1234567': 'legit' },
+    })
+  })
 
   return new Promise((resolve) => {
     server = app.listen(PORT, () => {

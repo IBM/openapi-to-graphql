@@ -410,7 +410,24 @@
                 "operationId": "returnNumber",
                 "parameters": {
                   "number": "$response.body#/nesting1/nesting2"
-                }              
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/testDynamicallyKeyedObject": {
+      "get": {
+        "description": "Test object with dynamic keyes that shouldn't be sanitized.",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/dynamicallyKeyedObject"
+                }
               }
             }
           }
@@ -463,6 +480,17 @@
           },
           "nestedDoll": {
             "$ref": "#/components/schemas/russianDoll"
+          }
+        }
+      },
+      "dynamicallyKeyedObject": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "dynamic": {
+            "type": "object"
           }
         }
       }
